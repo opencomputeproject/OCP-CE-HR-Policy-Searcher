@@ -3,47 +3,13 @@
 # =============================================================================
 # Sites that were evaluated but NOT included in the crawler.
 #
-# PURPOSE:
-# - Prevent duplicate research (don't re-evaluate the same sites)
-# - Document why sites were rejected
-# - Note when to reconsider a site
-#
-# HOW TO ADD A REJECTED SITE:
-# 1. Copy the template below
-# 2. Fill in the details
-# 3. Save the file
-#
-# Or use the CLI:
+# To add a site via CLI:
 #   python -m src.main reject-site --url "https://example.gov" --reason "No policy content"
+#
+# Or edit this file directly.
 # =============================================================================
 
 rejected_sites:
-  # ---------------------------------------------------------------------------
-  # TEMPLATE (copy this for new entries)
-  # ---------------------------------------------------------------------------
-  # - url: "https://example.gov/department"
-  #   evaluated_by: "Your Name"
-  #   evaluated_date: "2026-01-05"
-  #   reason: "Brief explanation of why this site was rejected"
-  #   reconsider_if: "Conditions that would make this site worth revisiting"
-  #   replaced_by: "Reference to alternative domain if applicable"
-  #   notes: "Any additional context"
-
-  # ---------------------------------------------------------------------------
-  # REJECTED SITES
-  # ---------------------------------------------------------------------------
-
-  # Example entries (remove or modify as needed):
-
-  # - url: "https://www.europarl.europa.eu"
-  #   evaluated_by: "OCP Heat Reuse Group"
-  #   evaluated_date: "2024-10-31"
-  #   reason: "Parliamentary proceedings, not policy documents"
-  #   reconsider_if: "They add a dedicated policy database section"
-  #   replaced_by: "eur_lex in eu.yaml"
-
-  # - url: "https://old-energy-site.gov"
-  #   evaluated_by: "Ahliana Byrd"
-  #   evaluated_date: "2026-01-05"
-  #   reason: "Site archived - content migrated"
-  #   replaced_by: "energy_gov in us_federal.yaml"
+- url: https://www.bmwk.de/Navigation/EN/Topic/Functions/Liste4_Formular.html
+  evaluated_date: '2026-01-06'
+  reason: No policy content - form page only

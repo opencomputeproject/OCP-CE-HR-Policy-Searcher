@@ -4,9 +4,12 @@
 import argparse
 import asyncio
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 
-from .config.loader import load_settings, get_enabled_domains, ConfigurationError
+import yaml
+
+from .config.loader import load_settings, get_enabled_domains, list_groups, ConfigurationError
 from .crawler.async_crawler import AsyncCrawler
 from .analysis.keywords import KeywordMatcher
 from .analysis.llm.client import ClaudeClient
@@ -17,18 +20,145 @@ from .models.policy import Policy, PolicyType
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Search for heat reuse policies")
+    parser = argparse.ArgumentParser(
+        description="Search for heat reuse policies",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python -m src.main --domains quick --dry-run    # Quick test scan
+  python -m src.main --domains eu                 # Scan all EU domains
+  python -m src.main reject-site --url URL        # Mark a site as rejected
+  python -m src.main list-groups                  # Show available groups
+        """
+    )
+
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+
+    # reject-site subcommand
+    reject_parser = subparsers.add_parser(
+        "reject-site",
+        help="Add a site to rejected_sites.yaml"
+    )
+    reject_parser.add_argument("--url", required=True, help="URL of the rejected site")
+    reject_parser.add_argument("--reason", required=True, help="Reason for rejection")
+    reject_parser.add_argument("--evaluated-by", default=None, help="Your name (optional)")
+    reject_parser.add_argument("--reconsider-if", default=None, help="Conditions to reconsider")
+    reject_parser.add_argument("--replaced-by", default=None, help="Alternative domain ID if applicable")
+
+    # list-groups subcommand
+    subparsers.add_parser("list-groups", help="List available domain groups")
+
+    # list-domains subcommand
+    subparsers.add_parser("list-domains", help="List all configured domains")
+
+    # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
-    parser.add_argument("--domains", default="all",
-                       choices=["all", "eu", "us", "apac",
-                               "nordic", "eu_central", "eu_west", "us_states",
-                               "federal", "leaders", "emerging",
-                               "test", "quick", "sample_nordic", "sample_apac"],
-                       help="Domain group to scan")
+    parser.add_argument("--domains", default="all", help="Domain group to scan (use 'list-groups' to see options)")
     parser.add_argument("--dry-run", action="store_true", help="Don't write to Sheets")
     parser.add_argument("--skip-llm", action="store_true", help="Skip LLM analysis")
     parser.add_argument("--verbose", "-v", action="store_true")
+
     return parser.parse_args()
+
+
+def cmd_reject_site(args) -> int:
+    """Add a site to the rejected sites file."""
+    rejected_file = Path("config/rejected_sites.yaml")
+
+    # Load existing file
+    if rejected_file.exists():
+        with open(rejected_file, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    else:
+        data = {}
+
+    # Initialize rejected_sites list if needed
+    if "rejected_sites" not in data or data["rejected_sites"] is None:
+        data["rejected_sites"] = []
+
+    # Check if URL already exists
+    existing_urls = [site.get("url") for site in data["rejected_sites"] if site]
+    if args.url in existing_urls:
+        print(f"URL already in rejected sites: {args.url}")
+        return 1
+
+    # Create new entry
+    entry = {
+        "url": args.url,
+        "evaluated_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "reason": args.reason,
+    }
+
+    if args.evaluated_by:
+        entry["evaluated_by"] = args.evaluated_by
+    if args.reconsider_if:
+        entry["reconsider_if"] = args.reconsider_if
+    if args.replaced_by:
+        entry["replaced_by"] = args.replaced_by
+
+    # Add to list
+    data["rejected_sites"].append(entry)
+
+    # Write back
+    with open(rejected_file, "w", encoding="utf-8") as f:
+        # Write header comment
+        f.write("# =============================================================================\n")
+        f.write("# REJECTED SITES\n")
+        f.write("# =============================================================================\n")
+        f.write("# Sites that were evaluated but NOT included in the crawler.\n")
+        f.write("#\n")
+        f.write("# To add a site via CLI:\n")
+        f.write('#   python -m src.main reject-site --url "https://example.gov" --reason "No policy content"\n')
+        f.write("#\n")
+        f.write("# Or edit this file directly.\n")
+        f.write("# =============================================================================\n\n")
+
+        # Write YAML content
+        yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+    print(f"Added to rejected sites: {args.url}")
+    print(f"  Reason: {args.reason}")
+    return 0
+
+
+def cmd_list_groups(args) -> int:
+    """List available domain groups."""
+    try:
+        _, domains_config, _ = load_settings()
+        groups = list_groups(domains_config)
+
+        print("\nAvailable domain groups:\n")
+        print(f"  {'Group':<20} {'Description'}")
+        print(f"  {'-'*20} {'-'*50}")
+
+        for name, desc in sorted(groups.items()):
+            print(f"  {name:<20} {desc}")
+
+        print(f"\nUsage: python -m src.main --domains <group_name>")
+        return 0
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+
+
+def cmd_list_domains(args) -> int:
+    """List all configured domains."""
+    try:
+        _, domains_config, _ = load_settings()
+        domains = domains_config.get("domains", [])
+
+        print(f"\nConfigured domains ({len(domains)} total):\n")
+        print(f"  {'ID':<25} {'Enabled':<10} {'Name'}")
+        print(f"  {'-'*25} {'-'*10} {'-'*40}")
+
+        for d in sorted(domains, key=lambda x: x["id"]):
+            enabled = "Yes" if d.get("enabled", True) else "No"
+            print(f"  {d['id']:<25} {enabled:<10} {d['name'][:40]}")
+
+        return 0
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
 
 
 async def run(args) -> int:
@@ -150,8 +280,18 @@ async def run(args) -> int:
 
 def main():
     args = parse_args()
-    code = asyncio.run(run(args))
-    sys.exit(code)
+
+    # Handle subcommands
+    if args.command == "reject-site":
+        sys.exit(cmd_reject_site(args))
+    elif args.command == "list-groups":
+        sys.exit(cmd_list_groups(args))
+    elif args.command == "list-domains":
+        sys.exit(cmd_list_domains(args))
+    else:
+        # Default: run scan
+        code = asyncio.run(run(args))
+        sys.exit(code)
 
 
 if __name__ == "__main__":
