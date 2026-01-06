@@ -211,16 +211,86 @@ python -m src.main estimate-cost --domains all
 
 ---
 
-### 9. Unit Test Suite
+### 9. Email Notifications & Intelligent Alerting
 
-**93 tests** covering critical functionality:
+**Problem:** No way to know when scans complete or fail; no early warning for problems.
+
+**Solution:** Comprehensive notification system with email delivery and intelligent alerting.
+
+**New CLI commands:**
+```bash
+# Test your email configuration
+python -m src.main test-notifications
+
+# View alert history and summary
+python -m src.main alerts
+```
+
+**Notification Types:**
+| Event | Priority | Description |
+|-------|----------|-------------|
+| Scan Complete | Low | Summary of successful scan results |
+| Scan Failed | High | Error details when scan crashes |
+| Budget Warning | Medium | Alert at 80% of monthly budget |
+| Budget Exceeded | Critical | Alert when budget is exceeded |
+| High Error Rate | High | When >30% of pages fail |
+| Cost Spike | Medium | When run costs 2x+ the average |
+| Connection Errors | High | When multiple domains fail |
+| Stuck Process | Critical | When no progress for 30+ minutes |
+
+**Alert Thresholds (configurable in `config/notifications.yaml`):**
+- Error rate warning: 20% (critical at 40%)
+- Success rate minimum: 50%
+- Budget warning: 80% of monthly limit
+- Cost spike: 2x average run cost
+- Stuck detection: 30 minutes without progress
+- Consecutive failures: 5 in a row triggers alert
+
+**Email Features:**
+- SMTP support with TLS encryption
+- HTML and plain text formats
+- Priority-based filtering (only get HIGH+ alerts)
+- Gmail App Password support
+- Microsoft 365 compatible
+
+**Health Monitoring:**
+- Real-time tracking during scans
+- Error rate calculation
+- Consecutive failure detection
+- Per-domain success tracking
+- Automatic alerts when thresholds exceeded
+
+**Example notification email:**
+```
+Subject: OCP Policy Searcher: Scan Completed Successfully
+
+Your policy scan has completed successfully!
+
+Scanned 10 domains and found 5 relevant policies (3 new).
+The scan took 2m 34s and cost approximately $0.1875.
+
+Details:
+  Domains Scanned: 10
+  Policies Found: 5
+  New Policies: 3
+  Duration: 2m 34s
+  Estimated Cost: $0.1875
+```
+
+---
+
+### 10. Unit Test Suite
+
+**155 tests** covering critical functionality:
 
 ```
 tests/unit/
+├── test_alerts.py           # 38 tests
 ├── test_chunking.py         # 31 tests
 ├── test_config_loader.py    # 20 tests
 ├── test_costs.py            # 26 tests
-└── test_keywords.py         # 16 tests
+├── test_keywords.py         # 16 tests
+└── test_notifications.py    # 24 tests
 ```
 
 **Coverage areas:**
@@ -230,6 +300,8 @@ tests/unit/
 - Keyword pattern matching (8 languages)
 - Threshold and relevance checking
 - Cost calculations and budget warnings
+- Email notifications (SMTP, formatting, priority filtering)
+- Alert management (thresholds, health metrics, persistence)
 - Integration with actual config files
 
 **Run tests:**
@@ -238,11 +310,11 @@ pytest -v                    # All tests
 pytest --cov=src             # With coverage
 ```
 
-All 93 tests pass.
+All 155 tests pass.
 
 ---
 
-### 10. Improved Documentation
+### 11. Improved Documentation
 
 **README.md enhancements:**
 
@@ -277,6 +349,11 @@ All 93 tests pass.
 | `tests/unit/test_config_loader.py` | Config loader tests (20 tests) |
 | `tests/unit/test_costs.py` | Cost tracking tests (26 tests) |
 | `tests/unit/test_keywords.py` | Keyword matcher tests (16 tests) |
+| `src/utils/notifications.py` | Email notification system |
+| `src/utils/alerts.py` | Error alerting & health monitoring |
+| `config/notifications.yaml` | Notification configuration |
+| `tests/unit/test_notifications.py` | Notification tests (24 tests) |
+| `tests/unit/test_alerts.py` | Alert tests (38 tests) |
 
 ### Files Modified
 | File | Changes |
@@ -303,9 +380,11 @@ All 93 tests pass.
 | Domain groups | 16 |
 | Supported languages | 8 |
 | Keywords defined | 400+ |
-| Unit tests | 93 |
+| Unit tests | 155 |
 | Test pass rate | 100% |
-| CLI commands | 6 |
+| CLI commands | 8 |
+| Notification types | 9 |
+| Alert types | 7 |
 
 ---
 
@@ -313,12 +392,12 @@ All 93 tests pass.
 
 The following items are planned for future sessions:
 
-1. **Error alerting** - Notifications when scans fail
-2. **Scheduled scans** - GitHub Actions for monthly automated runs
-3. **Web UI** - Simple interface for non-technical users
-4. **Additional regions** - More APAC, South American domains
-5. **Integration tests** - End-to-end testing with mock servers
-6. **Cost dashboards** - Visual charts for cost trends over time
+1. **Scheduled scans** - GitHub Actions for monthly automated runs
+2. **Web UI** - Simple interface for non-technical users
+3. **Additional regions** - More APAC, South American domains
+4. **Integration tests** - End-to-end testing with mock servers
+5. **Cost dashboards** - Visual charts for cost trends over time
+6. **Cost reports** - Aggregate and total costs over user-selected time periods
 
 ---
 
@@ -347,6 +426,12 @@ python -m src.main cost-history
 
 # Estimate cost before a scan
 python -m src.main estimate-cost --domains all
+
+# Test email notifications
+python -m src.main test-notifications
+
+# View alert history
+python -m src.main alerts
 ```
 
 ### Adding a New Domain

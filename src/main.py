@@ -19,6 +19,8 @@ from .models.crawl import PageStatus
 from .models.policy import Policy, PolicyType
 from .utils.chunking import split_into_chunks, get_chunk_by_spec, parse_chunk_spec
 from .utils.costs import CostTracker, estimate_run_cost
+from .utils.notifications import NotificationConfig, NotificationManager
+from .utils.alerts import AlertManager, AlertThresholds, RunHealthMetrics
 
 
 def parse_args():
@@ -68,6 +70,18 @@ Examples:
     estimate_parser.add_argument(
         "--pages-per-domain", type=int, default=50,
         help="Estimated pages per domain (default: 50)"
+    )
+
+    # test-notifications subcommand
+    subparsers.add_parser(
+        "test-notifications",
+        help="Test email notification configuration"
+    )
+
+    # alerts subcommand
+    subparsers.add_parser(
+        "alerts",
+        help="Show current alert status and history"
     )
 
     # Main scan arguments (default command)
@@ -260,6 +274,132 @@ def cmd_estimate_cost(args) -> int:
         return 1
 
 
+def load_notification_config() -> NotificationConfig:
+    """Load notification configuration from config file."""
+    config_path = Path("config/notifications.yaml")
+    if not config_path.exists():
+        return NotificationConfig()
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        email_config = data.get("email", {})
+        prefs = data.get("preferences", {})
+        thresholds = data.get("thresholds", {})
+
+        return NotificationConfig(
+            email_enabled=email_config.get("enabled", False),
+            smtp_host=email_config.get("smtp_host", "smtp.gmail.com"),
+            smtp_port=email_config.get("smtp_port", 587),
+            smtp_username=email_config.get("smtp_username", ""),
+            smtp_password=email_config.get("smtp_password", ""),
+            smtp_use_tls=email_config.get("smtp_use_tls", True),
+            from_email=email_config.get("from_email", ""),
+            to_emails=email_config.get("to_emails", []),
+            notify_on_success=prefs.get("notify_on_success", True),
+            notify_on_error=prefs.get("notify_on_error", True),
+            notify_on_warning=prefs.get("notify_on_warning", True),
+            error_rate_threshold=thresholds.get("error_rate_warning", 0.2),
+            cost_spike_threshold=thresholds.get("cost_spike_multiplier", 2.0),
+            stuck_timeout_minutes=thresholds.get("stuck_timeout_minutes", 30),
+        )
+    except Exception:
+        return NotificationConfig()
+
+
+def load_alert_thresholds() -> AlertThresholds:
+    """Load alert thresholds from config file."""
+    config_path = Path("config/notifications.yaml")
+    if not config_path.exists():
+        return AlertThresholds()
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        thresholds = data.get("thresholds", {})
+        return AlertThresholds.from_dict(thresholds)
+    except Exception:
+        return AlertThresholds()
+
+
+def cmd_test_notifications(args) -> int:
+    """Test notification configuration by sending a test email."""
+    print("\n" + "=" * 60)
+    print("  NOTIFICATION TEST")
+    print("=" * 60 + "\n")
+
+    config = load_notification_config()
+
+    if not config.email_enabled:
+        print("  [!] Email notifications are DISABLED")
+        print("      Edit config/notifications.yaml to enable them")
+        print("")
+        return 1
+
+    print(f"  Email Configuration:")
+    print(f"    SMTP Host:     {config.smtp_host}:{config.smtp_port}")
+    print(f"    From:          {config.from_email or '(not set)'}")
+    print(f"    To:            {', '.join(config.to_emails) or '(not set)'}")
+    print(f"    TLS:           {'Yes' if config.smtp_use_tls else 'No'}")
+    print("")
+
+    if not config.to_emails:
+        print("  [!] No recipient emails configured")
+        print("      Add emails to config/notifications.yaml")
+        return 1
+
+    if not config.smtp_username or not config.smtp_password:
+        print("  [!] SMTP credentials not configured")
+        print("      Set smtp_username and smtp_password in config/notifications.yaml")
+        return 1
+
+    print("  Sending test email...")
+
+    manager = NotificationManager(config)
+    success, message = manager.test_connection()
+
+    if success:
+        print(f"  [OK] {message}")
+        print("")
+        print("=" * 60 + "\n")
+        return 0
+    else:
+        print(f"  [FAILED] {message}")
+        print("")
+        print("=" * 60 + "\n")
+        return 1
+
+
+def cmd_alerts(args) -> int:
+    """Show current alert status and history."""
+    alert_manager = AlertManager(load_alert_thresholds())
+    print(alert_manager.format_summary())
+
+    # Show recent alerts from history
+    history_file = Path("logs/alert_history.json")
+    if history_file.exists():
+        try:
+            import json
+            with open(history_file, "r") as f:
+                history = json.load(f)
+
+            if history:
+                print("  Recent Alerts (last 10):")
+                print("  " + "-" * 56)
+                for alert in history[-10:]:
+                    severity = alert.get("severity", "unknown").upper()
+                    alert_type = alert.get("alert_type", "unknown")
+                    timestamp = alert.get("timestamp", "")[:19]  # Trim to datetime
+                    print(f"  [{severity:8}] {timestamp} - {alert_type}")
+                print("")
+        except Exception:
+            pass
+
+    return 0
+
+
 async def run_batch(
     domains: list,
     settings,
@@ -329,11 +469,25 @@ async def run(args) -> int:
     logger.start_run()
 
     claude_client = None
+    notification_manager = None
+    alert_manager = None
+    health_metrics = None
 
     try:
         # Load config
         logger.section(LogSection.CONFIG)
         settings, domains_config, keywords_config = load_settings()
+
+        # Initialize notification and alert systems
+        notif_config = load_notification_config()
+        if notif_config.email_enabled:
+            notification_manager = NotificationManager(notif_config)
+            logger.info("Notifications: Enabled")
+
+        alert_thresholds = load_alert_thresholds()
+        alert_manager = AlertManager(alert_thresholds)
+        health_metrics = RunHealthMetrics(run_id=run_id)
+        logger.info("Health monitoring: Enabled")
 
         if args.skip_llm:
             settings.analysis.enable_llm_analysis = False
@@ -405,6 +559,33 @@ async def run(args) -> int:
 
             all_crawl_results.extend(crawl_results)
             all_policies.extend(policies)
+
+            # Update health metrics for this batch
+            if health_metrics:
+                for result in crawl_results:
+                    if result.is_success:
+                        health_metrics.record_page_success(result.url)
+                    elif result.is_blocked:
+                        health_metrics.record_page_blocked()
+                    elif result.status == PageStatus.TIMEOUT:
+                        health_metrics.record_page_timeout()
+                    else:
+                        health_metrics.record_page_error(result.url, str(result.status.value))
+
+                # Check for alerts after each batch
+                if alert_manager:
+                    alerts = alert_manager.run_all_checks(health_metrics)
+                    for alert in alerts:
+                        logger.warning(f"ALERT: {alert.message}")
+                        # Send notification if configured
+                        if notification_manager and alert.severity.value in ["error", "critical"]:
+                            notification_manager.notify_high_error_rate(
+                                run_id=run_id,
+                                error_rate=health_metrics.error_rate,
+                                errors=health_metrics.pages_error,
+                                total=health_metrics.pages_attempted,
+                                threshold=alert_thresholds.error_rate_warning,
+                            )
 
             # Output policies for this batch
             if sheets_client and policies:
@@ -479,14 +660,77 @@ async def run(args) -> int:
             warning = cost_tracker.check_budget_warning(monthly_budget=50.0)
             if warning:
                 logger.warning(warning)
+                # Send budget notification
+                if notification_manager:
+                    current_cost = cost_tracker.history.get_cost_since(30)
+                    notification_manager.notify_budget_warning(
+                        current_cost=current_cost,
+                        budget=50.0,
+                        percentage=(current_cost / 50.0) * 100,
+                    )
+
+            # Check for cost spike
+            if alert_manager and len(cost_tracker.history.runs) > 1:
+                recent_costs = [r.total_cost_usd for r in cost_tracker.history.runs[:-1]]
+                if recent_costs:
+                    avg_cost = sum(recent_costs) / len(recent_costs)
+                    if avg_cost > 0 and stats.estimated_cost_usd > avg_cost * alert_thresholds.cost_spike_multiplier:
+                        alert = alert_manager.check_cost_spike(
+                            current_cost=stats.estimated_cost_usd,
+                            average_cost=avg_cost,
+                            run_id=run_id,
+                        )
+                        if alert:
+                            logger.warning(f"ALERT: {alert.message}")
+                            if notification_manager:
+                                notification_manager.notify_cost_spike(
+                                    run_id=run_id,
+                                    current_cost=stats.estimated_cost_usd,
+                                    average_cost=avg_cost,
+                                    multiplier=stats.estimated_cost_usd / avg_cost,
+                                )
+
+        # Check if no policies found
+        if len(all_policies) == 0 and stats.domains_scanned > 0:
+            if notification_manager:
+                notification_manager.notify_no_policies(
+                    run_id=run_id,
+                    domains_scanned=stats.domains_scanned,
+                    pages_crawled=stats.pages_crawled,
+                )
+
+        # Send success notification
+        if notification_manager:
+            notification_manager.notify_run_complete(
+                run_id=run_id,
+                domains_scanned=stats.domains_scanned,
+                policies_found=stats.policies_found,
+                policies_new=stats.policies_new,
+                duration_seconds=stats.duration_seconds,
+                cost_usd=stats.estimated_cost_usd,
+            )
 
         return 0
 
     except ConfigurationError as e:
         logger.error(f"Config error: {e}")
+        # Send failure notification
+        if notification_manager:
+            notification_manager.notify_run_failed(
+                run_id=run_id,
+                error_message=str(e),
+                error_type="ConfigurationError",
+            )
         return 1
     except Exception as e:
         logger.error(f"Error: {e}")
+        # Send failure notification
+        if notification_manager:
+            notification_manager.notify_run_failed(
+                run_id=run_id,
+                error_message=str(e),
+                error_type=type(e).__name__,
+            )
         return 1
     finally:
         if claude_client:
@@ -507,6 +751,10 @@ def main():
         sys.exit(cmd_cost_history(args))
     elif args.command == "estimate-cost":
         sys.exit(cmd_estimate_cost(args))
+    elif args.command == "test-notifications":
+        sys.exit(cmd_test_notifications(args))
+    elif args.command == "alerts":
+        sys.exit(cmd_alerts(args))
     else:
         # Default: run scan
         code = asyncio.run(run(args))

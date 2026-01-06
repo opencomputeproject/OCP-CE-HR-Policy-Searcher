@@ -17,6 +17,24 @@ from .costs import (
     estimate_run_cost,
 )
 
+from .notifications import (
+    NotificationType,
+    NotificationPriority,
+    NotificationConfig,
+    Notification,
+    EmailNotifier,
+    NotificationManager,
+)
+
+from .alerts import (
+    AlertType,
+    AlertSeverity,
+    Alert,
+    AlertThresholds,
+    RunHealthMetrics,
+    AlertManager,
+)
+
 __all__ = [
     # Chunking
     "ChunkInfo",
@@ -31,4 +49,18 @@ __all__ = [
     "CostHistory",
     "CostTracker",
     "estimate_run_cost",
+    # Notifications
+    "NotificationType",
+    "NotificationPriority",
+    "NotificationConfig",
+    "Notification",
+    "EmailNotifier",
+    "NotificationManager",
+    # Alerts
+    "AlertType",
+    "AlertSeverity",
+    "Alert",
+    "AlertThresholds",
+    "RunHealthMetrics",
+    "AlertManager",
 ]

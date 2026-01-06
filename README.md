@@ -421,6 +421,188 @@ Cost history is stored in `logs/cost_history.json` and persists across runs. Eac
 - Total cost
 - Domains scanned and policies found
 
+### Email Notifications & Alerts
+
+Stay informed about your scans with comprehensive email notifications and intelligent alerting.
+
+#### Why Notifications Matter
+
+Running automated scans means you need to know when:
+- A scan completes successfully (with results summary)
+- Something goes wrong (errors, failures, stuck processes)
+- Costs are getting high (budget warnings)
+- Performance degrades (high error rates, connection issues)
+
+The notification system handles all of this automatically, so you can run scans with confidence.
+
+#### Setting Up Email Notifications
+
+1. **Edit the configuration file:**
+```bash
+# Open config/notifications.yaml in your editor
+```
+
+2. **Configure SMTP settings (Gmail example):**
+```yaml
+email:
+  enabled: true
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  smtp_use_tls: true
+  smtp_username: "your.email@gmail.com"
+  smtp_password: "your-app-password"  # NOT your regular password!
+  from_email: "your.email@gmail.com"
+  to_emails:
+    - "alerts@yourteam.com"
+    - "you@example.com"
+```
+
+> **Gmail Users:** You need an "App Password", not your regular password.
+> Go to https://myaccount.google.com/apppasswords to generate one.
+
+3. **Test your configuration:**
+```bash
+python -m src.main test-notifications
+```
+
+**Output:**
+```
+============================================================
+  NOTIFICATION TEST
+============================================================
+
+  Email Configuration:
+    SMTP Host:     smtp.gmail.com:587
+    From:          your.email@gmail.com
+    To:            alerts@yourteam.com
+    TLS:           Yes
+
+  Sending test email...
+  [OK] Test email sent to alerts@yourteam.com
+
+============================================================
+```
+
+#### What Triggers Notifications
+
+| Event | Priority | When It's Sent |
+|-------|----------|----------------|
+| **Scan Complete** | Low | Every successful scan (optional) |
+| **Scan Failed** | High | Any unrecoverable error |
+| **Budget Warning** | Medium | When 80% of monthly budget is used |
+| **Budget Exceeded** | Critical | When budget is exceeded |
+| **High Error Rate** | High | When >30% of pages fail |
+| **Cost Spike** | Medium | When run costs 2x+ the average |
+| **No Policies Found** | Medium | When a scan finds nothing |
+| **Connection Errors** | High | When multiple domains fail |
+
+#### Customizing Alert Thresholds
+
+Fine-tune when alerts trigger in `config/notifications.yaml`:
+
+```yaml
+thresholds:
+  # Error rate thresholds
+  error_rate_warning: 0.2      # Alert at 20% error rate
+  error_rate_critical: 0.4     # Critical at 40% error rate
+
+  # Budget thresholds
+  budget_warning_percent: 0.8  # Warn at 80% of budget
+  budget_critical_percent: 1.0 # Critical at 100%
+
+  # Cost spike detection
+  cost_spike_multiplier: 2.0   # Alert if cost > 2x average
+
+  # Stuck process detection
+  stuck_timeout_minutes: 30    # Alert if no progress for 30min
+```
+
+#### Filtering Notifications
+
+Don't want every notification? Configure what you receive:
+
+```yaml
+preferences:
+  notify_on_success: true   # Get notified on successful scans
+  notify_on_error: true     # Get notified on failures
+  notify_on_warning: true   # Get notified on warnings
+
+  # Minimum priority to send (low, medium, high, critical)
+  min_priority: "medium"    # Only medium+ priority notifications
+```
+
+**Priority Levels:**
+- **Low**: Informational (scan complete)
+- **Medium**: Warnings (budget approaching, cost spike)
+- **High**: Errors (high error rate, failures)
+- **Critical**: System failures (budget exceeded, stuck process)
+
+#### Viewing Alert History
+
+```bash
+python -m src.main alerts
+```
+
+**Output:**
+```
+============================================================
+  ALERT SUMMARY
+============================================================
+
+  Active Alerts: 2
+
+  By Severity:
+    WARNING: 1
+    ERROR: 1
+
+  By Type:
+    high_error_rate: 1
+    budget_warning: 1
+
+============================================================
+
+  Recent Alerts (last 10):
+  ----------------------------------------------------------
+  [WARNING ] 2026-01-06T10:30:00 - budget_warning
+  [ERROR   ] 2026-01-06T09:15:00 - high_error_rate
+  [INFO    ] 2026-01-05T14:00:00 - run_complete
+```
+
+#### Email Examples
+
+**Success Notification:**
+```
+Subject: OCP Policy Searcher: Scan Completed Successfully
+
+Your policy scan has completed successfully!
+
+Scanned 10 domains and found 5 relevant policies (3 new).
+
+The scan took 2m 34s and cost approximately $0.1875.
+
+Details:
+  Domains Scanned: 10
+  Policies Found: 5
+  New Policies: 3
+  Duration: 2m 34s
+  Estimated Cost: $0.1875
+```
+
+**Error Notification:**
+```
+Subject: [ERROR] OCP Policy Searcher: High Error Rate Detected
+
+Your scan is experiencing a high error rate.
+
+Error Rate: 35% (35/100 pages)
+Threshold: 30%
+
+This could indicate:
+- Network connectivity issues
+- Target sites blocking requests
+- Rate limiting being applied
+```
+
 ## Configuration
 
 ### File Structure
@@ -431,6 +613,7 @@ config/
 ├── keywords.yaml          # Search terms in 8 languages
 ├── groups.yaml            # Domain groups (you can edit this!)
 ├── rejected_sites.yaml    # Sites evaluated but not useful
+├── notifications.yaml     # Email & alert configuration
 └── domains/               # Domain definitions by region
     ├── _template.yaml     # Template for adding new domains
     ├── eu.yaml            # European Union
@@ -641,10 +824,12 @@ pytest tests/unit/test_config_loader.py::TestGetEnabledDomains -v
 ```
 tests/
 ├── unit/
+│   ├── test_alerts.py           # 38 tests - Error alerting
 │   ├── test_chunking.py         # 31 tests - Domain chunking
 │   ├── test_config_loader.py    # 20 tests - Configuration loading
 │   ├── test_costs.py            # 26 tests - Cost tracking
-│   └── test_keywords.py         # 16 tests - Keyword matching
+│   ├── test_keywords.py         # 16 tests - Keyword matching
+│   └── test_notifications.py    # 24 tests - Email notifications
 └── integration/                  # (future integration tests)
 ```
 
@@ -678,6 +863,24 @@ tests/
 - `TestCostTracker` — Persistence, budget warnings, file loading
 - `TestEstimateRunCost` — Cost estimation with different parameters
 - `TestIntegration` — Full workflow with multiple runs
+
+**Alert Tests** (`test_alerts.py`):
+- `TestAlertType` — Alert type enumeration and all expected types
+- `TestAlertSeverity` — Severity levels from INFO to CRITICAL
+- `TestAlert` — Alert creation, JSON serialization/deserialization
+- `TestAlertThresholds` — Threshold configuration and custom values
+- `TestRunHealthMetrics` — Health tracking, success/error recording, error rates
+- `TestAlertManager` — Error rate checks, budget checks, cost spikes, stuck processes
+- `TestAlertManagerCustomThresholds` — Custom threshold configuration
+- `TestAlertPersistence` — Alert loading/saving to files
+
+**Notification Tests** (`test_notifications.py`):
+- `TestNotificationType` — Notification type enumeration
+- `TestNotificationPriority` — Priority level comparison
+- `TestNotificationConfig` — Configuration loading, defaults, validation
+- `TestNotification` — Notification creation and formatting
+- `TestEmailNotifier` — SMTP connection, email formatting, TLS support
+- `TestNotificationManager` — Priority filtering, notification dispatch
 
 ### Running Tests Before Commits
 

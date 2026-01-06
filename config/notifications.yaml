@@ -1,0 +1,166 @@
+# =============================================================================
+# NOTIFICATION SETTINGS
+# =============================================================================
+# Configure email notifications and alert thresholds.
+# For email, you'll need SMTP credentials (e.g., Gmail app password).
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# EMAIL CONFIGURATION
+# -----------------------------------------------------------------------------
+email:
+  # Enable/disable email notifications
+  enabled: false
+
+  # SMTP server settings
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  smtp_use_tls: true
+
+  # SMTP authentication
+  # For Gmail, use an App Password: https://support.google.com/accounts/answer/185833
+  # These can also be set via environment variables:
+  #   POLICYSEARCH__NOTIFICATIONS__SMTP_USERNAME
+  #   POLICYSEARCH__NOTIFICATIONS__SMTP_PASSWORD
+  smtp_username: ""
+  smtp_password: ""
+
+  # Sender email address
+  from_email: ""
+
+  # Recipient email addresses (list)
+  # Add one email per line with a dash prefix
+  to_emails: []
+  # Example:
+  # to_emails:
+  #   - team-lead@example.com
+  #   - alerts@example.com
+
+# -----------------------------------------------------------------------------
+# NOTIFICATION PREFERENCES
+# -----------------------------------------------------------------------------
+preferences:
+  # What events trigger notifications
+  notify_on_success: true      # Scan completed successfully
+  notify_on_error: true        # Scan failed or had critical errors
+  notify_on_warning: true      # Non-critical issues detected
+
+  # Minimum priority level to send notifications
+  # Options: low, medium, high, critical
+  # - low: All notifications (including success)
+  # - medium: Warnings and above
+  # - high: Errors and above
+  # - critical: Only critical failures
+  min_priority: "low"
+
+# -----------------------------------------------------------------------------
+# ALERT THRESHOLDS
+# -----------------------------------------------------------------------------
+# These thresholds control when automatic alerts are triggered.
+# Adjust based on your typical scan patterns.
+thresholds:
+  # Error rate thresholds (percentage of pages that fail)
+  # warning: Alert as WARNING when error rate exceeds this
+  # critical: Alert as CRITICAL when error rate exceeds this
+  error_rate_warning: 0.2      # 20%
+  error_rate_critical: 0.4     # 40%
+
+  # Success rate thresholds (percentage of pages that succeed)
+  # Warning when success rate falls below these values
+  success_rate_warning: 0.6    # 60%
+  success_rate_critical: 0.3   # 30%
+
+  # Budget thresholds (percentage of monthly budget used)
+  # Set monthly_budget_usd in the main settings or here
+  budget_warning_percent: 0.8  # Warn at 80%
+  budget_critical_percent: 1.0 # Critical at 100%
+
+  # Cost spike detection
+  # Alert if a single run costs more than this multiple of average
+  cost_spike_multiplier: 2.0   # 2x average cost
+
+  # Stuck process detection
+  # Alert if no progress (page crawled) for this many minutes
+  stuck_timeout_minutes: 30
+
+  # Retry thresholds
+  # Alert if retries are excessive
+  max_retries_per_domain: 10
+  retry_rate_warning: 0.3      # 30% of requests need retries
+
+  # Connection failure thresholds
+  connection_failure_threshold: 5   # Consecutive failures
+  domains_failing_threshold: 0.5    # 50% of domains fail
+
+  # Minimum pages before calculating rates
+  # Prevents false alerts on small samples
+  min_pages_for_rate: 10
+
+# -----------------------------------------------------------------------------
+# ALERT TYPES
+# -----------------------------------------------------------------------------
+# Enable/disable specific alert types
+# Set to false to suppress certain alerts
+alert_types:
+  high_error_rate: true
+  low_success_rate: true
+  stuck_process: true
+  budget_warning: true
+  budget_exceeded: true
+  cost_spike: true
+  no_policies: true
+  connection_failures: true
+  excessive_retries: true
+  rate_limited: true
+
+# =============================================================================
+# EXAMPLE CONFIGURATIONS
+# =============================================================================
+#
+# Gmail Setup:
+# ------------
+# 1. Enable 2-factor authentication on your Gmail account
+# 2. Go to https://myaccount.google.com/apppasswords
+# 3. Generate an app password for "Mail"
+# 4. Use your Gmail address as smtp_username
+# 5. Use the generated app password as smtp_password
+#
+# email:
+#   enabled: true
+#   smtp_host: "smtp.gmail.com"
+#   smtp_port: 587
+#   smtp_use_tls: true
+#   smtp_username: "your.email@gmail.com"
+#   smtp_password: "your-app-password"
+#   from_email: "your.email@gmail.com"
+#   to_emails:
+#     - "recipient@example.com"
+#
+# -----------------------------------------------------------------------------
+#
+# Microsoft 365 / Outlook Setup:
+# ------------------------------
+# email:
+#   enabled: true
+#   smtp_host: "smtp.office365.com"
+#   smtp_port: 587
+#   smtp_use_tls: true
+#   smtp_username: "your.email@company.com"
+#   smtp_password: "your-password"
+#   from_email: "your.email@company.com"
+#   to_emails:
+#     - "recipient@example.com"
+#
+# -----------------------------------------------------------------------------
+#
+# Only Critical Alerts:
+# --------------------
+# If you only want to be notified of serious issues:
+#
+# preferences:
+#   notify_on_success: false
+#   notify_on_warning: false
+#   notify_on_error: true
+#   min_priority: "high"
+#
+# =============================================================================
