@@ -29,6 +29,10 @@ class ClaudeClient:
     def __init__(self, api_key: str, model: str = "claude-sonnet-4-20250514"):
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
         self.model = model
+        # Track usage stats
+        self.call_count = 0
+        self.tokens_input = 0
+        self.tokens_output = 0
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
     async def analyze_policy(
@@ -49,6 +53,12 @@ class ClaudeClient:
             temperature=0.0,
             messages=[{"role": "user", "content": prompt}],
         )
+
+        # Track usage
+        self.call_count += 1
+        if hasattr(response, 'usage'):
+            self.tokens_input += response.usage.input_tokens
+            self.tokens_output += response.usage.output_tokens
 
         text = response.content[0].text
 

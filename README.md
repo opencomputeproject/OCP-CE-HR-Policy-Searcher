@@ -155,6 +155,9 @@ python -m src.main [OPTIONS]
 - `--dry-run` - Don't write to Google Sheets (testing mode)
 - `--skip-llm` - Use keyword matching only (no Claude API calls)
 - `--verbose` - Enable verbose logging
+- `--chunk-size N` - Auto-chunk: process N domains at a time (see Chunking below)
+- `--chunk N/M` - Manual chunk: run only chunk N of M total
+- `--chunk-delay SEC` - Seconds to pause between chunks (default: 30)
 
 **Available Domain Groups:**
 
@@ -197,6 +200,226 @@ python -m src.main --domains quick --dry-run
 # Countries with most advanced policies
 python -m src.main --domains leaders
 ```
+
+### Chunking (For Large Scans)
+
+When scanning many domains, you can split the work into smaller **chunks** to:
+- Avoid long-running processes that might timeout
+- Respect API rate limits with pauses between batches
+- Make it easier to retry if something fails
+- Stay within GitHub Actions time limits
+
+#### Auto-Chunking (Recommended)
+
+Let the tool automatically split domains into batches:
+
+```bash
+# Scan all 29 domains in batches of 5
+# Pauses 30 seconds between each batch
+python -m src.main --domains all --chunk-size 5
+
+# Scan EU domains in batches of 3, with 60-second pauses
+python -m src.main --domains eu --chunk-size 3 --chunk-delay 60
+```
+
+**What happens:**
+```
+============================================================
+  BATCH 1/6
+  Domains: bmwk_de, energy_gov, ec_europa, energistyrelsen_dk, minenv_fi
+============================================================
+
+  [10:30:15] Crawling bmwk_de...
+  [10:31:45] Crawling energy_gov...
+  ...
+
+Batch 1/6 complete. Pausing 30s before next batch...
+
+============================================================
+  BATCH 2/6
+  Domains: rvo_nl, energimyndigheten_se, enova_no...
+============================================================
+  ...
+```
+
+#### Manual Chunking (For Retries or CI/CD)
+
+Run a specific chunk manually - useful for retrying failed batches or parallel CI jobs:
+
+```bash
+# Run only chunk 2 of 4
+python -m src.main --domains all --chunk 2/4
+
+# Retry just the third batch
+python -m src.main --domains eu --chunk 3/5
+```
+
+**How chunks are split:**
+| Domains | Chunk | What runs |
+|---------|-------|-----------|
+| 29 total | `--chunk 1/4` | Domains 1-8 |
+| 29 total | `--chunk 2/4` | Domains 9-16 |
+| 29 total | `--chunk 3/4` | Domains 17-22 |
+| 29 total | `--chunk 4/4` | Domains 23-29 |
+
+#### GitHub Actions Example
+
+Run chunks in parallel for faster monthly scans:
+
+```yaml
+jobs:
+  scan:
+    strategy:
+      matrix:
+        chunk: ["1/4", "2/4", "3/4", "4/4"]
+      fail-fast: false  # Continue others if one fails
+    steps:
+      - run: python -m src.main --domains all --chunk ${{ matrix.chunk }}
+```
+
+### Run Summary
+
+When a scan completes, you'll see a formatted summary showing exactly what happened:
+
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              RUN COMPLETE                                     ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Duration: 2m 34s                                                            ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  CRAWL STATS                                                                 ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  Domains scanned:     7                                                      ║
+║  Pages crawled:      45                                                      ║
+║  ├─ Success:         38 (84%)                                                ║
+║  ├─ Blocked:          4                                                      ║
+║  └─ Errors:           3                                                      ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  POLICY STATS                                                                ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  Keywords matched:   12                                                      ║
+║  Policies found:      5                                                      ║
+║  ├─ New:              3  ← added to Sheets                                   ║
+║  └─ Duplicates:       2  ← already existed                                   ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  LLM STATS                                                                   ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  API calls:          12                                                      ║
+║  Tokens (in/out):    45,230 / 3,456                                          ║
+║  Estimated cost:     $0.19                                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+```
+
+**What the stats mean:**
+
+| Stat | Description |
+|------|-------------|
+| **Domains scanned** | Number of government websites visited |
+| **Pages crawled** | Total pages processed |
+| **Success** | Pages successfully read and analyzed |
+| **Blocked** | Pages with paywalls, CAPTCHAs, or login requirements |
+| **Errors** | Pages that failed (timeout, server error, etc.) |
+| **Keywords matched** | Pages that passed keyword filtering |
+| **Policies found** | Pages identified as relevant policies |
+| **New** | Policies added to Google Sheets (not duplicates) |
+| **Duplicates** | Policies already in Sheets from previous runs |
+| **API calls** | Number of Claude API requests made |
+| **Tokens** | Input/output tokens used (for billing reference) |
+| **Estimated cost** | Approximate cost based on Claude Sonnet pricing |
+
+### Cost Monitoring
+
+The tool tracks Claude API costs across all runs, helping you monitor usage and stay within budget.
+
+#### View Cost History
+
+```bash
+# Show cumulative cost history
+python -m src.main cost-history
+```
+
+**Output:**
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              COST HISTORY                                     ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Total runs:           12                                                     ║
+║  Total API calls:     156                                                     ║
+║  Total tokens:        2,340,500 in / 198,450 out                             ║
+║  Total cost:          $10.04                                                  ║
+║  30-day cost:         $8.25                                                   ║
+║  7-day cost:          $2.15                                                   ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  RECENT RUNS                                                                  ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  2026-01-05 14:30  run_20260105_143022  $1.25  (nordic, 5 policies)          ║
+║  2026-01-04 09:15  run_20260104_091533  $0.90  (eu_central, 3 policies)      ║
+║  2026-01-03 16:45  run_20260103_164512  $0.45  (quick, 1 policy)             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+```
+
+#### Estimate Costs Before Running
+
+Plan your scans by estimating costs beforehand:
+
+```bash
+# Estimate cost for scanning all domains
+python -m src.main estimate-cost --domains all
+
+# Estimate with custom parameters
+python -m src.main estimate-cost --domains eu --pages-per-domain 100
+```
+
+**Output:**
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              COST ESTIMATE                                    ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Domains:              29                                                     ║
+║  Est. pages:          1,450                                                   ║
+║  Est. analyzed:         145  (10% pass keyword filter)                       ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Est. input tokens:   580,000                                                 ║
+║  Est. output tokens:   72,500                                                 ║
+║  Est. cost:           $2.83                                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+```
+
+#### Budget Warnings
+
+The tool automatically warns you when approaching or exceeding your monthly budget:
+
+- **Warning at 80%**: "Budget warning: $40.50 of $50 used (81%)"
+- **Alert at 100%**: "BUDGET EXCEEDED: $52.30 of $50 used (105%)"
+
+Budget is configured in `config/settings.yaml`:
+
+```yaml
+costs:
+  monthly_budget_usd: 50.0    # Set to null to disable warnings
+  warn_threshold: 0.8         # Warn at 80% of budget
+```
+
+#### Model Pricing
+
+Costs are calculated based on current Claude API pricing:
+
+| Model | Input (per 1M tokens) | Output (per 1M tokens) |
+|-------|----------------------|------------------------|
+| Claude Sonnet 4 | $3.00 | $15.00 |
+| Claude Haiku 3.5 | $0.80 | $4.00 |
+| Claude Opus 3 | $15.00 | $75.00 |
+
+The default model (Claude Sonnet) provides the best balance of cost and accuracy for policy analysis.
+
+#### Cost History Storage
+
+Cost history is stored in `logs/cost_history.json` and persists across runs. Each run record includes:
+- Timestamp and run ID
+- Model used
+- Token counts (input/output)
+- Total cost
+- Domains scanned and policies found
 
 ## Configuration
 
@@ -394,15 +617,78 @@ Each run produces:
 
 ### Running Tests
 
+The project includes comprehensive unit tests covering configuration loading and keyword matching.
+
 ```bash
 # Run all tests
 pytest
 
-# Run with coverage
+# Run with verbose output (recommended)
+pytest -v
+
+# Run with coverage report
 pytest --cov=src --cov-report=html
 
 # Run specific test file
 pytest tests/unit/test_keywords.py -v
+
+# Run a specific test class
+pytest tests/unit/test_config_loader.py::TestGetEnabledDomains -v
+```
+
+### Test Structure
+
+```
+tests/
+├── unit/
+│   ├── test_chunking.py         # 31 tests - Domain chunking
+│   ├── test_config_loader.py    # 20 tests - Configuration loading
+│   ├── test_costs.py            # 26 tests - Cost tracking
+│   └── test_keywords.py         # 16 tests - Keyword matching
+└── integration/                  # (future integration tests)
+```
+
+### Test Coverage
+
+**Chunking Tests** (`test_chunking.py`):
+- `TestParseChunkSpec` — Parsing "N/M" format, error handling
+- `TestSplitIntoChunks` — Even/uneven splits, edge cases
+- `TestGetChunkBySpec` — Domain distribution, order preservation
+- `TestCalculateChunks` — Auto vs manual chunking logic
+- `TestChunkInfo` — Dataclass properties and formatting
+
+**Configuration Loader Tests** (`test_config_loader.py`):
+- `TestLoadYaml` — Loading YAML files, handling missing/empty files
+- `TestLoadDomainsDirectory` — Merging multiple domain files, skipping templates
+- `TestGetEnabledDomains` — Filtering by group, handling disabled domains
+- `TestListGroups` — Group listing with descriptions
+- `TestListDomains` — Domain listing with enabled status
+- `TestLoadSettingsIntegration` — Full integration with actual config files
+
+**Keyword Matcher Tests** (`test_keywords.py`):
+- `TestKeywordMatcher` — Pattern compilation, single/multiple matches, case insensitivity
+- `TestKeywordMatchResult` — Result dataclass behavior
+- `TestIsRelevant` — Threshold checking for score and match count
+- `TestIntegrationWithActualConfig` — Integration with real keywords.yaml
+
+**Cost Tracking Tests** (`test_costs.py`):
+- `TestModelPricing` — Pricing constants for different Claude models
+- `TestCostBreakdown` — Cost calculation, formatting, unknown model fallback
+- `TestCostHistory` — Run aggregation, date filtering, summary generation
+- `TestCostTracker` — Persistence, budget warnings, file loading
+- `TestEstimateRunCost` — Cost estimation with different parameters
+- `TestIntegration` — Full workflow with multiple runs
+
+### Running Tests Before Commits
+
+Always run tests before committing:
+
+```bash
+# Quick check
+pytest -v
+
+# Full check with linting
+ruff check src/ && pytest -v
 ```
 
 ### Adding a New Domain

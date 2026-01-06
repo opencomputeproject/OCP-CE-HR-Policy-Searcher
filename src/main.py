@@ -17,6 +17,8 @@ from .output.sheets import SheetsClient
 from .logging.run_logger import RunLogger, LogSection, RunStats
 from .models.crawl import PageStatus
 from .models.policy import Policy, PolicyType
+from .utils.chunking import split_into_chunks, get_chunk_by_spec, parse_chunk_spec
+from .utils.costs import CostTracker, estimate_run_cost
 
 
 def parse_args():
@@ -51,12 +53,43 @@ Examples:
     # list-domains subcommand
     subparsers.add_parser("list-domains", help="List all configured domains")
 
+    # cost-history subcommand
+    subparsers.add_parser("cost-history", help="Show Claude API cost history")
+
+    # estimate-cost subcommand
+    estimate_parser = subparsers.add_parser(
+        "estimate-cost",
+        help="Estimate cost for a planned scan"
+    )
+    estimate_parser.add_argument(
+        "--domains", default="all",
+        help="Domain group to estimate (default: all)"
+    )
+    estimate_parser.add_argument(
+        "--pages-per-domain", type=int, default=50,
+        help="Estimated pages per domain (default: 50)"
+    )
+
     # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
     parser.add_argument("--domains", default="all", help="Domain group to scan (use 'list-groups' to see options)")
     parser.add_argument("--dry-run", action="store_true", help="Don't write to Sheets")
     parser.add_argument("--skip-llm", action="store_true", help="Skip LLM analysis")
     parser.add_argument("--verbose", "-v", action="store_true")
+
+    # Chunking options
+    parser.add_argument(
+        "--chunk-size", type=int, default=None,
+        help="Auto-chunk: process N domains at a time with pauses between batches"
+    )
+    parser.add_argument(
+        "--chunk", type=str, default=None,
+        help="Manual chunk: run specific chunk N/M (e.g., '2/4' for chunk 2 of 4)"
+    )
+    parser.add_argument(
+        "--chunk-delay", type=int, default=30,
+        help="Seconds to pause between chunks (default: 30)"
+    )
 
     return parser.parse_args()
 
@@ -161,10 +194,141 @@ def cmd_list_domains(args) -> int:
         return 1
 
 
+def cmd_cost_history(args) -> int:
+    """Show Claude API cost history."""
+    try:
+        tracker = CostTracker()
+        history = tracker.get_history()
+
+        if not history.runs:
+            print("\nNo cost history found.")
+            print("Run a scan with LLM analysis to start tracking costs.")
+            return 0
+
+        print(history.format_summary())
+
+        # Check for budget warnings
+        warning = tracker.check_budget_warning(monthly_budget=50.0)
+        if warning:
+            print(f"\n  WARNING: {warning}\n")
+
+        return 0
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+
+
+def cmd_estimate_cost(args) -> int:
+    """Estimate cost for a planned scan."""
+    try:
+        _, domains_config, _ = load_settings()
+        domains = get_enabled_domains(domains_config, args.domains)
+        domain_count = len(domains)
+
+        pages_per_domain = getattr(args, 'pages_per_domain', 50)
+
+        estimate = estimate_run_cost(
+            domains=domain_count,
+            pages_per_domain=pages_per_domain,
+        )
+
+        print(f"""
+{'='*60}
+  COST ESTIMATE
+{'='*60}
+
+  Domain group:        {args.domains}
+  Domains to scan:     {estimate['domains']}
+  Est. pages to crawl: {estimate['estimated_pages']:,}
+  Est. pages analyzed: {estimate['estimated_analyzed']:,}
+
+  Model:               {estimate['model']}
+  Est. input tokens:   {estimate['estimated_input_tokens']:,}
+  Est. output tokens:  {estimate['estimated_output_tokens']:,}
+
+  ESTIMATED COST:      ${estimate['estimated_cost_usd']:.2f}
+
+{'='*60}
+
+  Note: Actual costs depend on keyword filter pass rate
+        and content length. This estimate assumes 10%
+        of pages pass keyword filtering.
+""")
+        return 0
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+
+
+async def run_batch(
+    domains: list,
+    settings,
+    keyword_matcher,
+    claude_client,
+    sheets_client,
+    logger,
+    args,
+) -> tuple[list, list]:
+    """
+    Run a single batch of domains.
+
+    Returns:
+        Tuple of (crawl_results, policies)
+    """
+    # Crawl
+    crawler = AsyncCrawler(settings.crawl, domains, keyword_matcher, logger)
+    crawl_results = await crawler.crawl_all()
+    logger.info(f"Crawled {len(crawl_results)} pages")
+
+    # Analyze
+    policies = []
+
+    for result in crawl_results:
+        if not result.is_success:
+            continue
+
+        # Keyword check
+        kw_result = keyword_matcher.match(result.content or "")
+        if kw_result.score < settings.analysis.min_keyword_score:
+            continue
+
+        # LLM analysis
+        if claude_client:
+            try:
+                analysis = await claude_client.analyze_policy(
+                    result.content[:settings.analysis.max_content_length],
+                    result.url,
+                    result.language,
+                )
+                if analysis.is_relevant and analysis.relevance_score >= settings.analysis.min_relevance_score:
+                    policy = claude_client.to_policy(analysis, result.url, result.language or "unknown")
+                    if policy:
+                        policies.append(policy)
+                        logger.success(f"Policy: {policy.policy_name}")
+            except Exception as e:
+                logger.warning(f"LLM error for {result.url}: {e}")
+        else:
+            # Keyword-only mode
+            policy = Policy(
+                url=result.url,
+                policy_name=result.title or "Unknown",
+                jurisdiction="Unknown",
+                policy_type=PolicyType.UNKNOWN,
+                summary="Keyword match - needs review",
+                relevance_score=int(kw_result.score),
+                source_language=result.language or "unknown",
+            )
+            policies.append(policy)
+
+    return crawl_results, policies
+
+
 async def run(args) -> int:
-    run_id = f"run_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+    run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     logger = RunLogger(run_id)
     logger.start_run()
+
+    claude_client = None
 
     try:
         # Load config
@@ -174,13 +338,33 @@ async def run(args) -> int:
         if args.skip_llm:
             settings.analysis.enable_llm_analysis = False
 
-        domains = get_enabled_domains(domains_config, args.domains)
-        logger.info(f"Domains: {len(domains)} enabled")
+        all_domains = get_enabled_domains(domains_config, args.domains)
+        total_domain_count = len(all_domains)
+
+        # Handle chunking
+        chunk_size = getattr(args, 'chunk_size', None)
+        chunk_spec = getattr(args, 'chunk', None)
+        chunk_delay = getattr(args, 'chunk_delay', 30)
+
+        # Determine which domains to process
+        if chunk_spec:
+            # Manual chunk: process only the specified chunk
+            current, total = parse_chunk_spec(chunk_spec)
+            domains_to_process = get_chunk_by_spec(all_domains, current, total)
+            logger.info(f"Chunk {current}/{total}: {len(domains_to_process)} of {total_domain_count} domains")
+            batches = [domains_to_process]
+        elif chunk_size and chunk_size < len(all_domains):
+            # Auto-chunk: split into batches
+            batches = split_into_chunks(all_domains, chunk_size)
+            logger.info(f"Auto-chunking: {len(batches)} batches of up to {chunk_size} domains")
+        else:
+            # No chunking: process all at once
+            batches = [all_domains]
+            logger.info(f"Domains: {len(all_domains)} enabled")
 
         keyword_matcher = KeywordMatcher(keywords_config)
         logger.info(f"Keywords: {keyword_matcher.total_keywords} terms")
 
-        claude_client = None
         if settings.analysis.enable_llm_analysis and settings.anthropic_api_key:
             claude_client = ClaudeClient(settings.anthropic_api_key, settings.analysis.llm_model)
             logger.info(f"LLM: {settings.analysis.llm_model}")
@@ -191,79 +375,110 @@ async def run(args) -> int:
             sheets_client.connect()
             logger.info("Sheets: Connected")
 
-        # Crawl
-        logger.section(LogSection.CRAWL)
-        crawler = AsyncCrawler(settings.crawl, domains, keyword_matcher, logger)
-        crawl_results = await crawler.crawl_all()
-        logger.info(f"Crawled {len(crawl_results)} pages")
+        # Process batches
+        all_crawl_results = []
+        all_policies = []
+        total_batches = len(batches)
 
-        # Analyze
+        for batch_num, batch_domains in enumerate(batches, 1):
+            if total_batches > 1:
+                logger.section(LogSection.CRAWL)
+                domain_ids = [d.get('id', d.get('name', 'unknown')) for d in batch_domains]
+                logger.info(f"")
+                logger.info(f"{'='*60}")
+                logger.info(f"  BATCH {batch_num}/{total_batches}")
+                logger.info(f"  Domains: {', '.join(domain_ids[:5])}{'...' if len(domain_ids) > 5 else ''}")
+                logger.info(f"{'='*60}")
+                logger.info(f"")
+            else:
+                logger.section(LogSection.CRAWL)
+
+            crawl_results, policies = await run_batch(
+                batch_domains,
+                settings,
+                keyword_matcher,
+                claude_client,
+                sheets_client,
+                logger,
+                args,
+            )
+
+            all_crawl_results.extend(crawl_results)
+            all_policies.extend(policies)
+
+            # Output policies for this batch
+            if sheets_client and policies:
+                existing = sheets_client.get_existing_urls()
+                new_policies = [p for p in policies if p.url not in existing]
+                if new_policies:
+                    count = sheets_client.append_policies(new_policies)
+                    logger.success(f"Added {count} policies to Staging")
+
+            # Pause between batches (not after the last one)
+            if batch_num < total_batches and chunk_delay > 0:
+                logger.info(f"")
+                logger.info(f"Batch {batch_num}/{total_batches} complete. Pausing {chunk_delay}s before next batch...")
+                logger.info(f"")
+                await asyncio.sleep(chunk_delay)
+
+        # Final analysis section
         logger.section(LogSection.ANALYSIS)
-        policies = []
+        logger.info(f"Found {len(all_policies)} relevant policies across all batches")
 
-        for result in crawl_results:
-            if not result.is_success:
-                continue
-
-            # Keyword check
-            kw_result = keyword_matcher.match(result.content or "")
-            if kw_result.score < settings.analysis.min_keyword_score:
-                continue
-
-            # LLM analysis
-            if claude_client:
-                try:
-                    analysis = await claude_client.analyze_policy(
-                        result.content[:settings.analysis.max_content_length],
-                        result.url,
-                        result.language,
-                    )
-                    if analysis.is_relevant and analysis.relevance_score >= settings.analysis.min_relevance_score:
-                        policy = claude_client.to_policy(analysis, result.url, result.language or "unknown")
-                        if policy:
-                            policies.append(policy)
-                            logger.success(f"Policy: {policy.policy_name}")
-                except Exception as e:
-                    logger.warning(f"LLM error for {result.url}: {e}")
-            else:
-                # Keyword-only mode
-                policy = Policy(
-                    url=result.url,
-                    policy_name=result.title or "Unknown",
-                    jurisdiction="Unknown",
-                    policy_type=PolicyType.UNKNOWN,
-                    summary="Keyword match - needs review",
-                    relevance_score=int(kw_result.score),
-                    source_language=result.language or "unknown",
-                )
-                policies.append(policy)
-
-        logger.info(f"Found {len(policies)} relevant policies")
-
-        # Output
+        # Output summary
         logger.section(LogSection.OUTPUT)
-        if sheets_client and policies:
-            existing = sheets_client.get_existing_urls()
-            new_policies = [p for p in policies if p.url not in existing]
-
-            if new_policies:
-                count = sheets_client.append_policies(new_policies)
-                logger.success(f"Added {count} policies to Staging")
-            else:
-                logger.info("No new policies (all duplicates)")
-        elif args.dry_run:
-            logger.info(f"Dry run - would add {len(policies)} policies")
+        if args.dry_run:
+            logger.info(f"Dry run - would add {len(all_policies)} policies")
+        elif not sheets_client:
+            logger.info("Sheets not configured - skipping output")
 
         # Summary
         logger.section(LogSection.SUMMARY)
+
+        # Calculate stats
+        new_count = 0
+        dup_count = 0
+        if sheets_client and all_policies:
+            existing = sheets_client.get_existing_urls()
+            new_policies = [p for p in all_policies if p.url not in existing]
+            new_count = len(new_policies)
+            dup_count = len(all_policies) - new_count
+        elif args.dry_run:
+            new_count = len(all_policies)
+
         stats = RunStats(
-            pages_crawled=len(crawl_results),
-            pages_success=sum(1 for r in crawl_results if r.is_success),
-            pages_blocked=sum(1 for r in crawl_results if r.is_blocked),
-            pages_error=sum(1 for r in crawl_results if r.status == PageStatus.UNKNOWN_ERROR),
-            policies_found=len(policies),
+            domains_scanned=sum(len(batch) for batch in batches),
+            pages_crawled=len(all_crawl_results),
+            pages_success=sum(1 for r in all_crawl_results if r.is_success),
+            pages_blocked=sum(1 for r in all_crawl_results if r.is_blocked),
+            pages_error=sum(1 for r in all_crawl_results if r.status == PageStatus.UNKNOWN_ERROR),
+            keywords_matched=sum(1 for r in all_crawl_results if r.is_success),  # Approximate
+            policies_found=len(all_policies),
+            policies_new=new_count,
+            policies_duplicate=dup_count,
+            llm_calls=claude_client.call_count if claude_client else 0,
+            llm_tokens_input=claude_client.tokens_input if claude_client else 0,
+            llm_tokens_output=claude_client.tokens_output if claude_client else 0,
         )
         logger.end_run(stats)
+
+        # Record cost to history (if LLM was used)
+        if claude_client and claude_client.call_count > 0:
+            cost_tracker = CostTracker()
+            cost_tracker.record_run(
+                run_id=run_id,
+                model=settings.analysis.llm_model,
+                input_tokens=claude_client.tokens_input,
+                output_tokens=claude_client.tokens_output,
+                api_calls=claude_client.call_count,
+                domains_scanned=stats.domains_scanned,
+                policies_found=stats.policies_found,
+            )
+
+            # Check budget warning
+            warning = cost_tracker.check_budget_warning(monthly_budget=50.0)
+            if warning:
+                logger.warning(warning)
 
         return 0
 
@@ -288,6 +503,10 @@ def main():
         sys.exit(cmd_list_groups(args))
     elif args.command == "list-domains":
         sys.exit(cmd_list_domains(args))
+    elif args.command == "cost-history":
+        sys.exit(cmd_cost_history(args))
+    elif args.command == "estimate-cost":
+        sys.exit(cmd_estimate_cost(args))
     else:
         # Default: run scan
         code = asyncio.run(run(args))
