@@ -10,6 +10,69 @@ This tool automatically:
 - 📊 Outputs results to Google Sheets for review
 - ⏰ Runs monthly via GitHub Actions
 
+## How It Works
+
+The tool follows a step-by-step process to find and analyze policies:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            PROCESSING PIPELINE                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Step 1: CRAWL                     Step 2: EXTRACT
+  ─────────────────                 ───────────────
+  Visit government      ──────►    Read the page text,
+  websites and follow              remove menus/headers,
+  links to find pages              keep main content
+
+           │                                │
+           ▼                                ▼
+
+  Step 3: KEYWORD SCAN              Step 4: AI ANALYSIS
+  ────────────────────              ───────────────────
+  Search text for                   Claude AI reads the
+  heat reuse terms in   ──────►    page and extracts:
+  8 languages                       • Policy name
+                                    • Summary
+  Score too low?                    • Requirements
+  → Skip this page                  • Relevance score (1-10)
+
+           │                                │
+           ▼                                ▼
+
+  Step 5: FILTER                    Step 6: OUTPUT
+  ──────────────                    ──────────────
+  Only keep policies    ──────►    Add new policies to
+  with relevance                    Google Sheets for
+  score 5 or higher                 team review
+```
+
+### What happens at each step
+
+1. **Crawl** — The tool visits each government website in its list, starting from known energy policy pages. It follows links up to 3 levels deep, respecting rate limits to avoid overloading servers.
+
+2. **Extract** — For each page, it strips away navigation menus, footers, and other clutter to get just the main content. It also detects the page language.
+
+3. **Keyword Scan** — The text is searched for relevant terms like "waste heat," "data center energy," and "heat recovery" in 8 languages. Each match adds to a score. Pages scoring below the threshold are skipped (saving AI costs).
+
+4. **AI Analysis** — Pages that pass the keyword filter are sent to Claude AI, which reads the content and determines if it's actually a policy. If so, it extracts key details and assigns a relevance score from 1-10.
+
+5. **Filter** — Only policies scoring 5 or higher are kept. This ensures the final results are genuinely relevant to data center heat reuse.
+
+6. **Output** — New policies are added to Google Sheets. The tool checks for duplicates first, so running it multiple times won't create repeat entries.
+
+### What gets detected but flagged for human review
+
+Some pages can't be fully processed automatically:
+- **Paywalls** — Content behind a subscription
+- **CAPTCHAs** — "Are you human?" challenges
+- **Login required** — Member-only content
+- **JavaScript-heavy sites** — Some pages need a real browser (the tool will retry with one)
+
+These are logged and marked for manual review.
+
+---
+
 ## Features
 
 - **Smart crawling**: HTTP-first with Playwright fallback for JavaScript sites
@@ -61,6 +124,25 @@ python -m src.main --domains test --dry-run
 ```
 
 ## Usage
+
+### Before Running Any Commands
+
+> **Important:** You must activate the virtual environment before running any Python commands.
+> All dependencies are installed in the `venv` folder, not your system Python.
+
+**On Windows:**
+```bash
+.\venv\Scripts\activate
+```
+
+**On macOS/Linux:**
+```bash
+source venv/bin/activate
+```
+
+You should see `(venv)` at the beginning of your command prompt when activated.
+
+---
 
 ### Command Line Options
 

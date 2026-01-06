@@ -26,7 +26,9 @@
       "Bash(gh auth:*)",
       "Bash(git init:*)",
       "Bash(gh repo create:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: OCP Heat Reuse Policy Searcher\n\nAutomated discovery tool for global data center heat reuse policies.\n\nFeatures:\n- Async web crawler with HTTP/Playwright support\n- Multi-language keyword matching \\(8 languages\\)\n- Claude LLM integration for policy analysis\n- Google Sheets output with deduplication\n- Paywall/CAPTCHA detection\n- GitHub Actions for monthly scans\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
