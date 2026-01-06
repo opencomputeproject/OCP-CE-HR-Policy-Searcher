@@ -22,6 +22,15 @@ domains:
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "research"
+    policy_types:
+      - "guidance"
+      - "incentive"
+      - "report"
     notes: |
       Federal energy efficiency programs and guidance.
       Released 2024 report on data center energy use.
@@ -38,6 +47,12 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "efficiency"
+    policy_types:
+      - "standard"
+      - "guidance"
     notes: "ENERGY STAR data center certification"
 
   - name: "Federal Energy Regulatory Commission"
@@ -51,6 +66,12 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: |
       Regulates interstate electricity transmission.
       Oversees regional grid operators including PJM.
@@ -67,6 +88,12 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "research"
+      - "reporting"
+    policy_types:
+      - "report"
     notes: |
       Independent statistical agency.
       Tracks data center energy consumption trends.
@@ -82,6 +109,13 @@ domains:
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+      - "directive"
     notes: |
       2023 executive order on federal data center waste heat utilization.
       Presidential climate and energy initiatives.
@@ -98,6 +132,13 @@ domains:
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "planning"
+      - "research"
+    policy_types:
+      - "guidance"
+      - "report"
     notes: |
       Regional transmission operator for 13 states.
       Virginia delegate Rip Sullivan sent letter urging data center heat reuse consideration.

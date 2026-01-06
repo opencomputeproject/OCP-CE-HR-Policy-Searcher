@@ -9,7 +9,24 @@ from pathlib import Path
 
 import yaml
 
-from .config.loader import load_settings, get_enabled_domains, list_groups, ConfigurationError
+from .config.loader import (
+    load_settings,
+    get_enabled_domains,
+    list_groups,
+    list_domains,
+    ConfigurationError,
+    filter_domains,
+    filter_domains_by_category,
+    filter_domains_by_tag,
+    filter_domains_by_policy_type,
+    list_categories,
+    list_tags,
+    list_policy_types,
+    get_domain_stats,
+    VALID_CATEGORIES,
+    VALID_TAGS,
+    VALID_POLICY_TYPES,
+)
 from .crawler.async_crawler import AsyncCrawler
 from .analysis.keywords import KeywordMatcher
 from .analysis.llm.client import ClaudeClient
@@ -84,12 +101,63 @@ Examples:
         help="Show current alert status and history"
     )
 
+    # list-categories subcommand
+    subparsers.add_parser(
+        "list-categories",
+        help="List available domain categories for filtering"
+    )
+
+    # list-tags subcommand
+    subparsers.add_parser(
+        "list-tags",
+        help="List available domain tags for filtering"
+    )
+
+    # list-policy-types subcommand
+    subparsers.add_parser(
+        "list-policy-types",
+        help="List available policy types for filtering"
+    )
+
+    # domain-stats subcommand
+    subparsers.add_parser(
+        "domain-stats",
+        help="Show statistics about domain categorization"
+    )
+
     # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
     parser.add_argument("--domains", default="all", help="Domain group to scan (use 'list-groups' to see options)")
     parser.add_argument("--dry-run", action="store_true", help="Don't write to Sheets")
     parser.add_argument("--skip-llm", action="store_true", help="Skip LLM analysis")
     parser.add_argument("--verbose", "-v", action="store_true")
+
+    # Category/tag filtering options
+    parser.add_argument(
+        "--category",
+        type=str,
+        default=None,
+        help="Filter by category (use 'list-categories' to see options)"
+    )
+    parser.add_argument(
+        "--tag",
+        type=str,
+        action="append",
+        dest="tags",
+        help="Filter by tag (can be used multiple times, matches ANY tag)"
+    )
+    parser.add_argument(
+        "--policy-type",
+        type=str,
+        action="append",
+        dest="policy_types",
+        help="Filter by policy type (can be used multiple times)"
+    )
+    parser.add_argument(
+        "--match-all-tags",
+        action="store_true",
+        help="Require ALL specified tags (default: match ANY)"
+    )
 
     # Chunking options
     parser.add_argument(
@@ -400,6 +468,91 @@ def cmd_alerts(args) -> int:
     return 0
 
 
+def cmd_list_categories(args) -> int:
+    """List available domain categories."""
+    print("\n" + "=" * 60)
+    print("  DOMAIN CATEGORIES")
+    print("=" * 60 + "\n")
+    print("  Use --category <name> to filter domains by category.\n")
+
+    categories = list_categories()
+    for cat, desc in sorted(categories.items()):
+        print(f"  {cat:20} - {desc}")
+
+    print("\n" + "=" * 60 + "\n")
+    return 0
+
+
+def cmd_list_tags(args) -> int:
+    """List available domain tags."""
+    print("\n" + "=" * 60)
+    print("  DOMAIN TAGS")
+    print("=" * 60 + "\n")
+    print("  Use --tag <name> to filter domains (can use multiple times).\n")
+
+    tags = list_tags()
+    for tag, desc in sorted(tags.items()):
+        print(f"  {tag:12} - {desc}")
+
+    print("\n" + "=" * 60 + "\n")
+    return 0
+
+
+def cmd_list_policy_types(args) -> int:
+    """List available policy types."""
+    print("\n" + "=" * 60)
+    print("  POLICY TYPES")
+    print("=" * 60 + "\n")
+    print("  Use --policy-type <name> to filter domains.\n")
+
+    policy_types = list_policy_types()
+    for pt, desc in sorted(policy_types.items()):
+        print(f"  {pt:12} - {desc}")
+
+    print("\n" + "=" * 60 + "\n")
+    return 0
+
+
+def cmd_domain_stats(args) -> int:
+    """Show statistics about domain categorization."""
+    _, domains_config, _ = load_settings()
+    stats = get_domain_stats(domains_config)
+
+    print("\n" + "=" * 60)
+    print("  DOMAIN CATEGORIZATION STATS")
+    print("=" * 60 + "\n")
+
+    print(f"  Total domains:    {stats['total_domains']}")
+    print(f"  Enabled domains:  {stats['enabled_domains']}")
+
+    print("\n  By Category:")
+    print("  " + "-" * 40)
+    if stats['by_category']:
+        for cat, count in sorted(stats['by_category'].items(), key=lambda x: -x[1]):
+            print(f"    {cat:24} {count:3}")
+    else:
+        print("    (no domains categorized yet)")
+
+    print("\n  By Tag:")
+    print("  " + "-" * 40)
+    if stats['by_tag']:
+        for tag, count in sorted(stats['by_tag'].items(), key=lambda x: -x[1]):
+            print(f"    {tag:24} {count:3}")
+    else:
+        print("    (no domains tagged yet)")
+
+    print("\n  By Policy Type:")
+    print("  " + "-" * 40)
+    if stats['by_policy_type']:
+        for pt, count in sorted(stats['by_policy_type'].items(), key=lambda x: -x[1]):
+            print(f"    {pt:24} {count:3}")
+    else:
+        print("    (no policy types assigned yet)")
+
+    print("\n" + "=" * 60 + "\n")
+    return 0
+
+
 async def run_batch(
     domains: list,
     settings,
@@ -492,8 +645,42 @@ async def run(args) -> int:
         if args.skip_llm:
             settings.analysis.enable_llm_analysis = False
 
+        # Get domains by group first
         all_domains = get_enabled_domains(domains_config, args.domains)
+
+        # Apply category/tag/policy-type filtering if specified
+        category = getattr(args, 'category', None)
+        tags = getattr(args, 'tags', None)
+        policy_types = getattr(args, 'policy_types', None)
+        match_all_tags = getattr(args, 'match_all_tags', False)
+
+        if category or tags or policy_types:
+            # Build a filtered domains_config with only the group-selected domains
+            filtered_config = {"domains": all_domains}
+            all_domains = filter_domains(
+                filtered_config,
+                category=category,
+                tags=tags,
+                policy_types=policy_types,
+                match_all_tags=match_all_tags,
+            )
+
+            # Log what filters were applied
+            filter_desc = []
+            if category:
+                filter_desc.append(f"category={category}")
+            if tags:
+                tag_mode = "ALL" if match_all_tags else "ANY"
+                filter_desc.append(f"tags={','.join(tags)} ({tag_mode})")
+            if policy_types:
+                filter_desc.append(f"policy_types={','.join(policy_types)}")
+            logger.info(f"Filters: {', '.join(filter_desc)}")
+
         total_domain_count = len(all_domains)
+
+        if total_domain_count == 0:
+            logger.warning("No domains match the specified filters")
+            return 0
 
         # Handle chunking
         chunk_size = getattr(args, 'chunk_size', None)
@@ -755,6 +942,14 @@ def main():
         sys.exit(cmd_test_notifications(args))
     elif args.command == "alerts":
         sys.exit(cmd_alerts(args))
+    elif args.command == "list-categories":
+        sys.exit(cmd_list_categories(args))
+    elif args.command == "list-tags":
+        sys.exit(cmd_list_tags(args))
+    elif args.command == "list-policy-types":
+        sys.exit(cmd_list_policy_types(args))
+    elif args.command == "domain-stats":
+        sys.exit(cmd_domain_stats(args))
     else:
         # Default: run scan
         code = asyncio.run(run(args))

@@ -277,6 +277,172 @@ jobs:
       - run: python -m src.main --domains all --chunk ${{ matrix.chunk }}
 ```
 
+### Category & Tag Filtering
+
+Beyond regional groups, you can filter domains by **category**, **tags**, and **policy types** for more targeted scans.
+
+#### Filter Options
+
+| Option | Description |
+|--------|-------------|
+| `--category NAME` | Filter by primary category |
+| `--tag NAME` | Filter by tag (can use multiple times) |
+| `--policy-type NAME` | Filter by policy type (can use multiple times) |
+| `--match-all-tags` | Require ALL tags instead of ANY |
+
+#### Available Categories
+
+```bash
+# See all categories
+python -m src.main list-categories
+```
+
+| Category | Description |
+|----------|-------------|
+| `energy_ministry` | National/state energy departments |
+| `environmental_agency` | EPA equivalents, climate agencies |
+| `legislative` | Bill trackers, law databases, parliaments |
+| `district_heating` | Heat network authorities |
+| `grid_operator` | RTOs, ISOs, grid planners |
+| `economic_dev` | Business incentives, tax programs |
+| `regulatory` | Utility commissions, permit authorities |
+| `standards` | Building codes, efficiency standards |
+
+#### Available Tags
+
+```bash
+# See all tags
+python -m src.main list-tags
+```
+
+| Tag | Description |
+|-----|-------------|
+| `incentives` | Grants, tax breaks, subsidies |
+| `mandates` | Required regulations |
+| `reporting` | Disclosure requirements |
+| `carbon` | Carbon pricing, credits, emissions |
+| `efficiency` | PUE, energy efficiency programs |
+| `planning` | Zoning, permits, infrastructure |
+| `research` | Studies, reports, data |
+
+#### Available Policy Types
+
+```bash
+# See all policy types
+python -m src.main list-policy-types
+```
+
+| Policy Type | Description |
+|-------------|-------------|
+| `law` | Enacted legislation |
+| `regulation` | Agency rules |
+| `directive` | EU directives, guidance with force |
+| `incentive` | Grant programs, tax credits |
+| `guidance` | Best practices, recommendations |
+| `standard` | Technical standards, building codes |
+| `report` | Research, data, analysis |
+
+#### Filtering Examples
+
+```bash
+# Scan only energy ministry domains
+python -m src.main --category energy_ministry
+
+# Find domains with efficiency programs
+python -m src.main --tag efficiency
+
+# Find domains with grant programs
+python -m src.main --tag incentives
+
+# Find legislative sources with mandates
+python -m src.main --category legislative --tag mandates
+
+# Find domains that publish laws
+python -m src.main --policy-type law
+
+# Combine with regional group: EU energy ministries only
+python -m src.main --domains eu --category energy_ministry
+
+# Multiple tags (matches ANY)
+python -m src.main --tag efficiency --tag incentives
+
+# Multiple tags (matches ALL - must have both)
+python -m src.main --tag efficiency --tag mandates --match-all-tags
+
+# Grid operators focused on planning
+python -m src.main --category grid_operator --tag planning
+```
+
+#### View Domain Statistics
+
+```bash
+# See how domains are categorized
+python -m src.main domain-stats
+```
+
+**Output:**
+```
+============================================================
+  DOMAIN CATEGORIZATION STATS
+============================================================
+
+  Total domains:    48
+  Enabled domains:  42
+
+  By Category:
+  ----------------------------------------
+    energy_ministry           18
+    regulatory                 8
+    legislative                5
+    economic_dev               4
+    environmental_agency       3
+    grid_operator              2
+    standards                  1
+    (uncategorized)            1
+
+  By Tag:
+  ----------------------------------------
+    efficiency                35
+    mandates                  18
+    incentives                15
+    carbon                     8
+    planning                   7
+    research                   6
+    reporting                  4
+
+  By Policy Type:
+  ----------------------------------------
+    regulation                28
+    guidance                  22
+    law                       15
+    incentive                 12
+    report                     8
+    standard                   5
+    directive                  4
+
+============================================================
+```
+
+#### Adding Categories to New Domains
+
+When adding a new domain, include these optional fields:
+
+```yaml
+- name: "Example Ministry"
+  id: "example_ministry"
+  base_url: "https://example.gov"
+  # ... other fields ...
+
+  # Categorization
+  category: "energy_ministry"    # Pick ONE primary category
+  tags:                          # Pick any relevant tags
+    - "efficiency"
+    - "mandates"
+  policy_types:                  # What kinds of policies this site has
+    - "regulation"
+    - "guidance"
+```
+
 ### Run Summary
 
 When a scan completes, you'll see a formatted summary showing exactly what happened:
@@ -828,6 +994,7 @@ tests/
 │   ├── test_chunking.py         # 31 tests - Domain chunking
 │   ├── test_config_loader.py    # 20 tests - Configuration loading
 │   ├── test_costs.py            # 26 tests - Cost tracking
+│   ├── test_domain_filtering.py # 46 tests - Category/tag filtering
 │   ├── test_keywords.py         # 16 tests - Keyword matching
 │   └── test_notifications.py    # 24 tests - Email notifications
 └── integration/                  # (future integration tests)
@@ -881,6 +1048,16 @@ tests/
 - `TestNotification` — Notification creation and formatting
 - `TestEmailNotifier` — SMTP connection, email formatting, TLS support
 - `TestNotificationManager` — Priority filtering, notification dispatch
+
+**Domain Filtering Tests** (`test_domain_filtering.py`):
+- `TestValidConstants` — Valid categories, tags, and policy types
+- `TestFilterDomainsByCategory` — Category filtering, disabled domain exclusion
+- `TestFilterDomainsByTag` — Tag filtering with single and multiple tags
+- `TestFilterDomainsByPolicyType` — Policy type filtering
+- `TestFilterDomains` — Combined filtering with category + tags + policy types
+- `TestListFunctions` — list_categories, list_tags, list_policy_types
+- `TestGetDomainStats` — Statistics generation by category/tag/policy type
+- `TestIntegrationWithActualConfig` — Integration with actual config files
 
 ### Running Tests Before Commits
 

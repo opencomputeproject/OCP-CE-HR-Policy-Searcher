@@ -22,6 +22,12 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: "Growing Southwest data center market"
 
   # ARKANSAS
@@ -38,6 +44,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "standard"
+      - "regulation"
     notes: "California Title 24 and data center programs"
 
   # COLORADO
@@ -57,6 +70,12 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "planning"
+      - "carbon"
+    policy_types:
+      - "regulation"
     notes: |
       Growing data center hub.
       SB 34: Prohibits passing data center costs to customers.
@@ -76,6 +95,12 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "planning"
+      - "efficiency"
+    policy_types:
+      - "regulation"
     notes: |
       4th largest data center market nationally.
       Chicago Quantum & Microelectronics Park: closed-loop wastewater system.
@@ -100,6 +125,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
     notes: |
       SB 0316 (failed): 75% of data center tax revenue to solar escrow.
       Part of PJM consortium for data center fast-track approvals.
@@ -116,6 +148,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: "Northeast data center market with aggressive climate goals"
 
   # MICHIGAN
@@ -130,6 +169,12 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "regulation"
     notes: |
       50+ data center facilities.
       100% clean energy mandate by 2040.
@@ -156,6 +201,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+      - "incentive"
     notes: |
       A.5462/S.4307: Special tariff for data centers, heat capture encouragement.
       Part of PJM 4-state consortium.
@@ -175,6 +227,15 @@ domains:
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "incentive"
+      - "guidance"
+      - "report"
     notes: "NY state energy efficiency incentives"
 
   # NORTH CAROLINA
@@ -188,6 +249,11 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "planning"
+    policy_types:
+      - "regulation"
     notes: |
       85 data centers in state.
       Technical conference on large load additions.
@@ -204,6 +270,11 @@ domains:
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+    policy_types:
+      - "law"
     notes: |
       Track HB 638: Equitable Escalation of Electricity Demand Act.
       Track HB 1002: Prohibits passing data center costs to ratepayers.
@@ -222,6 +293,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
     notes: |
       5th largest data center market nationally.
       AEP requesting cost shift to new customers like data centers.
@@ -240,6 +318,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
     notes: "Pacific Northwest data center hub with renewable energy focus"
 
   # PENNSYLVANIA
@@ -254,6 +339,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "planning"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: |
       Gov. Shapiro's "Lightning Plan" for streamlined power approvals.
       Part of PJM 4-state consortium (PA, MD, NJ, VA) with Data Center Coalition.
@@ -275,6 +367,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
     notes: |
       Second-largest US data center market (329 facilities).
       SB 2888 proposed: Energy conservation measures for tax exemptions.
@@ -291,6 +390,12 @@ domains:
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "incentives"
+    policy_types:
+      - "law"
     notes: |
       Track SB 2888: Tax exemption requirements with efficiency measures.
       Track HB 4908: Revenue tax and Texas Prosperity Payout Fund.
@@ -310,6 +415,14 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "law"
+      - "regulation"
     notes: |
       Largest US data center market (575+ facilities).
       HB 116/SB 192 proposed: 90% carbon-free energy by 2027.
@@ -326,6 +439,12 @@ domains:
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
     notes: |
       Track HB 116/SB 192: Data center energy efficiency requirements.
       Most active state for data center legislation (28 bills in 2025).
@@ -342,6 +461,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "carbon"
+    policy_types:
+      - "incentive"
+      - "guidance"
     notes: "Renewable energy requirements, major data center presence"
 
   # WEST VIRGINIA

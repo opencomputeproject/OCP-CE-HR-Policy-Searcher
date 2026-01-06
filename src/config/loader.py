@@ -182,6 +182,290 @@ def list_domains(domains_config: dict) -> list[dict]:
             "name": d["name"],
             "enabled": d.get("enabled", True),
             "base_url": d["base_url"],
+            "category": d.get("category"),
+            "tags": d.get("tags", []),
+            "policy_types": d.get("policy_types", []),
         }
         for d in domains_config.get("domains", [])
     ]
+
+
+# =============================================================================
+# VALID CATEGORIES, TAGS, AND POLICY TYPES
+# =============================================================================
+
+VALID_CATEGORIES = {
+    "energy_ministry": "National/state energy departments",
+    "environmental_agency": "EPA equivalents, climate agencies",
+    "legislative": "Bill trackers, law databases, parliaments",
+    "district_heating": "Heat network authorities",
+    "grid_operator": "RTOs, ISOs, grid planners",
+    "economic_dev": "Business incentives, tax programs",
+    "regulatory": "Utility commissions, permit authorities",
+    "standards": "Building codes, efficiency standards",
+}
+
+VALID_TAGS = {
+    "incentives": "Grants, tax breaks, subsidies",
+    "mandates": "Required regulations",
+    "reporting": "Disclosure requirements",
+    "carbon": "Carbon pricing, credits, emissions",
+    "efficiency": "PUE, energy efficiency programs",
+    "planning": "Zoning, permits, infrastructure",
+    "research": "Studies, reports, data",
+}
+
+VALID_POLICY_TYPES = {
+    "law": "Enacted legislation",
+    "regulation": "Agency rules",
+    "directive": "EU directives, guidance with force",
+    "incentive": "Grant programs, tax credits",
+    "guidance": "Best practices, recommendations",
+    "standard": "Technical standards, building codes",
+    "report": "Research, data, analysis",
+}
+
+
+# =============================================================================
+# FILTERING FUNCTIONS
+# =============================================================================
+
+def filter_domains_by_category(
+    domains_config: dict,
+    category: str,
+) -> list[dict]:
+    """Get domains matching a specific category.
+
+    Args:
+        domains_config: Configuration dict with 'domains' key
+        category: Category to filter by
+
+    Returns:
+        List of enabled domain dicts matching the category
+
+    Raises:
+        ConfigurationError: If category is not valid
+    """
+    if category not in VALID_CATEGORIES:
+        available = ", ".join(sorted(VALID_CATEGORIES.keys()))
+        raise ConfigurationError(
+            f"Unknown category: '{category}'. Valid categories: {available}"
+        )
+
+    return [
+        d for d in domains_config.get("domains", [])
+        if d.get("enabled", True) and d.get("category") == category
+    ]
+
+
+def filter_domains_by_tag(
+    domains_config: dict,
+    tag: str,
+) -> list[dict]:
+    """Get domains that have a specific tag.
+
+    Args:
+        domains_config: Configuration dict with 'domains' key
+        tag: Tag to filter by
+
+    Returns:
+        List of enabled domain dicts that have the tag
+
+    Raises:
+        ConfigurationError: If tag is not valid
+    """
+    if tag not in VALID_TAGS:
+        available = ", ".join(sorted(VALID_TAGS.keys()))
+        raise ConfigurationError(
+            f"Unknown tag: '{tag}'. Valid tags: {available}"
+        )
+
+    return [
+        d for d in domains_config.get("domains", [])
+        if d.get("enabled", True) and tag in d.get("tags", [])
+    ]
+
+
+def filter_domains_by_policy_type(
+    domains_config: dict,
+    policy_type: str,
+) -> list[dict]:
+    """Get domains that publish a specific policy type.
+
+    Args:
+        domains_config: Configuration dict with 'domains' key
+        policy_type: Policy type to filter by
+
+    Returns:
+        List of enabled domain dicts that have the policy type
+
+    Raises:
+        ConfigurationError: If policy_type is not valid
+    """
+    if policy_type not in VALID_POLICY_TYPES:
+        available = ", ".join(sorted(VALID_POLICY_TYPES.keys()))
+        raise ConfigurationError(
+            f"Unknown policy type: '{policy_type}'. Valid types: {available}"
+        )
+
+    return [
+        d for d in domains_config.get("domains", [])
+        if d.get("enabled", True) and policy_type in d.get("policy_types", [])
+    ]
+
+
+def filter_domains(
+    domains_config: dict,
+    category: str | None = None,
+    tags: list[str] | None = None,
+    policy_types: list[str] | None = None,
+    match_all_tags: bool = False,
+    match_all_policy_types: bool = False,
+) -> list[dict]:
+    """Filter domains by multiple criteria.
+
+    Args:
+        domains_config: Configuration dict with 'domains' key
+        category: Optional category to filter by
+        tags: Optional list of tags to filter by
+        policy_types: Optional list of policy types to filter by
+        match_all_tags: If True, domain must have ALL tags; if False, ANY tag
+        match_all_policy_types: If True, domain must have ALL policy types
+
+    Returns:
+        List of enabled domain dicts matching all specified criteria
+
+    Raises:
+        ConfigurationError: If any filter value is invalid
+    """
+    # Start with all enabled domains
+    result = [
+        d for d in domains_config.get("domains", [])
+        if d.get("enabled", True)
+    ]
+
+    # Filter by category
+    if category:
+        if category not in VALID_CATEGORIES:
+            available = ", ".join(sorted(VALID_CATEGORIES.keys()))
+            raise ConfigurationError(
+                f"Unknown category: '{category}'. Valid categories: {available}"
+            )
+        result = [d for d in result if d.get("category") == category]
+
+    # Filter by tags
+    if tags:
+        for tag in tags:
+            if tag not in VALID_TAGS:
+                available = ", ".join(sorted(VALID_TAGS.keys()))
+                raise ConfigurationError(
+                    f"Unknown tag: '{tag}'. Valid tags: {available}"
+                )
+
+        if match_all_tags:
+            # Domain must have ALL specified tags
+            result = [
+                d for d in result
+                if all(tag in d.get("tags", []) for tag in tags)
+            ]
+        else:
+            # Domain must have ANY of the specified tags
+            result = [
+                d for d in result
+                if any(tag in d.get("tags", []) for tag in tags)
+            ]
+
+    # Filter by policy types
+    if policy_types:
+        for pt in policy_types:
+            if pt not in VALID_POLICY_TYPES:
+                available = ", ".join(sorted(VALID_POLICY_TYPES.keys()))
+                raise ConfigurationError(
+                    f"Unknown policy type: '{pt}'. Valid types: {available}"
+                )
+
+        if match_all_policy_types:
+            # Domain must have ALL specified policy types
+            result = [
+                d for d in result
+                if all(pt in d.get("policy_types", []) for pt in policy_types)
+            ]
+        else:
+            # Domain must have ANY of the specified policy types
+            result = [
+                d for d in result
+                if any(pt in d.get("policy_types", []) for pt in policy_types)
+            ]
+
+    return result
+
+
+def list_categories() -> dict[str, str]:
+    """List all valid categories with descriptions.
+
+    Returns:
+        Dict mapping category name to description
+    """
+    return VALID_CATEGORIES.copy()
+
+
+def list_tags() -> dict[str, str]:
+    """List all valid tags with descriptions.
+
+    Returns:
+        Dict mapping tag name to description
+    """
+    return VALID_TAGS.copy()
+
+
+def list_policy_types() -> dict[str, str]:
+    """List all valid policy types with descriptions.
+
+    Returns:
+        Dict mapping policy type name to description
+    """
+    return VALID_POLICY_TYPES.copy()
+
+
+def get_domain_stats(domains_config: dict) -> dict:
+    """Get statistics about domain categorization.
+
+    Returns:
+        Dict with counts by category, tag, and policy_type
+    """
+    domains = domains_config.get("domains", [])
+    enabled = [d for d in domains if d.get("enabled", True)]
+
+    # Count by category
+    category_counts = {}
+    for cat in VALID_CATEGORIES:
+        count = len([d for d in enabled if d.get("category") == cat])
+        if count > 0:
+            category_counts[cat] = count
+
+    # Count uncategorized
+    uncategorized = len([d for d in enabled if not d.get("category")])
+    if uncategorized > 0:
+        category_counts["(uncategorized)"] = uncategorized
+
+    # Count by tag
+    tag_counts = {}
+    for tag in VALID_TAGS:
+        count = len([d for d in enabled if tag in d.get("tags", [])])
+        if count > 0:
+            tag_counts[tag] = count
+
+    # Count by policy type
+    policy_type_counts = {}
+    for pt in VALID_POLICY_TYPES:
+        count = len([d for d in enabled if pt in d.get("policy_types", [])])
+        if count > 0:
+            policy_type_counts[pt] = count
+
+    return {
+        "total_domains": len(domains),
+        "enabled_domains": len(enabled),
+        "by_category": category_counts,
+        "by_tag": tag_counts,
+        "by_policy_type": policy_type_counts,
+    }

@@ -15,6 +15,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "standards"
+    tags:
+      - "efficiency"
+      - "mandates"
+    policy_types:
+      - "standard"
+      - "guidance"
     notes: "Green Data Centre Roadmap launched May 2025, PUE ≤1.3"
 
   - name: "Singapore Energy Market Authority"
@@ -27,6 +34,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: "Energy efficiency standards"
 
   - name: "Japan METI - Ministry of Economy, Trade and Industry"
@@ -39,6 +53,15 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "carbon"
+      - "efficiency"
+      - "incentives"
+    policy_types:
+      - "law"
+      - "regulation"
+      - "incentive"
     notes: "Green Transformation (GX) initiative, carbon neutrality by 2050"
 
   - name: "Japan Agency for Natural Resources and Energy"
@@ -51,6 +74,14 @@ domains:
     language: "ja"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "regulation"
+      - "guidance"
+      - "report"
     notes: "Energy conservation programs"
 
   - name: "South Korea MOTIE - Ministry of Trade, Industry and Energy"
@@ -63,6 +94,13 @@ domains:
     language: "ko"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "regulation"
+      - "standard"
     notes: "PUE thresholds for carbon reduction"
 
   - name: "Australia Department of Climate Change, Energy"
@@ -75,4 +113,11 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: "Growing APAC data center market"

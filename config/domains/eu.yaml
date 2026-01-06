@@ -25,6 +25,13 @@ domains:
     language: "de"
     requires_playwright: false
     rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+      - "regulation"
     verified_by: "OCP Heat Reuse Group"
     verified_date: "2024-10-31"
     notes: |
@@ -48,6 +55,15 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+      - "reporting"
+    policy_types:
+      - "directive"
+      - "regulation"
+      - "guidance"
     verified_by: "OCP Heat Reuse Group"
     verified_date: "2024-10-31"
     notes: |
@@ -66,6 +82,13 @@ domains:
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+    policy_types:
+      - "law"
+      - "directive"
+      - "regulation"
     notes: "Official EU legislation database"
 
   - name: "Dutch Government - RVO"
@@ -78,6 +101,13 @@ domains:
     language: "nl"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
     notes: "Netherlands Enterprise Agency - energy programs"
 
   - name: "French Ministry for Ecological Transition"
@@ -90,6 +120,13 @@ domains:
     language: "fr"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "carbon"
+    policy_types:
+      - "law"
+      - "regulation"
     notes: "French energy policy and regulations"
 
   - name: "ADEME - French Environment and Energy Management Agency"
@@ -102,6 +139,15 @@ domains:
     language: "fr"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "incentive"
+      - "guidance"
+      - "report"
     notes: "Waste heat recovery subsidies and programs"
 
   - name: "Swiss Federal Office of Energy"
@@ -114,6 +160,13 @@ domains:
     language: "de"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+      - "regulation"
     notes: "Mandatory heat supply at cost for >2 GWh waste heat"
 
   - name: "Austrian Ministry for Climate Action"
@@ -126,6 +179,13 @@ domains:
     language: "de"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: "Austrian energy efficiency programs"
 
   - name: "Belgian Federal Public Service Economy - Energy"
@@ -138,6 +198,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: "Belgian energy policy"
 
   - name: "Sustainable Energy Authority of Ireland"
@@ -150,4 +217,13 @@ domains:
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "incentive"
+      - "guidance"
+      - "report"
     notes: "Growing EU data center hub"

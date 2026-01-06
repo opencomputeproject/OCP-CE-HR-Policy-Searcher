@@ -31,6 +31,47 @@ domains:
     requires_playwright: false              # Set true for JavaScript-heavy sites
     rate_limit_seconds: 2.0                 # Delay between requests
 
+    # -------------------------------------------------------------------------
+    # CATEGORIZATION (for filtering with --category, --tag, --policy-type)
+    # -------------------------------------------------------------------------
+    #
+    # category: Primary classification (pick ONE)
+    #   energy_ministry      - National/state energy departments
+    #   environmental_agency - EPA equivalents, climate agencies
+    #   legislative          - Bill trackers, law databases, parliaments
+    #   district_heating     - Heat network authorities
+    #   grid_operator        - RTOs, ISOs, grid planners
+    #   economic_dev         - Business incentives, tax programs
+    #   regulatory           - Utility commissions, permit authorities
+    #   standards            - Building codes, efficiency standards
+    #
+    # tags: Multiple labels (pick any that apply)
+    #   incentives  - Grants, tax breaks, subsidies
+    #   mandates    - Required regulations
+    #   reporting   - Disclosure requirements
+    #   carbon      - Carbon pricing, credits, emissions
+    #   efficiency  - PUE, energy efficiency programs
+    #   planning    - Zoning, permits, infrastructure
+    #   research    - Studies, reports, data
+    #
+    # policy_types: What kinds of policies this site publishes
+    #   law         - Enacted legislation
+    #   regulation  - Agency rules
+    #   directive   - EU directives, guidance with force
+    #   incentive   - Grant programs, tax credits
+    #   guidance    - Best practices, recommendations
+    #   standard    - Technical standards, building codes
+    #   report      - Research, data, analysis
+    # -------------------------------------------------------------------------
+
+    category: "energy_ministry"             # Primary category (see list above)
+    tags:                                   # Multiple tags for filtering
+      - "efficiency"
+      - "mandates"
+    policy_types:                           # Types of policies found here
+      - "regulation"
+      - "guidance"
+
     # Optional: Documentation
     verified_by: "Your Name"                # Who verified this domain
     verified_date: "2026-01-05"             # When it was verified

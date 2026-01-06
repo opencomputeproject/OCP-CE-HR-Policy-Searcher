@@ -17,6 +17,14 @@ domains:
     language: "sv"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+    policy_types:
+      - "regulation"
+      - "incentive"
+      - "guidance"
     notes: "Sweden has active district heating from data centers"
 
   - name: "Danish Energy Agency"
@@ -29,6 +37,13 @@ domains:
     language: "da"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: "Denmark district heating regulations"
 
   - name: "Finnish Energy Authority"
@@ -42,6 +57,13 @@ domains:
     language: "fi"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "efficiency"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "guidance"
     notes: "Finland leads in waste heat recovery implementations"
 
   - name: "Finnish Ministry of Economic Affairs and Employment"
@@ -54,6 +76,13 @@ domains:
     language: "fi"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+      - "regulation"
     notes: "National energy policy and legislation"
 
   - name: "Norwegian Ministry of Petroleum and Energy"
@@ -66,6 +95,13 @@ domains:
     language: "no"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+      - "regulation"
     notes: "Norway proposing waste heat requirements for data centers"
 
   - name: "Enova - Norwegian Energy Efficiency Agency"
@@ -78,6 +114,13 @@ domains:
     language: "no"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
     notes: "Energy efficiency programs and funding"
 
   - name: "Icelandic National Energy Authority"
@@ -90,4 +133,11 @@ domains:
     language: "is"
     requires_playwright: false
     rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "regulation"
+      - "report"
     notes: "100% renewable energy, PUE 1.05-1.2"

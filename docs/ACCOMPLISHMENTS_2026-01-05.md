@@ -279,9 +279,73 @@ Details:
 
 ---
 
-### 10. Unit Test Suite
+### 10. Category & Tag-Based Domain Filtering
 
-**155 tests** covering critical functionality:
+**Problem:** Users could only filter domains by regional groups, limiting flexibility for thematic research.
+
+**Solution:** Comprehensive categorization system allowing multi-dimensional filtering by category, tags, and policy types.
+
+**New CLI options:**
+```bash
+# Filter by category
+python -m src.main --category energy_ministry
+
+# Filter by tag (can use multiple)
+python -m src.main --tag efficiency --tag incentives
+
+# Combine filters
+python -m src.main --domains eu --category legislative --tag mandates
+```
+
+**New CLI commands:**
+```bash
+python -m src.main list-categories    # Show all categories
+python -m src.main list-tags          # Show all tags
+python -m src.main list-policy-types  # Show all policy types
+python -m src.main domain-stats       # View categorization statistics
+```
+
+**Categories (pick one per domain):**
+| Category | Description |
+|----------|-------------|
+| `energy_ministry` | National/state energy departments |
+| `environmental_agency` | EPA equivalents, climate agencies |
+| `legislative` | Bill trackers, parliaments |
+| `district_heating` | Heat network authorities |
+| `grid_operator` | RTOs, ISOs, grid planners |
+| `economic_dev` | Business incentives, tax programs |
+| `regulatory` | Utility commissions |
+| `standards` | Building codes, efficiency standards |
+
+**Tags (pick multiple per domain):**
+| Tag | Description |
+|-----|-------------|
+| `efficiency` | PUE, energy efficiency programs |
+| `mandates` | Required regulations |
+| `incentives` | Grants, tax breaks, subsidies |
+| `carbon` | Carbon pricing, credits |
+| `planning` | Zoning, permits |
+| `research` | Studies, reports |
+| `reporting` | Disclosure requirements |
+
+**Policy Types:**
+| Type | Description |
+|------|-------------|
+| `law` | Enacted legislation |
+| `regulation` | Agency rules |
+| `directive` | EU directives |
+| `incentive` | Grant programs |
+| `guidance` | Recommendations |
+| `standard` | Technical standards |
+| `report` | Research, data |
+
+**Updated all 42 enabled domains** with category, tags, and policy_types fields.
+
+---
+
+### 11. Unit Test Suite
+
+**201 tests** covering critical functionality:
 
 ```
 tests/unit/
@@ -289,6 +353,7 @@ tests/unit/
 ├── test_chunking.py         # 31 tests
 ├── test_config_loader.py    # 20 tests
 ├── test_costs.py            # 26 tests
+├── test_domain_filtering.py # 46 tests
 ├── test_keywords.py         # 16 tests
 └── test_notifications.py    # 24 tests
 ```
@@ -297,6 +362,7 @@ tests/unit/
 - Domain chunking (parsing, splitting, distribution)
 - YAML loading and merging
 - Domain group filtering
+- Category/tag/policy-type filtering
 - Keyword pattern matching (8 languages)
 - Threshold and relevance checking
 - Cost calculations and budget warnings
@@ -310,11 +376,11 @@ pytest -v                    # All tests
 pytest --cov=src             # With coverage
 ```
 
-All 155 tests pass.
+All 201 tests pass.
 
 ---
 
-### 11. Improved Documentation
+### 12. Improved Documentation
 
 **README.md enhancements:**
 
@@ -354,14 +420,17 @@ All 155 tests pass.
 | `config/notifications.yaml` | Notification configuration |
 | `tests/unit/test_notifications.py` | Notification tests (24 tests) |
 | `tests/unit/test_alerts.py` | Alert tests (38 tests) |
+| `tests/unit/test_domain_filtering.py` | Domain filtering tests (46 tests) |
 
 ### Files Modified
 | File | Changes |
 |------|---------|
-| `src/config/loader.py` | Multi-file loading, group functions |
-| `src/main.py` | CLI subcommands, stats calculation |
+| `src/config/loader.py` | Multi-file loading, group functions, category/tag filtering |
+| `src/main.py` | CLI subcommands, stats, filtering integration |
 | `src/logging/run_logger.py` | Enhanced RunStats, summary box |
 | `src/analysis/llm/client.py` | Token usage tracking |
+| `config/domains/*.yaml` | Added category, tags, policy_types to all domains |
+| `config/domains/_template.yaml` | Updated template with categorization fields |
 | `README.md` | Multiple documentation improvements |
 
 ### Files Deleted
@@ -376,13 +445,16 @@ All 155 tests pass.
 | Metric | Value |
 |--------|-------|
 | Total domains configured | 48 |
-| Enabled domains | 29 |
+| Enabled domains | 42 |
 | Domain groups | 16 |
+| Domain categories | 8 |
+| Domain tags | 7 |
+| Policy types | 7 |
 | Supported languages | 8 |
 | Keywords defined | 400+ |
-| Unit tests | 155 |
+| Unit tests | 201 |
 | Test pass rate | 100% |
-| CLI commands | 8 |
+| CLI commands | 12 |
 | Notification types | 9 |
 | Alert types | 7 |
 
@@ -432,6 +504,15 @@ python -m src.main test-notifications
 
 # View alert history
 python -m src.main alerts
+
+# Filter by category
+python -m src.main --category energy_ministry
+
+# Filter by tag
+python -m src.main --tag incentives
+
+# View domain statistics
+python -m src.main domain-stats
 ```
 
 ### Adding a New Domain

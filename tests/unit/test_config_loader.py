@@ -271,6 +271,9 @@ class TestListDomains:
             "name": "Domain 1",
             "base_url": "https://d1.com",
             "enabled": True,
+            "category": None,
+            "tags": [],
+            "policy_types": [],
         }
         assert result[1]["enabled"] is False
 
