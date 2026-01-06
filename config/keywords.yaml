@@ -1,0 +1,580 @@
+# =============================================================================
+# KEYWORD CONFIGURATION
+# =============================================================================
+# Keywords used to identify relevant policy content.
+# Organized by category with weights for scoring.
+#
+# Scoring formula:
+#   score = sum(category_weight * match_count) for each category
+#
+# A page is considered relevant if:
+#   - score >= thresholds.minimum_keyword_score AND
+#   - total unique matches >= thresholds.minimum_matches
+# =============================================================================
+
+keywords:
+  # ---------------------------------------------------------------------------
+  # SUBJECT KEYWORDS (highest weight)
+  # ---------------------------------------------------------------------------
+  # These directly describe what we're looking for
+
+  subject:
+    weight: 3.0
+    description: "Core subject matter - data center heat reuse"
+    terms:
+      en:
+        # Exact target phrases
+        - "data center heat reuse"
+        - "data centre heat reuse"
+        - "data center waste heat"
+        - "data centre waste heat"
+        - "waste heat recovery"
+        - "waste heat utilization"
+        - "waste heat utilisation"
+
+        # Related concepts
+        - "heat recovery system"
+        - "thermal energy recovery"
+        - "district heating data center"
+        - "district heating data centre"
+        - "excess heat"
+        - "recovered heat"
+        - "heat recycling"
+
+        # Additional high-value terms
+        - "surplus heat"
+        - "rejected heat"
+        - "heat capture"
+        - "thermal recovery"
+        - "energy reuse effectiveness"
+        - "heat exchange network"
+        - "heat pump integration"
+        - "urban heat network"
+        - "communal heating"
+        - "heat reclamation"
+
+      de:
+        - "Abwärme"
+        - "Abwärmenutzung"
+        - "Abwärmeverwertung"
+        - "Rechenzentrum Wärme"
+        - "Rechenzentrumsabwärme"
+        - "Wärmerückgewinnung"
+        - "Fernwärme Rechenzentrum"
+        - "Wärmenutzung"
+        - "Wärmeauskopplung"
+        - "Restwärme"
+
+      fr:
+        - "chaleur résiduelle"
+        - "récupération de chaleur"
+        - "centre de données chaleur"
+        - "chaleur fatale"
+        - "réutilisation de chaleur"
+        - "réseau de chaleur"
+        - "chauffage urbain"
+        - "valorisation thermique"
+
+      nl:
+        - "restwarmte"
+        - "afvalwarmte"
+        - "warmteterugwinning"
+        - "warmtehergebruik"
+        - "datacenter warmte"
+        - "warmtenet"
+        - "stadsverwarming"
+
+      sv:
+        - "spillvärme"
+        - "överskottsvärme"
+        - "värmeåtervinning"
+        - "värmeutvinning"
+        - "datacenter värme"
+        - "fjärrvärme"
+
+      da:
+        - "overskudsvarme"
+        - "spildvarme"
+        - "varmegenvinding"
+        - "varmeudnyttelse"
+        - "fjernvarme"
+
+      it:
+        - "calore residuo"
+        - "calore di scarto"
+        - "recupero del calore"
+        - "riutilizzo del calore"
+        - "teleriscaldamento"
+        - "rete di teleriscaldamento"
+
+      es:
+        - "calor residual"
+        - "calor de desecho"
+        - "recuperación de calor"
+        - "reutilización de calor"
+        - "red de calefacción urbana"
+        - "distrito térmico"
+
+  # ---------------------------------------------------------------------------
+  # POLICY TYPE KEYWORDS (medium weight)
+  # ---------------------------------------------------------------------------
+  # Indicate this is a policy/regulation document
+
+  policy_type:
+    weight: 2.0
+    description: "Policy document indicators"
+    terms:
+      en:
+        - "regulation"
+        - "directive"
+        - "legislation"
+        - "law"
+        - "act"
+        - "policy"
+        - "requirement"
+        - "standard"
+        - "mandate"
+        - "ordinance"
+        - "statute"
+        - "code"
+        - "rule"
+        - "decree"
+        - "compliance requirement"
+
+      de:
+        - "Verordnung"
+        - "Gesetz"
+        - "Richtlinie"
+        - "Vorschrift"
+        - "Regelung"
+        - "Pflicht"
+        - "Bestimmung"
+        - "Anforderung"
+
+      fr:
+        - "règlement"
+        - "réglementation"
+        - "directive"
+        - "loi"
+        - "décret"
+        - "arrêté"
+        - "ordonnance"
+        - "obligation réglementaire"
+
+      nl:
+        - "verordening"
+        - "richtlijn"
+        - "wet"
+        - "decreet"
+        - "voorschrift"
+
+      sv:
+        - "förordning"
+        - "direktiv"
+        - "lag"
+        - "föreskrift"
+
+      da:
+        - "forordning"
+        - "direktiv"
+        - "lov"
+        - "bekendtgørelse"
+
+      it:
+        - "regolamento"
+        - "direttiva"
+        - "legge"
+        - "decreto"
+        - "normativa"
+        - "obbligo"
+
+      es:
+        - "reglamento"
+        - "directiva"
+        - "ley"
+        - "decreto"
+        - "normativa"
+        - "obligación"
+
+  # ---------------------------------------------------------------------------
+  # INCENTIVE KEYWORDS (medium weight)
+  # ---------------------------------------------------------------------------
+  # Financial incentives for heat reuse
+
+  incentives:
+    weight: 2.0
+    description: "Financial incentive indicators"
+    terms:
+      en:
+        - "incentive"
+        - "tax credit"
+        - "tax incentive"
+        - "tax break"
+        - "tax deduction"
+        - "tax relief"
+        - "grant"
+        - "grant program"
+        - "subsidy"
+        - "rebate"
+        - "funding"
+        - "financial support"
+        - "cost sharing"
+        - "co-financing"
+        - "matched funding"
+        - "capital allowance"
+
+      de:
+        - "Förderung"
+        - "Förderprogramm"
+        - "Fördergelder"
+        - "Zuschuss"
+        - "Investitionszuschuss"
+        - "Steuervorteil"
+        - "Steuerermäßigung"
+        - "Subvention"
+        - "Beihilfe"
+
+      fr:
+        - "subvention"
+        - "aide financière"
+        - "soutien financier"
+        - "crédit d'impôt"
+        - "avantage fiscal"
+        - "prime"
+        - "financement"
+        - "cofinancement"
+
+      nl:
+        - "subsidie"
+        - "belastingvoordeel"
+        - "fiscale aftrek"
+        - "financiering"
+        - "tegemoetkoming"
+
+      sv:
+        - "bidrag"
+        - "stöd"
+        - "skattekredit"
+        - "finansiering"
+        - "subvention"
+
+      da:
+        - "tilskud"
+        - "støtte"
+        - "skattefradrag"
+        - "finansiering"
+
+      it:
+        - "sovvenzione"
+        - "incentivo"
+        - "credito d'imposta"
+        - "finanziamento"
+        - "agevolazione fiscale"
+
+      es:
+        - "subvención"
+        - "incentivo"
+        - "crédito fiscal"
+        - "financiación"
+        - "ayuda financiera"
+
+  # ---------------------------------------------------------------------------
+  # ENABLING ACTION KEYWORDS (lower weight)
+  # ---------------------------------------------------------------------------
+  # Plans, platforms, and enabling activities
+
+  enabling:
+    weight: 1.5
+    description: "Enabling actions and platforms"
+    terms:
+      en:
+        - "matching platform"
+        - "heat marketplace"
+        - "planning"
+        - "heat planning"
+        - "roadmap"
+        - "strategy"
+        - "framework"
+        - "guidelines"
+        - "action plan"
+        - "pilot program"
+        - "demonstration project"
+        - "feasibility study"
+        - "potential assessment"
+        - "best practice"
+
+      de:
+        - "Plattform"
+        - "Vermittlungsplattform"
+        - "Strategie"
+        - "Leitfaden"
+        - "Aktionsplan"
+        - "Pilotprojekt"
+        - "Machbarkeitsstudie"
+        - "Wärmeplanung"
+        - "Wärmekataster"
+
+      fr:
+        - "plateforme"
+        - "stratégie"
+        - "feuille de route"
+        - "plan d'action"
+        - "projet pilote"
+        - "étude de faisabilité"
+        - "planification thermique"
+
+      nl:
+        - "platform"
+        - "strategie"
+        - "routekaart"
+        - "actieplan"
+        - "proefproject"
+        - "warmteplan"
+
+      sv:
+        - "plattform"
+        - "strategi"
+        - "färdplan"
+        - "handlingsplan"
+        - "pilotprojekt"
+
+      da:
+        - "platform"
+        - "strategi"
+        - "køreplan"
+        - "handlingsplan"
+        - "pilotprojekt"
+
+      it:
+        - "piattaforma"
+        - "strategia"
+        - "piano d'azione"
+        - "progetto pilota"
+        - "studio di fattibilità"
+
+      es:
+        - "plataforma"
+        - "estrategia"
+        - "hoja de ruta"
+        - "plan de acción"
+        - "proyecto piloto"
+
+  # ---------------------------------------------------------------------------
+  # OFF-TAKER KEYWORDS (lower weight)
+  # ---------------------------------------------------------------------------
+  # Heat consumers and applications - catches implementation discussions
+
+  off_takers:
+    weight: 1.5
+    description: "Heat consumer and application indicators"
+    terms:
+      en:
+        - "heat off-taker"
+        - "heat consumer"
+        - "heat user"
+        - "district heating customer"
+        - "swimming pool"
+        - "aquatic center"
+        - "greenhouse heating"
+        - "horticulture"
+        - "food processing"
+        - "residential heating"
+        - "commercial heating"
+
+      de:
+        - "Wärmeabnehmer"
+        - "Wärmekunde"
+        - "Wärmenutzer"
+        - "Schwimmbad"
+        - "Hallenbad"
+        - "Gewächshaus"
+        - "Gartenbau"
+        - "Lebensmittelindustrie"
+
+      fr:
+        - "consommateur de chaleur"
+        - "utilisateur de chaleur"
+        - "client du réseau de chaleur"
+        - "piscine"
+        - "serre"
+        - "horticulture"
+        - "industrie agroalimentaire"
+
+      nl:
+        - "warmteafnemer"
+        - "warmteverbruiker"
+        - "zwembad"
+        - "kas"
+        - "voedselindustrie"
+
+      sv:
+        - "värmekund"
+        - "värmeanvändare"
+        - "simhall"
+        - "växthus"
+
+      da:
+        - "varmeaftager"
+        - "varmeforbrug"
+        - "svømmehal"
+        - "drivhus"
+
+  # ---------------------------------------------------------------------------
+  # CONTEXT KEYWORDS (lowest weight)
+  # ---------------------------------------------------------------------------
+  # Help confirm the page is about data centers
+
+  context:
+    weight: 1.0
+    description: "Data center context indicators"
+    terms:
+      en:
+        - "data center"
+        - "data centre"
+        - "server farm"
+        - "colocation"
+        - "colo facility"
+        - "hyperscale"
+        - "edge computing"
+        - "computing facility"
+        - "cloud infrastructure"
+
+      de:
+        - "Rechenzentrum"
+        - "Rechenzentren"
+        - "Serverraum"
+        - "Colocation"
+
+      fr:
+        - "centre de données"
+        - "salle serveur"
+        - "infrastructure cloud"
+
+      nl:
+        - "datacentrum"
+        - "serverruimte"
+
+      sv:
+        - "datacenter"
+        - "datorhall"
+        - "serverrum"
+
+      da:
+        - "datacenter"
+        - "serverrum"
+
+      it:
+        - "centro dati"
+        - "data center"
+        - "sala server"
+
+      es:
+        - "centro de datos"
+        - "sala de servidores"
+
+  # ---------------------------------------------------------------------------
+  # ENERGY EFFICIENCY CONTEXT (lowest weight)
+  # ---------------------------------------------------------------------------
+  # Broader energy efficiency context
+
+  energy:
+    weight: 1.0
+    description: "Energy efficiency context"
+    terms:
+      en:
+        - "energy efficiency"
+        - "PUE"
+        - "power usage effectiveness"
+        - "energy consumption"
+        - "carbon footprint"
+        - "sustainability"
+        - "decarbonization"
+        - "decarbonisation"
+        - "circular economy"
+        - "net zero"
+
+      de:
+        - "Energieeffizienz"
+        - "Energieverbrauch"
+        - "Nachhaltigkeit"
+        - "Kreislaufwirtschaft"
+        - "Dekarbonisierung"
+
+      fr:
+        - "efficacité énergétique"
+        - "consommation d'énergie"
+        - "durabilité"
+        - "économie circulaire"
+        - "décarbonation"
+
+      nl:
+        - "energie-efficiëntie"
+        - "energieverbruik"
+        - "duurzaamheid"
+        - "circulaire economie"
+
+      sv:
+        - "energieffektivitet"
+        - "energiförbrukning"
+        - "hållbarhet"
+
+      da:
+        - "energieffektivitet"
+        - "energiforbrug"
+        - "bæredygtighed"
+
+      it:
+        - "efficienza energetica"
+        - "consumo energetico"
+        - "sostenibilità"
+
+      es:
+        - "eficiencia energética"
+        - "consumo de energía"
+        - "sostenibilidad"
+
+# =============================================================================
+# THRESHOLDS
+# =============================================================================
+
+thresholds:
+  # Minimum weighted score to consider a page relevant
+  # With weights: subject=3, policy=2, incentive=2, enabling=1.5, off_takers=1.5, context=1, energy=1
+  # Score of 5.0 means roughly:
+  #   - 2 subject matches, OR
+  #   - 1 subject + 1 policy match, OR
+  #   - 2 policy + 1 context matches
+  minimum_keyword_score: 5.0
+
+  # Must have at least this many different keyword matches
+  # Prevents false positives from a single repeated word
+  minimum_matches: 2
+
+  # Pages below this LLM relevance score are filtered out
+  minimum_llm_relevance: 5
+
+# =============================================================================
+# NEGATIVE KEYWORDS (EXCLUSIONS)
+# =============================================================================
+# Pages containing these are likely not relevant
+
+exclusions:
+  # Job postings and careers
+  - "job opening"
+  - "career opportunity"
+  - "we are hiring"
+  - "apply now"
+  - "position available"
+  - "employment opportunity"
+
+  # News about unrelated topics
+  - "press release archive"
+  - "newsletter signup"
+
+  # Generic pages
+  - "cookie policy"
+  - "privacy policy"
+  - "terms of service"
+  - "contact us"
+  - "site map"
+  - "sitemap"

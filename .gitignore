@@ -1,0 +1,47 @@
+# Environment and secrets
+.env
+.env.*
+.keys/
+*.key
+*.pem
+credentials.json
+service-account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and snapshots (local only)
+logs/
+snapshots/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# mypy
+.mypy_cache/
+
+# OS
+.DS_Store
+Thumbs.db

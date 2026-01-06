@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -m ensurepip:*)",
+      "Bash(py -3.13 -m pip --version)",
+      "Bash(set)",
+      "Bash(findstr:*)",
+      "Bash(set PYTHONPATH=)",
+      "Bash(powershell -Command \"$env:PYTHONPATH=''''; python -m pip install -e ''.[dev]''\")",
+      "Bash(where:*)",
+      "Bash(C:Python313python.exe -m pip install --upgrade pip setuptools wheel)",
+      "Bash(/c/Python313/python.exe -m pip:*)",
+      "Bash(python -m venv:*)",
+      "Bash(/c/Python313/python.exe -m venv:*)",
+      "Bash(echo:*)",
+      "Bash(python -m pip:*)",
+      "Bash(venvScriptsactivate)",
+      "Bash(source venv/Scripts/activate)",
+      "Bash(playwright install:*)",
+      "Bash(python:*)",
+      "Bash(.\\venv\\Scripts\\python.exe:*)",
+      "Bash(./venv/Scripts/python.exe:*)",
+      "Bash(gh auth:*)",
+      "Bash(git init:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

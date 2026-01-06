@@ -1,0 +1,137 @@
+# =============================================================================
+# RUNTIME SETTINGS
+# =============================================================================
+# Main configuration for the policy searcher runtime behavior.
+# Environment variables can override any setting using:
+#   POLICYSEARCH__SECTION__KEY=value
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# CRAWLER SETTINGS
+# -----------------------------------------------------------------------------
+crawl:
+  # Maximum depth to follow links from start_paths
+  # 1 = only start pages, 2 = start + one click, etc.
+  max_depth: 3
+
+  # Maximum pages to crawl per domain (safety limit)
+  max_pages_per_domain: 100
+
+  # Delay between requests to same domain (seconds)
+  # Be respectful to government servers
+  delay_seconds: 3.0
+
+  # Timeout for individual page fetches (seconds)
+  timeout_seconds: 30
+
+  # Maximum concurrent requests across all domains
+  # Keep low to avoid overwhelming servers
+  max_concurrent: 3
+
+  # User agent string identifying the bot
+  user_agent: "OCP-PolicySearcher/1.0 (https://github.com/opencomputeproject; policy-research)"
+
+  # Whether to check and respect robots.txt
+  respect_robots_txt: true
+
+  # Retry failed requests this many times
+  max_retries: 3
+
+  # Use Playwright for all fetches (slower but handles JS)
+  # Set to false to use smart detection (try HTTP first, fall back to Playwright)
+  force_playwright: false
+
+# -----------------------------------------------------------------------------
+# ANALYSIS SETTINGS
+# -----------------------------------------------------------------------------
+analysis:
+  # Minimum keyword score to send to LLM analysis
+  # Pages below this are filtered out before LLM call (saves cost)
+  min_keyword_score: 3.0
+
+  # Minimum LLM relevance score (1-10) to include in results
+  min_relevance_score: 5
+
+  # Minimum number of keyword matches required
+  min_keyword_matches: 2
+
+  # Whether to use LLM for analysis (set false to only use keyword matching)
+  enable_llm_analysis: true
+
+  # Which Claude model to use
+  # Options: claude-sonnet-4-20250514, claude-haiku-4-20250514
+  # Haiku is cheaper, Sonnet is more accurate
+  llm_model: "claude-sonnet-4-20250514"
+
+  # Maximum characters to send to LLM (truncate longer content)
+  max_content_length: 50000
+
+  # Temperature for LLM responses (0.0 = deterministic, 1.0 = creative)
+  llm_temperature: 0.0
+
+  # Enable semantic deduplication using LLM
+  # More accurate but costs more
+  semantic_deduplication: false
+
+# -----------------------------------------------------------------------------
+# OUTPUT SETTINGS
+# -----------------------------------------------------------------------------
+output:
+  # Google Spreadsheet ID (from URL)
+  # Override with POLICYSEARCH__OUTPUT__SPREADSHEET_ID env var
+  spreadsheet_id: null  # REQUIRED - set in environment
+
+  # Name of the staging sheet (will be created if doesn't exist)
+  staging_sheet_name: "Staging"
+
+  # Whether to save page snapshots
+  save_snapshots: true
+
+  # Directory for snapshots (relative to project root)
+  snapshot_dir: "snapshots"
+
+  # Maximum snapshots to keep per run (oldest deleted)
+  max_snapshots_per_run: 100
+
+  # Backup existing staging data before writing
+  create_backup: true
+
+# -----------------------------------------------------------------------------
+# LOGGING SETTINGS
+# -----------------------------------------------------------------------------
+logging:
+  # Minimum log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+
+  # Directory for log files
+  log_dir: "logs"
+
+  # Enable JSON log output (for programmatic analysis)
+  json_logs: true
+
+  # Enable human-readable log output
+  human_logs: true
+
+  # Include full page content in debug logs (large!)
+  log_page_content: false
+
+  # Maximum log file size in MB before rotation
+  max_log_size_mb: 10
+
+  # Number of rotated log files to keep
+  log_backup_count: 5
+
+# -----------------------------------------------------------------------------
+# NOTIFICATION SETTINGS (optional)
+# -----------------------------------------------------------------------------
+notifications:
+  # Enable email notifications on completion
+  email_enabled: false
+  email_recipients: []
+
+  # Enable Slack notifications
+  slack_enabled: false
+  slack_webhook_url: null
+
+  # Only notify on errors
+  notify_on_error_only: false
