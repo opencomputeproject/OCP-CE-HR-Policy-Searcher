@@ -1,0 +1,153 @@
+# =============================================================================
+# EUROPEAN UNION DOMAINS
+# =============================================================================
+# EU institutions and member state energy agencies
+#
+# To add a domain: Copy an entry, update fields, test with --domains test
+# =============================================================================
+
+domains:
+  - name: "German Federal Ministry for Economic Affairs and Climate Action"
+    id: "bmwk_de"
+    enabled: true
+    base_url: "https://www.bmwk.de"
+    start_paths:
+      - "/Redaktion/EN/Artikel/Energy/"
+      - "/Redaktion/EN/Dossier/energy-efficiency.html"
+      - "/Redaktion/DE/Artikel/Energie/"
+    allowed_path_patterns:
+      - "/Redaktion/*/Artikel/*"
+      - "/Redaktion/*/Dossier/*"
+    blocked_path_patterns:
+      - "/Redaktion/*/Video/*"
+      - "/Redaktion/*/Bilderstrecke/*"
+    max_depth: 3
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    verified_by: "OCP Heat Reuse Group"
+    verified_date: "2024-10-31"
+    notes: |
+      Primary source for German Energy Efficiency Act (EnEfG).
+      Section 5 covers waste heat requirements for data centers.
+
+  - name: "European Commission - Energy"
+    id: "ec_europa_energy"
+    enabled: true
+    base_url: "https://energy.ec.europa.eu"
+    start_paths:
+      - "/topics/energy-efficiency"
+      - "/topics/energy-efficiency/energy-efficiency-targets-directive-and-rules"
+      - "/news"
+    allowed_path_patterns:
+      - "/topics/*"
+      - "/news/*"
+    blocked_path_patterns:
+      - "/system/files/*"
+    max_depth: 3
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    verified_by: "OCP Heat Reuse Group"
+    verified_date: "2024-10-31"
+    notes: |
+      EU Energy Efficiency Directive and related policies.
+
+  - name: "EUR-Lex (EU Law)"
+    id: "eur_lex"
+    enabled: true
+    base_url: "https://eur-lex.europa.eu"
+    start_paths:
+      - "/search.html?scope=EURLEX&text=data+center+energy"
+      - "/legal-content/EN/TXT/?uri=CELEX:32023L1791"
+    allowed_path_patterns:
+      - "/legal-content/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    notes: "Official EU legislation database"
+
+  - name: "Dutch Government - RVO"
+    id: "rvo_nl"
+    enabled: true
+    base_url: "https://www.rvo.nl"
+    start_paths:
+      - "/onderwerpen/duurzaam-ondernemen/energie-besparen"
+    max_depth: 2
+    language: "nl"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Netherlands Enterprise Agency - energy programs"
+
+  - name: "French Ministry for Ecological Transition"
+    id: "ecologie_fr"
+    enabled: true
+    base_url: "https://www.ecologie.gouv.fr"
+    start_paths:
+      - "/energie"
+    max_depth: 2
+    language: "fr"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "French energy policy and regulations"
+
+  - name: "ADEME - French Environment and Energy Management Agency"
+    id: "ademe_fr"
+    enabled: true
+    base_url: "https://www.ademe.fr"
+    start_paths:
+      - "/expertises/energies-renouvelables-enr-production-reseaux-stockage"
+    max_depth: 2
+    language: "fr"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Waste heat recovery subsidies and programs"
+
+  - name: "Swiss Federal Office of Energy"
+    id: "bfe_ch"
+    enabled: true
+    base_url: "https://www.bfe.admin.ch"
+    start_paths:
+      - "/bfe/en/home/efficiency/data-centres.html"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Mandatory heat supply at cost for >2 GWh waste heat"
+
+  - name: "Austrian Ministry for Climate Action"
+    id: "bmk_at"
+    enabled: true
+    base_url: "https://www.bmk.gv.at"
+    start_paths:
+      - "/en/topics/energy"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Austrian energy efficiency programs"
+
+  - name: "Belgian Federal Public Service Economy - Energy"
+    id: "energy_be"
+    enabled: true
+    base_url: "https://energy.belgium.be"
+    start_paths:
+      - "/en"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Belgian energy policy"
+
+  - name: "Sustainable Energy Authority of Ireland"
+    id: "seai_ie"
+    enabled: true
+    base_url: "https://www.seai.ie"
+    start_paths:
+      - "/business-and-public-sector/large-industry-energy-network"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Growing EU data center hub"

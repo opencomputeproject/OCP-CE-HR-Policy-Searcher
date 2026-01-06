@@ -1,0 +1,349 @@
+# =============================================================================
+# UNITED STATES - STATE GOVERNMENTS
+# =============================================================================
+# State-level energy agencies, public utility commissions, and legislatures
+#
+# States are listed alphabetically. Empty comments mark states not yet added.
+# =============================================================================
+
+domains:
+  # ALABAMA
+  # ALASKA
+
+  # ARIZONA
+  - name: "Arizona Corporation Commission"
+    id: "az_acc"
+    enabled: true
+    base_url: "https://azcc.gov"
+    start_paths:
+      - "/utilities"
+      - "/renewable-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Growing Southwest data center market"
+
+  # ARKANSAS
+
+  # CALIFORNIA
+  - name: "California Energy Commission"
+    id: "ca_energy"
+    enabled: true
+    base_url: "https://www.energy.ca.gov"
+    start_paths:
+      - "/programs-and-topics/programs/building-energy-efficiency-standards"
+      - "/programs-and-topics/topics/data-centers"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "California Title 24 and data center programs"
+
+  # COLORADO
+  # CONNECTICUT
+  # DELAWARE
+  # FLORIDA
+
+  # GEORGIA
+  - name: "Georgia Environmental Protection Division"
+    id: "ga_epd"
+    enabled: true
+    base_url: "https://epd.georgia.gov"
+    start_paths:
+      - "/air-protection"
+      - "/water-protection"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      Growing data center hub.
+      SB 34: Prohibits passing data center costs to customers.
+
+  # HAWAII
+  # IDAHO
+
+  # ILLINOIS
+  - name: "Illinois Commerce Commission"
+    id: "il_icc"
+    enabled: true
+    base_url: "https://www.icc.illinois.gov"
+    start_paths:
+      - "/electricity"
+      - "/energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      4th largest data center market nationally.
+      Chicago Quantum & Microelectronics Park: closed-loop wastewater system.
+      Meta's 1.1 GW nuclear purchase agreement at Clinton facility.
+
+  # INDIANA
+  # IOWA
+  # KANSAS
+  # KENTUCKY
+  # LOUISIANA
+  # MAINE
+
+  # MARYLAND
+  - name: "Maryland Energy Administration"
+    id: "md_energy"
+    enabled: true
+    base_url: "https://energy.maryland.gov"
+    start_paths:
+      - "/business/Pages/incentives.aspx"
+      - "/Pages/Energy-Efficiency.aspx"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      SB 0316 (failed): 75% of data center tax revenue to solar escrow.
+      Part of PJM consortium for data center fast-track approvals.
+
+  # MASSACHUSETTS
+  - name: "Massachusetts Department of Energy Resources"
+    id: "ma_doer"
+    enabled: true
+    base_url: "https://www.mass.gov/orgs/department-of-energy-resources"
+    start_paths:
+      - "/energy-efficiency"
+      - "/renewable-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Northeast data center market with aggressive climate goals"
+
+  # MICHIGAN
+  - name: "Michigan Public Service Commission"
+    id: "mi_psc"
+    enabled: true
+    base_url: "https://www.michigan.gov/mpsc"
+    start_paths:
+      - "/electric"
+      - "/energy-programs"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      50+ data center facilities.
+      100% clean energy mandate by 2040.
+      DTE + Consumers Energy: 6.4 GW data center deals (Oct 2025).
+      Lansing Deep Green: Waste heat to municipal heating, PUE 1.03-1.17.
+
+  # MINNESOTA
+  # MISSISSIPPI
+  # MISSOURI
+  # MONTANA
+  # NEBRASKA
+  # NEVADA
+  # NEW HAMPSHIRE
+
+  # NEW JERSEY
+  - name: "New Jersey Board of Public Utilities"
+    id: "nj_bpu"
+    enabled: true
+    base_url: "https://www.nj.gov/bpu"
+    start_paths:
+      - "/commercial/energy.html"
+      - "/commercial/programs"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      A.5462/S.4307: Special tariff for data centers, heat capture encouragement.
+      Part of PJM 4-state consortium.
+      Bowery Bay wastewater plant co-location proposals.
+
+  # NEW MEXICO
+
+  # NEW YORK
+  - name: "New York State Energy Research and Development Authority"
+    id: "nyserda"
+    enabled: true
+    base_url: "https://www.nyserda.ny.gov"
+    start_paths:
+      - "/All-Programs/Energy-Efficiency"
+      - "/All-Programs/Clean-Energy-Businesses"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    notes: "NY state energy efficiency incentives"
+
+  # NORTH CAROLINA
+  - name: "North Carolina Utilities Commission"
+    id: "nc_utilities"
+    enabled: true
+    base_url: "https://www.ncuc.gov"
+    start_paths:
+      - "/energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      85 data centers in state.
+      Technical conference on large load additions.
+      Duke Energy ACE tariffs for Amazon, Google, Microsoft.
+
+  - name: "North Carolina General Assembly"
+    id: "nc_legislature"
+    enabled: true
+    base_url: "https://www.ncleg.gov"
+    start_paths:
+      - "/BillLookup/2025/H638"
+      - "/BillLookup/2025/H1002"
+    max_depth: 1
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    notes: |
+      Track HB 638: Equitable Escalation of Electricity Demand Act.
+      Track HB 1002: Prohibits passing data center costs to ratepayers.
+
+  # NORTH DAKOTA
+
+  # OHIO
+  - name: "Ohio Department of Development - Energy Office"
+    id: "oh_energy"
+    enabled: true
+    base_url: "https://development.ohio.gov"
+    start_paths:
+      - "/energy"
+      - "/business/energy-efficiency"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      5th largest data center market nationally.
+      AEP requesting cost shift to new customers like data centers.
+
+  # OKLAHOMA
+
+  # OREGON
+  - name: "Oregon Department of Energy"
+    id: "or_energy"
+    enabled: true
+    base_url: "https://www.oregon.gov/energy"
+    start_paths:
+      - "/energy-programs"
+      - "/data-center-program"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Pacific Northwest data center hub with renewable energy focus"
+
+  # PENNSYLVANIA
+  - name: "Pennsylvania Department of Environmental Protection"
+    id: "pa_dep"
+    enabled: true
+    base_url: "https://www.dep.pa.gov"
+    start_paths:
+      - "/Business/Energy"
+      - "/Citizens/Energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      Gov. Shapiro's "Lightning Plan" for streamlined power approvals.
+      Part of PJM 4-state consortium (PA, MD, NJ, VA) with Data Center Coalition.
+
+  # RHODE ISLAND
+  # SOUTH CAROLINA
+  # SOUTH DAKOTA
+  # TENNESSEE
+
+  # TEXAS
+  - name: "Texas State Energy Conservation Office"
+    id: "tx_seco"
+    enabled: true
+    base_url: "https://www.seco.cpa.texas.gov"
+    start_paths:
+      - "/energy-efficiency"
+      - "/renewable-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      Second-largest US data center market (329 facilities).
+      SB 2888 proposed: Energy conservation measures for tax exemptions.
+      DFW area has 159 data centers experiencing "data center boom".
+
+  - name: "Texas Legislature"
+    id: "tx_legislature"
+    enabled: true
+    base_url: "https://capitol.texas.gov"
+    start_paths:
+      - "/BillLookup/History.aspx?LegSess=89R&Bill=SB2888"
+      - "/BillLookup/History.aspx?LegSess=89R&Bill=HB4908"
+    max_depth: 1
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    notes: |
+      Track SB 2888: Tax exemption requirements with efficiency measures.
+      Track HB 4908: Revenue tax and Texas Prosperity Payout Fund.
+
+  # UTAH
+  # VERMONT
+
+  # VIRGINIA
+  - name: "Virginia Department of Energy"
+    id: "va_energy"
+    enabled: true
+    base_url: "https://www.energy.virginia.gov"
+    start_paths:
+      - "/energy-efficiency"
+      - "/renewable-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      Largest US data center market (575+ facilities).
+      HB 116/SB 192 proposed: 90% carbon-free energy by 2027.
+      Delegate Rip Sullivan authored Virginia Clean Economy Act.
+
+  - name: "Virginia General Assembly"
+    id: "va_legislature"
+    enabled: true
+    base_url: "https://lis.virginia.gov"
+    start_paths:
+      - "/cgi-bin/legp604.exe?ses=251&typ=bil&val=hb116"
+      - "/cgi-bin/legp604.exe?ses=251&typ=bil&val=sb192"
+    max_depth: 1
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    notes: |
+      Track HB 116/SB 192: Data center energy efficiency requirements.
+      Most active state for data center legislation (28 bills in 2025).
+
+  # WASHINGTON
+  - name: "Washington State Department of Commerce - Energy"
+    id: "wa_commerce"
+    enabled: true
+    base_url: "https://www.commerce.wa.gov"
+    start_paths:
+      - "/growing-the-economy/energy"
+      - "/energy/low-carbon-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Renewable energy requirements, major data center presence"
+
+  # WEST VIRGINIA
+  # WISCONSIN
+  # WYOMING

@@ -1,0 +1,213 @@
+# =============================================================================
+# DOMAIN GROUPS
+# =============================================================================
+# Define custom groups for selective scanning with --domains flag
+#
+# HOW TO USE:
+# 1. Create a group by adding an entry below
+# 2. List the domain IDs you want included (from any domains/*.yaml file)
+# 3. Run with: python -m src.main --domains your_group_name
+#
+# EXAMPLES:
+#   python -m src.main --domains eu          # All European domains
+#   python -m src.main --domains quick       # Fast 2-domain test
+#   python -m src.main --domains my_custom   # Your custom group
+#
+# TIP: You can create groups for any combination of domains!
+# =============================================================================
+
+groups:
+
+  # ---------------------------------------------------------------------------
+  # SPECIAL GROUPS
+  # ---------------------------------------------------------------------------
+
+  all:
+    description: "All enabled domains from all files"
+    # This group automatically includes ALL domains where enabled: true
+    # No need to list domain IDs - it's handled by the loader
+
+  # ---------------------------------------------------------------------------
+  # REGIONAL GROUPS
+  # ---------------------------------------------------------------------------
+
+  eu:
+    description: "European Union institutions and member states"
+    domains:
+      - bmwk_de
+      - ec_europa_energy
+      - eur_lex
+      - rvo_nl
+      - ecologie_fr
+      - ademe_fr
+      - bfe_ch
+      - bmk_at
+      - energy_be
+      - seai_ie
+
+  nordic:
+    description: "Nordic countries - leaders in heat reuse"
+    domains:
+      - energimyndigheten_se
+      - ens_dk
+      - energiavirasto_fi
+      - tem_fi
+      - oed_no
+      - enova_no
+      - orkustofnun_is
+
+  eu_central:
+    description: "Germany, Switzerland, Austria, France"
+    domains:
+      - bmwk_de
+      - bfe_ch
+      - bmk_at
+      - ecologie_fr
+      - ademe_fr
+
+  eu_west:
+    description: "Netherlands, Belgium, Ireland"
+    domains:
+      - rvo_nl
+      - energy_be
+      - seai_ie
+
+  us:
+    description: "United States - federal and state combined"
+    domains:
+      # Federal
+      - energy_gov
+      - energystar_gov
+      - ferc_gov
+      - eia_gov
+      - whitehouse_gov
+      - pjm_com
+      # States (key ones)
+      - ca_energy
+      - nyserda
+      - va_energy
+      - tx_seco
+      - wa_commerce
+
+  us_federal:
+    description: "US federal agencies and regional orgs only"
+    domains:
+      - energy_gov
+      - energystar_gov
+      - ferc_gov
+      - eia_gov
+      - whitehouse_gov
+      - pjm_com
+
+  us_states:
+    description: "US state governments only"
+    domains:
+      - az_acc
+      - ca_energy
+      - ga_epd
+      - il_icc
+      - md_energy
+      - ma_doer
+      - mi_psc
+      - nj_bpu
+      - nyserda
+      - nc_utilities
+      - nc_legislature
+      - oh_energy
+      - or_energy
+      - pa_dep
+      - tx_seco
+      - tx_legislature
+      - va_energy
+      - va_legislature
+      - wa_commerce
+
+  apac:
+    description: "Asia-Pacific region"
+    domains:
+      - imda_sg
+      - ema_sg
+      - meti_jp
+      - enecho_jp
+      - motie_kr
+      - energy_au
+
+  # ---------------------------------------------------------------------------
+  # THEMATIC GROUPS
+  # ---------------------------------------------------------------------------
+
+  federal:
+    description: "Federal/EU/National level only (no states/provinces)"
+    domains:
+      - ec_europa_energy
+      - eur_lex
+      - energy_gov
+      - energystar_gov
+      - bmwk_de
+      - oed_no
+      - meti_jp
+      - imda_sg
+
+  leaders:
+    description: "Countries with most advanced heat reuse policies"
+    domains:
+      - bmwk_de              # Germany - mandatory waste heat quotas
+      - energimyndigheten_se # Sweden - Stockholm district heating
+      - ens_dk               # Denmark - 60% district heating
+      - energiavirasto_fi    # Finland - voluntary adoption leader
+      - tem_fi               # Finland policy
+      - oed_no               # Norway - stricter than EU
+      - bfe_ch               # Switzerland - mandatory supply at cost
+      - imda_sg              # Singapore - Green DC Roadmap 2025
+      - ec_europa_energy     # EU - Energy Efficiency Directive
+
+  emerging:
+    description: "Countries with emerging regulations"
+    domains:
+      - ecologie_fr          # France - tax incentives
+      - energy_be            # Belgium - pilot programs
+      - seai_ie              # Ireland - growing DC hub
+      - bmk_at               # Austria - EU compliance
+      - meti_jp              # Japan - GX transformation
+      - motie_kr             # South Korea - PUE thresholds
+      - energy_au            # Australia - APAC growth
+
+  # ---------------------------------------------------------------------------
+  # TESTING GROUPS
+  # ---------------------------------------------------------------------------
+
+  test:
+    description: "Single domain for quick testing"
+    domains:
+      - energy_gov
+
+  quick:
+    description: "Fast scan - 2 diverse domains"
+    domains:
+      - bmwk_de              # Germany (EU leader)
+      - energy_gov           # US federal
+
+  sample_nordic:
+    description: "Sample Nordic countries - 3 domains"
+    domains:
+      - energimyndigheten_se
+      - ens_dk
+      - energiavirasto_fi
+
+  sample_apac:
+    description: "Sample APAC countries - 2 domains"
+    domains:
+      - imda_sg
+      - meti_jp
+
+  # ---------------------------------------------------------------------------
+  # CUSTOM GROUPS (add your own below)
+  # ---------------------------------------------------------------------------
+
+  # Example custom group:
+  # my_research:
+  #   description: "Domains I'm currently researching"
+  #   domains:
+  #     - bmwk_de
+  #     - energy_gov
+  #     - imda_sg

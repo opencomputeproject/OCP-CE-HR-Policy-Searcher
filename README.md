@@ -200,9 +200,26 @@ python -m src.main --domains leaders
 
 ## Configuration
 
-### Domains (`config/domains.yaml`)
+### File Structure
 
-Define target government websites:
+```
+config/
+├── settings.yaml          # Runtime settings (crawl speed, thresholds)
+├── keywords.yaml          # Search terms in 8 languages
+├── groups.yaml            # Domain groups (you can edit this!)
+├── rejected_sites.yaml    # Sites evaluated but not useful
+└── domains/               # Domain definitions by region
+    ├── _template.yaml     # Template for adding new domains
+    ├── eu.yaml            # European Union
+    ├── nordic.yaml        # Nordic countries
+    ├── us_federal.yaml    # US federal agencies
+    ├── us_states.yaml     # US state governments
+    └── apac.yaml          # Asia-Pacific
+```
+
+### Domains (`config/domains/*.yaml`)
+
+Domains are organized by region. Each file contains government websites to crawl:
 
 ```yaml
 domains:
@@ -215,8 +232,39 @@ domains:
     language: "de"
 ```
 
-**Coverage**: 29 domains across Europe, North America, and Asia-Pacific
-**Domain groups**: See Command Line Options section for full list
+**To add a new domain:** Copy from `_template.yaml`, fill in the fields, and add to the appropriate regional file.
+
+### Groups (`config/groups.yaml`)
+
+Groups let you run scans on specific sets of domains. **You can edit this file** to create your own custom groups!
+
+```yaml
+groups:
+  # Create your own group:
+  my_research:
+    description: "Domains I'm currently researching"
+    domains:
+      - bmwk_de
+      - energy_gov
+      - imda_sg
+```
+
+Then run: `python -m src.main --domains my_research`
+
+### Rejected Sites (`config/rejected_sites.yaml`)
+
+Track sites you've evaluated but decided not to include:
+
+```yaml
+rejected_sites:
+  - url: "https://example.gov/department"
+    evaluated_by: "Your Name"
+    evaluated_date: "2026-01-05"
+    reason: "No policy content - only press releases"
+    reconsider_if: "They add a policy section"
+```
+
+This prevents duplicate research and documents why sites were excluded.
 
 ### Keywords (`config/keywords.yaml`)
 
@@ -305,7 +353,12 @@ OCP-Heat-Reuse-Policy-Searcher/
 │   ├── output/          # Google Sheets integration
 │   ├── logging/         # Run logging
 │   └── main.py          # Entry point
-├── config/              # Configuration files
+├── config/
+│   ├── domains/         # Domain files by region (eu.yaml, us_states.yaml, etc.)
+│   ├── groups.yaml      # Domain groups (user-editable)
+│   ├── rejected_sites.yaml  # Sites evaluated but rejected
+│   ├── settings.yaml    # Runtime configuration
+│   └── keywords.yaml    # Search terms
 ├── tests/               # Unit & integration tests
 ├── logs/                # Run logs
 └── snapshots/           # Page snapshots
@@ -354,10 +407,12 @@ pytest tests/unit/test_keywords.py -v
 
 ### Adding a New Domain
 
-1. Edit `config/domains.yaml`
-2. Add domain configuration
-3. Test with: `python -m src.main --domains test --dry-run`
-4. Submit PR
+1. Open the appropriate regional file in `config/domains/` (e.g., `us_states.yaml`)
+2. Copy the template from `config/domains/_template.yaml`
+3. Fill in the domain details
+4. Test with: `python -m src.main --domains test --dry-run`
+5. Add the domain ID to a group in `config/groups.yaml` if needed
+6. Submit PR
 
 ### Code Quality
 

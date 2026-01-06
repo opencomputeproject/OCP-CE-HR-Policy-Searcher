@@ -1,0 +1,39 @@
+# =============================================================================
+# DOMAIN TEMPLATE
+# =============================================================================
+# Copy this template to add new domains. Save as a new file or add to an
+# existing regional file.
+#
+# Required fields: name, id, base_url, start_paths
+# Optional fields: all others (defaults from settings.yaml apply)
+# =============================================================================
+
+domains:
+  - name: "Full Organization Name"         # Human-readable name
+    id: "short_id"                          # Unique ID (lowercase, underscores)
+    enabled: true                           # Set to false to disable temporarily
+    base_url: "https://www.example.gov"     # Root URL (no trailing slash)
+    start_paths:                            # Pages to start crawling from
+      - "/energy/policies"
+      - "/programs/efficiency"
+
+    # Optional: URL patterns to include/exclude
+    allowed_path_patterns:                  # Only follow links matching these
+      - "/energy/*"
+      - "/policies/*"
+    blocked_path_patterns:                  # Never follow links matching these
+      - "/downloads/*"
+      - "/videos/*"
+
+    # Optional: Crawl settings (defaults from settings.yaml if not specified)
+    max_depth: 2                            # How many link levels to follow
+    language: "en"                          # Primary language (en, de, fr, etc.)
+    requires_playwright: false              # Set true for JavaScript-heavy sites
+    rate_limit_seconds: 2.0                 # Delay between requests
+
+    # Optional: Documentation
+    verified_by: "Your Name"                # Who verified this domain
+    verified_date: "2026-01-05"             # When it was verified
+    notes: |                                # Any useful context
+      Brief description of what policies are found here.
+      Mention specific laws or programs if known.

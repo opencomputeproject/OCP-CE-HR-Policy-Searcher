@@ -1,0 +1,104 @@
+# =============================================================================
+# UNITED STATES - FEDERAL AGENCIES
+# =============================================================================
+# Federal government agencies and regional organizations
+# =============================================================================
+
+domains:
+  - name: "US Department of Energy"
+    id: "energy_gov"
+    enabled: true
+    base_url: "https://www.energy.gov"
+    start_paths:
+      - "/eere/buildings/data-centers-and-servers"
+      - "/eere/femp/energy-efficiency-data-centers"
+      - "/policy"
+      - "/articles"
+    allowed_path_patterns:
+      - "/eere/*"
+      - "/policy/*"
+      - "/articles/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    notes: |
+      Federal energy efficiency programs and guidance.
+      Released 2024 report on data center energy use.
+      $40M funding for efficient cooling announced 2024.
+
+  - name: "US EPA ENERGY STAR"
+    id: "energystar_gov"
+    enabled: true
+    base_url: "https://www.energystar.gov"
+    start_paths:
+      - "/products/data-centers"
+      - "/buildings/data-centers"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "ENERGY STAR data center certification"
+
+  - name: "Federal Energy Regulatory Commission"
+    id: "ferc_gov"
+    enabled: true
+    base_url: "https://www.ferc.gov"
+    start_paths:
+      - "/electric-power-markets"
+      - "/industries-data/electric"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      Regulates interstate electricity transmission.
+      Oversees regional grid operators including PJM.
+
+  - name: "US Energy Information Administration"
+    id: "eia_gov"
+    enabled: true
+    base_url: "https://www.eia.gov"
+    start_paths:
+      - "/electricity"
+      - "/consumption"
+      - "/analysis"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: |
+      Independent statistical agency.
+      Tracks data center energy consumption trends.
+
+  - name: "White House - Energy & Environment"
+    id: "whitehouse_gov"
+    enabled: true
+    base_url: "https://www.whitehouse.gov"
+    start_paths:
+      - "/briefing-room/statements-releases"
+      - "/briefing-room/presidential-actions"
+    max_depth: 1
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    notes: |
+      2023 executive order on federal data center waste heat utilization.
+      Presidential climate and energy initiatives.
+
+  - name: "PJM Interconnection"
+    id: "pjm_com"
+    enabled: true
+    base_url: "https://www.pjm.com"
+    start_paths:
+      - "/markets-and-operations"
+      - "/planning"
+      - "/about-pjm/newsroom"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    notes: |
+      Regional transmission operator for 13 states.
+      Virginia delegate Rip Sullivan sent letter urging data center heat reuse consideration.
+      Critical for Mid-Atlantic data center grid planning.

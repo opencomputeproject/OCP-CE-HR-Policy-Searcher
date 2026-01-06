@@ -1,0 +1,93 @@
+# =============================================================================
+# NORDIC COUNTRIES
+# =============================================================================
+# Leaders in data center heat reuse - Sweden, Denmark, Finland, Norway, Iceland
+#
+# These countries have the most advanced heat reuse policies and implementations.
+# =============================================================================
+
+domains:
+  - name: "Swedish Energy Agency"
+    id: "energimyndigheten_se"
+    enabled: true
+    base_url: "https://www.energimyndigheten.se"
+    start_paths:
+      - "/en/sustainability/energy-efficiency/"
+    max_depth: 2
+    language: "sv"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Sweden has active district heating from data centers"
+
+  - name: "Danish Energy Agency"
+    id: "ens_dk"
+    enabled: true
+    base_url: "https://ens.dk"
+    start_paths:
+      - "/en/our-responsibilities/energy-efficiency"
+    max_depth: 2
+    language: "da"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Denmark district heating regulations"
+
+  - name: "Finnish Energy Authority"
+    id: "energiavirasto_fi"
+    enabled: true
+    base_url: "https://energiavirasto.fi"
+    start_paths:
+      - "/en/energy-efficiency"
+      - "/en"
+    max_depth: 2
+    language: "fi"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Finland leads in waste heat recovery implementations"
+
+  - name: "Finnish Ministry of Economic Affairs and Employment"
+    id: "tem_fi"
+    enabled: true
+    base_url: "https://tem.fi"
+    start_paths:
+      - "/en/energy"
+    max_depth: 2
+    language: "fi"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "National energy policy and legislation"
+
+  - name: "Norwegian Ministry of Petroleum and Energy"
+    id: "oed_no"
+    enabled: true
+    base_url: "https://www.regjeringen.no"
+    start_paths:
+      - "/en/dep/oed/topics/energy"
+    max_depth: 2
+    language: "no"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Norway proposing waste heat requirements for data centers"
+
+  - name: "Enova - Norwegian Energy Efficiency Agency"
+    id: "enova_no"
+    enabled: true
+    base_url: "https://www.enova.no"
+    start_paths:
+      - "/bedrift/energieffektivisering"
+    max_depth: 2
+    language: "no"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "Energy efficiency programs and funding"
+
+  - name: "Icelandic National Energy Authority"
+    id: "orkustofnun_is"
+    enabled: true
+    base_url: "https://orkustofnun.is"
+    start_paths:
+      - "/en/energy-efficiency"
+    max_depth: 2
+    language: "is"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    notes: "100% renewable energy, PUE 1.05-1.2"
