@@ -1,0 +1,7 @@
+# General rejected sites
+# Migrated from config/rejected_sites.yaml
+
+rejected_sites:
+  - url: https://www.bmwk.de/Navigation/EN/Topic/Functions/Liste4_Formular.html
+    evaluated_date: '2026-01-06'
+    reason: No policy content - form page only

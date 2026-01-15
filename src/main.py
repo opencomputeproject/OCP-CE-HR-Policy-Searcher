@@ -23,13 +23,24 @@ from .config.loader import (
     list_tags,
     list_policy_types,
     get_domain_stats,
+    load_rejected_sites,
+    list_rejected_sites,
+    is_url_rejected,
     VALID_CATEGORIES,
     VALID_TAGS,
     VALID_POLICY_TYPES,
 )
 from .crawler.async_crawler import AsyncCrawler
 from .analysis.keywords import KeywordMatcher
-from .analysis.llm.client import ClaudeClient
+from .analysis.llm.client import (
+    ClaudeClient,
+    LLMError,
+    LLMParseError,
+    LLMAuthError,
+    LLMRateLimitError,
+    LLMContextTooLongError,
+    LLMServiceError,
+)
 from .output.sheets import SheetsClient
 from .logging.run_logger import RunLogger, LogSection, RunStats
 from .models.crawl import PageStatus
@@ -58,13 +69,27 @@ Examples:
     # reject-site subcommand
     reject_parser = subparsers.add_parser(
         "reject-site",
-        help="Add a site to rejected_sites.yaml"
+        help="Add a site to rejected sites"
     )
     reject_parser.add_argument("--url", required=True, help="URL of the rejected site")
     reject_parser.add_argument("--reason", required=True, help="Reason for rejection")
     reject_parser.add_argument("--evaluated-by", default=None, help="Your name (optional)")
     reject_parser.add_argument("--reconsider-if", default=None, help="Conditions to reconsider")
     reject_parser.add_argument("--replaced-by", default=None, help="Alternative domain ID if applicable")
+    reject_parser.add_argument(
+        "--file", default=None,
+        help="Target file in config/rejected_sites/ (default: general.yaml)"
+    )
+
+    # list-rejected subcommand
+    list_rejected_parser = subparsers.add_parser(
+        "list-rejected",
+        help="List all rejected sites"
+    )
+    list_rejected_parser.add_argument(
+        "--verbose", "-v", action="store_true",
+        help="Show full details including reasons"
+    )
 
     # list-groups subcommand
     subparsers.add_parser("list-groups", help="List available domain groups")
@@ -177,10 +202,29 @@ Examples:
 
 
 def cmd_reject_site(args) -> int:
-    """Add a site to the rejected sites file."""
-    rejected_file = Path("config/rejected_sites.yaml")
+    """Add a site to the rejected sites directory."""
+    rejected_dir = Path("config/rejected_sites")
 
-    # Load existing file
+    # Determine target file
+    target_filename = args.file if args.file else "general.yaml"
+    if not target_filename.endswith(".yaml"):
+        target_filename += ".yaml"
+
+    # Handle subdirectories in the filename (e.g., "uk/evaluated.yaml")
+    rejected_file = rejected_dir / target_filename
+
+    # Create directory structure if needed
+    rejected_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Check if URL already exists anywhere in rejected sites
+    try:
+        if is_url_rejected(args.url):
+            print(f"URL already in rejected sites: {args.url}")
+            return 1
+    except Exception:
+        pass  # If we can't load, continue anyway
+
+    # Load existing file or create new
     if rejected_file.exists():
         with open(rejected_file, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
@@ -190,12 +234,6 @@ def cmd_reject_site(args) -> int:
     # Initialize rejected_sites list if needed
     if "rejected_sites" not in data or data["rejected_sites"] is None:
         data["rejected_sites"] = []
-
-    # Check if URL already exists
-    existing_urls = [site.get("url") for site in data["rejected_sites"] if site]
-    if args.url in existing_urls:
-        print(f"URL already in rejected sites: {args.url}")
-        return 1
 
     # Create new entry
     entry = {
@@ -216,24 +254,55 @@ def cmd_reject_site(args) -> int:
 
     # Write back
     with open(rejected_file, "w", encoding="utf-8") as f:
-        # Write header comment
-        f.write("# =============================================================================\n")
-        f.write("# REJECTED SITES\n")
-        f.write("# =============================================================================\n")
-        f.write("# Sites that were evaluated but NOT included in the crawler.\n")
-        f.write("#\n")
-        f.write("# To add a site via CLI:\n")
-        f.write('#   python -m src.main reject-site --url "https://example.gov" --reason "No policy content"\n')
-        f.write("#\n")
-        f.write("# Or edit this file directly.\n")
-        f.write("# =============================================================================\n\n")
-
         # Write YAML content
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
     print(f"Added to rejected sites: {args.url}")
+    print(f"  File: {rejected_file}")
     print(f"  Reason: {args.reason}")
     return 0
+
+
+def cmd_list_rejected(args) -> int:
+    """List all rejected sites."""
+    try:
+        rejected = list_rejected_sites()
+
+        if not rejected:
+            print("\nNo rejected sites found.")
+            print("Add sites with: python -m src.main reject-site --url URL --reason REASON")
+            return 0
+
+        print(f"\nRejected sites ({len(rejected)} total):\n")
+
+        if args.verbose:
+            # Verbose output with full details
+            for site in rejected:
+                print(f"  URL: {site['url']}")
+                print(f"    Reason: {site['reason']}")
+                if site['evaluated_date']:
+                    print(f"    Date: {site['evaluated_date']}")
+                if site['evaluated_by']:
+                    print(f"    By: {site['evaluated_by']}")
+                if site['reconsider_if']:
+                    print(f"    Reconsider if: {site['reconsider_if']}")
+                if site['source_file']:
+                    print(f"    Source: {site['source_file']}")
+                print()
+        else:
+            # Compact output
+            print(f"  {'URL':<60} {'Reason':<30} {'File'}")
+            print(f"  {'-'*60} {'-'*30} {'-'*20}")
+            for site in rejected:
+                url = site['url'][:58] + ".." if len(site['url']) > 60 else site['url']
+                reason = site['reason'][:28] + ".." if len(site['reason']) > 30 else site['reason']
+                source = site['source_file'][:18] + ".." if len(site['source_file']) > 20 else site['source_file']
+                print(f"  {url:<60} {reason:<30} {source}")
+
+        return 0
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
 
 
 def cmd_list_groups(args) -> int:
@@ -598,8 +667,42 @@ async def run_batch(
                     if policy:
                         policies.append(policy)
                         logger.success(f"Policy: {policy.policy_name}")
-            except Exception as e:
+
+            except LLMAuthError as e:
+                # Authentication failed - this is fatal
+                logger.error(f"Authentication failed: {e}")
+                logger.error("Check your ANTHROPIC_API_KEY environment variable")
+                raise  # Re-raise to stop the run
+
+            except LLMRateLimitError as e:
+                # Rate limited even after retries
+                logger.warning(f"Rate limited for {result.url}: {e}")
+                if e.retry_after:
+                    logger.info(f"  Suggested wait: {e.retry_after:.0f}s")
+
+            except LLMContextTooLongError as e:
+                # Content too long even after truncation
+                logger.warning(f"Content too long for {result.url}: {e.content_length} chars")
+
+            except LLMParseError as e:
+                # Parse/validation errors
+                logger.warning(f"LLM parse error for {result.url}: {e}")
+                if args.verbose and e.raw_response:
+                    logger.info(f"  Raw response: {e.raw_response[:200]}...")
+
+            except LLMServiceError as e:
+                # Service unavailable
+                logger.warning(f"Service error for {result.url}: {e}")
+                if e.status_code:
+                    logger.info(f"  Status code: {e.status_code}")
+
+            except LLMError as e:
+                # Other LLM errors
                 logger.warning(f"LLM error for {result.url}: {e}")
+
+            except Exception as e:
+                # Unexpected errors
+                logger.warning(f"Unexpected error for {result.url}: {type(e).__name__}: {e}")
         else:
             # Keyword-only mode
             policy = Policy(
@@ -830,6 +933,30 @@ async def run(args) -> int:
         )
         logger.end_run(stats)
 
+        # Log LLM error summary if there were errors
+        if claude_client:
+            error_summary = claude_client.get_error_summary()
+            if error_summary["total"] > 0:
+                logger.info("")
+                logger.info("LLM Error Summary:")
+                logger.info(f"  Total errors: {error_summary['total']}")
+                if error_summary["parse"]:
+                    logger.info(f"  Parse errors: {error_summary['parse']}")
+                if error_summary["validation"]:
+                    logger.info(f"  Validation errors: {error_summary['validation']}")
+                if error_summary["rate_limit"]:
+                    logger.info(f"  Rate limit errors: {error_summary['rate_limit']}")
+                if error_summary["context_too_long"]:
+                    logger.info(f"  Context too long: {error_summary['context_too_long']}")
+                if error_summary["connection"]:
+                    logger.info(f"  Connection errors: {error_summary['connection']}")
+                if error_summary["timeout"]:
+                    logger.info(f"  Timeout errors: {error_summary['timeout']}")
+                if error_summary["service"]:
+                    logger.info(f"  Service errors: {error_summary['service']}")
+                if error_summary["retries"]:
+                    logger.info(f"  Total retries: {error_summary['retries']}")
+
         # Record cost to history (if LLM was used)
         if claude_client and claude_client.call_count > 0:
             cost_tracker = CostTracker()
@@ -930,6 +1057,8 @@ def main():
     # Handle subcommands
     if args.command == "reject-site":
         sys.exit(cmd_reject_site(args))
+    elif args.command == "list-rejected":
+        sys.exit(cmd_list_rejected(args))
     elif args.command == "list-groups":
         sys.exit(cmd_list_groups(args))
     elif args.command == "list-domains":

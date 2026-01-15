@@ -1,0 +1,31 @@
+# =============================================================================
+# REJECTED SITES TEMPLATE
+# =============================================================================
+# Copy this template to create a new rejected sites file.
+#
+# File naming suggestions:
+#   - By region: uk.yaml, eu.yaml, us.yaml
+#   - By evaluation session: 2026-01-15_research.yaml
+#   - By topic: district_heating.yaml, legislative.yaml
+#   - General: general.yaml (default for CLI)
+#
+# You can also create subdirectories:
+#   rejected_sites/
+#     uk/
+#       government.yaml
+#       legislative.yaml
+#     eu/
+#       energy_agencies.yaml
+#
+# All .yaml files in this directory (and subdirectories) are automatically
+# loaded. Files starting with _ (like this template) are ignored.
+# =============================================================================
+
+rejected_sites:
+  # Example entry:
+  # - url: "https://example.gov/some-page"
+  #   evaluated_date: "2026-01-15"
+  #   reason: "No policy content - only press releases"
+  #   evaluated_by: "Your Name"           # optional
+  #   reconsider_if: "They add a policy section"  # optional
+  #   replaced_by: "other_domain_id"      # optional - if a better source exists

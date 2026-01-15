@@ -30,16 +30,17 @@ def _load_yaml(path: Path) -> dict:
 def _load_domains_directory(domains_dir: Path) -> list[dict]:
     """Load all domain files from the domains directory.
 
-    Scans config/domains/ for .yaml files (excluding _template.yaml)
-    and merges all domains into a single list.
+    Scans config/domains/ and subdirectories for .yaml files
+    (excluding files starting with _) and merges all domains into a single list.
     """
     all_domains = []
 
     if not domains_dir.exists():
         return all_domains
 
-    for yaml_file in sorted(domains_dir.glob("*.yaml")):
-        # Skip template file
+    # Use rglob for recursive search through subdirectories
+    for yaml_file in sorted(domains_dir.rglob("*.yaml")):
+        # Skip template files (files starting with _)
         if yaml_file.name.startswith("_"):
             continue
 
@@ -51,6 +52,118 @@ def _load_domains_directory(domains_dir: Path) -> list[dict]:
             raise ConfigurationError(f"Error loading {yaml_file}: {e}")
 
     return all_domains
+
+
+def _load_rejected_sites_directory(rejected_dir: Path) -> list[dict]:
+    """Load all rejected site files from the rejected_sites directory.
+
+    Scans config/rejected_sites/ and subdirectories for .yaml files
+    (excluding files starting with _) and merges all rejected sites into a single list.
+    """
+    all_rejected = []
+
+    if not rejected_dir.exists():
+        return all_rejected
+
+    # Use rglob for recursive search through subdirectories
+    for yaml_file in sorted(rejected_dir.rglob("*.yaml")):
+        # Skip template files (files starting with _)
+        if yaml_file.name.startswith("_"):
+            continue
+
+        try:
+            content = _load_yaml(yaml_file)
+            # Support both "rejected_sites" key and flat list
+            sites = content.get("rejected_sites", [])
+            if sites:
+                # Add source file info to each entry
+                for site in sites:
+                    if site:  # Skip None entries
+                        site["_source_file"] = str(yaml_file.relative_to(rejected_dir))
+                        all_rejected.append(site)
+        except Exception as e:
+            raise ConfigurationError(f"Error loading {yaml_file}: {e}")
+
+    return all_rejected
+
+
+def load_rejected_sites(rejected_dir: Optional[Path] = None) -> list[dict]:
+    """Load all rejected sites from the rejected_sites directory.
+
+    Supports both:
+    - New structure: config/rejected_sites/*.yaml (and subdirectories)
+    - Legacy structure: config/rejected_sites.yaml (single file)
+
+    Returns:
+        List of rejected site dicts, each with url, reason, etc.
+    """
+    config_dir = Path("config")
+    rejected_sites_dir = rejected_dir or config_dir / "rejected_sites"
+    legacy_file = config_dir / "rejected_sites.yaml"
+
+    all_rejected = []
+
+    # Load from directory (new structure)
+    if rejected_sites_dir.exists():
+        all_rejected.extend(_load_rejected_sites_directory(rejected_sites_dir))
+
+    # Also check legacy single file for backwards compatibility
+    if legacy_file.exists():
+        try:
+            content = _load_yaml(legacy_file)
+            sites = content.get("rejected_sites", [])
+            for site in sites:
+                if site:
+                    site["_source_file"] = "rejected_sites.yaml (legacy)"
+                    all_rejected.append(site)
+        except Exception as e:
+            raise ConfigurationError(f"Error loading {legacy_file}: {e}")
+
+    return all_rejected
+
+
+def list_rejected_sites(rejected_sites: Optional[list[dict]] = None) -> list[dict]:
+    """List all rejected sites with their info.
+
+    Args:
+        rejected_sites: Optional pre-loaded list. If None, loads from config.
+
+    Returns:
+        List of dicts with url, reason, source_file, etc.
+    """
+    if rejected_sites is None:
+        rejected_sites = load_rejected_sites()
+
+    return [
+        {
+            "url": site.get("url", ""),
+            "reason": site.get("reason", ""),
+            "evaluated_date": site.get("evaluated_date", ""),
+            "evaluated_by": site.get("evaluated_by", ""),
+            "reconsider_if": site.get("reconsider_if", ""),
+            "replaced_by": site.get("replaced_by", ""),
+            "source_file": site.get("_source_file", ""),
+        }
+        for site in rejected_sites
+        if site
+    ]
+
+
+def is_url_rejected(url: str, rejected_sites: Optional[list[dict]] = None) -> bool:
+    """Check if a URL is in the rejected sites list.
+
+    Args:
+        url: URL to check
+        rejected_sites: Optional pre-loaded list. If None, loads from config.
+
+    Returns:
+        True if URL is rejected, False otherwise
+    """
+    if rejected_sites is None:
+        rejected_sites = load_rejected_sites()
+
+    rejected_urls = {site.get("url") for site in rejected_sites if site}
+    return url in rejected_urls
 
 
 def load_settings(

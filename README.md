@@ -778,15 +778,21 @@ config/
 ├── settings.yaml          # Runtime settings (crawl speed, thresholds)
 ├── keywords.yaml          # Search terms in 8 languages
 ├── groups.yaml            # Domain groups (you can edit this!)
-├── rejected_sites.yaml    # Sites evaluated but not useful
 ├── notifications.yaml     # Email & alert configuration
-└── domains/               # Domain definitions by region
-    ├── _template.yaml     # Template for adding new domains
-    ├── eu.yaml            # European Union
-    ├── nordic.yaml        # Nordic countries
-    ├── us_federal.yaml    # US federal agencies
-    ├── us_states.yaml     # US state governments
-    └── apac.yaml          # Asia-Pacific
+├── domains/               # Domain definitions (supports subdirectories)
+│   ├── _template.yaml     # Template for adding new domains
+│   ├── eu.yaml            # European Union
+│   ├── nordic.yaml        # Nordic countries
+│   ├── us_federal.yaml    # US federal agencies
+│   ├── us_states.yaml     # US state governments
+│   ├── apac.yaml          # Asia-Pacific
+│   └── uk/                # Subdirectories are supported
+│       └── government.yaml
+└── rejected_sites/        # Sites evaluated but not useful
+    ├── _template.yaml     # Template for rejected sites
+    ├── general.yaml       # General rejected sites
+    └── uk/                # Subdirectories work here too
+        └── research.yaml
 ```
 
 ### Domains (`config/domains/*.yaml`)
@@ -823,20 +829,56 @@ groups:
 
 Then run: `python -m src.main --domains my_research`
 
-### Rejected Sites (`config/rejected_sites.yaml`)
+### Rejected Sites (`config/rejected_sites/`)
 
-Track sites you've evaluated but decided not to include:
+Track sites you've evaluated but decided not to include. Organize files however you like:
+
+```
+config/rejected_sites/
+├── _template.yaml     # Template (ignored by loader)
+├── general.yaml       # Default file for CLI
+├── eu.yaml            # EU-specific rejections
+├── uk/                # Subdirectories work too
+│   ├── government.yaml
+│   └── research.yaml
+└── 2026-01-research.yaml  # By date/session
+```
+
+Each YAML file contains:
 
 ```yaml
 rejected_sites:
   - url: "https://example.gov/department"
-    evaluated_by: "Your Name"
     evaluated_date: "2026-01-05"
     reason: "No policy content - only press releases"
-    reconsider_if: "They add a policy section"
+    evaluated_by: "Your Name"           # optional
+    reconsider_if: "They add a policy section"  # optional
+    replaced_by: "other_domain_id"      # optional
 ```
 
-This prevents duplicate research and documents why sites were excluded.
+**CLI Commands:**
+
+```bash
+# Add a rejected site (goes to general.yaml by default)
+python -m src.main reject-site --url "https://example.gov" --reason "No policy content"
+
+# Add to a specific file
+python -m src.main reject-site --url "https://uk.gov/page" --reason "Duplicate" --file uk.yaml
+
+# Add to a subdirectory file
+python -m src.main reject-site --url "https://scotland.gov" --reason "Out of scope" --file uk/scotland.yaml
+
+# List all rejected sites
+python -m src.main list-rejected
+
+# List with full details
+python -m src.main list-rejected -v
+```
+
+**Workflow tip:** When evaluating a batch of domains, you can:
+1. Copy a domains file to `rejected_sites/` (e.g., `uk_candidates.yaml`)
+2. Keep the good ones in `domains/`, move rejected ones to `rejected_sites/`
+3. The loader handles both directories independently
 
 ### Keywords (`config/keywords.yaml`)
 
@@ -926,9 +968,9 @@ OCP-Heat-Reuse-Policy-Searcher/
 │   ├── logging/         # Run logging
 │   └── main.py          # Entry point
 ├── config/
-│   ├── domains/         # Domain files by region (eu.yaml, us_states.yaml, etc.)
+│   ├── domains/         # Domain files by region (supports subdirectories)
+│   ├── rejected_sites/  # Rejected sites (supports subdirectories)
 │   ├── groups.yaml      # Domain groups (user-editable)
-│   ├── rejected_sites.yaml  # Sites evaluated but rejected
 │   ├── settings.yaml    # Runtime configuration
 │   └── keywords.yaml    # Search terms
 ├── tests/               # Unit & integration tests
