@@ -209,6 +209,18 @@ def _coerce_types(data: dict) -> dict:
     if "relevance_explanation" not in result or not result["relevance_explanation"]:
         result["relevance_explanation"] = "No explanation provided"
 
+    # Coerce policy_type - must be a string, not None
+    if "policy_type" in result:
+        val = result["policy_type"]
+        if val is None or val in null_values:
+            # If not relevant, use "not_relevant"; otherwise "unknown"
+            is_relevant = result.get("is_relevant", False)
+            result["policy_type"] = "not_relevant" if not is_relevant else "unknown"
+    else:
+        # If missing entirely, add default based on relevance
+        is_relevant = result.get("is_relevant", False)
+        result["policy_type"] = "not_relevant" if not is_relevant else "unknown"
+
     return result
 
 

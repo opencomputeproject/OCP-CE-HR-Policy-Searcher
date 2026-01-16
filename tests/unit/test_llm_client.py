@@ -509,3 +509,94 @@ class TestCoerceTypesScoreClamping:
         data = {"is_relevant": True, "relevance_score": "100/10", "relevance_explanation": "test"}
         result = _coerce_types(data)
         assert result["relevance_score"] == 10
+
+
+class TestCoerceTypesPolicyType:
+    """Tests for policy_type coercion in _coerce_types."""
+
+    def test_null_policy_type_not_relevant(self):
+        """Null policy_type becomes 'not_relevant' when is_relevant is False."""
+        data = {
+            "is_relevant": False,
+            "relevance_score": 2,
+            "relevance_explanation": "Not relevant",
+            "policy_type": None,
+        }
+        result = _coerce_types(data)
+        assert result["policy_type"] == "not_relevant"
+
+    def test_null_policy_type_is_relevant(self):
+        """Null policy_type becomes 'unknown' when is_relevant is True."""
+        data = {
+            "is_relevant": True,
+            "relevance_score": 8,
+            "relevance_explanation": "Relevant",
+            "policy_type": None,
+        }
+        result = _coerce_types(data)
+        assert result["policy_type"] == "unknown"
+
+    def test_missing_policy_type_not_relevant(self):
+        """Missing policy_type is set to 'not_relevant' when is_relevant is False."""
+        data = {
+            "is_relevant": False,
+            "relevance_score": 1,
+            "relevance_explanation": "Not relevant",
+        }
+        result = _coerce_types(data)
+        assert result["policy_type"] == "not_relevant"
+
+    def test_missing_policy_type_is_relevant(self):
+        """Missing policy_type is set to 'unknown' when is_relevant is True."""
+        data = {
+            "is_relevant": True,
+            "relevance_score": 7,
+            "relevance_explanation": "Relevant",
+        }
+        result = _coerce_types(data)
+        assert result["policy_type"] == "unknown"
+
+    def test_string_null_policy_type(self):
+        """String 'null' policy_type is coerced."""
+        data = {
+            "is_relevant": False,
+            "relevance_score": 2,
+            "relevance_explanation": "Not relevant",
+            "policy_type": "null",
+        }
+        result = _coerce_types(data)
+        assert result["policy_type"] == "not_relevant"
+
+    def test_valid_policy_type_preserved(self):
+        """Valid policy_type string is preserved."""
+        data = {
+            "is_relevant": True,
+            "relevance_score": 9,
+            "relevance_explanation": "Very relevant",
+            "policy_type": "regulation",
+        }
+        result = _coerce_types(data)
+        assert result["policy_type"] == "regulation"
+
+    def test_unknown_policy_type_preserved(self):
+        """String 'unknown' policy_type when relevant is preserved (edge case)."""
+        data = {
+            "is_relevant": True,
+            "relevance_score": 5,
+            "relevance_explanation": "Somewhat relevant",
+            "policy_type": "unknown",
+        }
+        result = _coerce_types(data)
+        # "unknown" is in null_values, so it gets coerced
+        assert result["policy_type"] == "unknown"
+
+    def test_empty_string_policy_type(self):
+        """Empty string policy_type is coerced."""
+        data = {
+            "is_relevant": False,
+            "relevance_score": 1,
+            "relevance_explanation": "Not relevant",
+            "policy_type": "",
+        }
+        result = _coerce_types(data)
+        assert result["policy_type"] == "not_relevant"
