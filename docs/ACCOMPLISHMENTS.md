@@ -331,6 +331,48 @@ This document tracks completed work for the cost optimization initiative.
 
 ---
 
+### Phase 6b: Cost Breakdown Always Visible Fix
+**Status**: COMPLETED
+**Date Completed**: 2026-01-16
+**Commit**: (pending)
+
+**Problem Discovered**:
+- User ran `--verbose` on nordic domains and cost breakdown was NOT shown
+- Root cause: Cost breakdown only appeared when `screening_calls > 0 or llm_calls > 0`
+- If all pages were filtered out by stricter keyword requirements before LLM analysis, no LLM calls were made and cost section was hidden
+- This was confusing because user expected to see cost info regardless
+
+**Why Tests Didn't Catch It**:
+- Original tests only verified cost section appeared when LLM calls > 0
+- No tests verified cost section should appear when LLM calls = 0
+- This was a requirements gap, not a code bug per se
+
+**Changes Made**:
+- `src/logging/run_logger.py`:
+  - Modified `end_run()` to ALWAYS show cost breakdown section (even if $0.00)
+  - Modified `format_last_run_summary()` to ALWAYS show cost breakdown section
+  - Modified `format_last_run_config()` to ALWAYS show cost breakdown when `run_data` provided
+  - When LLM calls = 0, shows "0 calls" instead of hiding the section
+
+**Tests Added** (5 new tests in `TestCostBreakdownAlwaysShown` class):
+- `test_summary_zero_calls_shows_cost_section` — Verifies cost shows with 0 calls
+- `test_summary_only_screening_shows_both_lines` — Both Haiku/Sonnet lines shown
+- `test_summary_only_analysis_shows_both_lines` — Both lines shown when only Sonnet used
+- `test_config_zero_calls_format_complete` — Config cost section complete with 0 calls
+- `test_summary_box_structure_with_zero_cost` — Box structure correct with $0 cost
+
+**Tests Updated**:
+- `test_config_with_only_sonnet_cost` — Now expects "0 calls" for Haiku
+- `test_config_no_llm_calls` → `test_config_zero_llm_calls_shows_cost_breakdown` — Now expects cost to show
+- `test_summary_handles_missing_fields` — Now expects cost breakdown section
+
+**Impact**:
+- Cost breakdown is now ALWAYS visible at end of every run
+- Users can immediately see if LLM was used ($0.00 = no LLM calls made)
+- Helps diagnose issues like "why weren't any policies found?" (answer: LLM never ran)
+
+---
+
 ## Future Improvements
 
 Ideas for future optimization:

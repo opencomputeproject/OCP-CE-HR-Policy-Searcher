@@ -270,21 +270,27 @@ class RunLogger:
                 cache_str = f"{stats.cache_hits} hits, {stats.cache_skipped} skipped"
                 summary_lines.append(f"│  Cache:              {cache_str:<44} │")
 
-        # Add LLM stats if used - show screening and analysis separately
-        if stats.screening_calls > 0 or stats.llm_calls > 0:
-            summary_lines.append("├" + "─" * 68 + "┤")
+        # ALWAYS show cost breakdown section (even if $0.00)
+        summary_lines.append("├" + "─" * 68 + "┤")
+        summary_lines.append("│" + " COST BREAKDOWN ".center(68) + "│")
+        summary_lines.append("├" + "─" * 68 + "┤")
 
-            if stats.screening_calls > 0:
-                screening_tokens = f"{stats.screening_tokens_input:,} in / {stats.screening_tokens_output:,} out"
-                summary_lines.append(f"│  Screening (Haiku):  {stats.screening_calls} calls, {screening_tokens}{' ' * max(0, 44 - len(f'{stats.screening_calls} calls, {screening_tokens}'))}│")
-                summary_lines.append(f"│    Cost:             ${stats.screening_cost_usd:.4f}{' ' * (44 - len(f'${stats.screening_cost_usd:.4f}'))}│")
+        if stats.screening_calls > 0:
+            screening_tokens = f"{stats.screening_tokens_input:,} in / {stats.screening_tokens_output:,} out"
+            summary_lines.append(f"│  Screening (Haiku):  {stats.screening_calls} calls, {screening_tokens}{' ' * max(0, 44 - len(f'{stats.screening_calls} calls, {screening_tokens}'))}│")
+            summary_lines.append(f"│    Cost:             ${stats.screening_cost_usd:.4f}{' ' * (44 - len(f'${stats.screening_cost_usd:.4f}'))}│")
+        else:
+            summary_lines.append(f"│  Screening (Haiku):  0 calls{' ' * 38}│")
 
-            if stats.llm_calls > 0:
-                analysis_tokens = f"{stats.llm_tokens_input:,} in / {stats.llm_tokens_output:,} out"
-                summary_lines.append(f"│  Analysis (Sonnet):  {stats.llm_calls} calls, {analysis_tokens}{' ' * max(0, 44 - len(f'{stats.llm_calls} calls, {analysis_tokens}'))}│")
-                summary_lines.append(f"│    Cost:             ${stats.analysis_cost_usd:.4f}{' ' * (44 - len(f'${stats.analysis_cost_usd:.4f}'))}│")
+        if stats.llm_calls > 0:
+            analysis_tokens = f"{stats.llm_tokens_input:,} in / {stats.llm_tokens_output:,} out"
+            summary_lines.append(f"│  Analysis (Sonnet):  {stats.llm_calls} calls, {analysis_tokens}{' ' * max(0, 44 - len(f'{stats.llm_calls} calls, {analysis_tokens}'))}│")
+            summary_lines.append(f"│    Cost:             ${stats.analysis_cost_usd:.4f}{' ' * (44 - len(f'${stats.analysis_cost_usd:.4f}'))}│")
+        else:
+            summary_lines.append(f"│  Analysis (Sonnet):  0 calls{' ' * 38}│")
 
-            summary_lines.append(f"│  TOTAL COST:         ${stats.estimated_cost_usd:.4f}{' ' * (44 - len(f'${stats.estimated_cost_usd:.4f}'))}│")
+        summary_lines.append("├" + "─" * 68 + "┤")
+        summary_lines.append(f"│  TOTAL COST:         ${stats.estimated_cost_usd:.4f}{' ' * (44 - len(f'${stats.estimated_cost_usd:.4f}'))}│")
 
         summary_lines.extend([
             f"│  Duration:           {mins}m {secs}s{' ' * (44 - len(f'{mins}m {secs}s'))}│",
@@ -548,31 +554,37 @@ def format_last_run_summary(run_data: dict, run_id: str) -> str:
     lines.append(f"│  New policies:       {new_policies:<44} │")
     lines.append(f"│  Duplicates skipped: {duplicates:<44} │")
 
-    # LLM stats if available
+    # ALWAYS show cost breakdown section (even if $0.00)
     screening_calls = run_data.get("screening_calls", 0)
     llm_calls = run_data.get("llm_calls", 0)
 
-    if screening_calls > 0 or llm_calls > 0:
-        lines.append("├" + "─" * 68 + "┤")
+    lines.append("├" + "─" * 68 + "┤")
+    lines.append("│" + " COST BREAKDOWN ".center(68) + "│")
+    lines.append("├" + "─" * 68 + "┤")
 
-        if screening_calls > 0:
-            s_in = run_data.get("screening_tokens_input", 0)
-            s_out = run_data.get("screening_tokens_output", 0)
-            s_cost = (s_in / 1_000_000) * 0.25 + (s_out / 1_000_000) * 1.25
-            screening_str = f"{screening_calls} calls, {s_in:,} in / {s_out:,} out"
-            lines.append(f"│  Screening (Haiku):  {screening_str}{' ' * max(0, 44 - len(screening_str))}│")
-            lines.append(f"│    Cost:             ${s_cost:.4f}{' ' * (44 - len(f'${s_cost:.4f}'))}│")
+    if screening_calls > 0:
+        s_in = run_data.get("screening_tokens_input", 0)
+        s_out = run_data.get("screening_tokens_output", 0)
+        s_cost = (s_in / 1_000_000) * 0.25 + (s_out / 1_000_000) * 1.25
+        screening_str = f"{screening_calls} calls, {s_in:,} in / {s_out:,} out"
+        lines.append(f"│  Screening (Haiku):  {screening_str}{' ' * max(0, 44 - len(screening_str))}│")
+        lines.append(f"│    Cost:             ${s_cost:.4f}{' ' * (44 - len(f'${s_cost:.4f}'))}│")
+    else:
+        lines.append(f"│  Screening (Haiku):  0 calls{' ' * 38}│")
 
-        if llm_calls > 0:
-            a_in = run_data.get("llm_tokens_input", 0)
-            a_out = run_data.get("llm_tokens_output", 0)
-            a_cost = (a_in / 1_000_000) * 3.0 + (a_out / 1_000_000) * 15.0
-            analysis_str = f"{llm_calls} calls, {a_in:,} in / {a_out:,} out"
-            lines.append(f"│  Analysis (Sonnet):  {analysis_str}{' ' * max(0, 44 - len(analysis_str))}│")
-            lines.append(f"│    Cost:             ${a_cost:.4f}{' ' * (44 - len(f'${a_cost:.4f}'))}│")
+    if llm_calls > 0:
+        a_in = run_data.get("llm_tokens_input", 0)
+        a_out = run_data.get("llm_tokens_output", 0)
+        a_cost = (a_in / 1_000_000) * 3.0 + (a_out / 1_000_000) * 15.0
+        analysis_str = f"{llm_calls} calls, {a_in:,} in / {a_out:,} out"
+        lines.append(f"│  Analysis (Sonnet):  {analysis_str}{' ' * max(0, 44 - len(analysis_str))}│")
+        lines.append(f"│    Cost:             ${a_cost:.4f}{' ' * (44 - len(f'${a_cost:.4f}'))}│")
+    else:
+        lines.append(f"│  Analysis (Sonnet):  0 calls{' ' * 38}│")
 
-        total_cost = run_data.get("estimated_cost_usd", 0)
-        lines.append(f"│  TOTAL COST:         ${total_cost:.4f}{' ' * (44 - len(f'${total_cost:.4f}'))}│")
+    total_cost = run_data.get("estimated_cost_usd", 0)
+    lines.append("├" + "─" * 68 + "┤")
+    lines.append(f"│  TOTAL COST:         ${total_cost:.4f}{' ' * (44 - len(f'${total_cost:.4f}'))}│")
 
     # Duration
     duration = run_data.get("duration_seconds", 0)
@@ -681,35 +693,38 @@ def format_last_run_config(config: dict, run_data: dict = None) -> str:
     if chunking:
         lines.append(f"│  Chunking:           {chunking:<44} │")
 
-    # Add cost breakdown if run_data is provided and LLM was used
+    # ALWAYS add cost breakdown if run_data is provided (even if $0.00)
     if run_data:
         screening_calls = run_data.get("screening_calls", 0)
         llm_calls = run_data.get("llm_calls", 0)
 
-        if screening_calls > 0 or llm_calls > 0:
-            lines.append("├" + "─" * 68 + "┤")
-            lines.append("│" + " COST BREAKDOWN ".center(68) + "│")
-            lines.append("├" + "─" * 68 + "┤")
+        lines.append("├" + "─" * 68 + "┤")
+        lines.append("│" + " COST BREAKDOWN ".center(68) + "│")
+        lines.append("├" + "─" * 68 + "┤")
 
-            if screening_calls > 0:
-                s_in = run_data.get("screening_tokens_input", 0)
-                s_out = run_data.get("screening_tokens_output", 0)
-                s_cost = (s_in / 1_000_000) * 0.25 + (s_out / 1_000_000) * 1.25
-                screening_str = f"{screening_calls} calls, {s_in:,} in / {s_out:,} out"
-                lines.append(f"│  Screening (Haiku):  {screening_str}{' ' * max(0, 44 - len(screening_str))}│")
-                lines.append(f"│    Cost:             ${s_cost:.4f}{' ' * (44 - len(f'${s_cost:.4f}'))}│")
+        if screening_calls > 0:
+            s_in = run_data.get("screening_tokens_input", 0)
+            s_out = run_data.get("screening_tokens_output", 0)
+            s_cost = (s_in / 1_000_000) * 0.25 + (s_out / 1_000_000) * 1.25
+            screening_str = f"{screening_calls} calls, {s_in:,} in / {s_out:,} out"
+            lines.append(f"│  Screening (Haiku):  {screening_str}{' ' * max(0, 44 - len(screening_str))}│")
+            lines.append(f"│    Cost:             ${s_cost:.4f}{' ' * (44 - len(f'${s_cost:.4f}'))}│")
+        else:
+            lines.append(f"│  Screening (Haiku):  0 calls{' ' * 38}│")
 
-            if llm_calls > 0:
-                a_in = run_data.get("llm_tokens_input", 0)
-                a_out = run_data.get("llm_tokens_output", 0)
-                a_cost = (a_in / 1_000_000) * 3.0 + (a_out / 1_000_000) * 15.0
-                analysis_str = f"{llm_calls} calls, {a_in:,} in / {a_out:,} out"
-                lines.append(f"│  Analysis (Sonnet):  {analysis_str}{' ' * max(0, 44 - len(analysis_str))}│")
-                lines.append(f"│    Cost:             ${a_cost:.4f}{' ' * (44 - len(f'${a_cost:.4f}'))}│")
+        if llm_calls > 0:
+            a_in = run_data.get("llm_tokens_input", 0)
+            a_out = run_data.get("llm_tokens_output", 0)
+            a_cost = (a_in / 1_000_000) * 3.0 + (a_out / 1_000_000) * 15.0
+            analysis_str = f"{llm_calls} calls, {a_in:,} in / {a_out:,} out"
+            lines.append(f"│  Analysis (Sonnet):  {analysis_str}{' ' * max(0, 44 - len(analysis_str))}│")
+            lines.append(f"│    Cost:             ${a_cost:.4f}{' ' * (44 - len(f'${a_cost:.4f}'))}│")
+        else:
+            lines.append(f"│  Analysis (Sonnet):  0 calls{' ' * 38}│")
 
-            total_cost = run_data.get("estimated_cost_usd", 0)
-            lines.append("├" + "─" * 68 + "┤")
-            lines.append(f"│  TOTAL COST:         ${total_cost:.4f}{' ' * (44 - len(f'${total_cost:.4f}'))}│")
+        total_cost = run_data.get("estimated_cost_usd", 0)
+        lines.append("├" + "─" * 68 + "┤")
+        lines.append(f"│  TOTAL COST:         ${total_cost:.4f}{' ' * (44 - len(f'${total_cost:.4f}'))}│")
 
     lines.append("└" + "─" * 68 + "┘")
     lines.append("")

@@ -221,7 +221,7 @@ class TestFormatLastRunSummary:
         assert "TOTAL COST" in result
 
     def test_summary_handles_missing_fields(self):
-        """Handles missing optional fields gracefully."""
+        """Handles missing optional fields gracefully, still shows cost breakdown."""
         run_data = {
             "timestamp": "2026-01-15T12:05:00+00:00",
             "domains_scanned": 0,
@@ -232,6 +232,9 @@ class TestFormatLastRunSummary:
 
         assert "LAST RUN SUMMARY" in result
         assert "Domains scanned:" in result
+        # Cost breakdown always shown (even if $0)
+        assert "COST BREAKDOWN" in result
+        assert "TOTAL COST" in result
 
     def test_summary_formats_duration(self):
         """Formats duration correctly for various values."""
@@ -503,7 +506,7 @@ class TestFormatLastRunConfig:
         assert "$0.15" in result
 
     def test_config_with_only_sonnet_cost(self):
-        """Shows only Sonnet cost when no screening was used."""
+        """Shows both Haiku and Sonnet lines when only Sonnet was used (Haiku shows 0 calls)."""
         config = {
             "domain_group": "test",
             "domains_count": 1,
@@ -535,7 +538,7 @@ class TestFormatLastRunConfig:
         result = format_last_run_config(config, run_data)
 
         assert "COST BREAKDOWN" in result
-        assert "Screening (Haiku)" not in result
+        assert "Screening (Haiku):  0 calls" in result  # Now always shows
         assert "Analysis (Sonnet)" in result
         assert "TOTAL COST" in result
 
@@ -567,8 +570,8 @@ class TestFormatLastRunConfig:
         assert "COST BREAKDOWN" not in result
         assert "RUN CONFIGURATION" in result
 
-    def test_config_no_llm_calls(self):
-        """No cost section when LLM wasn't used."""
+    def test_config_zero_llm_calls_shows_cost_breakdown(self):
+        """Cost breakdown ALWAYS shown even when zero LLM calls were made."""
         config = {
             "domain_group": "test",
             "domains_count": 1,
@@ -597,7 +600,174 @@ class TestFormatLastRunConfig:
 
         result = format_last_run_config(config, run_data)
 
-        assert "COST BREAKDOWN" not in result
+        # Cost breakdown ALWAYS appears now (even when $0)
+        assert "COST BREAKDOWN" in result
+        assert "Screening (Haiku):  0 calls" in result
+        assert "Analysis (Sonnet):  0 calls" in result
+        assert "TOTAL COST" in result
+        assert "$0.0000" in result
+
+
+class TestCostBreakdownAlwaysShown:
+    """Tests ensuring cost breakdown is ALWAYS shown, even when LLM calls = 0."""
+
+    def test_summary_zero_calls_shows_cost_section(self):
+        """Summary ALWAYS shows cost breakdown even with 0 LLM calls."""
+        run_data = {
+            "timestamp": "2026-01-15T12:05:00+00:00",
+            "domains_scanned": 5,
+            "pages_crawled": 100,
+            "pages_success": 90,
+            "pages_blocked": 8,
+            "pages_error": 2,
+            "success_rate": 90.0,
+            "policies_found": 0,
+            "policies_new": 0,
+            "policies_duplicate": 0,
+            "duration_seconds": 300,
+            "screening_calls": 0,
+            "llm_calls": 0,
+            "estimated_cost_usd": 0.0,
+        }
+
+        result = format_last_run_summary(run_data, "run_test")
+
+        assert "COST BREAKDOWN" in result
+        assert "Screening (Haiku):  0 calls" in result
+        assert "Analysis (Sonnet):  0 calls" in result
+        assert "TOTAL COST" in result
+        assert "$0.0000" in result
+
+    def test_summary_only_screening_shows_both_lines(self):
+        """Summary shows both Haiku and Sonnet lines even if only screening was used."""
+        run_data = {
+            "timestamp": "2026-01-15T12:05:00+00:00",
+            "domains_scanned": 5,
+            "pages_crawled": 100,
+            "pages_success": 90,
+            "pages_blocked": 8,
+            "pages_error": 2,
+            "success_rate": 90.0,
+            "policies_found": 0,
+            "policies_new": 0,
+            "policies_duplicate": 0,
+            "duration_seconds": 300,
+            "screening_calls": 10,
+            "screening_tokens_input": 50000,
+            "screening_tokens_output": 5000,
+            "llm_calls": 0,  # No analysis calls
+            "estimated_cost_usd": 0.02,  # Just screening cost
+        }
+
+        result = format_last_run_summary(run_data, "run_test")
+
+        assert "COST BREAKDOWN" in result
+        assert "Screening (Haiku)" in result
+        assert "10 calls" in result
+        assert "Analysis (Sonnet):  0 calls" in result  # Still shown
+        assert "TOTAL COST" in result
+
+    def test_summary_only_analysis_shows_both_lines(self):
+        """Summary shows both Haiku and Sonnet lines even if only analysis was used."""
+        run_data = {
+            "timestamp": "2026-01-15T12:05:00+00:00",
+            "domains_scanned": 5,
+            "pages_crawled": 100,
+            "pages_success": 90,
+            "pages_blocked": 8,
+            "pages_error": 2,
+            "success_rate": 90.0,
+            "policies_found": 3,
+            "policies_new": 3,
+            "policies_duplicate": 0,
+            "duration_seconds": 300,
+            "screening_calls": 0,  # No screening
+            "llm_calls": 5,
+            "llm_tokens_input": 25000,
+            "llm_tokens_output": 2500,
+            "estimated_cost_usd": 0.11,
+        }
+
+        result = format_last_run_summary(run_data, "run_test")
+
+        assert "COST BREAKDOWN" in result
+        assert "Screening (Haiku):  0 calls" in result  # Still shown
+        assert "Analysis (Sonnet)" in result
+        assert "5 calls" in result
+        assert "TOTAL COST" in result
+
+    def test_config_zero_calls_format_complete(self):
+        """Config cost breakdown has proper formatting with 0 calls."""
+        config = {
+            "domain_group": "nordic",
+            "domains_count": 7,
+            "min_keyword_score": 5.0,
+            "min_keyword_matches": 2,
+            "required_combinations_enabled": True,
+            "min_density": 1.0,
+            "density_enabled": True,
+            "boost_keywords_enabled": True,
+            "penalty_keywords_enabled": True,
+            "enable_llm": True,
+            "enable_two_stage": True,
+            "screening_model": "claude-haiku-4-20250514",
+            "analysis_model": "claude-sonnet-4-20250514",
+            "screening_min_confidence": 5,
+            "min_relevance_score": 5,
+            "cache_enabled": True,
+            "cache_cleared": False,
+            "dry_run": False,
+        }
+        run_data = {
+            "screening_calls": 0,
+            "llm_calls": 0,
+            "screening_tokens_input": 0,
+            "screening_tokens_output": 0,
+            "llm_tokens_input": 0,
+            "llm_tokens_output": 0,
+            "estimated_cost_usd": 0.0,
+        }
+
+        result = format_last_run_config(config, run_data)
+
+        # Verify complete cost breakdown section
+        assert "COST BREAKDOWN" in result
+        assert "Screening (Haiku):  0 calls" in result
+        assert "Analysis (Sonnet):  0 calls" in result
+        assert "TOTAL COST" in result
+        assert "$0.0000" in result
+
+    def test_summary_box_structure_with_zero_cost(self):
+        """Verifies box structure is correct with zero cost section."""
+        run_data = {
+            "timestamp": "2026-01-15T12:05:00+00:00",
+            "domains_scanned": 1,
+            "pages_crawled": 10,
+            "pages_success": 10,
+            "pages_blocked": 0,
+            "pages_error": 0,
+            "success_rate": 100.0,
+            "policies_found": 0,
+            "policies_new": 0,
+            "policies_duplicate": 0,
+            "duration_seconds": 60,
+            "screening_calls": 0,
+            "llm_calls": 0,
+            "estimated_cost_usd": 0.0,
+        }
+
+        result = format_last_run_summary(run_data, "run_test")
+
+        # Check box drawing characters are present
+        assert "┌" in result
+        assert "└" in result
+        assert "├" in result
+        assert "│" in result
+        # Check sections appear in order
+        cost_idx = result.find("COST BREAKDOWN")
+        duration_idx = result.find("Duration:")
+        assert cost_idx > 0, "COST BREAKDOWN section missing"
+        assert duration_idx > cost_idx, "Duration should come after cost breakdown"
 
 
 class TestRunConfigDataclass:
