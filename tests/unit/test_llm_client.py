@@ -5,6 +5,7 @@ import json
 
 from src.analysis.llm.client import (
     PolicyAnalysis,
+    ScreeningResult,
     LLMError,
     LLMParseError,
     LLMContextTooLongError,
@@ -600,3 +601,63 @@ class TestCoerceTypesPolicyType:
         }
         result = _coerce_types(data)
         assert result["policy_type"] == "not_relevant"
+
+
+# =============================================================================
+# SCREENING RESULT TESTS (Phase 4)
+# =============================================================================
+
+
+class TestScreeningResult:
+    """Tests for ScreeningResult model."""
+
+    def test_screening_result_relevant(self):
+        """ScreeningResult stores relevant=True."""
+        result = ScreeningResult(relevant=True, confidence=8)
+        assert result.relevant is True
+        assert result.confidence == 8
+
+    def test_screening_result_not_relevant(self):
+        """ScreeningResult stores relevant=False."""
+        result = ScreeningResult(relevant=False, confidence=9)
+        assert result.relevant is False
+        assert result.confidence == 9
+
+    def test_screening_result_default_confidence(self):
+        """ScreeningResult has default confidence of 5."""
+        result = ScreeningResult(relevant=True)
+        assert result.confidence == 5
+
+    def test_screening_result_low_confidence(self):
+        """ScreeningResult accepts low confidence values."""
+        result = ScreeningResult(relevant=True, confidence=1)
+        assert result.confidence == 1
+
+    def test_screening_result_high_confidence(self):
+        """ScreeningResult accepts high confidence values."""
+        result = ScreeningResult(relevant=False, confidence=10)
+        assert result.confidence == 10
+
+
+class TestScreeningPrompt:
+    """Tests for screening prompt template."""
+
+    def test_screening_prompt_exists(self):
+        """SCREENING_PROMPT is importable and formatted correctly."""
+        from src.analysis.llm.prompts import SCREENING_PROMPT
+
+        assert "relevant" in SCREENING_PROMPT
+        assert "confidence" in SCREENING_PROMPT
+        assert "{url}" in SCREENING_PROMPT
+        assert "{content}" in SCREENING_PROMPT
+
+    def test_screening_prompt_format(self):
+        """SCREENING_PROMPT can be formatted with url and content."""
+        from src.analysis.llm.prompts import SCREENING_PROMPT
+
+        formatted = SCREENING_PROMPT.format(
+            url="https://example.gov/policy",
+            content="Test content about data center heat reuse.",
+        )
+        assert "https://example.gov/policy" in formatted
+        assert "Test content" in formatted

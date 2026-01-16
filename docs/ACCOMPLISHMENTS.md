@@ -144,18 +144,32 @@ This document tracks completed work for the cost optimization initiative.
 ---
 
 ### Phase 4: Two-Stage LLM Analysis
-**Status**: Not Started
-**Date Completed**: -
-**Commit**: -
+**Status**: COMPLETED
+**Date Completed**: 2026-01-15
+**Commit**: (pending)
 
 **Changes Made**:
-- (pending)
+- Added `SCREENING_PROMPT` to `src/analysis/llm/prompts.py` (minimal prompt for Haiku)
+- Added `ScreeningResult` model to `src/analysis/llm/client.py`
+- Added `screen_relevance()` method to `ClaudeClient` class
+- Added screening stats tracking (calls, tokens_input, tokens_output)
+- Updated `config/settings.yaml` with two-stage configuration options
+- Updated `src/config/settings.py` with new AnalysisSettings fields
+- Integrated two-stage screening in `src/main.py` `run_batch()` function
 
-**Tests Added**:
-- (pending)
+**Tests Added** (7 new tests in `tests/unit/test_llm_client.py`):
+- TestScreeningResult (relevant, not_relevant, default_confidence, low_confidence, high_confidence)
+- TestScreeningPrompt (exists, format)
 
-**User-Configurable Options**:
-- `config/settings.yaml` - Screening model, analysis model, enable/disable
+**User-Configurable Options** (`config/settings.yaml`):
+- `analysis.enable_two_stage`: Toggle on/off (default: true)
+- `analysis.screening_model`: Model for screening (default: claude-haiku-4-20250514)
+- `analysis.screening_min_confidence`: Minimum confidence to proceed (default: 5)
+
+**Cost Impact**:
+- Haiku: ~$0.25/MTok vs Sonnet: ~$3/MTok (12x cheaper)
+- Screening uses only first 5000 chars of content
+- Expected 50-75% cost reduction when ~10-30% of pages are relevant
 
 ---
 

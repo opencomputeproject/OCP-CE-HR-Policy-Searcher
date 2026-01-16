@@ -58,9 +58,9 @@ analysis:
   # Whether to use LLM for analysis (set false to only use keyword matching)
   enable_llm_analysis: true
 
-  # Which Claude model to use
+  # Which Claude model to use for full analysis
   # Options: claude-sonnet-4-20250514, claude-haiku-4-20250514
-  # Haiku is cheaper, Sonnet is more accurate
+  # Sonnet is more accurate for detailed extraction
   llm_model: "claude-sonnet-4-20250514"
 
   # Maximum characters to send to LLM (truncate longer content)
@@ -72,6 +72,28 @@ analysis:
   # Enable semantic deduplication using LLM
   # More accurate but costs more
   semantic_deduplication: false
+
+  # ---------------------------------------------------------------------------
+  # TWO-STAGE LLM ANALYSIS (Phase 4)
+  # ---------------------------------------------------------------------------
+  # Use a fast, cheap model (Haiku) to screen pages before sending to
+  # the full analysis model (Sonnet). This can reduce costs by ~75%.
+  #
+  # Flow: Keywords → URL filter → Haiku screening → Sonnet analysis
+  # ---------------------------------------------------------------------------
+
+  # Enable two-stage analysis (Haiku screening → Sonnet analysis)
+  # Set to false to skip screening and send all keyword-matched pages to Sonnet
+  enable_two_stage: true
+
+  # Model for quick relevance screening (fast and cheap)
+  # Haiku costs ~$0.25/MTok vs Sonnet ~$3/MTok (12x cheaper)
+  screening_model: "claude-haiku-4-20250514"
+
+  # Minimum confidence from screening to proceed to full analysis
+  # 1-10 scale. Lower = more permissive, higher = more strict
+  # Recommended: 4-6 (screen out obvious non-relevant, allow borderline)
+  screening_min_confidence: 5
 
 # -----------------------------------------------------------------------------
 # OUTPUT SETTINGS

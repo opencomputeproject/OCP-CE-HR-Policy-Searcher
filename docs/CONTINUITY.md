@@ -117,28 +117,32 @@ stricter_requirements:
 - Remove boilerplate (cookie notices, etc.)
 - Optionally use readability algorithm
 
-### Phase 4: Two-Stage LLM Analysis (Biggest Impact)
-**Files to create/modify:**
-- `src/analysis/llm/screener.py` - Haiku-based quick screening
-- `src/analysis/llm/client.py` - Add model selection
-- `src/analysis/llm/prompts.py` - Screening prompt
-- `config/settings.yaml` - Model configuration
-- `src/main.py` - Two-stage pipeline
+### Phase 4: Two-Stage LLM Analysis (Biggest Impact) - COMPLETED
+**Files modified:**
+- [x] `src/analysis/llm/prompts.py` - Added SCREENING_PROMPT
+- [x] `src/analysis/llm/client.py` - Added ScreeningResult, screen_relevance(), screening stats
+- [x] `src/config/settings.py` - Added enable_two_stage, screening_model, screening_min_confidence
+- [x] `config/settings.yaml` - Added two-stage configuration section
+- [x] `src/main.py` - Integrated screening before full analysis
+- [x] `tests/unit/test_llm_client.py` - Added 7 new tests
 
-**Screening prompt (for Haiku):**
+**Implemented screening prompt (for Haiku):**
 ```
-Quick relevance check: Does this page describe government policy about:
-- Data center waste heat reuse
+Quick relevance check. Does this page describe government POLICY about:
+- Data center waste heat reuse/recovery
 - Data center energy efficiency requirements
-- Heat recovery from computing facilities
+- District heating involving data centers
+- Heat recovery mandates or incentives for data centers
 
-Answer ONLY with JSON: {"relevant": true/false, "confidence": 1-10}
+RESPOND WITH JSON ONLY (no explanation):
+{"relevant": true/false, "confidence": 1-10}
 ```
 
 **Cost comparison:**
-- Current: All pages → Sonnet ($3/MTok input)
-- New: All pages → Haiku ($0.25/MTok) → Relevant only → Sonnet
-- If 10% relevant: ~75% cost reduction
+- Before: All pages → Sonnet ($3/MTok input)
+- After: All pages → Haiku ($0.25/MTok) → Relevant only → Sonnet
+- Haiku is 12x cheaper, uses only first 5000 chars
+- Expected 50-75% cost reduction
 
 ### Phase 5: Result Caching (Good for Repeated Runs)
 **Files to create/modify:**
@@ -164,9 +168,9 @@ Answer ONLY with JSON: {"relevant": true/false, "confidence": 1-10}
 
 ## Current Status
 
-**Phase**: 2 (Completed)
-**Last Action**: Implemented stricter keyword requirements with user-configurable options
-**Next Action**: Ask user before proceeding to Phase 3
+**Phase**: 4 (Completed)
+**Last Action**: Implemented two-stage Haiku/Sonnet analysis
+**Next Action**: Ask user before proceeding to Phase 3 or 5
 **Blockers**: None
 
 ---

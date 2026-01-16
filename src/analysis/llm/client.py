@@ -11,7 +11,7 @@ import anthropic
 from pydantic import BaseModel, ValidationError
 
 from ...models.policy import Policy, PolicyType
-from .prompts import POLICY_ANALYSIS_PROMPT
+from .prompts import POLICY_ANALYSIS_PROMPT, SCREENING_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +132,12 @@ class LLMErrorStats:
 # =============================================================================
 # RESPONSE MODEL
 # =============================================================================
+
+
+class ScreeningResult(BaseModel):
+    """Result from quick relevance screening (Haiku)."""
+    relevant: bool
+    confidence: int = 5  # 1-10
 
 
 class PolicyAnalysis(BaseModel):
@@ -287,10 +293,15 @@ class ClaudeClient:
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
         self.model = model
 
-        # Track usage stats
+        # Track usage stats (full analysis)
         self.call_count = 0
         self.tokens_input = 0
         self.tokens_output = 0
+
+        # Track screening stats (separate from full analysis)
+        self.screening_calls = 0
+        self.screening_tokens_input = 0
+        self.screening_tokens_output = 0
 
         # Track errors
         self.error_stats = LLMErrorStats()
@@ -536,9 +547,97 @@ class ClaudeClient:
             key_requirements=analysis.key_requirements,
         )
 
+    async def screen_relevance(
+        self,
+        content: str,
+        url: str,
+        screening_model: str = "claude-haiku-4-20250514",
+        min_confidence: int = 5,
+    ) -> ScreeningResult:
+        """Quick relevance screening using a fast, cheap model.
+
+        Args:
+            content: Page text content (will be truncated to 5000 chars)
+            url: Source URL
+            screening_model: Model to use for screening (default: Haiku)
+            min_confidence: Minimum confidence to consider relevant
+
+        Returns:
+            ScreeningResult with relevance decision and confidence
+
+        Raises:
+            LLMError subclasses on API errors
+        """
+        # Truncate content for screening (keep it short for speed/cost)
+        screening_content = content[:5000] if len(content) > 5000 else content
+
+        prompt = SCREENING_PROMPT.format(
+            url=url,
+            content=screening_content,
+        )
+
+        try:
+            response = await self.client.messages.create(
+                model=screening_model,
+                max_tokens=50,  # Very short response expected
+                temperature=0.0,
+                messages=[{"role": "user", "content": prompt}],
+            )
+
+            # Track usage (separate from main analysis)
+            self.screening_calls += 1
+            if hasattr(response, "usage"):
+                self.screening_tokens_input += response.usage.input_tokens
+                self.screening_tokens_output += response.usage.output_tokens
+
+            raw_text = response.content[0].text
+
+            # Parse JSON
+            try:
+                json_text = _extract_json(raw_text)
+                data = json.loads(json_text)
+            except json.JSONDecodeError:
+                # If we can't parse, assume relevant (fail open for screening)
+                logger.warning(f"Could not parse screening response for {url}, assuming relevant")
+                return ScreeningResult(relevant=True, confidence=5)
+
+            # Coerce types
+            relevant = data.get("relevant", True)
+            if isinstance(relevant, str):
+                relevant = relevant.lower() in ("true", "yes", "1")
+
+            confidence = data.get("confidence", 5)
+            if isinstance(confidence, str):
+                try:
+                    confidence = int(confidence)
+                except ValueError:
+                    confidence = 5
+            confidence = max(1, min(10, confidence))
+
+            return ScreeningResult(relevant=relevant, confidence=confidence)
+
+        except anthropic.AuthenticationError as e:
+            raise LLMAuthError(f"Authentication failed: {e}") from e
+        except anthropic.RateLimitError as e:
+            # For screening, just assume relevant on rate limit (fail open)
+            logger.warning(f"Rate limited during screening for {url}, assuming relevant")
+            return ScreeningResult(relevant=True, confidence=5)
+        except Exception as e:
+            # For any other error, assume relevant (fail open)
+            logger.warning(f"Screening error for {url}: {e}, assuming relevant")
+            return ScreeningResult(relevant=True, confidence=5)
+
     def get_error_summary(self) -> dict:
         """Get error statistics summary."""
         return self.error_stats.summary()
+
+    def get_screening_stats(self) -> dict:
+        """Get screening statistics."""
+        return {
+            "calls": self.screening_calls,
+            "tokens_input": self.screening_tokens_input,
+            "tokens_output": self.screening_tokens_output,
+        }
 
     async def close(self) -> None:
         """Close the client."""

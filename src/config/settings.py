@@ -28,6 +28,11 @@ class AnalysisSettings(BaseModel):
     max_content_length: int = Field(default=50000)
     llm_temperature: float = Field(default=0.0, ge=0, le=1)
 
+    # Two-stage analysis settings (Phase 4)
+    enable_two_stage: bool = True
+    screening_model: str = "claude-haiku-4-20250514"
+    screening_min_confidence: int = Field(default=5, ge=1, le=10)
+
 
 class OutputSettings(BaseModel):
     """Output configuration."""

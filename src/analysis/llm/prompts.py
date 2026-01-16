@@ -1,5 +1,31 @@
 """LLM prompt templates."""
 
+# =============================================================================
+# SCREENING PROMPT (Haiku - fast, cheap)
+# =============================================================================
+# Used for quick relevance check before full analysis.
+# Designed to be minimal for speed and cost.
+
+SCREENING_PROMPT = """Quick relevance check. Does this page describe government POLICY about:
+- Data center waste heat reuse/recovery
+- Data center energy efficiency requirements
+- District heating involving data centers
+- Heat recovery mandates or incentives for data centers
+
+URL: {url}
+
+CONTENT (first 5000 chars):
+{content}
+
+RESPOND WITH JSON ONLY (no explanation):
+{{"relevant": true/false, "confidence": 1-10}}
+"""
+
+
+# =============================================================================
+# FULL ANALYSIS PROMPT (Sonnet - accurate, detailed)
+# =============================================================================
+
 POLICY_ANALYSIS_PROMPT = """
 Analyze this government web page for data center heat reuse policy information.
 

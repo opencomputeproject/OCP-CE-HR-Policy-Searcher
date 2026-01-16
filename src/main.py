@@ -666,6 +666,19 @@ async def run_batch(
         # LLM analysis
         if claude_client:
             try:
+                # Two-stage analysis: Haiku screening → Sonnet extraction
+                if settings.analysis.enable_two_stage:
+                    screening = await claude_client.screen_relevance(
+                        content,
+                        result.url,
+                        screening_model=settings.analysis.screening_model,
+                        min_confidence=settings.analysis.screening_min_confidence,
+                    )
+                    if not screening.relevant or screening.confidence < settings.analysis.screening_min_confidence:
+                        # Screened out - skip full analysis
+                        continue
+
+                # Full analysis with Sonnet
                 analysis = await claude_client.analyze_policy(
                     result.content[:settings.analysis.max_content_length],
                     result.url,
@@ -728,6 +741,15 @@ async def run_batch(
     # Log URL filter stats if any URLs were filtered
     if urls_filtered > 0:
         logger.info(f"URL pre-filter: skipped {urls_filtered} URLs")
+
+    # Log screening stats if two-stage was used
+    if claude_client and settings.analysis.enable_two_stage:
+        screening_stats = claude_client.get_screening_stats()
+        if screening_stats["calls"] > 0:
+            logger.info(
+                f"Screening: {screening_stats['calls']} calls, "
+                f"{screening_stats['tokens_input']} input tokens"
+            )
 
     return crawl_results, policies
 
@@ -835,7 +857,10 @@ async def run(args) -> int:
 
         if settings.analysis.enable_llm_analysis and settings.anthropic_api_key:
             claude_client = ClaudeClient(settings.anthropic_api_key, settings.analysis.llm_model)
-            logger.info(f"LLM: {settings.analysis.llm_model}")
+            if settings.analysis.enable_two_stage:
+                logger.info(f"LLM: {settings.analysis.screening_model} (screening) -> {settings.analysis.llm_model} (analysis)")
+            else:
+                logger.info(f"LLM: {settings.analysis.llm_model}")
 
         sheets_client = None
         if not args.dry_run and settings.spreadsheet_id and settings.google_credentials:
