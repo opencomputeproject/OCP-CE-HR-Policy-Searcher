@@ -131,15 +131,40 @@ This document tracks completed work for the cost optimization initiative.
 ---
 
 ### Phase 3: Content Extraction
-**Status**: Not Started
-**Date Completed**: -
-**Commit**: -
+**Status**: COMPLETED
+**Date Completed**: 2026-01-15
+**Commit**: (pending)
 
 **Changes Made**:
-- (pending)
+- Enhanced `src/crawler/extractors/html_extractor.py` with configurable extraction
+- Added `ExtractionConfig` dataclass with remove_tags, remove_patterns, content_indicators
+- Added `ExtractionStats` dataclass for tracking extraction metrics
+- Added pattern-based boilerplate removal (cookie banners, social widgets, ads, etc.)
+- Added `load_extraction_config()` to load configuration from YAML
+- Created `config/content_extraction.yaml` with comprehensive extraction rules
+- Updated `src/crawler/async_crawler.py` to use configurable extraction
 
-**Tests Added**:
-- (pending)
+**Tests Added** (34 tests in `tests/unit/test_content_extraction.py`):
+- TestExtractionConfig (default_config, custom_config)
+- TestExtractionStats (initial_values, compute_ratio, compute_ratio_zero_original)
+- TestHtmlExtractor (extract_main_content, removes_script/nav/footer_tags, removes_cookie_banner, removes_social_widgets, removes_newsletter, removes_sidebar, finds_article_when_no_main, finds_role_main, finds_content_by_class_indicator, extracts_title_from_h1, detects_language, word_count, stats_tracked, format_stats)
+- TestMaxContentLength (truncates_content, zero_unlimited)
+- TestCustomPatterns (custom_remove_pattern, custom_content_indicator)
+- TestLoadExtractionConfig (missing_file, valid_config, empty_file)
+- TestEdgeCases (empty_html, malformed_html, no_body_tag, deeply_nested_content, unicode_content)
+- TestRealWorldPatterns (government_site_pattern)
+
+**User-Configurable Options** (`config/content_extraction.yaml`):
+- `remove_tags`: List of HTML tags to completely remove (nav, footer, script, etc.)
+- `remove_patterns`: Regex patterns matched against class/id (cookie, social, banner, etc.)
+- `content_indicators`: Patterns to identify main content areas (content, article, main, etc.)
+- `min_content_length`: Minimum chars to consider extraction valid (default: 100)
+- `max_content_length`: Maximum chars to return (default: 0 = unlimited)
+
+**Impact**:
+- Reduces token usage by removing boilerplate before LLM analysis
+- Cleaner content improves LLM accuracy
+- User can customize removal patterns for specific sites
 
 ---
 

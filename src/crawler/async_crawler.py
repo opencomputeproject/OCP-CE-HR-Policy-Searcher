@@ -12,7 +12,7 @@ from ..analysis.keywords import KeywordMatcher
 from ..logging.run_logger import RunLogger
 from .fetchers.http_fetcher import HttpFetcher
 from .fetchers.playwright_fetcher import PlaywrightFetcher
-from .extractors.html_extractor import HtmlExtractor
+from .extractors.html_extractor import HtmlExtractor, load_extraction_config
 from .detection.paywall import detect_paywall
 from .detection.captcha import detect_captcha
 from .detection.js_required import detect_js_required
@@ -33,7 +33,11 @@ class AsyncCrawler:
 
         self.http_fetcher = HttpFetcher(settings)
         self.playwright_fetcher: Optional[PlaywrightFetcher] = None
-        self.html_extractor = HtmlExtractor()
+
+        # Load content extraction config
+        extraction_config = load_extraction_config()
+        self.html_extractor = HtmlExtractor(extraction_config)
+
         self._visited: set[str] = set()
 
     async def crawl_all(self) -> list[CrawlResult]:

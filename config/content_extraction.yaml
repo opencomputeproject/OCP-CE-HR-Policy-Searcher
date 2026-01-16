@@ -1,0 +1,168 @@
+# =============================================================================
+# CONTENT EXTRACTION SETTINGS
+# =============================================================================
+# Configure how HTML content is cleaned before sending to LLM analysis.
+# Removing boilerplate reduces token usage and improves analysis quality.
+#
+# This is Phase 3 of the cost optimization initiative.
+# =============================================================================
+
+content_extraction:
+  # ---------------------------------------------------------------------------
+  # STRUCTURAL TAGS TO REMOVE
+  # ---------------------------------------------------------------------------
+  # HTML tags that are completely removed with all their content.
+  # These are structural/media elements that never contain policy text.
+  # ---------------------------------------------------------------------------
+  remove_tags:
+    # Navigation and layout
+    - nav
+    - footer
+    - header
+    - aside
+
+    # Scripts and styles
+    - script
+    - style
+    - noscript
+
+    # Media elements
+    - iframe
+    - svg
+    - canvas
+    - video
+    - audio
+    - map
+    - object
+    - embed
+
+    # Forms (usually not policy content)
+    - form
+
+  # ---------------------------------------------------------------------------
+  # CLASS/ID PATTERNS TO REMOVE
+  # ---------------------------------------------------------------------------
+  # Regex patterns matched against class and id attributes.
+  # Elements matching these patterns are removed with all their content.
+  # Case-insensitive matching.
+  #
+  # Be careful not to be too aggressive - you might remove policy content!
+  # ---------------------------------------------------------------------------
+  remove_patterns:
+    # Cookie/consent banners
+    - "cookie"
+    - "consent"
+    - "gdpr"
+    - "privacy-banner"
+    - "cc-banner"
+    - "cookie-notice"
+    - "cookie-bar"
+
+    # Navigation elements
+    - "^nav$"           # Exact match for "nav" class
+    - "^menu$"          # Exact match for "menu" class
+    - "navigation"
+    - "breadcrumb"
+    - "pagination"
+    - "page-nav"
+
+    # Sidebars (might contain related links, not main content)
+    - "sidebar"
+    - "side-bar"
+    - "aside"
+
+    # Social media widgets
+    - "social"
+    - "share-"
+    - "sharing"
+    - "twitter-"
+    - "facebook-"
+    - "linkedin-"
+    - "follow-us"
+
+    # Advertising
+    - "^ad$"
+    - "^ads$"
+    - "advert"
+    - "advertisement"
+    - "sponsor"
+    - "promoted"
+
+    # Promotional banners (not ads but promotional)
+    - "banner"
+    - "promo"
+    - "cta-"            # Call to action
+
+    # Comments sections
+    - "comment"
+    - "disqus"
+    - "discussion"
+
+    # Footer elements (structural, not <footer> tag)
+    - "^footer$"
+    - "copyright"
+    - "legal-"
+
+    # Newsletter/subscription
+    - "newsletter"
+    - "subscribe"
+    - "signup"
+    - "sign-up"
+    - "mailing-list"
+
+    # Login/account
+    - "login"
+    - "signin"
+    - "sign-in"
+    - "account"
+
+    # Search forms
+    - "search-form"
+    - "search-box"
+    - "site-search"
+
+    # Related content (not main content)
+    - "related-"
+    - "recommended"
+    - "popular-"
+    - "trending"
+    - "more-from"
+    - "you-might"
+
+    # Print/accessibility (usually hidden)
+    - "print-only"
+    - "screen-reader"
+    - "visually-hidden"
+    - "sr-only"
+
+  # ---------------------------------------------------------------------------
+  # CONTENT INDICATORS
+  # ---------------------------------------------------------------------------
+  # Patterns that indicate main content areas.
+  # Used when semantic HTML (main, article) is not available.
+  # Elements with these in class/id are prioritized as main content.
+  # ---------------------------------------------------------------------------
+  content_indicators:
+    - "content"
+    - "article"
+    - "main"
+    - "post"
+    - "entry"
+    - "body-content"
+    - "page-content"
+    - "story"
+    - "text-content"
+    - "document"
+
+  # ---------------------------------------------------------------------------
+  # CONTENT LENGTH LIMITS
+  # ---------------------------------------------------------------------------
+
+  # Minimum content length (chars) to consider extraction valid
+  # If extracted content is shorter, might indicate extraction failed
+  min_content_length: 100
+
+  # Maximum content length (chars) to return
+  # 0 = unlimited (full content)
+  # Setting a limit here can reduce token usage but might truncate policy text
+  max_content_length: 0
