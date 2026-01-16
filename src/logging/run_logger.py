@@ -26,9 +26,23 @@ class RunStats:
     policies_duplicate: int = 0
     domains_scanned: int = 0
     keywords_matched: int = 0
+
+    # Full analysis (Sonnet) stats
     llm_calls: int = 0
     llm_tokens_input: int = 0
     llm_tokens_output: int = 0
+
+    # Screening (Haiku) stats
+    screening_calls: int = 0
+    screening_tokens_input: int = 0
+    screening_tokens_output: int = 0
+
+    # Filter stats
+    urls_filtered: int = 0
+    keywords_passed: int = 0
+    cache_hits: int = 0
+    cache_skipped: int = 0
+
     duration_seconds: float = 0.0
 
     @property
@@ -38,11 +52,23 @@ class RunStats:
         return (self.pages_success / self.pages_crawled) * 100
 
     @property
-    def estimated_cost_usd(self) -> float:
-        # Claude Sonnet pricing (approximate): $3/1M input, $15/1M output
+    def screening_cost_usd(self) -> float:
+        """Cost for Haiku screening (~$0.25/MTok input, ~$1.25/MTok output)."""
+        input_cost = (self.screening_tokens_input / 1_000_000) * 0.25
+        output_cost = (self.screening_tokens_output / 1_000_000) * 1.25
+        return input_cost + output_cost
+
+    @property
+    def analysis_cost_usd(self) -> float:
+        """Cost for Sonnet analysis (~$3/MTok input, ~$15/MTok output)."""
         input_cost = (self.llm_tokens_input / 1_000_000) * 3.0
         output_cost = (self.llm_tokens_output / 1_000_000) * 15.0
         return input_cost + output_cost
+
+    @property
+    def estimated_cost_usd(self) -> float:
+        """Total estimated cost (screening + analysis)."""
+        return self.screening_cost_usd + self.analysis_cost_usd
 
 
 class RunLogger:
@@ -55,8 +81,15 @@ class RunLogger:
         self._json_events: list[dict] = []
 
     def _write(self, msg: str) -> None:
-        print(msg)
-        with open(self._log_file, "a") as f:
+        # Handle Windows console encoding issues
+        try:
+            print(msg)
+        except UnicodeEncodeError:
+            # Replace unencodable characters with '?' for console display
+            print(msg.encode('ascii', errors='replace').decode('ascii'))
+
+        # Always write UTF-8 to log file
+        with open(self._log_file, "a", encoding="utf-8") as f:
             f.write(msg + "\n")
 
     def _log_json(self, event: str, **kwargs) -> None:
@@ -124,14 +157,32 @@ class RunLogger:
             "├" + "─" * 68 + "┤",
         ]
 
-        # Add LLM stats if used
-        if stats.llm_calls > 0:
-            summary_lines.extend([
-                f"│  LLM API calls:      {stats.llm_calls:<44} │",
-                f"│  Tokens (in/out):    {stats.llm_tokens_input:,} / {stats.llm_tokens_output:,}{' ' * (44 - len(f'{stats.llm_tokens_input:,} / {stats.llm_tokens_output:,}'))}│",
-                f"│  Estimated cost:     ${stats.estimated_cost_usd:.4f}{' ' * (44 - len(f'${stats.estimated_cost_usd:.4f}'))}│",
-                "├" + "─" * 68 + "┤",
-            ])
+        # Add filtering stats if any filtering occurred
+        if stats.urls_filtered > 0 or stats.keywords_passed > 0 or stats.cache_hits > 0:
+            summary_lines.append("├" + "─" * 68 + "┤")
+            if stats.urls_filtered > 0:
+                summary_lines.append(f"│  URLs pre-filtered:  {stats.urls_filtered:<44} │")
+            if stats.keywords_passed > 0:
+                summary_lines.append(f"│  Keywords passed:    {stats.keywords_passed:<44} │")
+            if stats.cache_hits > 0:
+                cache_str = f"{stats.cache_hits} hits, {stats.cache_skipped} skipped"
+                summary_lines.append(f"│  Cache:              {cache_str:<44} │")
+
+        # Add LLM stats if used - show screening and analysis separately
+        if stats.screening_calls > 0 or stats.llm_calls > 0:
+            summary_lines.append("├" + "─" * 68 + "┤")
+
+            if stats.screening_calls > 0:
+                screening_tokens = f"{stats.screening_tokens_input:,} in / {stats.screening_tokens_output:,} out"
+                summary_lines.append(f"│  Screening (Haiku):  {stats.screening_calls} calls, {screening_tokens}{' ' * max(0, 44 - len(f'{stats.screening_calls} calls, {screening_tokens}'))}│")
+                summary_lines.append(f"│    Cost:             ${stats.screening_cost_usd:.4f}{' ' * (44 - len(f'${stats.screening_cost_usd:.4f}'))}│")
+
+            if stats.llm_calls > 0:
+                analysis_tokens = f"{stats.llm_tokens_input:,} in / {stats.llm_tokens_output:,} out"
+                summary_lines.append(f"│  Analysis (Sonnet):  {stats.llm_calls} calls, {analysis_tokens}{' ' * max(0, 44 - len(f'{stats.llm_calls} calls, {analysis_tokens}'))}│")
+                summary_lines.append(f"│    Cost:             ${stats.analysis_cost_usd:.4f}{' ' * (44 - len(f'${stats.analysis_cost_usd:.4f}'))}│")
+
+            summary_lines.append(f"│  TOTAL COST:         ${stats.estimated_cost_usd:.4f}{' ' * (44 - len(f'${stats.estimated_cost_usd:.4f}'))}│")
 
         summary_lines.extend([
             f"│  Duration:           {mins}m {secs}s{' ' * (44 - len(f'{mins}m {secs}s'))}│",

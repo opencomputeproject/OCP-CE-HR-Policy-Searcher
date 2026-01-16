@@ -653,6 +653,7 @@ async def run_batch(
     # Analyze
     policies = []
     urls_filtered = 0
+    keywords_passed = 0
     cache_hits = 0
     cache_skipped_not_relevant = 0
 
@@ -670,6 +671,8 @@ async def run_batch(
         kw_result = keyword_matcher.match(content)
         if not keyword_matcher.is_relevant(kw_result, len(content)):
             continue
+
+        keywords_passed += 1
 
         # Check URL cache before LLM analysis
         content_hash = compute_content_hash(content) if url_cache else ""
@@ -781,6 +784,11 @@ async def run_batch(
     if urls_filtered > 0:
         logger.info(f"URL pre-filter: skipped {urls_filtered} URLs")
 
+    # Log keyword check stats
+    success_count = sum(1 for r in crawl_results if r.is_success)
+    after_filter = success_count - urls_filtered
+    logger.info(f"Keywords: {keywords_passed}/{after_filter} pages passed stricter check")
+
     # Log cache stats
     if url_cache and cache_hits > 0:
         logger.info(f"Cache: {cache_hits} hits, {cache_skipped_not_relevant} skipped (not relevant)")
@@ -794,7 +802,15 @@ async def run_batch(
                 f"{screening_stats['tokens_input']} input tokens"
             )
 
-    return crawl_results, policies
+    # Return batch stats along with results
+    batch_stats = {
+        "urls_filtered": urls_filtered,
+        "keywords_passed": keywords_passed,
+        "cache_hits": cache_hits,
+        "cache_skipped": cache_skipped_not_relevant,
+    }
+
+    return crawl_results, policies, batch_stats
 
 
 async def run(args) -> int:
@@ -934,6 +950,12 @@ async def run(args) -> int:
         all_policies = []
         total_batches = len(batches)
 
+        # Accumulate filter stats across batches
+        total_urls_filtered = 0
+        total_keywords_passed = 0
+        total_cache_hits = 0
+        total_cache_skipped = 0
+
         for batch_num, batch_domains in enumerate(batches, 1):
             if total_batches > 1:
                 logger.section(LogSection.CRAWL)
@@ -947,7 +969,7 @@ async def run(args) -> int:
             else:
                 logger.section(LogSection.CRAWL)
 
-            crawl_results, policies = await run_batch(
+            crawl_results, policies, batch_stats = await run_batch(
                 batch_domains,
                 settings,
                 keyword_matcher,
@@ -961,6 +983,12 @@ async def run(args) -> int:
 
             all_crawl_results.extend(crawl_results)
             all_policies.extend(policies)
+
+            # Accumulate batch stats
+            total_urls_filtered += batch_stats.get("urls_filtered", 0)
+            total_keywords_passed += batch_stats.get("keywords_passed", 0)
+            total_cache_hits += batch_stats.get("cache_hits", 0)
+            total_cache_skipped += batch_stats.get("cache_skipped", 0)
 
             # Update health metrics for this batch
             if health_metrics:
@@ -1029,6 +1057,9 @@ async def run(args) -> int:
         elif args.dry_run:
             new_count = len(all_policies)
 
+        # Get screening stats from client
+        screening_stats = claude_client.get_screening_stats() if claude_client else {}
+
         stats = RunStats(
             domains_scanned=sum(len(batch) for batch in batches),
             pages_crawled=len(all_crawl_results),
@@ -1039,9 +1070,19 @@ async def run(args) -> int:
             policies_found=len(all_policies),
             policies_new=new_count,
             policies_duplicate=dup_count,
+            # Full analysis (Sonnet) stats
             llm_calls=claude_client.call_count if claude_client else 0,
             llm_tokens_input=claude_client.tokens_input if claude_client else 0,
             llm_tokens_output=claude_client.tokens_output if claude_client else 0,
+            # Screening (Haiku) stats
+            screening_calls=screening_stats.get("calls", 0),
+            screening_tokens_input=screening_stats.get("tokens_input", 0),
+            screening_tokens_output=screening_stats.get("tokens_output", 0),
+            # Filter stats
+            urls_filtered=total_urls_filtered,
+            keywords_passed=total_keywords_passed,
+            cache_hits=total_cache_hits,
+            cache_skipped=total_cache_skipped,
         )
         logger.end_run(stats)
 
