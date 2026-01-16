@@ -71,43 +71,38 @@ url_filters:
         - /about-us/
 ```
 
-### Phase 2: Stricter Keyword Requirements (Free)
-**Files to create/modify:**
-- `config/keywords.yaml` - Add required_combinations, min_density
-- `src/analysis/keywords.py` - Enhanced matching logic
-- `tests/unit/test_keywords.py` - Additional tests
+### Phase 2: Stricter Keyword Requirements (Free) - COMPLETED
+**Files modified:**
+- [x] `config/keywords.yaml` - Added `stricter_requirements` section (~140 lines)
+- [x] `src/analysis/keywords.py` - Complete rewrite with stricter matching logic
+- [x] `src/main.py` - Updated to use new is_relevant(result, content_length) signature
+- [x] `tests/unit/test_keywords.py` - Added 21 new tests
 
-**Enhanced keyword config structure:**
+**Implemented config structure:**
 ```yaml
-# Existing structure preserved
-keywords:
-  primary: [...]
-  secondary: [...]
-
-# New additions
-keyword_requirements:
-  # Minimum keyword density (matches per 1000 chars)
-  min_density: 2.0
-
-  # Required combinations - at least one must match
+stricter_requirements:
   required_combinations:
-    - primary: ["data center", "datacenter", "data centre"]
-      secondary: ["heat", "waste heat", "thermal", "reuse", "recovery"]
-    - primary: ["server farm", "computing facility"]
-      secondary: ["heat", "energy efficiency", "thermal"]
-
-  # Boost score if these appear
+    enabled: true
+    min_matches_per_category: 1
+    combinations:
+      - primary: "context"    # data center, server farm, etc.
+        secondary: "subject"  # heat, thermal, etc.
+  density:
+    enabled: true
+    min_density: 1.0  # matches per 1000 chars
+    categories_to_count: [subject, policy_type, incentives]
   boost_keywords:
-    - "heat reuse"
-    - "waste heat recovery"
-    - "district heating"
-    - "thermal energy"
-
-  # Reduce score if these appear (generic energy pages)
+    enabled: true
+    boost_amount: 3.0
+    terms: ["data center heat reuse", "waste heat recovery", ...]
   penalty_keywords:
-    - "cookie policy"
-    - "terms of service"
-    - "privacy policy"
+    enabled: true
+    penalty_amount: 2.0
+    terms: ["cookie policy", "terms of service", ...]
+  category_requirements:
+    enabled: false
+    require_all: []
+    require_any: []
 ```
 
 ### Phase 3: Content Extraction (Moderate Effort)
@@ -169,9 +164,9 @@ Answer ONLY with JSON: {"relevant": true/false, "confidence": 1-10}
 
 ## Current Status
 
-**Phase**: 1 (Completed)
-**Last Action**: Implemented URL pre-filtering with user config
-**Next Action**: Ask user before proceeding to Phase 2
+**Phase**: 2 (Completed)
+**Last Action**: Implemented stricter keyword requirements with user-configurable options
+**Next Action**: Ask user before proceeding to Phase 3
 **Blockers**: None
 
 ---

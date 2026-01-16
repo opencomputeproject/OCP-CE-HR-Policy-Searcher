@@ -1,8 +1,13 @@
-"""Unit tests for keyword matching."""
+"""Unit tests for keyword matching with stricter requirements."""
 
 import pytest
 
-from src.analysis.keywords import KeywordMatcher, KeywordMatch, KeywordMatchResult
+from src.analysis.keywords import (
+    KeywordMatcher,
+    KeywordMatch,
+    KeywordMatchResult,
+    StricterCheckResult,
+)
 
 
 class TestKeywordMatcher:
@@ -229,3 +234,369 @@ class TestIntegrationWithActualConfig:
         assert result.has_matches
         assert result.score > 5.0  # Should score well above threshold
         assert result.unique_matches >= 2
+
+
+# =============================================================================
+# STRICTER REQUIREMENTS TESTS (Phase 2)
+# =============================================================================
+
+
+class TestStricterConfig:
+    """Fixture for stricter requirements testing."""
+
+    @pytest.fixture
+    def stricter_config(self):
+        """Configuration with all stricter requirements enabled."""
+        return {
+            "keywords": {
+                "subject": {
+                    "weight": 3.0,
+                    "terms": {
+                        "en": ["waste heat", "heat recovery", "heat reuse"],
+                    },
+                },
+                "context": {
+                    "weight": 1.0,
+                    "terms": {
+                        "en": ["data center", "data centre", "server farm"],
+                    },
+                },
+                "policy_type": {
+                    "weight": 2.0,
+                    "terms": {
+                        "en": ["regulation", "law", "directive", "policy"],
+                    },
+                },
+                "incentives": {
+                    "weight": 2.0,
+                    "terms": {
+                        "en": ["grant", "subsidy", "tax credit"],
+                    },
+                },
+            },
+            "thresholds": {
+                "minimum_keyword_score": 5.0,
+                "minimum_matches": 2,
+            },
+            "exclusions": ["cookie policy"],
+            "stricter_requirements": {
+                "required_combinations": {
+                    "enabled": True,
+                    "min_matches_per_category": 1,
+                    "combinations": [
+                        {"primary": "context", "secondary": "subject"},
+                        {"primary": "context", "secondary": "policy_type"},
+                        {"primary": "subject", "secondary": "policy_type"},
+                        {"primary": "subject", "secondary": "incentives"},
+                    ],
+                },
+                "density": {
+                    "enabled": True,
+                    "min_density": 1.0,
+                    "categories_to_count": ["subject", "policy_type"],
+                },
+                "boost_keywords": {
+                    "enabled": True,
+                    "boost_amount": 3.0,
+                    "terms": [
+                        "data center heat reuse",
+                        "waste heat recovery from data",
+                    ],
+                },
+                "penalty_keywords": {
+                    "enabled": True,
+                    "penalty_amount": 2.0,
+                    "terms": [
+                        "privacy policy",
+                        "terms of service",
+                    ],
+                },
+            },
+        }
+
+
+class TestBoostKeywords(TestStricterConfig):
+    """Tests for boost keyword functionality."""
+
+    def test_boost_increases_score(self, stricter_config):
+        """Boost keyword adds to score."""
+        matcher = KeywordMatcher(stricter_config)
+        result = matcher.match(
+            "Our data center heat reuse program recovers waste heat."
+        )
+
+        assert result.boost_applied == 3.0
+        assert "data center heat reuse" in result.boost_keywords_found
+        assert result.final_score > result.score
+
+    def test_multiple_boost_keywords(self, stricter_config):
+        """Multiple boost keywords stack."""
+        matcher = KeywordMatcher(stricter_config)
+        result = matcher.match(
+            "Data center heat reuse: waste heat recovery from data centers."
+        )
+
+        assert result.boost_applied == 6.0  # 3.0 * 2
+        assert len(result.boost_keywords_found) == 2
+
+    def test_boost_disabled(self):
+        """No boost applied when disabled."""
+        config = {
+            "keywords": {"subject": {"weight": 1.0, "terms": {"en": ["heat"]}}},
+            "stricter_requirements": {"boost_keywords": {"enabled": False}},
+        }
+        matcher = KeywordMatcher(config)
+        result = matcher.match("Data center heat reuse program.")
+
+        assert result.boost_applied == 0.0
+
+
+class TestPenaltyKeywords(TestStricterConfig):
+    """Tests for penalty keyword functionality."""
+
+    def test_penalty_decreases_score(self, stricter_config):
+        """Penalty keyword subtracts from score."""
+        matcher = KeywordMatcher(stricter_config)
+        result = matcher.match(
+            "Data center waste heat information. Terms of service apply."
+        )
+
+        assert result.penalty_applied == 2.0
+        assert "terms of service" in result.penalty_keywords_found
+        assert result.final_score < result.score
+
+    def test_final_score_minimum_zero(self, stricter_config):
+        """Final score cannot go below zero."""
+        matcher = KeywordMatcher(stricter_config)
+        result = matcher.match("Terms of service. Privacy policy.")
+
+        assert result.final_score == 0.0
+
+
+class TestRequiredCombinations(TestStricterConfig):
+    """Tests for required keyword combination checking."""
+
+    def test_combination_context_subject_satisfied(self, stricter_config):
+        """Page satisfies context + subject combination."""
+        matcher = KeywordMatcher(stricter_config)
+        result = matcher.match(
+            "The data center waste heat recovery system is efficient."
+        )
+
+        check = matcher.check_stricter_requirements(result, len("x" * 100))
+        assert check.passed is True
+
+    def test_combination_not_satisfied(self, stricter_config):
+        """Page does not satisfy any required combination."""
+        matcher = KeywordMatcher(stricter_config)
+        result = matcher.match("The data center is located in downtown.")
+
+        check = matcher.check_stricter_requirements(result, len("x" * 100))
+        assert check.passed is False
+        assert "combination" in check.reason.lower()
+
+    def test_subject_policy_combination(self, stricter_config):
+        """Subject + policy_type combination."""
+        matcher = KeywordMatcher(stricter_config)
+        result = matcher.match("Waste heat regulation requires heat recovery systems.")
+
+        check = matcher.check_stricter_requirements(result, len("x" * 100))
+        assert check.passed is True
+
+    def test_subject_incentives_combination(self, stricter_config):
+        """Subject + incentives combination."""
+        matcher = KeywordMatcher(stricter_config)
+        result = matcher.match("Apply for a grant to implement waste heat systems.")
+
+        check = matcher.check_stricter_requirements(result, len("x" * 100))
+        assert check.passed is True
+
+
+class TestKeywordDensity(TestStricterConfig):
+    """Tests for keyword density requirements."""
+
+    def test_density_satisfied(self, stricter_config):
+        """Content with sufficient keyword density passes."""
+        # Disable combinations to isolate density check
+        stricter_config["stricter_requirements"]["required_combinations"]["enabled"] = False
+        matcher = KeywordMatcher(stricter_config)
+
+        # High density: many keywords in short text
+        text = "Waste heat regulation. Heat recovery law. Policy directive. " * 5
+        result = matcher.match(text)
+        check = matcher.check_stricter_requirements(result, len(text))
+
+        assert check.passed is True
+
+    def test_density_not_satisfied(self, stricter_config):
+        """Content with insufficient keyword density fails."""
+        stricter_config["stricter_requirements"]["required_combinations"]["enabled"] = False
+        matcher = KeywordMatcher(stricter_config)
+
+        # Very long text with few keywords
+        text = "x " * 5000 + "waste heat regulation" + " x" * 5000
+        result = matcher.match(text)
+        check = matcher.check_stricter_requirements(result, len(text))
+
+        assert check.passed is False
+        assert "density" in check.reason.lower()
+
+
+class TestCategoryRequirements:
+    """Tests for category requirement checks."""
+
+    @pytest.fixture
+    def category_config(self):
+        return {
+            "keywords": {
+                "subject": {"weight": 3.0, "terms": {"en": ["waste heat"]}},
+                "context": {"weight": 1.0, "terms": {"en": ["data center"]}},
+                "policy_type": {"weight": 2.0, "terms": {"en": ["regulation"]}},
+            },
+            "stricter_requirements": {
+                "category_requirements": {
+                    "enabled": True,
+                    "require_all": ["subject", "context"],
+                    "require_any": [],
+                },
+            },
+        }
+
+    def test_require_all_satisfied(self, category_config):
+        """All required categories present."""
+        matcher = KeywordMatcher(category_config)
+        result = matcher.match("Data center waste heat systems.")
+
+        check = matcher.check_stricter_requirements(result, 1000)
+        assert check.passed is True
+
+    def test_require_all_not_satisfied(self, category_config):
+        """Missing required category."""
+        matcher = KeywordMatcher(category_config)
+        result = matcher.match("Data center operations.")
+
+        check = matcher.check_stricter_requirements(result, 1000)
+        assert check.passed is False
+        assert "subject" in check.reason
+
+
+class TestIsRelevantStricter(TestStricterConfig):
+    """Tests for is_relevant with stricter requirements."""
+
+    def test_relevant_content_passes_all_checks(self, stricter_config):
+        """Content that passes all checks is relevant."""
+        matcher = KeywordMatcher(stricter_config)
+        text = (
+            "This data center waste heat recovery regulation requires "
+            "all facilities to implement heat reuse systems. "
+        ) * 10
+
+        result = matcher.match(text)
+        assert matcher.is_relevant(result, len(text)) is True
+
+    def test_passes_score_fails_combination(self, stricter_config):
+        """High score but no valid combination is not relevant."""
+        matcher = KeywordMatcher(stricter_config)
+        # Only subject keywords, no context/policy/incentives
+        text = "Waste heat recovery. Heat reuse systems. " * 20
+
+        result = matcher.match(text)
+        assert result.final_score >= 5.0
+        assert matcher.is_relevant(result, len(text)) is False
+
+
+class TestKeywordMatchResultNew:
+    """Tests for new KeywordMatchResult features."""
+
+    def test_categories_matched(self):
+        """categories_matched returns unique categories."""
+        result = KeywordMatchResult(
+            matches=[
+                KeywordMatch("heat", "subject", 3.0, 1, "..."),
+                KeywordMatch("data center", "context", 1.0, 1, "..."),
+                KeywordMatch("waste heat", "subject", 3.0, 1, "..."),
+            ],
+            score=7.0,
+            unique_matches=3,
+        )
+
+        assert result.categories_matched == {"subject", "context"}
+
+    def test_category_match_count(self):
+        """category_match_count returns correct count."""
+        result = KeywordMatchResult(
+            matches=[
+                KeywordMatch("heat", "subject", 3.0, 1, "..."),
+                KeywordMatch("waste heat", "subject", 3.0, 1, "..."),
+                KeywordMatch("data center", "context", 1.0, 1, "..."),
+            ],
+            score=7.0,
+            unique_matches=3,
+        )
+
+        assert result.category_match_count("subject") == 2
+        assert result.category_match_count("context") == 1
+        assert result.category_match_count("nonexistent") == 0
+
+    def test_final_score_with_boost_penalty(self):
+        """final_score correctly applies boost and penalty."""
+        result = KeywordMatchResult(
+            matches=[],
+            score=10.0,
+            unique_matches=3,
+            boost_applied=5.0,
+            penalty_applied=3.0,
+        )
+
+        assert result.final_score == 12.0  # 10 + 5 - 3
+
+
+class TestGetFilterStats(TestStricterConfig):
+    """Tests for get_filter_stats method."""
+
+    def test_stats_contains_all_fields(self, stricter_config):
+        """Stats dict contains all expected fields."""
+        matcher = KeywordMatcher(stricter_config)
+        text = "Data center waste heat regulation with data center heat reuse."
+
+        result = matcher.match(text)
+        stats = matcher.get_filter_stats(result, len(text))
+
+        assert "passed" in stats
+        assert "base_score" in stats
+        assert "boost_applied" in stats
+        assert "penalty_applied" in stats
+        assert "final_score" in stats
+        assert "categories_matched" in stats
+        assert "density" in stats
+        assert "stricter_passed" in stats
+
+
+class TestEdgeCasesStricter:
+    """Tests for edge cases with stricter requirements."""
+
+    def test_empty_stricter_config(self):
+        """Empty stricter_requirements config still works."""
+        config = {
+            "keywords": {"subject": {"weight": 1.0, "terms": {"en": ["heat"]}}},
+            "stricter_requirements": {},
+        }
+        matcher = KeywordMatcher(config)
+        result = matcher.match("Heat systems.")
+
+        check = matcher.check_stricter_requirements(result, 100)
+        assert check.passed is True
+
+    def test_zero_content_length(self):
+        """Zero content length doesn't cause division error."""
+        config = {
+            "keywords": {"subject": {"weight": 1.0, "terms": {"en": ["heat"]}}},
+            "stricter_requirements": {
+                "density": {"enabled": True, "min_density": 1.0}
+            },
+        }
+        matcher = KeywordMatcher(config)
+        result = matcher.match("Heat")
+
+        check = matcher.check_stricter_requirements(result, 0)
+        assert check is not None  # Should not raise error

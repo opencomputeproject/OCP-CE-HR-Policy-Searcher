@@ -657,9 +657,10 @@ async def run_batch(
             urls_filtered += 1
             continue
 
-        # Keyword check
-        kw_result = keyword_matcher.match(result.content or "")
-        if kw_result.score < settings.analysis.min_keyword_score:
+        # Keyword check (with stricter requirements)
+        content = result.content or ""
+        kw_result = keyword_matcher.match(content)
+        if not keyword_matcher.is_relevant(kw_result, len(content)):
             continue
 
         # LLM analysis

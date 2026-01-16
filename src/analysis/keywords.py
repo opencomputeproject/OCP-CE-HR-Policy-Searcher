@@ -1,11 +1,36 @@
-"""Keyword matching."""
+"""Keyword matching with stricter requirements for cost optimization.
 
-from dataclasses import dataclass
+This module provides keyword-based filtering to identify potentially relevant
+policy content before sending to LLM analysis.
+
+Features:
+- Weighted keyword scoring by category
+- Required category combinations (e.g., data center + heat terms)
+- Keyword density requirements
+- Boost keywords for high-value phrases
+- Penalty keywords for generic content
+- Statistics tracking
+
+Usage:
+    from src.analysis.keywords import KeywordMatcher
+
+    matcher = KeywordMatcher(keywords_config)
+    result = matcher.match(text)
+
+    if matcher.is_relevant(result, len(text)):
+        # Send to LLM for analysis
+        pass
+"""
+
+from dataclasses import dataclass, field
 import re
+from typing import Optional
 
 
 @dataclass
 class KeywordMatch:
+    """A single keyword match."""
+
     keyword: str
     category: str
     weight: float
@@ -15,43 +40,126 @@ class KeywordMatch:
 
 @dataclass
 class KeywordMatchResult:
+    """Result of keyword matching."""
+
     matches: list[KeywordMatch]
     score: float
     unique_matches: int
+    boost_applied: float = 0.0
+    penalty_applied: float = 0.0
+    boost_keywords_found: list[str] = field(default_factory=list)
+    penalty_keywords_found: list[str] = field(default_factory=list)
 
     @property
     def has_matches(self) -> bool:
         return len(self.matches) > 0
 
+    @property
+    def final_score(self) -> float:
+        """Score after boost and penalty adjustments."""
+        return max(0.0, self.score + self.boost_applied - self.penalty_applied)
+
+    @property
+    def categories_matched(self) -> set[str]:
+        """Set of categories that had matches."""
+        return {m.category for m in self.matches}
+
+    def matches_by_category(self) -> dict[str, list[KeywordMatch]]:
+        """Group matches by category."""
+        result: dict[str, list[KeywordMatch]] = {}
+        for match in self.matches:
+            if match.category not in result:
+                result[match.category] = []
+            result[match.category].append(match)
+        return result
+
+    def category_match_count(self, category: str) -> int:
+        """Get number of unique matches in a category."""
+        return len([m for m in self.matches if m.category == category])
+
+
+@dataclass
+class StricterCheckResult:
+    """Result of stricter requirements checks."""
+
+    passed: bool
+    reason: str = ""
+    combination_satisfied: Optional[str] = None
+    density: float = 0.0
+    density_required: float = 0.0
+
 
 class KeywordMatcher:
+    """Keyword matcher with configurable strictness levels."""
+
     def __init__(self, keywords_config: dict):
+        """Initialize the keyword matcher.
+
+        Args:
+            keywords_config: Configuration dict with keywords, thresholds,
+                            exclusions, and stricter_requirements.
+        """
         self.keywords = keywords_config.get("keywords", {})
         self.thresholds = keywords_config.get("thresholds", {})
         self.exclusions = keywords_config.get("exclusions", [])
+        self.stricter = keywords_config.get("stricter_requirements", {})
+
         self._patterns: dict[str, re.Pattern] = {}
+        self._boost_patterns: list[tuple[str, re.Pattern]] = []
+        self._penalty_patterns: list[tuple[str, re.Pattern]] = []
+
         self._compile_patterns()
+        self._compile_boost_penalty_patterns()
 
     def _compile_patterns(self) -> None:
+        """Compile keyword patterns for matching."""
         for category, config in self.keywords.items():
             terms = config.get("terms", {})
             for lang, keyword_list in terms.items():
                 for keyword in keyword_list:
-                    pattern = re.compile(r"\b" + re.escape(keyword) + r"\b", re.IGNORECASE)
+                    pattern = re.compile(
+                        r"\b" + re.escape(keyword) + r"\b", re.IGNORECASE
+                    )
                     self._patterns[f"{category}:{lang}:{keyword}"] = pattern
+
+    def _compile_boost_penalty_patterns(self) -> None:
+        """Compile boost and penalty keyword patterns."""
+        # Boost keywords
+        boost_config = self.stricter.get("boost_keywords", {})
+        if boost_config.get("enabled", False):
+            for term in boost_config.get("terms", []):
+                pattern = re.compile(r"\b" + re.escape(term) + r"\b", re.IGNORECASE)
+                self._boost_patterns.append((term, pattern))
+
+        # Penalty keywords
+        penalty_config = self.stricter.get("penalty_keywords", {})
+        if penalty_config.get("enabled", False):
+            for term in penalty_config.get("terms", []):
+                pattern = re.compile(r"\b" + re.escape(term) + r"\b", re.IGNORECASE)
+                self._penalty_patterns.append((term, pattern))
 
     @property
     def total_keywords(self) -> int:
+        """Total number of keyword patterns."""
         return len(self._patterns)
 
     def match(self, text: str) -> KeywordMatchResult:
+        """Match keywords in text and return results.
+
+        Args:
+            text: Text content to search
+
+        Returns:
+            KeywordMatchResult with matches, scores, and adjustments
+        """
         text_lower = text.lower()
 
-        # Check exclusions
+        # Check exclusions first
         for exclusion in self.exclusions:
             if exclusion.lower() in text_lower:
                 return KeywordMatchResult([], 0.0, 0)
 
+        # Find all keyword matches
         matches = []
         for key, pattern in self._patterns.items():
             category, lang, keyword = key.split(":", 2)
@@ -64,20 +172,223 @@ class KeywordMatcher:
                 end = min(len(text), match_obj.end() + 50)
                 context = f"...{text[start:end]}..."
 
-                matches.append(KeywordMatch(
-                    keyword=keyword,
-                    category=category,
-                    weight=weight,
-                    count=len(found),
-                    context=context,
-                ))
+                matches.append(
+                    KeywordMatch(
+                        keyword=keyword,
+                        category=category,
+                        weight=weight,
+                        count=len(found),
+                        context=context,
+                    )
+                )
 
+        # Calculate base score
         score = sum(m.weight * m.count for m in matches)
         unique = len(set(m.keyword for m in matches))
 
-        return KeywordMatchResult(matches, score, unique)
+        # Apply boost keywords
+        boost_applied = 0.0
+        boost_found = []
+        boost_config = self.stricter.get("boost_keywords", {})
+        if boost_config.get("enabled", False):
+            boost_amount = boost_config.get("boost_amount", 3.0)
+            for term, pattern in self._boost_patterns:
+                if pattern.search(text):
+                    boost_applied += boost_amount
+                    boost_found.append(term)
 
-    def is_relevant(self, result: KeywordMatchResult) -> bool:
+        # Apply penalty keywords
+        penalty_applied = 0.0
+        penalty_found = []
+        penalty_config = self.stricter.get("penalty_keywords", {})
+        if penalty_config.get("enabled", False):
+            penalty_amount = penalty_config.get("penalty_amount", 2.0)
+            for term, pattern in self._penalty_patterns:
+                if pattern.search(text):
+                    penalty_applied += penalty_amount
+                    penalty_found.append(term)
+
+        return KeywordMatchResult(
+            matches=matches,
+            score=score,
+            unique_matches=unique,
+            boost_applied=boost_applied,
+            penalty_applied=penalty_applied,
+            boost_keywords_found=boost_found,
+            penalty_keywords_found=penalty_found,
+        )
+
+    def check_stricter_requirements(
+        self, result: KeywordMatchResult, content_length: int
+    ) -> StricterCheckResult:
+        """Check if result passes stricter requirements.
+
+        Args:
+            result: KeywordMatchResult from match()
+            content_length: Length of the content in characters
+
+        Returns:
+            StricterCheckResult with pass/fail status and reason
+        """
+        # Check required combinations
+        combo_config = self.stricter.get("required_combinations", {})
+        if combo_config.get("enabled", False):
+            combinations = combo_config.get("combinations", [])
+            min_per_cat = combo_config.get("min_matches_per_category", 1)
+
+            combination_satisfied = None
+            for combo in combinations:
+                primary = combo.get("primary", "")
+                secondary = combo.get("secondary", "")
+
+                primary_count = result.category_match_count(primary)
+                secondary_count = result.category_match_count(secondary)
+
+                if primary_count >= min_per_cat and secondary_count >= min_per_cat:
+                    combination_satisfied = f"{primary}+{secondary}"
+                    break
+
+            if combination_satisfied is None:
+                return StricterCheckResult(
+                    passed=False,
+                    reason="No required keyword combination satisfied",
+                )
+
+        # Check keyword density
+        density_config = self.stricter.get("density", {})
+        if density_config.get("enabled", False):
+            min_density = density_config.get("min_density", 0.0)
+
+            if min_density > 0 and content_length > 0:
+                # Calculate density from specified categories
+                categories_to_count = density_config.get("categories_to_count", [])
+
+                if categories_to_count:
+                    # Count matches from specified categories
+                    match_count = sum(
+                        m.count
+                        for m in result.matches
+                        if m.category in categories_to_count
+                    )
+                else:
+                    # Count all matches
+                    match_count = sum(m.count for m in result.matches)
+
+                # Density = matches per 1000 characters
+                density = (match_count / content_length) * 1000
+
+                if density < min_density:
+                    return StricterCheckResult(
+                        passed=False,
+                        reason=f"Keyword density {density:.2f} below minimum {min_density}",
+                        density=density,
+                        density_required=min_density,
+                    )
+
+        # Check category requirements
+        cat_config = self.stricter.get("category_requirements", {})
+        if cat_config.get("enabled", False):
+            require_all = cat_config.get("require_all", [])
+            require_any = cat_config.get("require_any", [])
+
+            categories_matched = result.categories_matched
+
+            if require_all:
+                missing = [cat for cat in require_all if cat not in categories_matched]
+                if missing:
+                    return StricterCheckResult(
+                        passed=False,
+                        reason=f"Missing required categories: {', '.join(missing)}",
+                    )
+
+            if require_any:
+                if not any(cat in categories_matched for cat in require_any):
+                    return StricterCheckResult(
+                        passed=False,
+                        reason=f"Need at least one of: {', '.join(require_any)}",
+                    )
+
+        # All checks passed
+        return StricterCheckResult(passed=True)
+
+    def is_relevant(
+        self, result: KeywordMatchResult, content_length: int = 0
+    ) -> bool:
+        """Check if a match result indicates relevant content.
+
+        Args:
+            result: KeywordMatchResult from match()
+            content_length: Length of content for density calculation
+
+        Returns:
+            True if content should be analyzed by LLM
+        """
+        # Check basic thresholds
         min_score = self.thresholds.get("minimum_keyword_score", 5.0)
         min_matches = self.thresholds.get("minimum_matches", 2)
-        return result.score >= min_score and result.unique_matches >= min_matches
+
+        # Use final_score which includes boost/penalty
+        if result.final_score < min_score:
+            return False
+
+        if result.unique_matches < min_matches:
+            return False
+
+        # Check stricter requirements
+        stricter_result = self.check_stricter_requirements(result, content_length)
+        if not stricter_result.passed:
+            return False
+
+        return True
+
+    def get_filter_stats(
+        self, result: KeywordMatchResult, content_length: int
+    ) -> dict:
+        """Get detailed statistics about filtering decision.
+
+        Useful for debugging and understanding why content was filtered.
+
+        Args:
+            result: KeywordMatchResult from match()
+            content_length: Length of content
+
+        Returns:
+            Dict with detailed filtering statistics
+        """
+        min_score = self.thresholds.get("minimum_keyword_score", 5.0)
+        min_matches = self.thresholds.get("minimum_matches", 2)
+        stricter_result = self.check_stricter_requirements(result, content_length)
+
+        # Calculate density
+        density_config = self.stricter.get("density", {})
+        density = 0.0
+        if content_length > 0:
+            categories_to_count = density_config.get("categories_to_count", [])
+            if categories_to_count:
+                match_count = sum(
+                    m.count
+                    for m in result.matches
+                    if m.category in categories_to_count
+                )
+            else:
+                match_count = sum(m.count for m in result.matches)
+            density = (match_count / content_length) * 1000
+
+        return {
+            "passed": self.is_relevant(result, content_length),
+            "base_score": result.score,
+            "boost_applied": result.boost_applied,
+            "penalty_applied": result.penalty_applied,
+            "final_score": result.final_score,
+            "score_threshold": min_score,
+            "unique_matches": result.unique_matches,
+            "matches_threshold": min_matches,
+            "categories_matched": list(result.categories_matched),
+            "boost_keywords_found": result.boost_keywords_found,
+            "penalty_keywords_found": result.penalty_keywords_found,
+            "stricter_passed": stricter_result.passed,
+            "stricter_reason": stricter_result.reason,
+            "density": density,
+            "density_required": density_config.get("min_density", 0.0),
+            "content_length": content_length,
+        }

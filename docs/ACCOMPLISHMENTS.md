@@ -80,18 +80,53 @@ This document tracks completed work for the cost optimization initiative.
 ---
 
 ### Phase 2: Stricter Keyword Requirements
-**Status**: Not Started
-**Date Completed**: -
-**Commit**: -
+**Status**: COMPLETED
+**Date Completed**: 2026-01-15
+**Commit**: (pending)
 
 **Changes Made**:
-- (pending)
+- Enhanced `config/keywords.yaml` with extensive `stricter_requirements` section
+- Completely rewrote `src/analysis/keywords.py` with new stricter matching logic
+- Added new dataclasses: `StricterCheckResult`, enhanced `KeywordMatchResult`
+- Integrated stricter checks into main pipeline via `src/main.py`
 
-**Tests Added**:
-- (pending)
+**Tests Added** (21 new tests in `tests/unit/test_keywords.py`):
+- TestBoostKeywords (boost_increases_score, multiple_boost_keywords, boost_disabled)
+- TestPenaltyKeywords (penalty_decreases_score, final_score_minimum_zero)
+- TestRequiredCombinations (context_subject, not_satisfied, subject_policy, subject_incentives)
+- TestKeywordDensity (satisfied, not_satisfied)
+- TestCategoryRequirements (require_all_satisfied, require_all_not_satisfied)
+- TestIsRelevantStricter (passes_all_checks, passes_score_fails_combination)
+- TestKeywordMatchResultNew (categories_matched, category_match_count, final_score_with_boost_penalty)
+- TestGetFilterStats (contains_all_fields)
+- TestEdgeCasesStricter (empty_config, zero_content_length)
 
-**User-Configurable Options**:
-- `config/keywords.yaml` - Required combinations, density thresholds, boost/penalty keywords
+**User-Configurable Options** (`config/keywords.yaml`):
+- `stricter_requirements.required_combinations`:
+  - `enabled`: Toggle on/off (default: true)
+  - `min_matches_per_category`: Minimum matches needed (default: 1)
+  - `combinations`: List of primary/secondary category pairs
+- `stricter_requirements.density`:
+  - `enabled`: Toggle on/off (default: true)
+  - `min_density`: Matches per 1000 characters (default: 1.0)
+  - `categories_to_count`: Which categories count toward density
+- `stricter_requirements.boost_keywords`:
+  - `enabled`: Toggle on/off (default: true)
+  - `boost_amount`: Points to add when found (default: 3.0)
+  - `terms`: List of high-value phrases
+- `stricter_requirements.penalty_keywords`:
+  - `enabled`: Toggle on/off (default: true)
+  - `penalty_amount`: Points to subtract when found (default: 2.0)
+  - `terms`: List of generic/irrelevant phrases
+- `stricter_requirements.category_requirements`:
+  - `enabled`: Toggle on/off (default: false)
+  - `require_all`/`require_any`: Category requirements
+
+**Impact**:
+- Reduces false positives by requiring keyword combinations (not just individual matches)
+- Density check ensures keywords aren't just mentioned once in passing
+- Boost/penalty system rewards highly relevant content and penalizes generic pages
+- All features individually configurable for easy tuning
 
 ---
 

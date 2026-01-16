@@ -578,3 +578,194 @@ exclusions:
   - "contact us"
   - "site map"
   - "sitemap"
+
+# =============================================================================
+# STRICTER KEYWORD REQUIREMENTS (Phase 2)
+# =============================================================================
+# These settings provide additional filtering beyond basic keyword matching.
+# Use these to reduce false positives and save LLM API costs.
+#
+# HOW IT WORKS:
+# 1. Basic keyword matching (score + matches) runs first
+# 2. If enabled, stricter requirements are then applied:
+#    - Required combinations: Must have keywords from specified category pairs
+#    - Minimum density: Keyword matches per 1000 characters
+#    - Boost keywords: Add bonus points for high-value phrases
+#    - Penalty keywords: Subtract points for generic content indicators
+#
+# Set 'enabled: false' under any section to disable that check.
+
+stricter_requirements:
+  # ---------------------------------------------------------------------------
+  # REQUIRED COMBINATIONS
+  # ---------------------------------------------------------------------------
+  # At least ONE combination must be satisfied for a page to pass.
+  # Each combination requires keywords from BOTH specified categories.
+  #
+  # This ensures pages are about BOTH data centers AND heat/energy topics,
+  # not just one or the other.
+  #
+  # Set 'enabled: false' to skip this check entirely.
+  # ---------------------------------------------------------------------------
+  required_combinations:
+    enabled: true
+
+    # Require at least this many matches from EACH category in a combination
+    # Set to 1 for strict (must have both), 0 to effectively disable
+    min_matches_per_category: 1
+
+    # List of required combinations - page must satisfy AT LEAST ONE
+    # Format: { primary: "category_name", secondary: "category_name" }
+    combinations:
+      # Most common: data center context + heat/subject keywords
+      - primary: "context"        # data center, server farm, etc.
+        secondary: "subject"      # waste heat, heat recovery, etc.
+
+      # Policy document about data centers
+      - primary: "context"
+        secondary: "policy_type"  # regulation, law, directive, etc.
+
+      # Heat subject + policy indicators
+      - primary: "subject"
+        secondary: "policy_type"
+
+      # Heat subject + incentive programs
+      - primary: "subject"
+        secondary: "incentives"   # grant, subsidy, tax credit, etc.
+
+  # ---------------------------------------------------------------------------
+  # KEYWORD DENSITY
+  # ---------------------------------------------------------------------------
+  # Minimum keyword matches per 1000 characters of content.
+  # Helps filter out pages that only mention keywords once in passing.
+  #
+  # Example values:
+  #   0.0  = disabled (no density requirement)
+  #   0.5  = very lenient (1 match per 2000 chars)
+  #   1.0  = moderate (1 match per 1000 chars)
+  #   2.0  = strict (2 matches per 1000 chars)
+  #   3.0  = very strict (3 matches per 1000 chars)
+  # ---------------------------------------------------------------------------
+  density:
+    enabled: true
+    min_density: 1.0  # Matches per 1000 characters
+
+    # Only count matches from these categories for density calculation
+    # Leave empty [] to count all categories
+    # Recommended: count high-value categories only
+    categories_to_count:
+      - subject       # Core heat reuse terms
+      - policy_type   # Policy indicators
+      - incentives    # Financial incentives
+      # - context     # Uncomment to include data center terms
+      # - enabling    # Uncomment to include enabling action terms
+
+  # ---------------------------------------------------------------------------
+  # BOOST KEYWORDS
+  # ---------------------------------------------------------------------------
+  # High-value phrases that strongly indicate relevant content.
+  # When found, these ADD to the keyword score.
+  #
+  # These are exact phrases (case-insensitive) that are very specific
+  # to data center heat reuse policies.
+  # ---------------------------------------------------------------------------
+  boost_keywords:
+    enabled: true
+    boost_amount: 3.0  # Points added per boost keyword found
+
+    terms:
+      # English - highly specific phrases
+      - "data center heat reuse"
+      - "data centre heat reuse"
+      - "waste heat recovery from data"
+      - "data center waste heat"
+      - "data centre waste heat"
+      - "heat reuse obligation"
+      - "heat recovery requirement"
+      - "district heating data center"
+      - "district heating data centre"
+      - "mandatory heat recovery"
+      - "energy reuse effectiveness"
+      - "ERE"  # Energy Reuse Effectiveness metric
+
+      # German
+      - "Abwärmenutzungspflicht"
+      - "Rechenzentrumsabwärme"
+      - "Fernwärme Rechenzentrum"
+
+      # Swedish
+      - "spillvärme datacenter"
+      - "fjärrvärme datacenter"
+
+      # Dutch
+      - "restwarmte datacenter"
+      - "warmtenet datacenter"
+
+      # French
+      - "chaleur fatale centre de données"
+      - "réseau de chaleur data center"
+
+  # ---------------------------------------------------------------------------
+  # PENALTY KEYWORDS
+  # ---------------------------------------------------------------------------
+  # Phrases indicating generic content that's likely NOT a policy document.
+  # When found, these SUBTRACT from the keyword score.
+  #
+  # Use this to down-rank pages about general topics that happen to
+  # mention data centers or heat in passing.
+  # ---------------------------------------------------------------------------
+  penalty_keywords:
+    enabled: true
+    penalty_amount: 2.0  # Points subtracted per penalty keyword found
+
+    terms:
+      # Generic website content
+      - "cookie policy"
+      - "privacy policy"
+      - "terms of service"
+      - "terms and conditions"
+      - "subscribe to newsletter"
+      - "sign up for updates"
+
+      # Job postings
+      - "job opening"
+      - "career opportunity"
+      - "we are hiring"
+      - "apply now"
+      - "join our team"
+
+      # Product marketing (not policy)
+      - "buy now"
+      - "add to cart"
+      - "free trial"
+      - "request a demo"
+      - "contact sales"
+
+      # News/blog indicators (usually not policy documents)
+      - "posted on"
+      - "written by"
+      - "share this article"
+      - "related articles"
+      - "leave a comment"
+
+      # Generic energy content (not specific to heat reuse)
+      - "solar panel installation"
+      - "wind farm project"
+      - "electric vehicle charging"
+
+  # ---------------------------------------------------------------------------
+  # CATEGORY REQUIREMENTS
+  # ---------------------------------------------------------------------------
+  # Require matches from specific categories to pass filtering.
+  # This is simpler than combinations - just checks if categories are present.
+  # ---------------------------------------------------------------------------
+  category_requirements:
+    enabled: false  # Disabled by default - use combinations instead
+
+    # Must have matches from ALL of these categories
+    # Example: require both subject AND context
+    require_all: []
+
+    # Must have matches from AT LEAST ONE of these categories
+    # Example: require either policy_type OR incentives
+    require_any: []
