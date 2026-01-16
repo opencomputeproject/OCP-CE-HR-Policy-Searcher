@@ -759,7 +759,7 @@ def cmd_last_run(args) -> int:
     config = run_data.get("config")
     if show_config:
         if config:
-            _safe_print(format_last_run_config(config))
+            _safe_print(format_last_run_config(config, run_data))
         else:
             # No config saved (older run or --verbose-summary wasn't used)
             if not show_summary:

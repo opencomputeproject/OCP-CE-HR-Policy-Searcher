@@ -462,6 +462,143 @@ class TestFormatLastRunConfig:
         assert "Chunking:" in result
         assert "5 per batch" in result
 
+    def test_config_with_cost_breakdown(self):
+        """Shows cost breakdown when run_data with LLM stats is provided."""
+        config = {
+            "domain_group": "nordic",
+            "domains_count": 5,
+            "min_keyword_score": 5.0,
+            "min_keyword_matches": 2,
+            "required_combinations_enabled": True,
+            "min_density": 1.0,
+            "density_enabled": True,
+            "boost_keywords_enabled": True,
+            "penalty_keywords_enabled": True,
+            "enable_llm": True,
+            "enable_two_stage": True,
+            "screening_model": "claude-haiku-4-20250514",
+            "analysis_model": "claude-sonnet-4-20250514",
+            "screening_min_confidence": 5,
+            "min_relevance_score": 5,
+            "cache_enabled": True,
+            "cache_cleared": False,
+            "dry_run": False,
+        }
+        run_data = {
+            "screening_calls": 10,
+            "screening_tokens_input": 50000,
+            "screening_tokens_output": 5000,
+            "llm_calls": 5,
+            "llm_tokens_input": 25000,
+            "llm_tokens_output": 2500,
+            "estimated_cost_usd": 0.15,
+        }
+
+        result = format_last_run_config(config, run_data)
+
+        assert "COST BREAKDOWN" in result
+        assert "Screening (Haiku)" in result
+        assert "Analysis (Sonnet)" in result
+        assert "TOTAL COST" in result
+        assert "$0.15" in result
+
+    def test_config_with_only_sonnet_cost(self):
+        """Shows only Sonnet cost when no screening was used."""
+        config = {
+            "domain_group": "test",
+            "domains_count": 1,
+            "min_keyword_score": 5.0,
+            "min_keyword_matches": 2,
+            "required_combinations_enabled": True,
+            "min_density": 1.0,
+            "density_enabled": True,
+            "boost_keywords_enabled": True,
+            "penalty_keywords_enabled": True,
+            "enable_llm": True,
+            "enable_two_stage": False,
+            "screening_model": "",
+            "analysis_model": "claude-sonnet-4-20250514",
+            "screening_min_confidence": 5,
+            "min_relevance_score": 5,
+            "cache_enabled": True,
+            "cache_cleared": False,
+            "dry_run": False,
+        }
+        run_data = {
+            "screening_calls": 0,
+            "llm_calls": 5,
+            "llm_tokens_input": 25000,
+            "llm_tokens_output": 2500,
+            "estimated_cost_usd": 0.1125,
+        }
+
+        result = format_last_run_config(config, run_data)
+
+        assert "COST BREAKDOWN" in result
+        assert "Screening (Haiku)" not in result
+        assert "Analysis (Sonnet)" in result
+        assert "TOTAL COST" in result
+
+    def test_config_without_run_data(self):
+        """Works without run_data (no cost section shown)."""
+        config = {
+            "domain_group": "test",
+            "domains_count": 1,
+            "min_keyword_score": 5.0,
+            "min_keyword_matches": 2,
+            "required_combinations_enabled": True,
+            "min_density": 1.0,
+            "density_enabled": True,
+            "boost_keywords_enabled": True,
+            "penalty_keywords_enabled": True,
+            "enable_llm": True,
+            "enable_two_stage": True,
+            "screening_model": "claude-haiku-4-20250514",
+            "analysis_model": "claude-sonnet-4-20250514",
+            "screening_min_confidence": 5,
+            "min_relevance_score": 5,
+            "cache_enabled": True,
+            "cache_cleared": False,
+            "dry_run": False,
+        }
+
+        result = format_last_run_config(config)
+
+        assert "COST BREAKDOWN" not in result
+        assert "RUN CONFIGURATION" in result
+
+    def test_config_no_llm_calls(self):
+        """No cost section when LLM wasn't used."""
+        config = {
+            "domain_group": "test",
+            "domains_count": 1,
+            "min_keyword_score": 5.0,
+            "min_keyword_matches": 2,
+            "required_combinations_enabled": True,
+            "min_density": 1.0,
+            "density_enabled": True,
+            "boost_keywords_enabled": True,
+            "penalty_keywords_enabled": True,
+            "enable_llm": False,
+            "enable_two_stage": False,
+            "screening_model": "",
+            "analysis_model": "",
+            "screening_min_confidence": 5,
+            "min_relevance_score": 5,
+            "cache_enabled": True,
+            "cache_cleared": False,
+            "dry_run": False,
+        }
+        run_data = {
+            "screening_calls": 0,
+            "llm_calls": 0,
+            "estimated_cost_usd": 0,
+        }
+
+        result = format_last_run_config(config, run_data)
+
+        assert "COST BREAKDOWN" not in result
+
 
 class TestRunConfigDataclass:
     """Tests for RunConfig dataclass."""

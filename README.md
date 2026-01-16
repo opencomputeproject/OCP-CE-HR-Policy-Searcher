@@ -507,7 +507,7 @@ Want to see exactly what settings were used for a run? Add `--verbose-summary`:
 python -m src.main --domains nordic --verbose-summary
 ```
 
-This appends a detailed configuration section after the run summary:
+This appends a detailed configuration section (with cost breakdown) after the run summary:
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -530,10 +530,19 @@ This appends a detailed configuration section after the run summary:
 ├────────────────────────────────────────────────────────────────────┤
 │  Cache:              enabled                                       │
 │  Dry run:            false                                         │
+├────────────────────────────────────────────────────────────────────┤
+│                         COST BREAKDOWN                             │
+├────────────────────────────────────────────────────────────────────┤
+│  Screening (Haiku):  15 calls, 45,000 in / 4,500 out              │
+│    Cost:             $0.0169                                       │
+│  Analysis (Sonnet):  5 calls, 25,000 in / 2,500 out               │
+│    Cost:             $0.1125                                       │
+├────────────────────────────────────────────────────────────────────┤
+│  TOTAL COST:         $0.1294                                       │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-This helps you understand exactly what settings were active, useful when debugging why a run found zero policies.
+This helps you understand exactly what settings were active and how much each LLM model cost, useful when debugging runs or optimizing costs.
 
 #### View Run Summary
 
@@ -1187,7 +1196,7 @@ tests/
 │   ├── test_costs.py            # 26 tests - Cost tracking
 │   ├── test_domain_filtering.py # 46 tests - Category/tag filtering
 │   ├── test_keywords.py         # 16 tests - Keyword matching
-│   ├── test_last_run.py         # 42 tests - Last run summary/config
+│   ├── test_last_run.py         # 46 tests - Last run summary/config/costs
 │   ├── test_notifications.py    # 24 tests - Email notifications
 │   └── test_url_cache.py        # 29 tests - URL result caching
 └── integration/                  # (future integration tests)

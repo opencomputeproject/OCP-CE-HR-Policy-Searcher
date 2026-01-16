@@ -584,11 +584,12 @@ def format_last_run_summary(run_data: dict, run_id: str) -> str:
     return "\n".join(lines)
 
 
-def format_last_run_config(config: dict) -> str:
+def format_last_run_config(config: dict, run_data: dict = None) -> str:
     """Format a run's configuration as a verbose string.
 
     Args:
         config: Dictionary with configuration data
+        run_data: Optional full run data dict (for including cost breakdown)
 
     Returns:
         Formatted configuration string
@@ -679,6 +680,36 @@ def format_last_run_config(config: dict) -> str:
     lines.append(f"│  Dry run:            {str(dry_run).lower():<44} │")
     if chunking:
         lines.append(f"│  Chunking:           {chunking:<44} │")
+
+    # Add cost breakdown if run_data is provided and LLM was used
+    if run_data:
+        screening_calls = run_data.get("screening_calls", 0)
+        llm_calls = run_data.get("llm_calls", 0)
+
+        if screening_calls > 0 or llm_calls > 0:
+            lines.append("├" + "─" * 68 + "┤")
+            lines.append("│" + " COST BREAKDOWN ".center(68) + "│")
+            lines.append("├" + "─" * 68 + "┤")
+
+            if screening_calls > 0:
+                s_in = run_data.get("screening_tokens_input", 0)
+                s_out = run_data.get("screening_tokens_output", 0)
+                s_cost = (s_in / 1_000_000) * 0.25 + (s_out / 1_000_000) * 1.25
+                screening_str = f"{screening_calls} calls, {s_in:,} in / {s_out:,} out"
+                lines.append(f"│  Screening (Haiku):  {screening_str}{' ' * max(0, 44 - len(screening_str))}│")
+                lines.append(f"│    Cost:             ${s_cost:.4f}{' ' * (44 - len(f'${s_cost:.4f}'))}│")
+
+            if llm_calls > 0:
+                a_in = run_data.get("llm_tokens_input", 0)
+                a_out = run_data.get("llm_tokens_output", 0)
+                a_cost = (a_in / 1_000_000) * 3.0 + (a_out / 1_000_000) * 15.0
+                analysis_str = f"{llm_calls} calls, {a_in:,} in / {a_out:,} out"
+                lines.append(f"│  Analysis (Sonnet):  {analysis_str}{' ' * max(0, 44 - len(analysis_str))}│")
+                lines.append(f"│    Cost:             ${a_cost:.4f}{' ' * (44 - len(f'${a_cost:.4f}'))}│")
+
+            total_cost = run_data.get("estimated_cost_usd", 0)
+            lines.append("├" + "─" * 68 + "┤")
+            lines.append(f"│  TOTAL COST:         ${total_cost:.4f}{' ' * (44 - len(f'${total_cost:.4f}'))}│")
 
     lines.append("└" + "─" * 68 + "┘")
     lines.append("")

@@ -278,6 +278,59 @@ This document tracks completed work for the cost optimization initiative.
 
 ---
 
+### Phase 6: Run History & Logging Enhancements
+**Status**: COMPLETED
+**Date Completed**: 2026-01-16
+**Commit**: (pending)
+
+**Changes Made**:
+
+#### `--verbose-summary` CLI Option
+- Added `--verbose-summary` flag to main scan command
+- Shows detailed configuration box after run summary
+- Configuration includes: domain group, keyword settings, LLM settings, cache settings
+- Now includes COST BREAKDOWN section with Haiku/Sonnet costs
+
+#### `last-run` Command Enhancements
+- Added `--log` option to view any historical run (not just most recent)
+- Supports multiple formats:
+  - `--log 1` (most recent), `--log 2` (previous), etc.
+  - `--log 20260115` (by date)
+  - `--log run_20260115_143022` (by full run ID)
+- Added `--config-only` and `--summary-only` flags
+
+#### `list-runs` Command (NEW)
+- Lists available run logs with summary info
+- Shows: Run ID, Date, Domains scanned, Policies found, Cost
+- `--all` flag to show all runs (default: last 10)
+
+#### Cost Breakdown in Config Output
+- Configuration view now includes COST BREAKDOWN section
+- Shows individual Haiku/Sonnet costs and total
+- Visible in `last-run` output when config is available
+
+**Tests Added** (46 tests in `tests/unit/test_last_run.py`):
+- TestGetLastRunLog (6 tests) — Finding most recent log file
+- TestLoadRunLog (5 tests) — Loading and parsing run log JSON
+- TestFormatLastRunSummary (4 tests) — Summary formatting
+- TestFormatLastRunConfig (11 tests) — Config formatting with costs
+- TestRunConfigDataclass (2 tests) — RunConfig dataclass
+- TestIntegration (1 test) — Full workflow
+- TestFindRunLog (9 tests) — Finding logs by pattern/index
+- TestListRunLogs (8 tests) — Listing available runs
+
+**User-Configurable Options**:
+- CLI `--verbose-summary`: Show all run settings after scan completes
+- CLI `last-run --log <ID>`: View specific historical run
+- CLI `list-runs --all`: Show all runs (vs default 10)
+
+**Impact**:
+- Easy review of past runs and their configurations
+- Cost visibility helps with budget tracking and optimization
+- Configuration saved with each run for debugging
+
+---
+
 ## Future Improvements
 
 Ideas for future optimization:
