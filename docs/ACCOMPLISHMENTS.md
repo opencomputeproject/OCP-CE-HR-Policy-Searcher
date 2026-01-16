@@ -44,18 +44,38 @@ This document tracks completed work for the cost optimization initiative.
 ---
 
 ### Phase 1: URL Pre-filtering
-**Status**: Not Started
-**Date Completed**: -
-**Commit**: -
+**Status**: COMPLETED
+**Date Completed**: 2026-01-16
+**Commit**: (pending)
 
 **Changes Made**:
-- (pending)
+- Created `config/url_filters.yaml` with comprehensive URL skip rules
+- Created `src/analysis/url_filter.py` with URLFilter class
+- Integrated URL filtering into main pipeline before LLM analysis
+- Added statistics tracking for filter effectiveness
 
-**Tests Added**:
-- (pending)
+**Tests Added** (46 tests in `tests/unit/test_url_filter.py`):
+- URLFilterConfig tests (default, values, pattern compilation, invalid pattern)
+- Extension filtering tests (pdf, doc, case-insensitive, pass html)
+- Path filtering tests (login, privacy, case-insensitive, policy pages)
+- Pattern filtering tests (news prefix, date archive, pagination)
+- Domain override tests (skip, pass, www handling, explicit domain)
+- Statistics tests (initialization, counting, skip rate, reset, format)
+- Config loading tests (missing, empty, valid, malformed)
+- Edge case tests (malformed URL, empty path, query strings, unicode)
+- Integration scenario tests (energy.gov, nordic gov, batch filtering)
 
 **User-Configurable Options**:
-- `config/url_filters.yaml` - Skip paths, patterns, extensions, domain overrides
+- `config/url_filters.yaml`:
+  - `skip_paths`: Substring match paths to skip (e.g., /login, /privacy)
+  - `skip_patterns`: Regex patterns to skip (e.g., news archives, pagination)
+  - `skip_extensions`: File extensions to skip (e.g., .pdf, .doc)
+  - `domain_overrides`: Domain-specific rules (e.g., energy.gov specific paths)
+
+**Impact**:
+- Reduces LLM API calls by filtering obviously irrelevant URLs before analysis
+- Zero cost (applied before any API calls)
+- User can customize filters for their specific use case
 
 ---
 
@@ -153,6 +173,7 @@ This document tracks completed work for the cost optimization initiative.
 | Date | Commit | Description |
 |------|--------|-------------|
 | 2026-01-15 | 055eeb0 | Rejected sites directory & comprehensive LLM error handling |
+| 2026-01-15 | 40b315d | Fix policy_type coercion for non-relevant pages |
 | (more to come) | | |
 
 ---

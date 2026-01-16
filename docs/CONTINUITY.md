@@ -30,12 +30,10 @@ This document tracks the implementation progress of cost optimization features t
 - [x] Commit and push
 
 ### Phase 1: URL Pre-filtering (Free, Easy)
-**Files to create/modify:**
-- `config/url_filters.yaml` - User-configurable URL patterns
-- `src/config/loader.py` - Load URL filter config
-- `src/analysis/url_filter.py` - URL filtering logic
-- `src/main.py` - Integrate URL filtering
-- `tests/unit/test_url_filter.py` - Unit tests
+- [x] Create `config/url_filters.yaml` - User-configurable URL patterns
+- [x] Create `src/analysis/url_filter.py` - URL filtering logic
+- [x] Create `tests/unit/test_url_filter.py` - 46 unit tests
+- [x] Update `src/main.py` - Integrate URL filtering
 
 **URL filter config structure:**
 ```yaml
@@ -171,9 +169,9 @@ Answer ONLY with JSON: {"relevant": true/false, "confidence": 1-10}
 
 ## Current Status
 
-**Phase**: 0 (Not Started)
-**Last Action**: Created planning documents
-**Next Action**: Fix policy_type coercion bug
+**Phase**: 1 (Completed)
+**Last Action**: Implemented URL pre-filtering with user config
+**Next Action**: Ask user before proceeding to Phase 2
 **Blockers**: None
 
 ---

@@ -30,6 +30,7 @@ from .config.loader import (
     VALID_TAGS,
     VALID_POLICY_TYPES,
 )
+from .analysis.url_filter import URLFilter, load_url_filters
 from .crawler.async_crawler import AsyncCrawler
 from .analysis.keywords import KeywordMatcher
 from .analysis.llm.client import (
@@ -630,6 +631,7 @@ async def run_batch(
     sheets_client,
     logger,
     args,
+    url_filter: URLFilter = None,
 ) -> tuple[list, list]:
     """
     Run a single batch of domains.
@@ -644,9 +646,15 @@ async def run_batch(
 
     # Analyze
     policies = []
+    urls_filtered = 0
 
     for result in crawl_results:
         if not result.is_success:
+            continue
+
+        # URL pre-filtering (skip obviously irrelevant URLs before LLM)
+        if url_filter and url_filter.should_skip(result.url):
+            urls_filtered += 1
             continue
 
         # Keyword check
@@ -715,6 +723,10 @@ async def run_batch(
                 source_language=result.language or "unknown",
             )
             policies.append(policy)
+
+    # Log URL filter stats if any URLs were filtered
+    if urls_filtered > 0:
+        logger.info(f"URL pre-filter: skipped {urls_filtered} URLs")
 
     return crawl_results, policies
 
@@ -809,6 +821,17 @@ async def run(args) -> int:
         keyword_matcher = KeywordMatcher(keywords_config)
         logger.info(f"Keywords: {keyword_matcher.total_keywords} terms")
 
+        # Load URL pre-filter
+        url_filter_config = load_url_filters()
+        url_filter = URLFilter(url_filter_config)
+        filter_count = (
+            len(url_filter_config.skip_paths)
+            + len(url_filter_config.skip_patterns)
+            + len(url_filter_config.skip_extensions)
+        )
+        if filter_count > 0:
+            logger.info(f"URL filters: {filter_count} rules loaded")
+
         if settings.analysis.enable_llm_analysis and settings.anthropic_api_key:
             claude_client = ClaudeClient(settings.anthropic_api_key, settings.analysis.llm_model)
             logger.info(f"LLM: {settings.analysis.llm_model}")
@@ -845,6 +868,7 @@ async def run(args) -> int:
                 sheets_client,
                 logger,
                 args,
+                url_filter,
             )
 
             all_crawl_results.extend(crawl_results)

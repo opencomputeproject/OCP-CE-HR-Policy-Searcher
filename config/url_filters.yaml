@@ -1,0 +1,203 @@
+# URL Pre-Filtering Configuration
+# ================================
+# Use this file to skip URLs before they're sent to the LLM.
+# This saves API costs by avoiding analysis of obviously irrelevant pages.
+#
+# How it works:
+# 1. skip_paths: Simple substring match (fast, case-insensitive)
+# 2. skip_patterns: Regular expression match (more powerful, slower)
+# 3. skip_extensions: File extension match
+# 4. domain_overrides: Domain-specific rules (override global rules)
+#
+# All rules are applied AFTER crawling, but BEFORE LLM analysis.
+
+url_filters:
+  # =========================================================================
+  # PATHS TO ALWAYS SKIP (substring match, case-insensitive)
+  # =========================================================================
+  # These are common paths that are almost never relevant for policy search.
+  skip_paths:
+    # Authentication & user account pages
+    - /login
+    - /logout
+    - /signin
+    - /signup
+    - /register
+    - /account/
+    - /profile/
+    - /user/
+    - /myaccount
+    - /my-account
+
+    # Contact & support pages
+    - /contact
+    - /support
+    - /help/
+    - /faq
+
+    # Legal boilerplate
+    - /cookies
+    - /cookie-policy
+    - /privacy
+    - /privacy-policy
+    - /terms
+    - /terms-of-service
+    - /terms-and-conditions
+    - /legal
+    - /disclaimer
+
+    # Shopping & commerce
+    - /cart
+    - /checkout
+    - /basket
+    - /shop/
+    - /store/
+    - /buy/
+    - /order/
+
+    # Navigation & utility
+    - /search
+    - /sitemap
+    - /rss
+    - /feed
+    - /print/
+    - /share/
+
+    # User-generated content
+    - /comments
+    - /reviews
+    - /forum/
+    - /community/
+
+    # Media & assets
+    - /gallery/
+    - /photos/
+    - /images/
+    - /videos/
+    - /media/
+
+    # Calendar & events (usually not policy pages)
+    - /calendar
+    - /events/
+    - /event/
+
+    # News & press (usually not policy pages, just announcements)
+    - /press-release
+    - /press-releases
+    - /news-release
+    - /media-release
+
+    # Career & jobs
+    - /careers
+    - /jobs
+    - /employment
+    - /vacancies
+
+    # Administrative
+    - /admin/
+    - /staff/
+    - /directory/
+
+  # =========================================================================
+  # PATTERNS TO SKIP (regex, case-insensitive)
+  # =========================================================================
+  # Use for more complex matching. Be careful with regex performance.
+  skip_patterns:
+    # News sections in language-prefixed paths (e.g., /en/news/, /de/aktuelles/)
+    - "^/[a-z]{2}/news/"
+    - "^/[a-z]{2}/aktuelles/"
+    - "^/[a-z]{2}/nyheter/"
+    - "^/[a-z]{2}/actualites/"
+
+    # Archive pages with dates
+    - "/archives?/\\d{4}"
+    - "/\\d{4}/\\d{2}/\\d{2}/"  # Date-based URL patterns
+
+    # Pagination
+    - "[?&]page=\\d+"
+    - "/page/\\d+"
+
+    # Social sharing links
+    - "[?&]share="
+    - "[?&]utm_"
+
+  # =========================================================================
+  # FILE EXTENSIONS TO SKIP
+  # =========================================================================
+  # Binary files and documents that can't be analyzed as HTML.
+  # Note: Some PDFs may contain policies - consider removing .pdf if needed.
+  skip_extensions:
+    - .pdf      # PDFs require special handling (Phase 3+)
+    - .doc
+    - .docx
+    - .xls
+    - .xlsx
+    - .ppt
+    - .pptx
+    - .zip
+    - .rar
+    - .tar
+    - .gz
+    - .exe
+    - .dmg
+    - .pkg
+    - .deb
+    - .rpm
+    - .mp3
+    - .mp4
+    - .avi
+    - .mov
+    - .wmv
+    - .jpg
+    - .jpeg
+    - .png
+    - .gif
+    - .svg
+    - .webp
+    - .ico
+    - .css
+    - .js
+    - .json
+    - .xml
+    - .csv
+
+  # =========================================================================
+  # DOMAIN-SPECIFIC OVERRIDES
+  # =========================================================================
+  # Add domain-specific rules here. These ADD to the global rules.
+  # Use the domain without protocol (e.g., "energy.gov" not "https://energy.gov")
+  domain_overrides:
+    # Example: US Department of Energy has many non-policy sections
+    energy.gov:
+      skip_paths:
+        - /articles/      # News articles, not policies
+        - /person/        # Staff profiles
+        - /leadership/
+        - /organization/
+        - /jobs/
+        - /internships
+        - /fellowships
+
+    # Example: Swedish Energy Agency
+    energimyndigheten.se:
+      skip_paths:
+        - /emissions-trading/
+        - /about-us/
+        - /om-oss/
+        - /nyheter/       # News
+
+    # Example: Finnish Ministry (add domains as needed)
+    # tem.fi:
+    #   skip_paths:
+    #     - /ajankohtaista/  # News/current events
+
+# =========================================================================
+# FUTURE: Allowlist (force include even if matched by skip rules)
+# =========================================================================
+# url_allowlist:
+#   paths:
+#     - /policy/         # Always analyze pages with "policy" in path
+#     - /regulation/
+#     - /legislation/
+#   patterns:
+#     - "heat.?reuse"    # Always analyze if URL mentions heat reuse
