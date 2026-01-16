@@ -199,19 +199,39 @@ This document tracks completed work for the cost optimization initiative.
 ---
 
 ### Phase 5: Result Caching
-**Status**: Not Started
-**Date Completed**: -
-**Commit**: -
+**Status**: COMPLETED
+**Date Completed**: 2026-01-15
+**Commit**: (pending)
 
 **Changes Made**:
-- (pending)
+- Created `src/cache/url_cache.py` with URLCache, CacheEntry, CacheStats classes
+- Added `compute_content_hash()` for content change detection
+- Added `load_cache()` and `save_cache()` for persistence (data/url_cache.json)
+- Added CLI flags `--no-cache` and `--clear-cache` in `src/main.py`
+- Integrated cache lookup before LLM analysis in `run_batch()`
+- Cache saves analysis results (relevant/not, score, policy type, content hash)
+- Automatic cleanup of expired entries on startup
+- Content hash comparison to detect changed pages
 
-**Tests Added**:
-- (pending)
+**Tests Added** (41 tests in `tests/unit/test_url_cache.py`):
+- TestCacheEntry (not_expired, expired, empty_expiry, invalid_expiry, matches_content, empty_hash, from_dict, from_dict_defaults)
+- TestCacheStats (initial_values, hit_rate, hit_rate_no_lookups, reset_session, format)
+- TestURLCache (set_and_get, get_miss, get_hit, get_expired, get_content_changed, get_content_matches, remove_existing, remove_nonexistent, clear, clean_expired, contains, expiry_days_applied, to_dict, from_dict)
+- TestComputeContentHash (same_hash, different_hash, empty_content, long_content_truncated, hash_length)
+- TestLoadSaveCache (load_missing, save_and_load, save_creates_directory, load_invalid_json, load_empty_file)
+- TestCacheIntegration (typical_workflow, batch_caching, not_relevant_caching, policy_type_stored)
 
 **User-Configurable Options**:
-- `config/settings.yaml` - Cache enable, expiration days
-- CLI flags: `--no-cache`, `--clear-cache`
+- CLI `--no-cache`: Disable URL result caching for this run
+- CLI `--clear-cache`: Clear cache before running
+- Cache expiry: 30 days default (hardcoded, easily changeable)
+- Cache location: `data/url_cache.json`
+
+**Impact**:
+- Skip LLM analysis for URLs previously determined not relevant
+- Reduces API costs on repeated runs
+- Content hash detects when pages have changed (re-analyze)
+- Statistics tracking for cache effectiveness
 
 ---
 

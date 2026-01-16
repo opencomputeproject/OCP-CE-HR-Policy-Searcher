@@ -31,6 +31,7 @@ from .config.loader import (
     VALID_POLICY_TYPES,
 )
 from .analysis.url_filter import URLFilter, load_url_filters
+from .cache.url_cache import URLCache, load_cache, save_cache, compute_content_hash
 from .crawler.async_crawler import AsyncCrawler
 from .analysis.keywords import KeywordMatcher
 from .analysis.llm.client import (
@@ -157,6 +158,10 @@ Examples:
     parser.add_argument("--dry-run", action="store_true", help="Don't write to Sheets")
     parser.add_argument("--skip-llm", action="store_true", help="Skip LLM analysis")
     parser.add_argument("--verbose", "-v", action="store_true")
+
+    # Cache options
+    parser.add_argument("--no-cache", action="store_true", help="Disable URL result caching")
+    parser.add_argument("--clear-cache", action="store_true", help="Clear cache before running")
 
     # Category/tag filtering options
     parser.add_argument(
@@ -632,6 +637,7 @@ async def run_batch(
     logger,
     args,
     url_filter: URLFilter = None,
+    url_cache: URLCache = None,
 ) -> tuple[list, list]:
     """
     Run a single batch of domains.
@@ -647,6 +653,8 @@ async def run_batch(
     # Analyze
     policies = []
     urls_filtered = 0
+    cache_hits = 0
+    cache_skipped_not_relevant = 0
 
     for result in crawl_results:
         if not result.is_success:
@@ -663,6 +671,19 @@ async def run_batch(
         if not keyword_matcher.is_relevant(kw_result, len(content)):
             continue
 
+        # Check URL cache before LLM analysis
+        content_hash = compute_content_hash(content) if url_cache else ""
+        if url_cache:
+            cache_entry = url_cache.get(result.url, content_hash=content_hash)
+            if cache_entry:
+                cache_hits += 1
+                if not cache_entry.is_relevant:
+                    # Previously analyzed as not relevant - skip
+                    cache_skipped_not_relevant += 1
+                    continue
+                # Previously relevant - still need to process for policy extraction
+                # (We don't cache full policy data, just relevance)
+
         # LLM analysis
         if claude_client:
             try:
@@ -675,7 +696,14 @@ async def run_batch(
                         min_confidence=settings.analysis.screening_min_confidence,
                     )
                     if not screening.relevant or screening.confidence < settings.analysis.screening_min_confidence:
-                        # Screened out - skip full analysis
+                        # Screened out - cache as not relevant and skip
+                        if url_cache:
+                            url_cache.set(
+                                result.url,
+                                is_relevant=False,
+                                relevance_score=screening.confidence,
+                                content_hash=content_hash,
+                            )
                         continue
 
                 # Full analysis with Sonnet
@@ -684,6 +712,17 @@ async def run_batch(
                     result.url,
                     result.language,
                 )
+
+                # Cache the analysis result
+                if url_cache:
+                    url_cache.set(
+                        result.url,
+                        is_relevant=analysis.is_relevant,
+                        relevance_score=analysis.relevance_score,
+                        content_hash=content_hash,
+                        policy_type=analysis.policy_type if analysis.is_relevant else "",
+                    )
+
                 if analysis.is_relevant and analysis.relevance_score >= settings.analysis.min_relevance_score:
                     policy = claude_client.to_policy(analysis, result.url, result.language or "unknown")
                     if policy:
@@ -741,6 +780,10 @@ async def run_batch(
     # Log URL filter stats if any URLs were filtered
     if urls_filtered > 0:
         logger.info(f"URL pre-filter: skipped {urls_filtered} URLs")
+
+    # Log cache stats
+    if url_cache and cache_hits > 0:
+        logger.info(f"Cache: {cache_hits} hits, {cache_skipped_not_relevant} skipped (not relevant)")
 
     # Log screening stats if two-stage was used
     if claude_client and settings.analysis.enable_two_stage:
@@ -855,6 +898,24 @@ async def run(args) -> int:
         if filter_count > 0:
             logger.info(f"URL filters: {filter_count} rules loaded")
 
+        # Initialize URL cache
+        url_cache = None
+        use_cache = not getattr(args, 'no_cache', False)
+        clear_cache = getattr(args, 'clear_cache', False)
+
+        if use_cache:
+            url_cache = load_cache()
+            if clear_cache:
+                url_cache.clear()
+                logger.info("Cache: Cleared")
+            else:
+                # Clean expired entries on startup
+                expired = url_cache.clean_expired()
+                if expired > 0:
+                    logger.info(f"Cache: Removed {expired} expired entries")
+                if url_cache.stats.total_entries > 0:
+                    logger.info(f"Cache: {url_cache.stats.total_entries} entries loaded")
+
         if settings.analysis.enable_llm_analysis and settings.anthropic_api_key:
             claude_client = ClaudeClient(settings.anthropic_api_key, settings.analysis.llm_model)
             if settings.analysis.enable_two_stage:
@@ -895,6 +956,7 @@ async def run(args) -> int:
                 logger,
                 args,
                 url_filter,
+                url_cache,
             )
 
             all_crawl_results.extend(crawl_results)
@@ -1073,6 +1135,13 @@ async def run(args) -> int:
                 duration_seconds=stats.duration_seconds,
                 cost_usd=stats.estimated_cost_usd,
             )
+
+        # Save URL cache
+        if url_cache:
+            save_cache(url_cache)
+            cache_stats = url_cache.get_stats()
+            if cache_stats.hits > 0 or cache_stats.total_entries > 0:
+                logger.info(f"Cache saved: {cache_stats.total_entries} entries ({cache_stats.format()})")
 
         return 0
 
