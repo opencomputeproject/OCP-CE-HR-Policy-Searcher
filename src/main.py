@@ -44,7 +44,18 @@ from .analysis.llm.client import (
     LLMServiceError,
 )
 from .output.sheets import SheetsClient
-from .logging.run_logger import RunLogger, LogSection, RunStats
+from .logging.run_logger import (
+    RunLogger,
+    LogSection,
+    RunStats,
+    RunConfig,
+    get_last_run_log,
+    find_run_log,
+    list_run_logs,
+    load_run_log,
+    format_last_run_summary,
+    format_last_run_config,
+)
 from .models.crawl import PageStatus
 from .models.policy import Policy, PolicyType
 from .utils.chunking import split_into_chunks, get_chunk_by_spec, parse_chunk_spec
@@ -152,6 +163,43 @@ Examples:
         help="Show statistics about domain categorization"
     )
 
+    # last-run subcommand
+    last_run_parser = subparsers.add_parser(
+        "last-run",
+        help="Show summary and configuration of a run (default: most recent)",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python -m src.main last-run                    # Show most recent run
+  python -m src.main last-run --log 2            # Show 2nd most recent run
+  python -m src.main last-run --log 20260115     # Show run from specific date
+  python -m src.main last-run --log run_20260115_143022  # Show specific run
+  python -m src.main last-run -c                 # Show only configuration
+"""
+    )
+    last_run_parser.add_argument(
+        "--log", "-l", metavar="ID",
+        help="Run to show: number (1=latest, 2=previous...), date (20260115), or run ID"
+    )
+    last_run_parser.add_argument(
+        "--config-only", "-c", action="store_true",
+        help="Show only the configuration (not the summary stats)"
+    )
+    last_run_parser.add_argument(
+        "--summary-only", "-s", action="store_true",
+        help="Show only the summary stats (not the configuration)"
+    )
+
+    # list-runs subcommand
+    list_runs_parser = subparsers.add_parser(
+        "list-runs",
+        help="List recent run logs"
+    )
+    list_runs_parser.add_argument(
+        "--all", "-a", action="store_true",
+        help="Show all runs (default: last 10)"
+    )
+
     # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
     parser.add_argument("--domains", default="all", help="Domain group to scan (use 'list-groups' to see options)")
@@ -162,6 +210,26 @@ Examples:
     # Cache options
     parser.add_argument("--no-cache", action="store_true", help="Disable URL result caching")
     parser.add_argument("--clear-cache", action="store_true", help="Clear cache before running")
+
+    # Keyword filtering options (override config/keywords.yaml for this run)
+    parser.add_argument(
+        "--min-keyword-score", type=float, default=None,
+        help="Minimum keyword score to pass to LLM (default: from keywords.yaml)"
+    )
+    parser.add_argument(
+        "--require-combinations", type=str, choices=["true", "false"], default=None,
+        help="Enable/disable required keyword combinations (default: from keywords.yaml)"
+    )
+    parser.add_argument(
+        "--min-density", type=float, default=None,
+        help="Minimum keyword density (matches per 1000 chars, default: from keywords.yaml)"
+    )
+
+    # Summary options
+    parser.add_argument(
+        "--verbose-summary", action="store_true",
+        help="Show detailed run configuration in summary"
+    )
 
     # Category/tag filtering options
     parser.add_argument(
@@ -628,6 +696,147 @@ def cmd_domain_stats(args) -> int:
     return 0
 
 
+def _safe_print(text: str) -> None:
+    """Print text, handling Windows console encoding issues."""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Replace unencodable characters for console display
+        print(text.encode('ascii', errors='replace').decode('ascii'))
+
+
+def cmd_last_run(args) -> int:
+    """Show summary and configuration of a run (default: most recent)."""
+    log_pattern = getattr(args, 'log', None)
+
+    # Find the log file
+    if log_pattern:
+        log_file = find_run_log(log_pattern)
+        if not log_file:
+            print(f"\nNo run log found matching: {log_pattern}")
+            print("")
+            print("Use one of these formats:")
+            print("  --log 1              # Most recent run")
+            print("  --log 2              # Second most recent run")
+            print("  --log 20260115       # Run from specific date")
+            print("  --log run_20260115_143022  # Full run ID")
+            print("")
+            print("Use 'list-runs' to see available runs:")
+            print("  python -m src.main list-runs")
+            print("")
+            return 1
+    else:
+        log_file = get_last_run_log()
+        if not log_file:
+            print("\nNo run logs found.")
+            print("Run a scan first: python -m src.main --domains quick --dry-run")
+            print("")
+            return 1
+
+    # Extract run ID from filename (e.g., run_20260116_034018.json -> run_20260116_034018)
+    run_id = log_file.stem
+
+    # Load the run data
+    run_data = load_run_log(log_file)
+    if not run_data:
+        print(f"\nCould not read run data from: {log_file}")
+        print("The log file may be corrupted or incomplete.")
+        print("")
+        return 1
+
+    config_only = getattr(args, 'config_only', False)
+    summary_only = getattr(args, 'summary_only', False)
+
+    # Default: show both summary and config
+    show_summary = not config_only
+    show_config = not summary_only
+
+    # Print summary if requested
+    if show_summary:
+        _safe_print(format_last_run_summary(run_data, run_id))
+
+    # Print configuration if available and requested
+    config = run_data.get("config")
+    if show_config:
+        if config:
+            _safe_print(format_last_run_config(config))
+        else:
+            # No config saved (older run or --verbose-summary wasn't used)
+            if not show_summary:
+                # Only show this message if we're not showing summary
+                print("\nNo configuration data available for this run.")
+                print("Configuration is saved when running with --verbose-summary.")
+                print(f"\nRun ID: {run_id}")
+                print(f"Log file: {log_file}")
+                print("")
+            else:
+                print("\n  Note: Configuration not saved for this run.")
+                print("  Use --verbose-summary on your next run to save configuration.")
+                print("")
+
+    return 0
+
+
+def cmd_list_runs(args) -> int:
+    """List recent run logs with summary info."""
+    from datetime import datetime
+
+    show_all = getattr(args, 'all', False)
+    limit = 0 if show_all else 10
+
+    runs = list_run_logs(limit=limit)
+
+    if not runs:
+        print("\nNo run logs found.")
+        print("Run a scan first: python -m src.main --domains quick --dry-run")
+        print("")
+        return 1
+
+    print("")
+    print("=" * 78)
+    print("  AVAILABLE RUN LOGS")
+    print("=" * 78)
+    print("")
+    print(f"  {'#':<3} {'Run ID':<24} {'Date':<12} {'Domains':<8} {'Policies':<9} {'Cost':<8}")
+    print("  " + "-" * 72)
+
+    for idx, log_file, summary in runs:
+        run_id = log_file.stem
+
+        # Parse timestamp
+        timestamp = summary.get("timestamp", "")
+        if timestamp:
+            try:
+                dt = datetime.fromisoformat(timestamp)
+                date_str = dt.strftime("%Y-%m-%d")
+            except (ValueError, TypeError):
+                date_str = timestamp[:10] if len(timestamp) >= 10 else "?"
+        else:
+            date_str = "?"
+
+        domains = summary.get("domains_scanned", 0)
+        policies = summary.get("policies_found", 0)
+        cost = summary.get("estimated_cost_usd", 0)
+
+        # Format nicely
+        cost_str = f"${cost:.4f}" if cost > 0 else "-"
+        domains_str = str(domains) if domains > 0 else "-"
+        policies_str = str(policies) if policies > 0 else "-"
+
+        print(f"  {idx:<3} {run_id:<24} {date_str:<12} {domains_str:<8} {policies_str:<9} {cost_str:<8}")
+
+    print("")
+    print("  Usage: python -m src.main last-run --log <#>")
+    print("  Example: python -m src.main last-run --log 2")
+    print("")
+
+    if not show_all and len(runs) >= 10:
+        print("  (showing last 10 runs - use --all to see all)")
+        print("")
+
+    return 0
+
+
 async def run_batch(
     domains: list,
     settings,
@@ -900,6 +1109,31 @@ async def run(args) -> int:
             batches = [all_domains]
             logger.info(f"Domains: {len(all_domains)} enabled")
 
+        # Apply CLI overrides to keywords config
+        if getattr(args, 'min_keyword_score', None) is not None:
+            if 'thresholds' not in keywords_config:
+                keywords_config['thresholds'] = {}
+            keywords_config['thresholds']['minimum_keyword_score'] = args.min_keyword_score
+            logger.info(f"Override: min_keyword_score = {args.min_keyword_score}")
+
+        if getattr(args, 'require_combinations', None) is not None:
+            enabled = args.require_combinations.lower() == 'true'
+            if 'stricter_requirements' not in keywords_config:
+                keywords_config['stricter_requirements'] = {}
+            if 'required_combinations' not in keywords_config['stricter_requirements']:
+                keywords_config['stricter_requirements']['required_combinations'] = {}
+            keywords_config['stricter_requirements']['required_combinations']['enabled'] = enabled
+            logger.info(f"Override: required_combinations = {enabled}")
+
+        if getattr(args, 'min_density', None) is not None:
+            if 'stricter_requirements' not in keywords_config:
+                keywords_config['stricter_requirements'] = {}
+            if 'density' not in keywords_config['stricter_requirements']:
+                keywords_config['stricter_requirements']['density'] = {}
+            keywords_config['stricter_requirements']['density']['min_density'] = args.min_density
+            keywords_config['stricter_requirements']['density']['enabled'] = args.min_density > 0
+            logger.info(f"Override: min_density = {args.min_density}")
+
         keyword_matcher = KeywordMatcher(keywords_config)
         logger.info(f"Keywords: {keyword_matcher.total_keywords} terms")
 
@@ -1084,7 +1318,51 @@ async def run(args) -> int:
             cache_hits=total_cache_hits,
             cache_skipped=total_cache_skipped,
         )
-        logger.end_run(stats)
+
+        # Build RunConfig (always, for last-run command; display only if --verbose-summary)
+        # Extract keyword config values
+        kw_thresholds = keywords_config.get('thresholds', {})
+        stricter = keywords_config.get('stricter_requirements', {})
+        req_combos = stricter.get('required_combinations', {})
+        density_cfg = stricter.get('density', {})
+
+        run_config = RunConfig(
+            # Domain selection
+            domain_group=args.domains,
+            category_filter=category,
+            tag_filters=tags,
+            policy_type_filters=policy_types,
+            domains_count=total_domain_count,
+
+            # Keyword settings
+            min_keyword_score=kw_thresholds.get('minimum_keyword_score', 5.0),
+            min_keyword_matches=kw_thresholds.get('minimum_keyword_matches', 2),
+            required_combinations_enabled=req_combos.get('enabled', True),
+            min_density=density_cfg.get('min_density', 1.0),
+            density_enabled=density_cfg.get('enabled', True),
+            boost_keywords_enabled=keywords_config.get('boost_keywords', {}).get('enabled', True),
+            penalty_keywords_enabled=keywords_config.get('penalty_keywords', {}).get('enabled', True),
+
+            # LLM settings
+            enable_llm=settings.analysis.enable_llm_analysis,
+            enable_two_stage=settings.analysis.enable_two_stage,
+            screening_model=settings.analysis.screening_model,
+            analysis_model=settings.analysis.llm_model,
+            screening_min_confidence=settings.analysis.screening_min_confidence,
+            min_relevance_score=settings.analysis.min_relevance_score,
+
+            # Cache settings
+            cache_enabled=use_cache,
+            cache_cleared=clear_cache,
+
+            # Other options
+            dry_run=args.dry_run,
+            chunking=chunk_spec if chunk_spec else (f"{chunk_size} per batch" if chunk_size else None),
+        )
+
+        # Pass run_config for JSON logging; only show verbose output if requested
+        show_verbose = getattr(args, 'verbose_summary', False)
+        logger.end_run(stats, run_config if show_verbose else None, save_config=run_config)
 
         # Log LLM error summary if there were errors
         if claude_client:
@@ -1239,6 +1517,10 @@ def main():
         sys.exit(cmd_list_policy_types(args))
     elif args.command == "domain-stats":
         sys.exit(cmd_domain_stats(args))
+    elif args.command == "last-run":
+        sys.exit(cmd_last_run(args))
+    elif args.command == "list-runs":
+        sys.exit(cmd_list_runs(args))
     else:
         # Default: run scan
         code = asyncio.run(run(args))

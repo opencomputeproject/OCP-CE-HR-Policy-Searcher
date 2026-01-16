@@ -155,9 +155,15 @@ python -m src.main [OPTIONS]
 - `--dry-run` - Don't write to Google Sheets (testing mode)
 - `--skip-llm` - Use keyword matching only (no Claude API calls)
 - `--verbose` - Enable verbose logging
+- `--verbose-summary` - Show all settings used in the run summary
 - `--chunk-size N` - Auto-chunk: process N domains at a time (see Chunking below)
 - `--chunk N/M` - Manual chunk: run only chunk N of M total
 - `--chunk-delay SEC` - Seconds to pause between chunks (default: 30)
+
+**Keyword Tuning Options** (override config for this run):
+- `--min-keyword-score N` - Minimum keyword score to pass to LLM (default: from keywords.yaml)
+- `--require-combinations true|false` - Enable/disable required keyword combinations
+- `--min-density N` - Minimum keyword density (matches per 1000 chars)
 
 **Available Domain Groups:**
 
@@ -492,6 +498,149 @@ When a scan completes, you'll see a formatted summary showing exactly what happe
 | **API calls** | Number of Claude API requests made |
 | **Tokens** | Input/output tokens used (for billing reference) |
 | **Estimated cost** | Approximate cost based on Claude Sonnet pricing |
+
+#### Verbose Summary
+
+Want to see exactly what settings were used for a run? Add `--verbose-summary`:
+
+```bash
+python -m src.main --domains nordic --verbose-summary
+```
+
+This appends a detailed configuration section after the run summary:
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                       RUN CONFIGURATION                            │
+├────────────────────────────────────────────────────────────────────┤
+│  Domain group:       nordic                                        │
+│  Domains selected:   7                                             │
+├────────────────────────────────────────────────────────────────────┤
+│  min_keyword_score:  5.0                                           │
+│  min_keyword_matches:2                                             │
+│  require_combinations:enabled                                      │
+│  min_density:        1.0 (enabled)                                 │
+│  boost/penalty:      enabled / enabled                             │
+├────────────────────────────────────────────────────────────────────┤
+│  LLM mode:           two-stage (Haiku -> Sonnet)                   │
+│  Screening model:    claude-haiku-4-20250514                       │
+│  screening_min_conf: 5                                             │
+│  Analysis model:     claude-sonnet-4-20250514                      │
+│  min_relevance_score:5                                             │
+├────────────────────────────────────────────────────────────────────┤
+│  Cache:              enabled                                       │
+│  Dry run:            false                                         │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+This helps you understand exactly what settings were active, useful when debugging why a run found zero policies.
+
+#### View Run Summary
+
+After running scans, you can view summaries of any run:
+
+```bash
+# Show most recent run (default)
+python -m src.main last-run
+
+# Show a specific run by number (1=most recent, 2=previous, etc.)
+python -m src.main last-run --log 2
+
+# Show run by date
+python -m src.main last-run --log 20260115
+
+# Show run by full ID
+python -m src.main last-run --log run_20260115_143022
+
+# Show only configuration (not stats)
+python -m src.main last-run --config-only
+
+# Show only summary stats (not configuration)
+python -m src.main last-run --summary-only
+```
+
+#### List Available Runs
+
+See all available run logs:
+
+```bash
+# Show last 10 runs
+python -m src.main list-runs
+
+# Show all runs
+python -m src.main list-runs --all
+```
+
+**Example output:**
+
+```
+==============================================================================
+  AVAILABLE RUN LOGS
+==============================================================================
+
+  #   Run ID                   Date         Domains  Policies  Cost
+  ------------------------------------------------------------------------
+  1   run_20260116_143022      2026-01-16   7        3         $0.1294
+  2   run_20260115_120000      2026-01-15   5        1         $0.0856
+  3   run_20260114_090000      2026-01-14   29       8         $0.4521
+
+  Usage: python -m src.main last-run --log <#>
+  Example: python -m src.main last-run --log 2
+```
+
+#### Run Summary Output
+
+**Example `last-run` output:**
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                        LAST RUN SUMMARY                            │
+├────────────────────────────────────────────────────────────────────┤
+│  Run ID:            run_20260115_143022                            │
+│  Completed:         2026-01-15 14:35:56 UTC                        │
+├────────────────────────────────────────────────────────────────────┤
+│  Domains scanned:    7                                             │
+│  Pages crawled:      156                                           │
+│  Pages successful:   142                                           │
+│  Pages blocked:      12                                            │
+│  Pages with errors:  2                                             │
+│  Success rate:       91.0%                                         │
+├────────────────────────────────────────────────────────────────────┤
+│  Policies found:     5                                             │
+│  New policies:       3                                             │
+│  Duplicates skipped: 2                                             │
+├────────────────────────────────────────────────────────────────────┤
+│  Screening (Haiku):  15 calls, 45,000 in / 4,500 out               │
+│    Cost:             $0.0169                                       │
+│  Analysis (Sonnet):  5 calls, 25,000 in / 2,500 out                │
+│    Cost:             $0.1125                                       │
+│  TOTAL COST:         $0.1294                                       │
+├────────────────────────────────────────────────────────────────────┤
+│  Duration:           5m 56s                                        │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+#### Tuning Keyword Settings
+
+You can override keyword filtering settings for a single run without editing config files:
+
+```bash
+# Lower keyword score threshold (find more potential matches)
+python -m src.main --domains nordic --min-keyword-score 3.0
+
+# Disable required keyword combinations (more permissive)
+python -m src.main --domains nordic --require-combinations false
+
+# Adjust minimum keyword density
+python -m src.main --domains nordic --min-density 0.5
+
+# Combine multiple overrides
+python -m src.main --domains nordic --min-keyword-score 3.0 --require-combinations false --verbose-summary
+```
+
+These are useful for experimentation:
+- If a scan finds **zero policies**, try lowering `--min-keyword-score` or disabling `--require-combinations`
+- If a scan finds **too many false positives**, try raising `--min-keyword-score` or enabling stricter density checks
 
 ### Cost Monitoring
 
@@ -1038,7 +1187,9 @@ tests/
 │   ├── test_costs.py            # 26 tests - Cost tracking
 │   ├── test_domain_filtering.py # 46 tests - Category/tag filtering
 │   ├── test_keywords.py         # 16 tests - Keyword matching
-│   └── test_notifications.py    # 24 tests - Email notifications
+│   ├── test_last_run.py         # 42 tests - Last run summary/config
+│   ├── test_notifications.py    # 24 tests - Email notifications
+│   └── test_url_cache.py        # 29 tests - URL result caching
 └── integration/                  # (future integration tests)
 ```
 
@@ -1100,6 +1251,24 @@ tests/
 - `TestListFunctions` — list_categories, list_tags, list_policy_types
 - `TestGetDomainStats` — Statistics generation by category/tag/policy type
 - `TestIntegrationWithActualConfig` — Integration with actual config files
+
+**Last Run Tests** (`test_last_run.py`):
+- `TestGetLastRunLog` — Finding most recent log file, handling edge cases
+- `TestLoadRunLog` — Loading and parsing run log JSON files
+- `TestFormatLastRunSummary` — Summary formatting with stats and LLM costs
+- `TestFormatLastRunConfig` — Configuration formatting with all settings
+- `TestRunConfigDataclass` — RunConfig defaults and format_verbose method
+- `TestIntegration` — Full workflow of saving and loading run data
+- `TestFindRunLog` — Finding logs by index, date, or run ID pattern
+- `TestListRunLogs` — Listing available runs with summary info
+
+**URL Cache Tests** (`test_url_cache.py`):
+- `TestCacheEntry` — Expiry checks, content hash matching
+- `TestCacheStats` — Hit rate calculation, session reset
+- `TestURLCache` — Set/get/remove operations, expired entry handling
+- `TestComputeContentHash` — Content hashing and truncation
+- `TestLoadSaveCache` — Cache persistence and error handling
+- `TestCacheIntegration` — Typical usage workflows
 
 ### Running Tests Before Commits
 
