@@ -212,7 +212,7 @@ Examples:
 
     # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
-    parser.add_argument("--domains", default="all", help="Domain group or file name to scan (use 'list-groups' to see options)")
+    parser.add_argument("--domains", default="all", help="Domain group, region, file name, or domain ID to scan (use 'list-groups' to see options)")
     parser.add_argument("--dry-run", action="store_true", help="Don't write to Sheets")
     parser.add_argument("--skip-llm", action="store_true", help="Skip LLM analysis")
     parser.add_argument("--verbose", "-v", action="store_true")

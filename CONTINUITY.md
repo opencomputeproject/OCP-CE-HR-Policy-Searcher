@@ -4,7 +4,24 @@
 
 ### Version: 0.3.0
 
-### Just Completed: DeepResearch Domain Integration (20260203_0818)
+### Just Completed: `--domains` Individual Domain ID Targeting
+
+**What was done:**
+- Added domain ID as a fallback in `get_enabled_domains()` resolution (step 5b, after file name match)
+- `--domains us_va_hb323_2026` now scans just that single domain without needing a group
+- Updated CLI help text, docstring, README resolution order, CHANGELOG
+- 3 new unit tests: `test_domain_id_match`, `test_domain_id_skips_disabled`, `test_domain_id_fallback_order`
+- 528 tests pass
+
+**Files changed:**
+1. `src/config/loader.py` - Added domain ID fallback in `get_enabled_domains()`
+2. `src/main.py` - Updated `--domains` help text
+3. `tests/unit/test_config_loader.py` - 3 new tests
+4. `README.md` - Updated resolution order, added example
+5. `CHANGELOG.md` - Added entry under [Unreleased]
+6. `CONTINUITY.md` - This file
+
+### Previously Completed: DeepResearch Domain Integration (20260203_0818)
 
 **What was done:**
 - Integrated 17 domain entries from DeepResearch session with enriched metadata (verified tags, policy types, categories, detailed notes with regulatory specifics, `verified_by`/`verified_date` fields)

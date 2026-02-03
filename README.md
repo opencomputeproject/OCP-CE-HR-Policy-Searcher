@@ -219,6 +219,9 @@ python -m src.main --domains germany
 
 # Scan all domains from config/domains/denmark.yaml
 python -m src.main --domains denmark
+
+# Scan a single domain by its ID
+python -m src.main --domains us_va_hb323_2026
 ```
 
 **Resolution order** for `--domains <name>`:
@@ -226,7 +229,8 @@ python -m src.main --domains denmark
 2. Check `region` field on all domains for a match
 3. Merge steps 1 and 2 (union, deduplicated)
 4. If nothing matched, fall back to file name match
-5. If still nothing, show an error with available options
+5. If still nothing, fall back to individual domain ID match
+6. If still nothing, show an error with available options
 
 Use `list-groups` to see all available groups, regions, and domain files.
 

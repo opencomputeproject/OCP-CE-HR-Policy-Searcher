@@ -236,7 +236,7 @@ def load_settings(
 
 
 def get_enabled_domains(domains_config: dict, group: str = "all") -> list[dict]:
-    """Get domains for a group, region, or domain file.
+    """Get domains for a group, region, domain file, or individual domain ID.
 
     Resolution order:
     1. "all" -> all enabled domains
@@ -244,11 +244,12 @@ def get_enabled_domains(domains_config: dict, group: str = "all") -> list[dict]:
     3. Check region field on all domains -> any domain with name in its region list
     4. Merge steps 2 and 3 (union, deduplicated by domain ID)
     5. If nothing matched, fall back to file name match
+    5b. If still nothing, fall back to individual domain ID match
     6. If still nothing, error with helpful message
 
     Args:
         domains_config: Configuration dict with 'domains' and 'groups' keys
-        group: Group name, region name, domain file name, or "all" (default)
+        group: Group name, region name, domain file name, domain ID, or "all" (default)
 
     Returns:
         List of domain dicts matching the group/region/file
@@ -297,6 +298,12 @@ def get_enabled_domains(domains_config: dict, group: str = "all") -> list[dict]:
     ]
     if file_domains:
         return file_domains
+
+    # Step 5b: Fall back to individual domain ID match
+    if group in all_domains:
+        domain = all_domains[group]
+        if domain.get("enabled", True):
+            return [domain]
 
     # Step 6: Nothing matched — error with helpful message
     available_groups = ", ".join(sorted(groups.keys()))

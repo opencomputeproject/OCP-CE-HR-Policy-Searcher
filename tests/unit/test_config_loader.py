@@ -653,6 +653,49 @@ class TestRegionResolution:
         assert len(result) == 1
         assert result[0]["id"] == "d1"
 
+    def test_domain_id_match(self):
+        """Should return a single domain when matching by domain ID."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": True, "region": ["eu"], "_source_file": "a"},
+                {"id": "d2", "enabled": True, "region": ["us"], "_source_file": "b"},
+            ],
+            "groups": {},
+        }
+
+        result = get_enabled_domains(config, "d2")
+
+        assert len(result) == 1
+        assert result[0]["id"] == "d2"
+
+    def test_domain_id_skips_disabled(self):
+        """Domain ID match should skip disabled domains."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": False, "region": [], "_source_file": "a"},
+            ],
+            "groups": {},
+        }
+
+        with pytest.raises(ConfigurationError):
+            get_enabled_domains(config, "d1")
+
+    def test_domain_id_fallback_order(self):
+        """Domain ID should only match after group, region, and file checks fail."""
+        config = {
+            "domains": [
+                {"id": "mygroup", "enabled": True, "region": [], "_source_file": "a"},
+                {"id": "other", "enabled": True, "region": ["mygroup"], "_source_file": "b"},
+            ],
+            "groups": {},
+        }
+
+        # "mygroup" matches as a region (d2) before falling through to domain ID
+        result = get_enabled_domains(config, "mygroup")
+
+        ids = {d["id"] for d in result}
+        assert "other" in ids
+
 
 class TestWarnMissingRegions:
     """Tests for warn_missing_regions function."""

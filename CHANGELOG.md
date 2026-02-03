@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - 60+ new domain tags covering regulatory specifics: `mandatory`, `waste_heat`, `pue_limits`, `cost_benefit_analysis`, `district_heating`, `renewable_energy`, `ashrae_90_4`, `tax_exemption`, `grid_connection`, and more
 - 10 new policy types: `legislation`, `incentives`, `energy_efficiency`, `waste_heat_recovery`, `reporting_requirements`, `regulatory_authority`, `building_codes`, `grid_interconnection`, `district_heating`, `certification`
 - 5 test groups in `groups.yaml` for validating new domains: `test_new`, `test_new_zh`, `test_new_de`, `test_new_eu`, `test_new_us`
+- `--domains` now accepts individual domain IDs (e.g., `--domains us_va_hb323_2026`) to scan a single domain without creating a group
 
 ### Changed
 - Domain YAML files now use country-level regions (e.g., `germany` instead of only `eu_central`, `singapore` instead of only `apac`) for finer-grained geographic filtering
