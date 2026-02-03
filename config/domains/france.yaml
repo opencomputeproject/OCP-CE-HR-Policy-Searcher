@@ -48,3 +48,41 @@ domains:
       - "guidance"
       - "report"
     notes: "Waste heat recovery subsidies and programs"
+
+  - name: "France Code de l'energie - Data Center Energy Performance"
+    id: "legifrance_dc"
+    enabled: true
+    region:
+      - "eu"
+      - "france"
+    base_url: "https://www.legifrance.gouv.fr"
+    start_paths:
+      - "/codes/id/LEGISCTA000051560830"
+      - "/codes/section_lc/LEGITEXT000023983208/LEGISCTA000051560830"
+    allowed_path_patterns:
+      - "/codes/id/*"
+      - "/codes/article_lc/*"
+      - "/codes/section_lc/*"
+    max_depth: 2
+    language: "fr"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandatory"
+      - "waste_heat"
+      - "reporting"
+      - "cost_benefit_analysis"
+    policy_types:
+      - "legislation"
+      - "energy_efficiency"
+      - "waste_heat_recovery"
+      - "reporting_requirements"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      French Energy Code Chapter VI: Data Center Energy Performance (L236-1 to L236-3).
+      L236-1: DCs >=500kW must report to EU platform.
+      L236-2: DCs >=1MW must install waste heat recovery systems.
+      L236-3: Mandatory cost-benefit analysis for efficiency improvements.
+      Effective October 1, 2025.

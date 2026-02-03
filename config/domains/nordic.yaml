@@ -139,6 +139,49 @@ domains:
       - "guidance"
     notes: "Energy efficiency programs and funding"
 
+  - name: "Lovdata - Norwegian Energy Act & Waste Heat Regulations"
+    id: "lovdata_no"
+    enabled: true
+    region:
+      - "europe"
+      - "norway"
+      - "nordic"
+    base_url: "https://lovdata.no"
+    start_paths:
+      - "/dokument/NL/lov/1990-06-29-50"
+      - "/dokument/SF/forskrift/2024-09-25-2263"
+      - "/dokument/LTI/lov/2023-06-16-69"
+    allowed_path_patterns:
+      - "/dokument/NL/lov/*"
+      - "/dokument/SF/forskrift/*"
+      - "/dokument/LTI/lov/*"
+    max_depth: 2
+    language: "no"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "mandatory"
+      - "cost_benefit_analysis"
+      - "nve_approval"
+      - "consultation"
+      - "district_heating"
+    policy_types:
+      - "legislation"
+      - "regulation"
+      - "waste_heat_recovery"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Norwegian law database with data center waste heat legislation.
+      Energy Act (Energiloven) Chapter 7: DCs >2MW must conduct cost-benefit analysis of waste heat utilization.
+      NVE (Norwegian Water Resources and Energy Directorate) must approve analysis.
+      Forskrift 2024-09-25-2263: Detailed CBA requirements - evaluate recovery within 2km radius.
+      4-week consultation with local authorities and district heating operators.
+      Analysis required before construction. Exemption if concrete heat delivery plans exist.
+      Amendment law 2023-06-16-69: Creates legal basis establishing Chapter 7 (ss7-2 to 7-4).
+      All effective April 1, 2025.
+
   - name: "Icelandic National Energy Authority"
     id: "orkustofnun_is"
     enabled: true

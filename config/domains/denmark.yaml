@@ -14,21 +14,29 @@ domains:
     start_paths:
       - "/en/supply-and-consumption/heat"
       - "/en/our-responsibilities/heat"
+      - "/forsyning-og-forbrug/overskudsvarme"
     allowed_path_patterns:
       - "/en/supply-and-consumption/*"
       - "/en/our-responsibilities/*"
+      - "/forsyning-og-forbrug/*"
       - "/media/*"
     max_depth: 2
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 2.0
-    category: "energy_ministry"
+    category: "regulatory_authority"
     tags:
+      - "enabling"
       - "district_heating"
-      - "planning"
+      - "tax_exemption"
+      - "pricing"
+      - "simplified_rules"
     policy_types:
-      - "guidance"
-      - "regulation"
+      - "incentives"
+      - "waste_heat_recovery"
+      - "regulatory_authority"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
     notes: |
       CONFIRMED WORKING - Danish Energy Agency heat policy section.
       Heat Supply Act framework.
@@ -36,3 +44,41 @@ domains:
       Apple/Facebook data centers supply district heating under this framework.
       English version available.
       Keywords: fjernvarme, overskudsvarme, heat supply
+      New waste heat regulation effective July 2025.
+      Simplifies pricing and provides tax exemptions (25 kr/GJ).
+      Facilitates but does NOT mandate data center waste heat recovery.
+
+  - name: "Denmark Heat Supply Act (Varmeforsyningsloven)"
+    id: "retsinformation_dk"
+    enabled: true
+    region:
+      - "eu"
+      - "denmark"
+      - "nordic"
+    base_url: "https://www.retsinformation.dk"
+    start_paths:
+      - "/eli/lta/2024/124"
+    allowed_path_patterns:
+      - "/eli/lta/*"
+      - "/eli/ft/*"
+    max_depth: 2
+    language: "da"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "enabling"
+      - "waste_heat_pricing"
+      - "district_heating"
+      - "price_ceiling"
+    policy_types:
+      - "legislation"
+      - "waste_heat_recovery"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Danish Heat Supply Act (LBK nr 124 af 02/02/2024).
+      Establishes waste heat pricing framework including price ceiling (s20).
+      Enables waste heat sales to district heating networks.
+      NOTE: Does NOT mandate heat recovery for data centers.
+      Creates favorable conditions but recovery is voluntary.

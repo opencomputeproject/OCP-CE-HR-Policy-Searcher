@@ -38,21 +38,35 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "texas"
     base_url: "https://capitol.texas.gov"
     start_paths:
       - "/BillLookup/History.aspx?LegSess=89R&Bill=SB2888"
       - "/BillLookup/History.aspx?LegSess=89R&Bill=HB4908"
+      - "/tlodocs/89R/billtext/html/SB00006S.htm"
     max_depth: 1
     language: "en"
     requires_playwright: true
     rate_limit_seconds: 3.0
-    category: "legislative"
+    category: "legislation"
     tags:
-      - "mandates"
+      - "mandatory"
+      - "ercot"
+      - "backup_generation"
+      - "curtailment"
+      - "large_load"
       - "incentives"
     policy_types:
-      - "law"
+      - "grid_interconnection"
+      - "legislation"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
     notes: |
       Track SB 2888: Tax exemption requirements with efficiency measures.
       Track HB 4908: Revenue tax and Texas Prosperity Payout Fund.
+      SB 6 (Senate Bill 6) - Large Load Interconnection.
+      Large loads >=75MW in ERCOT must disclose backup generation for >=50% of demand.
+      Subject to curtailment during grid emergencies.
+      Must pay $100,000+ screening study fee.
+      Significant impact on large Texas data center projects.
 

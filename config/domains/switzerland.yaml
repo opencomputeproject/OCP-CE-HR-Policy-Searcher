@@ -168,7 +168,7 @@ domains:
 # SWITZERLAND - CANTON ZURICH (Most Explicit DC Requirements)
 # =============================================================================
 
-  - name: "Zurich Data Center Guidance 2023"
+  - name: "Canton Zurich Data Centre Technical Guidelines"
     id: "zh_dc_guidance"
     enabled: true
     base_url: "https://www.zh.ch"
@@ -179,49 +179,65 @@ domains:
     max_depth: 1
     language: "de"
     region:
-      - "eu_central"
+      - "europe"
+      - "switzerland"
     requires_playwright: false
     rate_limit_seconds: 2.0
-    category: "cantonal_authority"
+    category: "guidance"
     tags:
-      - "mandates"
-      - "heat_reuse"
-      - "data_centers"
+      - "technical_guidance"
+      - "waste_heat"
+      - "energy_planning"
+      - "cooling"
     policy_types:
       - "guidance"
-      - "regulation"
+      - "building_codes"
+      - "waste_heat_recovery"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
     notes: |
-      KEY DOCUMENT: 50-page data center guidance (German).
-      MANDATORY: Data center operators must reuse waste heat.
-      References SIA 2068 standard in development.
+      50-page technical guidance document (Merkblatt Rechenzentren).
+      Waste heat utilization requirements and technical standards.
+      Energy planning integration requirements.
+      Cooling efficiency standards for data centers.
+      Essential reference for Zurich DC projects.
       Keywords: Rechenzentren, Abwärmenutzung, Energiegesetz
 
-  - name: "Zurich Energy Building Regulations"
+  - name: "Zurich Energy Building Regulations & Energiegesetz"
     id: "zh_energy_buildings"
     enabled: true
     base_url: "https://www.zh.ch"
     start_paths:
       - "/de/planen-bauen/bauvorschriften/bauvorschriften-gebaeude-energie.html"
       - "/de/planen-bauen/bauvorschriften/bauvorschriften-gebaeude-energie/heizungsersatz.html"
+      - "/de/politik-staat/gesetze-beschluesse/gesetzessammlung/zhlex-os/erlass-730_1-78-376.html"
     allowed_path_patterns:
       - "/de/planen-bauen/bauvorschriften/bauvorschriften-gebaeude-energie*"
+      - "/de/politik-staat/gesetze-beschluesse/gesetzessammlung/zhlex-os/*730*"
     max_depth: 2
     language: "de"
     region:
-      - "eu_central"
+      - "europe"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
-    category: "cantonal_authority"
+    category: "legislation"
     tags:
-      - "buildings"
-      - "efficiency"
+      - "mandatory"
+      - "cantonal"
+      - "waste_heat"
+      - "large_consumers"
     policy_types:
-      - "regulation"
-      - "guidance"
+      - "legislation"
+      - "waste_heat_recovery"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
     notes: |
-      Zurich cantonal building energy regulations.
-      Heating replacement requirements.
-      Links to data center specific requirements.
+      Canton Zurich Energy Act (EnerG) LS 730.1.
+      Obligates data center operators to provide waste heat for reuse.
+      Large energy consumers must utilize waste heat where feasible.
+      Effective October 1, 2023.
+      Note: Swiss law is cantonal - other cantons may differ.
 
   - name: "Zurich Energy Act (Energiegesetz)"
     id: "zh_energiegesetz"

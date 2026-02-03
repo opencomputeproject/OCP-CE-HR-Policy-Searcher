@@ -4,30 +4,61 @@
 
 ### Version: 0.3.0
 
-### Just Completed: Verbose Pipeline Logging (`--verbose`)
+### Just Completed: DeepResearch Domain Integration (20260203_0818)
+
+**What was done:**
+- Integrated 17 domain entries from DeepResearch session with enriched metadata (verified tags, policy types, categories, detailed notes with regulatory specifics, `verified_by`/`verified_date` fields)
+- Updated 11 YAML files: germany.yaml, eu.yaml, france.yaml, nordic.yaml, denmark.yaml, sweden.yaml, ireland.yaml, apac.yaml, switzerland.yaml, us/oregon.yaml, us/texas.yaml
+- Expanded `VALID_REGIONS` in loader.py with 13 country/state-level regions: `europe`, `germany`, `france`, `netherlands`, `denmark`, `sweden`, `norway`, `ireland`, `switzerland`, `singapore`, `japan`, `oregon`, `texas`, `california`
+- Expanded `VALID_CATEGORIES` with 10 new entries: `legislation`, `regulatory_authority`, `regulation`, `building_codes`, `guidance`, `policy`, `cantonal_authority`, `coordination_body`, `program`, `environment_ministry`
+- Expanded `VALID_TAGS` with 60+ new entries covering regulatory specifics
+- Expanded `VALID_POLICY_TYPES` with 10 new entries: `legislation`, `incentives`, `energy_efficiency`, `waste_heat_recovery`, `reporting_requirements`, `regulatory_authority`, `building_codes`, `grid_interconnection`, `district_heating`, `certification`
+- Fixed 5 test groups in `groups.yaml` that referenced DeepResearch domain IDs instead of actual domain IDs
+- Updated CHANGELOG.md, README.md
+
+**Domains updated (17 across 11 files):**
+- germany.yaml: `gesetze_enefg`, `bfee_dc_registry`
+- eu.yaml: `rvo_nl`, `eurlex_eed_recommendation`
+- france.yaml: `legifrance_dc`
+- nordic.yaml: `lovdata_no`
+- denmark.yaml: `ens_dk_heat`, `retsinformation_dk`
+- sweden.yaml: `riksdagen_se_dc`
+- ireland.yaml: `gov_ie_dc`, `cru_ie_dc`
+- apac.yaml: `imda_sg`, `bca_sg_greenmark`, `enecho_jp`
+- switzerland.yaml: `zh_dc_guidance`, `zh_energy_buildings`
+- us/oregon.yaml: `or_building_codes`
+- us/texas.yaml: `tx_legislature`
+
+**Result:** 274 total domains. 525 tests pass.
+
+**Files changed:**
+1. `config/domains/germany.yaml` - Updated 2 domains
+2. `config/domains/eu.yaml` - Updated 2 domains
+3. `config/domains/france.yaml` - Updated 1 domain
+4. `config/domains/nordic.yaml` - Updated 1 domain
+5. `config/domains/denmark.yaml` - Updated 2 domains
+6. `config/domains/sweden.yaml` - Updated 1 domain
+7. `config/domains/ireland.yaml` - Updated 2 domains
+8. `config/domains/apac.yaml` - Updated 3 domains
+9. `config/domains/switzerland.yaml` - Updated 2 domains
+10. `config/domains/us/oregon.yaml` - Updated 1 domain
+11. `config/domains/us/texas.yaml` - Updated 1 domain
+12. `src/config/loader.py` - Expanded VALID_REGIONS, VALID_CATEGORIES, VALID_TAGS, VALID_POLICY_TYPES
+13. `config/groups.yaml` - Fixed 5 test groups
+14. `CHANGELOG.md` - Added [Unreleased] section
+15. `README.md` - Updated tables and counts
+
+### Previously Completed: Verbose Pipeline Logging (`--verbose`)
 
 **What was done:**
 - Added detailed per-page diagnostic logging when `--verbose` flag is passed
 - New `RunLogger.detail()` method for indented subordinate log lines without timestamps
 - New `KeywordMatcher.get_failure_reason()` method returns the specific reason a page failed keyword filtering
 - Modified `run_batch()` in `main.py` to collect verbose data during the page loop (collect-then-log pattern) and output organized blocks after the loop
-- Uses `url_filter.check_url()` instead of `should_skip()` to get `FilterResult` with reason details
-- Verbose output covers all pipeline stages: URL pre-filter, keyword matching (passed/failed/near-misses), Haiku screening, Sonnet analysis
 - Near-miss reporting shows pages scoring >= 60% of keyword threshold, capped at 15 entries
-- Added `_short_url()` helper to truncate URL paths for display
-- Zero overhead when `--verbose` is not passed (all collection gated on `if verbose`)
-- 4 new tests for `get_failure_reason()` in `tests/unit/test_keywords.py`
+- Zero overhead when `--verbose` is not passed
 
 **Result:** 525 tests pass. Version bumped 0.2.4 → 0.3.0.
-
-**Files changed:**
-1. `src/logging/run_logger.py` - Added `detail()` method
-2. `src/analysis/keywords.py` - Added `get_failure_reason()` method
-3. `src/main.py` - Added `_short_url()` helper, verbose collection and output blocks in `run_batch()`
-4. `tests/unit/test_keywords.py` - Added `TestGetFailureReason` class with 4 tests
-5. `CHANGELOG.md` - Documented feature under [0.3.0]
-6. `CONTINUITY.md` - Updated current state
-7. `pyproject.toml` - Version bump 0.2.4 → 0.3.0
 
 ### Previously Completed: Deduplicate uk.yaml Domain Entries
 

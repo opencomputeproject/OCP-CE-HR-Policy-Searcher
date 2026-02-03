@@ -69,22 +69,44 @@ domains:
     enabled: true
     region:
       - "eu"
-      - "eu_west"
+      - "netherlands"
     base_url: "https://www.rvo.nl"
     start_paths:
       - "/onderwerpen/duurzaam-ondernemen/energie-besparen"
+      - "/onderwerpen/energiebesparingsplicht/over-de-energiebesparingplicht"
+      - "/onderwerpen/energie-besparen-de-industrie/datacenters"
+      - "/onderwerpen/energiebesparingsplicht/eed-auditplicht/rapportageplicht-datacentra"
+    allowed_path_patterns:
+      - "/onderwerpen/energiebesparingsplicht/*"
+      - "/onderwerpen/energie-besparen*"
+      - "/onderwerpen/duurzaam-ondernemen/*"
     max_depth: 2
     language: "nl"
     requires_playwright: false
     rate_limit_seconds: 2.0
-    category: "economic_dev"
+    category: "regulation"
     tags:
-      - "incentives"
-      - "efficiency"
+      - "mandatory"
+      - "energy_efficiency"
+      - "payback_period"
+      - "reporting"
+      - "recognized_measures"
+      - "waste_heat"
     policy_types:
-      - "incentive"
+      - "energy_efficiency"
+      - "waste_heat_recovery"
+      - "reporting_requirements"
       - "guidance"
-    notes: "Netherlands Enterprise Agency - energy programs"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Netherlands Enterprise Agency - Energiebesparingsplicht (Energy Saving Obligation).
+      Companies using >=50,000 kWh must implement all measures with <=5yr payback.
+      Report measures every 4 years. Expanded requirements from 2023.
+      Recognized data center measures (Erkende Maatregelenlijst): FD1-FD3 plus six for server rooms.
+      Includes: power management, efficient cooling, waste heat recovery.
+      DCs >=500kW IT capacity must report annually by May 15 (EU EED Article 12).
+      Data forwarded to European Commission.
 
 
 
@@ -151,6 +173,38 @@ domains:
       Sets KPIs: energy consumption, water usage, WASTE HEAT UTILIZATION.
       Reporting deadline: 15 May annually.
       500kW+ installed IT power threshold.
+
+  - name: "EU Commission Recommendation 2024/2395 - Article 26 Guidelines"
+    id: "eurlex_eed_recommendation"
+    enabled: true
+    region:
+      - "eu"
+    base_url: "https://eur-lex.europa.eu"
+    start_paths:
+      - "/eli/reco/2024/2395/oj/eng"
+    allowed_path_patterns:
+      - "/eli/reco/2024/*"
+      - "/legal-content/EN/*2024/2395*"
+    max_depth: 1
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "guidance"
+    tags:
+      - "guidance"
+      - "article_26"
+      - "cost_benefit_analysis"
+      - "interpretation"
+    policy_types:
+      - "guidance"
+      - "waste_heat_recovery"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Official interpretation guidelines for EED Article 26(6).
+      Clarifies requirement applies to ALL operating DCs >1MW without current waste heat use.
+      Cost-benefit analysis mandatory where no recovery exists.
+      Waste heat treated as revenue-generating energy product.
 
   - name: "EC Energy - Data Centre Performance"
     id: "ec_energy_datacentres"

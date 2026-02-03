@@ -10,21 +10,68 @@ domains:
     enabled: true
     region:
       - "apac"
+      - "singapore"
     base_url: "https://www.imda.gov.sg"
     start_paths:
       - "/how-we-can-help/green-data-centre-programme"
+      - "/how-we-can-help/green-dc-roadmap"
+      - "/-/media/imda/files/how-we-can-help/green-dc-roadmap/green-dc-roadmap.pdf"
+      - "/how-we-can-help/green-dc-roadmap/tropical-dc-standard"
     max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "policy"
+    tags:
+      - "mandatory"
+      - "pue_limits"
+      - "wue"
+      - "green_mark"
+      - "dc_cfa"
+    policy_types:
+      - "energy_efficiency"
+      - "building_codes"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Singapore Green Data Centre Roadmap (official PDF).
+      All DCs to achieve PUE <=1.3 at 100% IT load within 10 years.
+      WUE target 2.0 m3/MWh.
+      DC-CFA participants must achieve Green Mark DC Platinum certification.
+      SS 697:2023 Tropical Data Centre Standard: world's first tropical DC standard.
+      Guidelines for operating at higher temperatures (up to 35C).
+      2-5% cooling energy savings per 1C temperature increase.
+
+  - name: "Singapore BCA-IMDA Green Mark for Data Centres 2024"
+    id: "bca_sg_greenmark"
+    enabled: true
+    region:
+      - "apac"
+      - "singapore"
+    base_url: "https://www1.bca.gov.sg"
+    start_paths:
+      - "/docs/default-source/docs-corp-buildsg/sustainability/20241008_gmdc2024_ver1.pdf"
+    max_depth: 1
     language: "en"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "standards"
     tags:
-      - "efficiency"
-      - "mandates"
+      - "certification"
+      - "pue_measurement"
+      - "cooling_efficiency"
+      - "district_cooling"
     policy_types:
-      - "standard"
-      - "guidance"
-    notes: "Green Data Centre Roadmap launched May 2025, PUE ≤1.3"
+      - "building_codes"
+      - "energy_efficiency"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Green Mark for Data Centres 2024 (GMDC:2024) certification scheme.
+      PUE measurement at 25%, 50%, 75%, 100% IT load.
+      Cooling system efficiency <=0.65-0.70 kW/RT for district cooling.
+      Includes water efficiency and sustainable construction criteria.
+      Required for DC-CFA applicants.
 
   - name: "Singapore Energy Market Authority"
     id: "ema_sg"
@@ -75,22 +122,32 @@ domains:
     enabled: true
     region:
       - "apac"
+      - "japan"
     base_url: "https://www.enecho.meti.go.jp"
     start_paths:
       - "/en/category/saving_and_new"
+      - "/category/saving_and_new/saving/enterprise/factory/support-tools/data/2023_01benchmark.pdf"
     max_depth: 2
     language: "ja"
     requires_playwright: false
     rate_limit_seconds: 2.0
-    category: "energy_ministry"
+    category: "regulation"
     tags:
-      - "efficiency"
-      - "research"
+      - "mandatory"
+      - "benchmark"
+      - "pue_target"
+      - "reporting"
     policy_types:
-      - "regulation"
-      - "guidance"
-      - "report"
-    notes: "Energy conservation programs"
+      - "energy_efficiency"
+      - "reporting_requirements"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Energy Efficiency Act Data Center Benchmark System.
+      PUE benchmark target <=1.4 by 2030.
+      Mandatory reporting for DCs with annual energy use >=1,500 kL crude oil equivalent (~16,000 MWh).
+      Measurement per JDCC PUE Guidelines.
+      Key regulation for Japanese data center market.
 
   - name: "South Korea MOTIE - Ministry of Trade, Industry and Energy"
     id: "motie_kr"

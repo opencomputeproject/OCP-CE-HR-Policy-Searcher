@@ -7,6 +7,22 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Integrated 17 domain entries from DeepResearch session (20260203_0818) with enriched metadata across 11 YAML files: verified tags, policy types, categories, notes with specific regulatory details, `verified_by`/`verified_date` fields
+- 13 country-level and state-level geographic regions: `europe`, `germany`, `france`, `netherlands`, `denmark`, `sweden`, `norway`, `ireland`, `switzerland`, `singapore`, `japan`, `oregon`, `texas`, `california`
+- 10 new domain categories: `legislation`, `regulatory_authority`, `regulation`, `building_codes`, `guidance`, `policy`, `cantonal_authority`, `coordination_body`, `program`, `environment_ministry`
+- 60+ new domain tags covering regulatory specifics: `mandatory`, `waste_heat`, `pue_limits`, `cost_benefit_analysis`, `district_heating`, `renewable_energy`, `ashrae_90_4`, `tax_exemption`, `grid_connection`, and more
+- 10 new policy types: `legislation`, `incentives`, `energy_efficiency`, `waste_heat_recovery`, `reporting_requirements`, `regulatory_authority`, `building_codes`, `grid_interconnection`, `district_heating`, `certification`
+- 5 test groups in `groups.yaml` for validating new domains: `test_new`, `test_new_zh`, `test_new_de`, `test_new_eu`, `test_new_us`
+
+### Changed
+- Domain YAML files now use country-level regions (e.g., `germany` instead of only `eu_central`, `singapore` instead of only `apac`) for finer-grained geographic filtering
+- Domain categories aligned with DeepResearch taxonomy (e.g., `legislation` instead of `legislative`, `regulation` instead of `regulatory`)
+- Domain notes enriched with specific regulatory thresholds, effective dates, article numbers, and compliance requirements from DeepResearch verification
+
+### Fixed
+- Fixed `groups.yaml` test groups referencing DeepResearch domain IDs instead of actual domain IDs (e.g., `us_ca_title24_computer_rooms` → `ca_energy`)
+
 ## [0.3.0] - 2026-02-03
 
 ### Added

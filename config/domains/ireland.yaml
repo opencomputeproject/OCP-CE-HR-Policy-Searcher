@@ -26,3 +26,70 @@ domains:
       - "guidance"
       - "report"
     notes: "Growing EU data center hub"
+
+  - name: "Ireland Data Centre Sustainability Reporting Obligations"
+    id: "gov_ie_dc"
+    enabled: true
+    region:
+      - "eu"
+      - "ireland"
+    base_url: "https://www.gov.ie"
+    start_paths:
+      - "/en/publication/c1553-data-centre-energy-and-sustainability-performance-reporting-obligations/"
+    allowed_path_patterns:
+      - "/en/publication/*data-centre*"
+      - "/en/policy-information/*data-centre*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulation"
+    tags:
+      - "mandatory"
+      - "reporting"
+      - "eu_database"
+      - "sustainability"
+    policy_types:
+      - "reporting_requirements"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Data Centre Energy and Sustainability Performance Reporting Obligations.
+      DCs >=500kW IT power must report to European database annually by May 15.
+      First reporting September 2024 for 2023 data.
+      Implements EU EED Article 12.
+
+  - name: "Ireland Large Energy Users Connection Policy"
+    id: "cru_ie_dc"
+    enabled: true
+    region:
+      - "eu"
+      - "ireland"
+    base_url: "https://www.cru.ie"
+    start_paths:
+      - "/publications/data-centres"
+    allowed_path_patterns:
+      - "/publications/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "regulation"
+    tags:
+      - "mandatory"
+      - "grid_connection"
+      - "renewable_energy"
+      - "dispatchable_generation"
+    policy_types:
+      - "grid_interconnection"
+      - "energy_efficiency"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      CRU/2025236 - Large Energy Users Connection Policy.
+      DCs >=1MVA must meet 80% renewable electricity from additional Irish sources.
+      6-year glide path for compliance.
+      DCs >=10MVA must provide dispatchable generation matching MIC.
+      Must participate in wholesale electricity market.
+      Effective December 2025.
+      PDF at CDN: cruie-live-*.divio-media.com/documents/CRU2025236_*.pdf

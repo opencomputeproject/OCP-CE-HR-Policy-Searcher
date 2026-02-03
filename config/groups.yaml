@@ -200,6 +200,49 @@ groups:
       - imda_sg
       - meti_jp
 
+  test_new:
+    description: "DeepResearch new/updated domains"
+    domains:
+      - legifrance_dc
+      - rvo_nl
+      - lovdata_no
+      - riksdagen_se_dc
+      - energimyndigheten_dc
+      - retsinformation_dk
+      - ens_dk_heat
+      - cru_ie_dc
+      - gov_ie_dc
+      - bca_sg_greenmark
+      - imda_sg
+      - enecho_jp
+
+  test_new_zh:
+    description: "DeepResearch Zurich domains"
+    domains:
+      - zh_energy_buildings
+      - zh_dc_guidance
+
+  test_new_de:
+    description: "DeepResearch Germany domains"
+    domains:
+      - gesetze_enefg
+      - bfee_dc_registry
+
+  test_new_eu:
+    description: "DeepResearch EU domains"
+    domains:
+      - eurlex_eed_2023
+      - eurlex_dc_regulation
+      - eurlex_eed_recommendation
+
+  test_new_us:
+    description: "DeepResearch US domains"
+    domains:
+      - ca_energy
+      - or_building_codes
+      - tx_legislature
+
+
   # ---------------------------------------------------------------------------
   # CUSTOM GROUPS (add your own below)
   # ---------------------------------------------------------------------------

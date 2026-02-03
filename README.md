@@ -168,7 +168,7 @@ python -m src.main [OPTIONS]
 **Available Domain Groups:**
 
 Regional:
-- `all` - All 29 enabled domains
+- `all` - All 274 enabled domains
 - `eu` - European Union (17 domains)
 - `us` - United States federal and state (6 domains)
 - `apac` - Asia-Pacific region (6 domains)
@@ -192,13 +192,22 @@ Testing:
 
 Each domain has a `region` field listing which geographic regions it belongs to. When you use `--domains eu`, the tool finds domains from **both** the `eu` group in `groups.yaml` AND any domain with `region: ["eu"]` — merged and deduplicated. This means a domain can be discovered through either mechanism:
 
+Broad regions:
 - `eu` - European Union institutions and member states
+- `europe` - European countries (including non-EU)
 - `nordic` - Nordic countries (Sweden, Denmark, Finland, Norway, Iceland)
 - `eu_central` - Germany, Switzerland, Austria, France
 - `eu_west` - Netherlands, Belgium, Ireland
+- `uk` - United Kingdom
 - `us` - United States (federal and state)
 - `us_states` - US state governments
 - `apac` - Asia-Pacific region
+
+Country-level regions:
+- `germany`, `france`, `netherlands`, `denmark`, `sweden`, `norway`, `ireland`, `switzerland`, `singapore`, `japan`
+
+US state-level regions:
+- `oregon`, `texas`, `california`
 
 **Domain Files (no group entry needed):**
 
@@ -343,12 +352,22 @@ python -m src.main list-categories
 |----------|-------------|
 | `energy_ministry` | National/state energy departments |
 | `environmental_agency` | EPA equivalents, climate agencies |
+| `environment_ministry` | Environment ministries (e.g., BAFU) |
 | `legislative` | Bill trackers, law databases, parliaments |
+| `legislation` | Laws and statutes |
 | `district_heating` | Heat network authorities |
 | `grid_operator` | RTOs, ISOs, grid planners |
 | `economic_dev` | Business incentives, tax programs |
 | `regulatory` | Utility commissions, permit authorities |
+| `regulatory_authority` | Regulatory authorities and registries |
+| `regulation` | Regulatory agencies |
 | `standards` | Building codes, efficiency standards |
+| `building_codes` | Building energy codes |
+| `guidance` | Technical guidance documents |
+| `policy` | Policy frameworks |
+| `cantonal_authority` | Swiss cantonal authorities |
+| `coordination_body` | Inter-governmental coordination bodies |
+| `program` | Government efficiency programs |
 
 #### Available Tags
 
@@ -361,11 +380,24 @@ python -m src.main list-tags
 |-----|-------------|
 | `incentives` | Grants, tax breaks, subsidies |
 | `mandates` | Required regulations |
+| `mandatory` | Mandatory compliance requirements |
 | `reporting` | Disclosure requirements |
 | `carbon` | Carbon pricing, credits, emissions |
 | `efficiency` | PUE, energy efficiency programs |
 | `planning` | Zoning, permits, infrastructure |
 | `research` | Studies, reports, data |
+| `waste_heat` | Waste heat utilization requirements |
+| `heat_reuse` | Heat reuse/recovery programs |
+| `district_heating` | District heating networks |
+| `pue_limits` | PUE targets and limits |
+| `renewable_energy` | Renewable energy requirements |
+| `cost_benefit_analysis` | CBA requirements |
+| `certification` | Efficiency certification schemes |
+| `tax_exemption` | Tax exemption programs |
+| `grid_connection` | Grid connection requirements |
+| `ashrae_90_4` | ASHRAE Standard 90.4 compliance |
+
+Additional specialized tags are available for detailed filtering. Run `python -m src.main list-tags` to see all 70+ tags.
 
 #### Available Policy Types
 
@@ -377,12 +409,22 @@ python -m src.main list-policy-types
 | Policy Type | Description |
 |-------------|-------------|
 | `law` | Enacted legislation |
+| `legislation` | Laws and statutes |
 | `regulation` | Agency rules |
 | `directive` | EU directives, guidance with force |
 | `incentive` | Grant programs, tax credits |
+| `incentives` | Incentive programs |
 | `guidance` | Best practices, recommendations |
 | `standard` | Technical standards, building codes |
 | `report` | Research, data, analysis |
+| `energy_efficiency` | Energy efficiency requirements |
+| `waste_heat_recovery` | Waste heat recovery requirements |
+| `reporting_requirements` | Reporting obligations |
+| `building_codes` | Building energy codes |
+| `grid_interconnection` | Grid interconnection standards |
+| `district_heating` | District heating regulations |
+| `certification` | Certification schemes |
+| `strategy` | National/regional energy strategies |
 
 #### Filtering Examples
 
@@ -428,39 +470,37 @@ python -m src.main domain-stats
   DOMAIN CATEGORIZATION STATS
 ============================================================
 
-  Total domains:    48
-  Enabled domains:  42
+  Total domains:    274
+  Enabled domains:  274
 
   By Category:
   ----------------------------------------
-    energy_ministry           18
-    regulatory                 8
-    legislative                5
-    economic_dev               4
-    environmental_agency       3
-    grid_operator              2
-    standards                  1
-    (uncategorized)            1
+    energy_ministry           45
+    legislation               28
+    regulation                22
+    economic_dev              18
+    regulatory                15
+    ...
 
   By Tag:
   ----------------------------------------
-    efficiency                35
-    mandates                  18
-    incentives                15
-    carbon                     8
-    planning                   7
-    research                   6
-    reporting                  4
+    efficiency                85
+    mandatory                 42
+    waste_heat                38
+    reporting                 35
+    incentives                30
+    district_heating          25
+    ...
 
   By Policy Type:
   ----------------------------------------
-    regulation                28
-    guidance                  22
-    law                       15
-    incentive                 12
-    report                     8
-    standard                   5
-    directive                  4
+    regulation                58
+    guidance                  45
+    law                       35
+    legislation               28
+    energy_efficiency         22
+    waste_heat_recovery       18
+    ...
 
 ============================================================
 ```
@@ -1010,7 +1050,7 @@ domains:
     language: "de"
 ```
 
-The `region` field is a list of geographic regions this domain belongs to. It enables `--domains eu` to find this domain even if it's not explicitly listed in `groups.yaml`. Valid regions: `eu`, `nordic`, `eu_central`, `eu_west`, `us`, `us_states`, `apac`.
+The `region` field is a list of geographic regions this domain belongs to. It enables `--domains eu` to find this domain even if it's not explicitly listed in `groups.yaml`. Valid regions include broad regions (`eu`, `nordic`, `eu_central`, `eu_west`, `uk`, `us`, `us_states`, `apac`), country-level regions (`germany`, `france`, `switzerland`, `singapore`, `japan`, etc.), and US state-level regions (`oregon`, `texas`, `california`). Run `python -m src.main list-regions` for the full list.
 
 **To add a new domain:** Copy from `_template.yaml`, fill in the fields, and add to the appropriate regional file. Be sure to set the `region` field — domains without it will generate a startup warning.
 
