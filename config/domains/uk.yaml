@@ -13,6 +13,7 @@
 domains:
   - name: Department for Energy Security and Net Zero (DESNZ)
     id: uk_desnz
+    enabled: true
     base_url: https://www.gov.uk
     start_paths:
       - /government/organisations/department-for-energy-security-and-net-zero
@@ -50,6 +51,7 @@ domains:
 
   - name: Office of Gas and Electricity Markets (Ofgem)
     id: uk_ofgem
+    enabled: true
     base_url: https://www.ofgem.gov.uk
     start_paths:
       - /energy-policy-and-regulation/policy-and-regulatory-programmes/heat-networks
@@ -83,6 +85,7 @@ domains:
 
   - name: Climate Change Committee (CCC)
     id: uk_ccc
+    enabled: true
     base_url: https://www.theccc.org.uk
     start_paths:
       - /publications/
@@ -117,6 +120,7 @@ domains:
 
   - name: Environment Agency
     id: uk_environment_agency
+    enabled: true
     base_url: https://www.gov.uk
     start_paths:
       - /government/organisations/environment-agency
@@ -150,6 +154,7 @@ domains:
 
   - name: Scottish Government Energy and Climate Change Directorate
     id: uk_scotland_energy
+    enabled: true
     base_url: https://www.gov.scot
     start_paths:
       - /energy/
@@ -186,6 +191,7 @@ domains:
 
   - name: Welsh Government Climate Change
     id: uk_wales_climate
+    enabled: true
     base_url: https://www.gov.wales
     start_paths:
       - /climate-change
@@ -220,6 +226,7 @@ domains:
 
   - name: Northern Ireland Department for the Economy
     id: uk_ni_economy
+    enabled: true
     base_url: https://www.economy-ni.gov.uk
     start_paths:
       - /topics/energy
@@ -257,6 +264,7 @@ domains:
 
   - name: National Wealth Fund
     id: uk_national_wealth_fund
+    enabled: true
     base_url: https://www.nationalwealthfund.org.uk
     start_paths:
       - /
@@ -287,6 +295,7 @@ domains:
 
   - name: Greater London Authority
     id: uk_gla
+    enabled: true
     base_url: https://www.london.gov.uk
     start_paths:
       - /programmes-strategies/environment-and-climate-change/energy
@@ -319,6 +328,7 @@ domains:
 
   - name: Office for Product Safety and Standards (OPSS)
     id: uk_opss
+    enabled: true
     base_url: https://www.gov.uk
     start_paths:
       - /government/organisations/office-for-product-safety-and-standards
@@ -1883,6 +1893,7 @@ domains:
 
   - name: "British Business Bank"
     id: "bbb_uk"
+    enabled: true
     country: "United Kingdom"
     region:
       - "uk"
@@ -1911,6 +1922,7 @@ domains:
 
   - name: "Industrial Energy Transformation Fund (IETF)"
     id: "ietf_uk"
+    enabled: true
     country: "United Kingdom"
     region:
       - "uk"
@@ -1934,6 +1946,7 @@ domains:
 
   - name: "Scottish Industrial Energy Transformation Fund (SIETF)"
     id: "sietf_scotland"
+    enabled: true
     country: "Scotland"
     region:
       - "uk"
@@ -1959,6 +1972,7 @@ domains:
 
   - name: "Scottish Enterprise"
     id: "scottish_enterprise"
+    enabled: true
     country: "Scotland"
     region:
       - "uk"
@@ -1982,6 +1996,7 @@ domains:
 
   - name: "Highlands and Islands Enterprise"
     id: "hie_scotland"
+    enabled: true
     country: "Scotland"
     region:
       - "uk"
@@ -2003,6 +2018,7 @@ domains:
 
   - name: "Business Energy Scotland"
     id: "business_energy_scotland"
+    enabled: true
     country: "Scotland"
     region:
       - "uk"
@@ -2029,6 +2045,7 @@ domains:
 
   - name: "Business Wales"
     id: "business_wales"
+    enabled: true
     country: "Wales"
     region:
       - "uk"
@@ -2051,6 +2068,7 @@ domains:
 
   - name: "Development Bank of Wales"
     id: "dev_bank_wales"
+    enabled: true
     country: "Wales"
     region:
       - "uk"
@@ -2072,6 +2090,7 @@ domains:
 
   - name: "Welsh Government Energy Service (WGES)"
     id: "wges_wales"
+    enabled: true
     country: "Wales"
     region:
       - "uk"
@@ -2092,6 +2111,7 @@ domains:
 
   - name: "Salix Finance Wales"
     id: "salix_wales"
+    enabled: true
     country: "Wales"
     region:
       - "uk"
@@ -2113,6 +2133,7 @@ domains:
 
   - name: "Ynni Cymru"
     id: "ynni_cymru_wales"
+    enabled: true
     country: "Wales"
     region:
       - "uk"
@@ -2137,6 +2158,7 @@ domains:
 
   - name: "Invest Northern Ireland"
     id: "invest_ni"
+    enabled: true
     country: "Northern Ireland"
     region:
       - "uk"
@@ -2162,6 +2184,7 @@ domains:
 
   - name: "Northern Ireland Business Info"
     id: "nibusinessinfo"
+    enabled: true
     country: "Northern Ireland"
     region:
       - "uk"
@@ -2182,6 +2205,7 @@ domains:
 
   - name: "Northern Ireland Sustainable Energy Programme (NISEP)"
     id: "nisep_ni"
+    enabled: true
     country: "Northern Ireland"
     region:
       - "uk"
@@ -2207,6 +2231,7 @@ domains:
 
   - name: "UK Investment Zones - GOV.UK"
     id: "investment_zones_uk"
+    enabled: true
     country: "United Kingdom"
     region:
       - "uk"
@@ -2230,6 +2255,7 @@ domains:
 
   - name: "UK Freeports - GOV.UK"
     id: "freeports_uk"
+    enabled: true
     country: "United Kingdom"
     region:
       - "uk"
@@ -2253,6 +2279,7 @@ domains:
 
   - name: "Scottish Green Freeports"
     id: "green_freeports_scotland"
+    enabled: true
     country: "Scotland"
     region:
       - "uk"
@@ -2277,6 +2304,7 @@ domains:
 
   - name: "Energy Technology List (ETL) - Archived"
     id: "etl_archived"
+    enabled: true
     country: "United Kingdom"
     region:
       - "uk"
@@ -2300,6 +2328,7 @@ domains:
 
   - name: "Full Expensing and Capital Allowances"
     id: "capital_allowances_uk"
+    enabled: true
     country: "United Kingdom"
     region:
       - "uk"
@@ -2327,6 +2356,7 @@ domains:
 
   - name: "Low Carbon Infrastructure Transition Programme (LCITP)"
     id: "lcitp_scotland"
+    enabled: true
     country: "Scotland"
     region:
       - "uk"
@@ -2349,6 +2379,7 @@ domains:
 
   - name: "District Heating Loan Fund Scotland"
     id: "dh_loan_scotland"
+    enabled: true
     country: "Scotland"
     region:
       - "uk"
@@ -2376,6 +2407,7 @@ domains:
 
   - name: "UK Subsidy Control - GOV.UK"
     id: "subsidy_control_uk"
+    enabled: true
     country: "United Kingdom"
     region:
       - "uk"
@@ -2402,6 +2434,7 @@ domains:
 
   - name: "GLA Green Finance Fund"
     id: "gla_gff_london"
+    enabled: true
     country: "United Kingdom"
     region:
       - "uk"
