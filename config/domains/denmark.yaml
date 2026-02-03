@@ -7,6 +7,9 @@ domains:
   - name: "Danish Energy Agency - Heat"
     id: "ens_dk_heat"
     enabled: true
+    region:
+      - "eu"
+      - "nordic"
     base_url: "https://ens.dk"
     start_paths:
       - "/en/supply-and-consumption/heat"

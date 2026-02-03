@@ -1,0 +1,25 @@
+# =============================================================================
+# SWITZERLAND
+# =============================================================================
+
+domains:
+  - name: "Swiss Federal Office of Energy"
+    id: "bfe_ch"
+    enabled: true
+    region:
+      - "eu_central"
+    base_url: "https://www.bfe.admin.ch"
+    start_paths:
+      - "/bfe/en/home/efficiency/data-centres.html"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+      - "regulation"
+    notes: "Mandatory heat supply at cost for >2 GWh waste heat"

@@ -10,6 +10,9 @@ domains:
   - name: "Swedish Energy Agency"
     id: "energimyndigheten_se"
     enabled: true
+    region:
+      - "eu"
+      - "nordic"
     base_url: "https://www.energimyndigheten.se"
     start_paths:
       - "/en/sustainability/energy-efficiency/"
@@ -30,6 +33,9 @@ domains:
   - name: "Danish Energy Agency"
     id: "ens_dk"
     enabled: true
+    region:
+      - "eu"
+      - "nordic"
     base_url: "https://ens.dk"
     start_paths:
       - "/en/our-responsibilities/energy-efficiency"
@@ -49,6 +55,9 @@ domains:
   - name: "Finnish Energy Authority"
     id: "energiavirasto_fi"
     enabled: true
+    region:
+      - "eu"
+      - "nordic"
     base_url: "https://energiavirasto.fi"
     start_paths:
       - "/en/energy-efficiency"
@@ -69,6 +78,9 @@ domains:
   - name: "Finnish Ministry of Economic Affairs and Employment"
     id: "tem_fi"
     enabled: true
+    region:
+      - "eu"
+      - "nordic"
     base_url: "https://tem.fi"
     start_paths:
       - "/en/energy"
@@ -88,6 +100,8 @@ domains:
   - name: "Norwegian Ministry of Petroleum and Energy"
     id: "oed_no"
     enabled: true
+    region:
+      - "nordic"
     base_url: "https://www.regjeringen.no"
     start_paths:
       - "/en/dep/oed/topics/energy"
@@ -107,6 +121,8 @@ domains:
   - name: "Enova - Norwegian Energy Efficiency Agency"
     id: "enova_no"
     enabled: true
+    region:
+      - "nordic"
     base_url: "https://www.enova.no"
     start_paths:
       - "/bedrift/energieffektivisering"
@@ -126,6 +142,8 @@ domains:
   - name: "Icelandic National Energy Authority"
     id: "orkustofnun_is"
     enabled: true
+    region:
+      - "nordic"
     base_url: "https://orkustofnun.is"
     start_paths:
       - "/en/energy-efficiency"

@@ -1,41 +1,83 @@
 # Continuity Document
 
-## Latest Change: Suppress XMLParsedAsHTMLWarning
+## Current State
 
-### What was done
-Suppressed BeautifulSoup's `XMLParsedAsHTMLWarning` in the two files where `BeautifulSoup(html, "lxml")` is called. Government sites (e.g., gesetze-im-internet.de) serve XHTML/XML content that triggers this warning. The `lxml` HTML parser handles this content correctly — the warning is informational only.
+### Just Completed: Add `region` Field to Domain Configuration (v0.2.0)
 
-### Files modified
-1. **`src/crawler/extractors/html_extractor.py`** — Added `import warnings`, imported `XMLParsedAsHTMLWarning` from `bs4`, added `warnings.filterwarnings("ignore", ...)` at module level
-2. **`src/crawler/async_crawler.py`** — Same 3-line addition
-3. **`CHANGELOG.md`** — Added entry under [Unreleased] > Fixed
-4. **`pyproject.toml`** — Bumped version 0.1.0 -> 0.1.1
+**What was built:**
+- Added `region` field (list of strings) to every domain in all YAML files
+- Modified `get_enabled_domains()` to merge group + region results (union, deduplicated)
+- Added `VALID_REGIONS` dict with 7 geographic regions: `eu`, `nordic`, `eu_central`, `eu_west`, `us`, `us_states`, `apac`
+- Added `list-regions` CLI command
+- Updated `list-groups` to show region-contributed domains
+- Added startup warnings for enabled domains missing `region` field
+- Added region counts to `domain-stats` output
+- Updated `_template.yaml` with region documentation
+- Fixed several country files (france, switzerland, austria, belgium, ireland) that were missing `domains:` YAML wrapper
 
-### Options considered
-1. **Suppress warning (chosen)** — Zero behavior change, BS4-recommended approach
-2. **Detect XML and switch parser** — Risk of subtle parsing differences (case sensitivity, namespaces)
-3. **Skip XML pages entirely** — Too aggressive, XHTML pages can contain policy content
-4. **Switch to html.parser** — Slower, less tolerant of malformed HTML
+**Resolution order for `--domains eu`:**
+1. `"all"` -> all enabled domains (unchanged)
+2. Check groups.yaml for group name -> get listed domain IDs
+3. Check `region` field on all domains -> any domain with the name in its region list
+4. **Merge steps 2 and 3** -- union of both, deduplicated by domain ID
+5. If nothing matched from groups or region, fall back to file name match (existing)
+6. If still nothing, error with helpful message
 
-### Testing status
-- [x] 489/489 tests pass
-- [x] Ruff clean on changed files
-- [ ] Commit pending user approval
+**Region assignments:**
+- EU institution domains -> `["eu"]`
+- German domains -> `["eu", "eu_central"]`
+- Nordic EU members (SE, DK, FI) -> `["eu", "nordic"]`
+- Norway, Iceland -> `["nordic"]` (not EU members)
+- France -> `["eu", "eu_central"]`
+- Switzerland -> `["eu_central"]` (not EU, but geographically central European)
+- Austria -> `["eu", "eu_central"]`
+- Netherlands, Belgium, Ireland -> `["eu", "eu_west"]`
+- US federal -> `["us"]`
+- US states -> `["us", "us_states"]`
+- APAC -> `["apac"]`
+
+**Files changed:**
+1. `src/config/loader.py` - VALID_REGIONS, modified get_enabled_domains(), warn_missing_regions(), list_regions(), updated list_domains(), get_domain_stats()
+2. `src/main.py` - list-regions command, updated list-groups, cmd_list_regions(), region warnings at startup, cmd_domain_stats region display
+3. `config/domains/*.yaml` - All 14 domain files updated with region field
+4. `config/domains/_template.yaml` - Added region field with documentation
+5. `tests/unit/test_config_loader.py` - 15 new tests for region resolution, warnings, integration
+6. `README.md` - Documented region field, resolution order, updated domain config guide
+7. `CHANGELOG.md` - Added under [Unreleased]
+8. `pyproject.toml` - Version bumped to 0.2.0
+
+### Git state
+- Branch: master
+- Remote: origin (https://github.com/ahliana/OCP-Heat-Reuse-Policy-Searcher.git)
+- Pending commit for region feature (v0.2.0)
 
 ---
 
-## Previous Change: File-Based Domain Targeting
+## Recently Completed
 
-### What was done
-Added the ability to use `--domains <filename>` to target all enabled domains from a specific YAML file in `config/domains/`, without requiring an entry in `groups.yaml`.
+### Commit dbbaf5d -- Suppress XMLParsedAsHTMLWarning (v0.1.1)
+- Added `warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)` to:
+  - `src/crawler/extractors/html_extractor.py`
+  - `src/crawler/async_crawler.py`
+- Updated CHANGELOG.md under [Unreleased] > Fixed
+- Bumped version 0.1.0 -> 0.1.1
+- Pushed to origin/master
 
-### Files modified
-1. **`src/config/loader.py`** — `_source_file` tagging, file-name fallback in `get_enabled_domains()`, `get_available_domain_files()` helper
-2. **`src/main.py`** — Import, help text, `cmd_list_groups()` display
-3. **`tests/unit/test_config_loader.py`** — 11 new tests
-4. **`README.md`** — Domain Files subsection, examples
+### Commit eb01d72 -- Add initial CHANGELOG.md (v0.1.0)
+- Created comprehensive CHANGELOG.md with all 0.1.0 features
+- Set pyproject.toml version to 0.1.0
+- Pushed to origin/master
 
-### Design decisions
-- Groups take priority over file names when names conflict (backward compatible)
-- `_source_file` follows existing pattern from rejected sites loader
-- Error message shows only file names not already covered by group names
+### Commit 702b123 -- File-based domain targeting
+- `--domains germany` now works without groups.yaml entry
+- Added `_source_file` tagging, file-name fallback, `get_available_domain_files()` helper
+- 11 new tests, README updated
+- Pushed to origin/master
+
+### User preferences
+- Uses the ImplementationRequest_ClaudeCode.md template (in docs/)
+- Wants TODO tracking with TodoWrite tool
+- Wants CONTINUITY.md kept current
+- Wants to see commit message before committing
+- Wants to approve push separately
+- Semantic versioning: minor bump for new features

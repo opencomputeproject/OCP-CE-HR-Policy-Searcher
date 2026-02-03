@@ -15,6 +15,8 @@ from .config.loader import (
     get_available_domain_files,
     list_groups,
     list_domains,
+    list_regions,
+    warn_missing_regions,
     ConfigurationError,
     filter_domains,
     filter_domains_by_category,
@@ -30,6 +32,7 @@ from .config.loader import (
     VALID_CATEGORIES,
     VALID_TAGS,
     VALID_POLICY_TYPES,
+    VALID_REGIONS,
 )
 from .analysis.url_filter import URLFilter, load_url_filters
 from .cache.url_cache import URLCache, load_cache, save_cache, compute_content_hash
@@ -156,6 +159,12 @@ Examples:
     subparsers.add_parser(
         "list-policy-types",
         help="List available policy types for filtering"
+    )
+
+    # list-regions subcommand
+    subparsers.add_parser(
+        "list-regions",
+        help="List available geographic regions for domain targeting"
     )
 
     # domain-stats subcommand
@@ -381,17 +390,42 @@ def cmd_list_rejected(args) -> int:
 
 
 def cmd_list_groups(args) -> int:
-    """List available domain groups and file names."""
+    """List available domain groups, regions, and file names."""
     try:
         _, domains_config, _ = load_settings()
         groups = list_groups(domains_config)
+        all_domains = domains_config.get("domains", [])
 
         print("\nAvailable domain groups:\n")
         print(f"  {'Group':<20} {'Description'}")
         print(f"  {'-'*20} {'-'*50}")
 
         for name, desc in sorted(groups.items()):
-            print(f"  {name:<20} {desc}")
+            # Count how many extra domains the region field adds
+            group_ids = set(
+                domains_config.get("groups", {}).get(name, {}).get("domains", [])
+            )
+            region_ids = {
+                d["id"] for d in all_domains
+                if name in d.get("region", [])
+            }
+            region_only = region_ids - group_ids
+            suffix = f"  (+{len(region_only)} via region)" if region_only else ""
+            print(f"  {name:<20} {desc}{suffix}")
+
+        # Show regions that aren't group names
+        regions = list_regions()
+        region_only_names = {r for r in regions if r not in groups}
+        if region_only_names:
+            print("\nGeographic regions (also usable with --domains):\n")
+            print(f"  {'Region':<20} {'Domains':<10} {'Description'}")
+            print(f"  {'-'*20} {'-'*10} {'-'*40}")
+            for name in sorted(region_only_names):
+                count = len([
+                    d for d in all_domains
+                    if name in d.get("region", []) and d.get("enabled", True)
+                ])
+                print(f"  {name:<20} {count:<10} {regions[name]}")
 
         # Show domain files that aren't already group names
         file_counts = get_available_domain_files(domains_config)
@@ -403,7 +437,7 @@ def cmd_list_groups(args) -> int:
             for name, count in sorted(file_only.items()):
                 print(f"  {name:<20} {count} domain{'s' if count != 1 else ''}")
 
-        print("\nUsage: python -m src.main --domains <group_or_file>")
+        print("\nUsage: python -m src.main --domains <group_or_region_or_file>")
         return 0
     except Exception as e:
         print(f"Error: {e}")
@@ -667,6 +701,37 @@ def cmd_list_policy_types(args) -> int:
     return 0
 
 
+def cmd_list_regions(args) -> int:
+    """List available geographic regions."""
+    try:
+        _, domains_config, _ = load_settings()
+        all_domains = domains_config.get("domains", [])
+        enabled = [d for d in all_domains if d.get("enabled", True)]
+
+        print("\n" + "=" * 60)
+        print("  GEOGRAPHIC REGIONS")
+        print("=" * 60 + "\n")
+        print("  Use --domains <region> to target domains by region.\n")
+
+        regions = list_regions()
+        for name, desc in sorted(regions.items()):
+            count = len([d for d in enabled if name in d.get("region", [])])
+            print(f"  {name:12} ({count:2} domains) - {desc}")
+
+        # Show domains without a region
+        no_region = [d for d in enabled if not d.get("region")]
+        if no_region:
+            print(f"\n  WARNING: {len(no_region)} enabled domain(s) have no region:")
+            for d in no_region:
+                print(f"    - {d['id']} (from {d.get('_source_file', 'unknown')}.yaml)")
+
+        print("\n" + "=" * 60 + "\n")
+        return 0
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+
+
 def cmd_domain_stats(args) -> int:
     """Show statistics about domain categorization."""
     _, domains_config, _ = load_settings()
@@ -678,6 +743,14 @@ def cmd_domain_stats(args) -> int:
 
     print(f"  Total domains:    {stats['total_domains']}")
     print(f"  Enabled domains:  {stats['enabled_domains']}")
+
+    print("\n  By Region:")
+    print("  " + "-" * 40)
+    if stats['by_region']:
+        for region, count in sorted(stats['by_region'].items(), key=lambda x: -x[1]):
+            print(f"    {region:24} {count:3}")
+    else:
+        print("    (no regions assigned yet)")
 
     print("\n  By Category:")
     print("  " + "-" * 40)
@@ -1059,10 +1132,15 @@ async def run(args) -> int:
         health_metrics = RunHealthMetrics(run_id=run_id)
         logger.info("Health monitoring: Enabled")
 
+        # Warn about domains missing region field
+        region_warnings = warn_missing_regions(domains_config)
+        for warning in region_warnings:
+            logger.warning(f"Missing region: {warning}")
+
         if args.skip_llm:
             settings.analysis.enable_llm_analysis = False
 
-        # Get domains by group first
+        # Get domains by group, region, or file
         all_domains = get_enabled_domains(domains_config, args.domains)
 
         # Apply category/tag/policy-type filtering if specified
@@ -1526,6 +1604,8 @@ def main():
         sys.exit(cmd_list_tags(args))
     elif args.command == "list-policy-types":
         sys.exit(cmd_list_policy_types(args))
+    elif args.command == "list-regions":
+        sys.exit(cmd_list_regions(args))
     elif args.command == "domain-stats":
         sys.exit(cmd_domain_stats(args))
     elif args.command == "last-run":

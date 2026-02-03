@@ -1,0 +1,28 @@
+# =============================================================================
+# IRELAND
+# =============================================================================
+
+domains:
+  - name: "Sustainable Energy Authority of Ireland"
+    id: "seai_ie"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_west"
+    base_url: "https://www.seai.ie"
+    start_paths:
+      - "/business-and-public-sector/large-industry-energy-network"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "incentive"
+      - "guidance"
+      - "report"
+    notes: "Growing EU data center hub"

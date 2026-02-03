@@ -64,6 +64,22 @@ domains:
     #   report      - Research, data, analysis
     # -------------------------------------------------------------------------
 
+    # -------------------------------------------------------------------------
+    # REGION (for geographic grouping with --domains)
+    # -------------------------------------------------------------------------
+    # region: Geographic region(s) this domain belongs to (list)
+    #   eu          - European Union institutions and member states
+    #   nordic      - Nordic countries (Sweden, Denmark, Finland, Norway, Iceland)
+    #   eu_central  - Germany, Switzerland, Austria, France
+    #   eu_west     - Netherlands, Belgium, Ireland
+    #   us          - United States (federal and state)
+    #   us_states   - US state governments specifically
+    #   apac        - Asia-Pacific region
+    # -------------------------------------------------------------------------
+
+    region:                                 # Geographic regions (see list above)
+      - "eu"
+
     category: "energy_ministry"             # Primary category (see list above)
     tags:                                   # Multiple tags for filtering
       - "efficiency"

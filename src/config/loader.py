@@ -236,17 +236,25 @@ def load_settings(
 
 
 def get_enabled_domains(domains_config: dict, group: str = "all") -> list[dict]:
-    """Get domains for a group or domain file.
+    """Get domains for a group, region, or domain file.
+
+    Resolution order:
+    1. "all" -> all enabled domains
+    2. Check groups.yaml for group name -> listed domain IDs
+    3. Check region field on all domains -> any domain with name in its region list
+    4. Merge steps 2 and 3 (union, deduplicated by domain ID)
+    5. If nothing matched, fall back to file name match
+    6. If still nothing, error with helpful message
 
     Args:
         domains_config: Configuration dict with 'domains' and 'groups' keys
-        group: Group name, domain file name, or "all" (default)
+        group: Group name, region name, domain file name, or "all" (default)
 
     Returns:
-        List of domain dicts matching the group or file
+        List of domain dicts matching the group/region/file
 
     Raises:
-        ConfigurationError: If group/file doesn't exist
+        ConfigurationError: If group/region/file doesn't exist
     """
     all_domains = {d["id"]: d for d in domains_config.get("domains", [])}
 
@@ -254,37 +262,80 @@ def get_enabled_domains(domains_config: dict, group: str = "all") -> list[dict]:
         return [d for d in all_domains.values() if d.get("enabled", True)]
 
     groups = domains_config.get("groups", {})
-    if group not in groups:
-        # Fallback: try matching as a domain file name
-        file_domains = [
-            d for d in all_domains.values()
-            if d.get("_source_file") == group and d.get("enabled", True)
+    matched_ids: set[str] = set()
+
+    # Step 2: Check groups.yaml
+    group_exists = group in groups
+    if group_exists:
+        group_ids = groups[group].get("domains", [])
+        # Validate all domain IDs exist
+        missing = [id for id in group_ids if id not in all_domains]
+        if missing:
+            raise ConfigurationError(
+                f"Group '{group}' references unknown domains: {missing}"
+            )
+        matched_ids.update(group_ids)
+
+    # Step 3: Check region field on all domains
+    region_ids = {
+        d["id"] for d in all_domains.values()
+        if group in d.get("region", [])
+    }
+    matched_ids.update(region_ids)
+
+    # Step 4: If group or region matched, return the merged union
+    if matched_ids:
+        return [
+            all_domains[id] for id in matched_ids
+            if all_domains[id].get("enabled", True)
         ]
-        if file_domains:
-            return file_domains
 
-        # Neither group nor file matched
-        available_groups = ", ".join(sorted(groups.keys()))
-        available_files = sorted(
-            {d["_source_file"] for d in all_domains.values() if "_source_file" in d}
-            - set(groups.keys())
-        )
-        msg = f"Unknown group or file: '{group}'."
-        msg += f"\n  Available groups: {available_groups}"
-        if available_files:
-            msg += f"\n  Available domain files: {', '.join(available_files)}"
-        raise ConfigurationError(msg)
+    # Step 5: Fall back to file name match
+    file_domains = [
+        d for d in all_domains.values()
+        if d.get("_source_file") == group and d.get("enabled", True)
+    ]
+    if file_domains:
+        return file_domains
 
-    group_ids = groups[group].get("domains", [])
+    # Step 6: Nothing matched — error with helpful message
+    available_groups = ", ".join(sorted(groups.keys()))
+    available_regions = ", ".join(sorted(VALID_REGIONS.keys()))
+    available_files = sorted(
+        {d["_source_file"] for d in all_domains.values() if "_source_file" in d}
+        - set(groups.keys())
+    )
+    msg = f"Unknown group, region, or file: '{group}'."
+    msg += f"\n  Available groups: {available_groups}"
+    msg += f"\n  Available regions: {available_regions}"
+    if available_files:
+        msg += f"\n  Available domain files: {', '.join(available_files)}"
+    raise ConfigurationError(msg)
 
-    # Validate all domain IDs exist
-    missing = [id for id in group_ids if id not in all_domains]
-    if missing:
-        raise ConfigurationError(
-            f"Group '{group}' references unknown domains: {missing}"
-        )
 
-    return [all_domains[id] for id in group_ids if all_domains[id].get("enabled", True)]
+def warn_missing_regions(domains_config: dict) -> list[str]:
+    """Check for enabled domains without a region field.
+
+    Returns:
+        List of warning messages for domains missing region.
+    """
+    warnings = []
+    for d in domains_config.get("domains", []):
+        if d.get("enabled", True) and not d.get("region"):
+            warnings.append(
+                f"Domain '{d['id']}' has no region assigned "
+                f"(source: {d.get('_source_file', 'unknown')})"
+            )
+    return warnings
+
+
+def list_regions() -> dict[str, str]:
+    """List all valid regions with descriptions.
+
+    Returns:
+        Dict mapping region name to description
+    """
+    return VALID_REGIONS.copy()
 
 
 def list_groups(domains_config: dict) -> dict[str, str]:
@@ -326,6 +377,7 @@ def list_domains(domains_config: dict) -> list[dict]:
             "name": d["name"],
             "enabled": d.get("enabled", True),
             "base_url": d["base_url"],
+            "region": d.get("region", []),
             "category": d.get("category"),
             "tags": d.get("tags", []),
             "policy_types": d.get("policy_types", []),
@@ -337,6 +389,17 @@ def list_domains(domains_config: dict) -> list[dict]:
 # =============================================================================
 # VALID CATEGORIES, TAGS, AND POLICY TYPES
 # =============================================================================
+
+VALID_REGIONS = {
+    "eu": "European Union institutions and member states",
+    "nordic": "Nordic countries (Sweden, Denmark, Finland, Norway, Iceland)",
+    "eu_central": "Germany, Switzerland, Austria, France",
+    "eu_west": "Netherlands, Belgium, Ireland",
+    "us": "United States (federal and state)",
+    "us_states": "US state governments",
+    "apac": "Asia-Pacific region",
+}
+
 
 VALID_CATEGORIES = {
     "energy_ministry": "National/state energy departments",
@@ -592,6 +655,18 @@ def get_domain_stats(domains_config: dict) -> dict:
     if uncategorized > 0:
         category_counts["(uncategorized)"] = uncategorized
 
+    # Count by region
+    region_counts = {}
+    for region in VALID_REGIONS:
+        count = len([d for d in enabled if region in d.get("region", [])])
+        if count > 0:
+            region_counts[region] = count
+
+    # Count without region
+    no_region = len([d for d in enabled if not d.get("region")])
+    if no_region > 0:
+        region_counts["(no region)"] = no_region
+
     # Count by tag
     tag_counts = {}
     for tag in VALID_TAGS:
@@ -609,6 +684,7 @@ def get_domain_stats(domains_config: dict) -> dict:
     return {
         "total_domains": len(domains),
         "enabled_domains": len(enabled),
+        "by_region": region_counts,
         "by_category": category_counts,
         "by_tag": tag_counts,
         "by_policy_type": policy_type_counts,

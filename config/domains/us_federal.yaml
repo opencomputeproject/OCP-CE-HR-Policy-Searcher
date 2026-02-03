@@ -8,6 +8,8 @@ domains:
   - name: "US Department of Energy"
     id: "energy_gov"
     enabled: true
+    region:
+      - "us"
     base_url: "https://www.energy.gov"
     start_paths:
       - "/eere/buildings/data-centers-and-servers"
@@ -39,6 +41,8 @@ domains:
   - name: "US EPA ENERGY STAR"
     id: "energystar_gov"
     enabled: true
+    region:
+      - "us"
     base_url: "https://www.energystar.gov"
     start_paths:
       - "/products/data-centers"
@@ -58,6 +62,8 @@ domains:
   - name: "Federal Energy Regulatory Commission"
     id: "ferc_gov"
     enabled: true
+    region:
+      - "us"
     base_url: "https://www.ferc.gov"
     start_paths:
       - "/electric-power-markets"
@@ -79,6 +85,8 @@ domains:
   - name: "US Energy Information Administration"
     id: "eia_gov"
     enabled: true
+    region:
+      - "us"
     base_url: "https://www.eia.gov"
     start_paths:
       - "/electricity"
@@ -101,6 +109,8 @@ domains:
   - name: "White House - Energy & Environment"
     id: "whitehouse_gov"
     enabled: true
+    region:
+      - "us"
     base_url: "https://www.whitehouse.gov"
     start_paths:
       - "/briefing-room/statements-releases"
@@ -123,6 +133,8 @@ domains:
   - name: "PJM Interconnection"
     id: "pjm_com"
     enabled: true
+    region:
+      - "us"
     base_url: "https://www.pjm.com"
     start_paths:
       - "/markets-and-operations"

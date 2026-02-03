@@ -1,0 +1,50 @@
+# =============================================================================
+# FRANCE
+# =============================================================================
+
+domains:
+  - name: "French Ministry for Ecological Transition"
+    id: "ecologie_fr"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+    base_url: "https://www.ecologie.gouv.fr"
+    start_paths:
+      - "/energie"
+    max_depth: 2
+    language: "fr"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "carbon"
+    policy_types:
+      - "law"
+      - "regulation"
+    notes: "French energy policy and regulations"
+
+  - name: "ADEME - French Environment and Energy Management Agency"
+    id: "ademe_fr"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+    base_url: "https://www.ademe.fr"
+    start_paths:
+      - "/expertises/energies-renouvelables-enr-production-reseaux-stockage"
+    max_depth: 2
+    language: "fr"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "incentive"
+      - "guidance"
+      - "report"
+    notes: "Waste heat recovery subsidies and programs"

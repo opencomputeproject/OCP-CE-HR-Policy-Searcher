@@ -7,6 +7,9 @@ domains:
   - name: "Swedish Energy Agency - Data Center Reporting"
     id: "energimyndigheten_dc"
     enabled: true
+    region:
+      - "eu"
+      - "nordic"
     base_url: "https://www.energimyndigheten.se"
     start_paths:
       - "/en/sustainability/data-centers-energy-performance/"

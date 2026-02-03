@@ -9,6 +9,9 @@ domains:
   - name: "Germany Federal Law Database - EnEfG"
     id: "gesetze_enefg"
     enabled: true
+    region:
+      - "eu"
+      - "eu_central"
     base_url: "https://www.gesetze-im-internet.de"
     start_paths:
       - "/enefg/"
@@ -43,6 +46,9 @@ domains:
   - name: "Germany BMWK - Data Center FAQ"
     id: "bmwk_rechenzentren"
     enabled: true
+    region:
+      - "eu"
+      - "eu_central"
     base_url: "https://www.bmwk.de"
     start_paths:
       - "/RZReg/Downloads/faq-anforderungen-rechenzentren-im-enefg.html"
@@ -63,3 +69,38 @@ domains:
       CONFIRMED WORKING - Ministry FAQ on EnEfG data center requirements.
       Practical implementation guidance for operators.
       Links to registry and reporting requirements.
+
+  - name: "German Federal Ministry for Economic Affairs and Climate Action"
+    id: "bmwk_de"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+    base_url: "https://www.bmwk.de"
+    start_paths:
+      - "/Redaktion/EN/Artikel/Energy/"
+      - "/Redaktion/EN/Dossier/energy-efficiency.html"
+      - "/Redaktion/DE/Artikel/Energie/"
+    allowed_path_patterns:
+      - "/Redaktion/*/Artikel/*"
+      - "/Redaktion/*/Dossier/*"
+    blocked_path_patterns:
+      - "/Redaktion/*/Video/*"
+      - "/Redaktion/*/Bilderstrecke/*"
+    max_depth: 3
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+      - "regulation"
+    verified_by: "OCP Heat Reuse Group"
+    verified_date: "2024-10-31"
+    notes: |
+      Primary source for German Energy Efficiency Act (EnEfG).
+      Section 5 covers waste heat requirements for data centers.
+

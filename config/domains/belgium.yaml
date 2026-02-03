@@ -1,0 +1,26 @@
+# =============================================================================
+# BELGIUM
+# =============================================================================
+
+domains:
+  - name: "Belgian Federal Public Service Economy - Energy"
+    id: "energy_be"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_west"
+    base_url: "https://energy.belgium.be"
+    start_paths:
+      - "/en"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    notes: "Belgian energy policy"

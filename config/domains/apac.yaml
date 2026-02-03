@@ -8,6 +8,8 @@ domains:
   - name: "Singapore IMDA - Green Data Centre Programme"
     id: "imda_sg"
     enabled: true
+    region:
+      - "apac"
     base_url: "https://www.imda.gov.sg"
     start_paths:
       - "/how-we-can-help/green-data-centre-programme"
@@ -27,6 +29,8 @@ domains:
   - name: "Singapore Energy Market Authority"
     id: "ema_sg"
     enabled: true
+    region:
+      - "apac"
     base_url: "https://www.ema.gov.sg"
     start_paths:
       - "/energy-transformation"
@@ -46,6 +50,8 @@ domains:
   - name: "Japan METI - Ministry of Economy, Trade and Industry"
     id: "meti_jp"
     enabled: true
+    region:
+      - "apac"
     base_url: "https://www.meti.go.jp"
     start_paths:
       - "/english/policy/energy_environment/green_growth"
@@ -67,6 +73,8 @@ domains:
   - name: "Japan Agency for Natural Resources and Energy"
     id: "enecho_jp"
     enabled: true
+    region:
+      - "apac"
     base_url: "https://www.enecho.meti.go.jp"
     start_paths:
       - "/en/category/saving_and_new"
@@ -87,6 +95,8 @@ domains:
   - name: "South Korea MOTIE - Ministry of Trade, Industry and Energy"
     id: "motie_kr"
     enabled: true
+    region:
+      - "apac"
     base_url: "https://www.motie.go.kr"
     start_paths:
       - "/www/main.do"
@@ -106,6 +116,8 @@ domains:
   - name: "Australia Department of Climate Change, Energy"
     id: "energy_au"
     enabled: true
+    region:
+      - "apac"
     base_url: "https://www.energy.gov.au"
     start_paths:
       - "/business/energy-management"

@@ -151,7 +151,7 @@ python -m src.main [OPTIONS]
 ```
 
 **Options:**
-- `--domains GROUP` - Domain group or file name to scan (see below)
+- `--domains GROUP` - Domain group, region, or file name to scan (see below)
 - `--dry-run` - Don't write to Google Sheets (testing mode)
 - `--skip-llm` - Use keyword matching only (no Claude API calls)
 - `--verbose` - Enable verbose logging
@@ -188,6 +188,18 @@ Testing:
 - `sample_nordic` - Sample Nordic countries (3 domains)
 - `sample_apac` - Sample APAC countries (2 domains)
 
+**Geographic Regions:**
+
+Each domain has a `region` field listing which geographic regions it belongs to. When you use `--domains eu`, the tool finds domains from **both** the `eu` group in `groups.yaml` AND any domain with `region: ["eu"]` — merged and deduplicated. This means a domain can be discovered through either mechanism:
+
+- `eu` - European Union institutions and member states
+- `nordic` - Nordic countries (Sweden, Denmark, Finland, Norway, Iceland)
+- `eu_central` - Germany, Switzerland, Austria, France
+- `eu_west` - Netherlands, Belgium, Ireland
+- `us` - United States (federal and state)
+- `us_states` - US state governments
+- `apac` - Asia-Pacific region
+
 **Domain Files (no group entry needed):**
 
 You can also use the name of any domain file in `config/domains/` directly. This is useful when you add a new file and want to scan just those domains without editing `groups.yaml`:
@@ -200,7 +212,14 @@ python -m src.main --domains germany
 python -m src.main --domains denmark
 ```
 
-When a name matches both a group and a file (e.g., `eu`), the group takes priority. Use `list-groups` to see all available groups and domain files.
+**Resolution order** for `--domains <name>`:
+1. Check groups.yaml for a matching group
+2. Check `region` field on all domains for a match
+3. Merge steps 1 and 2 (union, deduplicated)
+4. If nothing matched, fall back to file name match
+5. If still nothing, show an error with available options
+
+Use `list-groups` to see all available groups, regions, and domain files.
 
 ### Examples
 
@@ -978,6 +997,9 @@ Domains are organized by region. Each file contains government websites to crawl
 domains:
   - name: "German Federal Ministry"
     id: "bmwk_de"
+    region:
+      - "eu"
+      - "eu_central"
     base_url: "https://www.bmwk.de"
     start_paths:
       - "/Redaktion/EN/Artikel/Energy/"
@@ -985,7 +1007,9 @@ domains:
     language: "de"
 ```
 
-**To add a new domain:** Copy from `_template.yaml`, fill in the fields, and add to the appropriate regional file.
+The `region` field is a list of geographic regions this domain belongs to. It enables `--domains eu` to find this domain even if it's not explicitly listed in `groups.yaml`. Valid regions: `eu`, `nordic`, `eu_central`, `eu_west`, `us`, `us_states`, `apac`.
+
+**To add a new domain:** Copy from `_template.yaml`, fill in the fields, and add to the appropriate regional file. Be sure to set the `region` field — domains without it will generate a startup warning.
 
 ### Groups (`config/groups.yaml`)
 

@@ -1,0 +1,26 @@
+# =============================================================================
+# AUSTRIA
+# =============================================================================
+
+domains:
+  - name: "Austrian Ministry for Climate Action"
+    id: "bmk_at"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+    base_url: "https://www.bmk.gv.at"
+    start_paths:
+      - "/en/topics/energy"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    notes: "Austrian energy efficiency programs"

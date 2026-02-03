@@ -14,6 +14,9 @@ domains:
   - name: "Arizona Corporation Commission"
     id: "az_acc"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://azcc.gov"
     start_paths:
       - "/utilities"
@@ -36,6 +39,9 @@ domains:
   - name: "California Energy Commission"
     id: "ca_energy"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.energy.ca.gov"
     start_paths:
       - "/programs-and-topics/programs/building-energy-efficiency-standards"
@@ -62,6 +68,9 @@ domains:
   - name: "Georgia Environmental Protection Division"
     id: "ga_epd"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://epd.georgia.gov"
     start_paths:
       - "/air-protection"
@@ -87,6 +96,9 @@ domains:
   - name: "Illinois Commerce Commission"
     id: "il_icc"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.icc.illinois.gov"
     start_paths:
       - "/electricity"
@@ -117,6 +129,9 @@ domains:
   - name: "Maryland Energy Administration"
     id: "md_energy"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://energy.maryland.gov"
     start_paths:
       - "/business/Pages/incentives.aspx"
@@ -140,6 +155,9 @@ domains:
   - name: "Massachusetts Department of Energy Resources"
     id: "ma_doer"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.mass.gov/orgs/department-of-energy-resources"
     start_paths:
       - "/energy-efficiency"
@@ -161,6 +179,9 @@ domains:
   - name: "Michigan Public Service Commission"
     id: "mi_psc"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.michigan.gov/mpsc"
     start_paths:
       - "/electric"
@@ -193,6 +214,9 @@ domains:
   - name: "New Jersey Board of Public Utilities"
     id: "nj_bpu"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.nj.gov/bpu"
     start_paths:
       - "/commercial/energy.html"
@@ -219,6 +243,9 @@ domains:
   - name: "New York State Energy Research and Development Authority"
     id: "nyserda"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.nyserda.ny.gov"
     start_paths:
       - "/All-Programs/Energy-Efficiency"
@@ -242,6 +269,9 @@ domains:
   - name: "North Carolina Utilities Commission"
     id: "nc_utilities"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.ncuc.gov"
     start_paths:
       - "/energy"
@@ -262,6 +292,9 @@ domains:
   - name: "North Carolina General Assembly"
     id: "nc_legislature"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.ncleg.gov"
     start_paths:
       - "/BillLookup/2025/H638"
@@ -285,6 +318,9 @@ domains:
   - name: "Ohio Department of Development - Energy Office"
     id: "oh_energy"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://development.ohio.gov"
     start_paths:
       - "/energy"
@@ -310,6 +346,9 @@ domains:
   - name: "Oregon Department of Energy"
     id: "or_energy"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.oregon.gov/energy"
     start_paths:
       - "/energy-programs"
@@ -331,6 +370,9 @@ domains:
   - name: "Pennsylvania Department of Environmental Protection"
     id: "pa_dep"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.dep.pa.gov"
     start_paths:
       - "/Business/Energy"
@@ -359,6 +401,9 @@ domains:
   - name: "Texas State Energy Conservation Office"
     id: "tx_seco"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.seco.cpa.texas.gov"
     start_paths:
       - "/energy-efficiency"
@@ -382,6 +427,9 @@ domains:
   - name: "Texas Legislature"
     id: "tx_legislature"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://capitol.texas.gov"
     start_paths:
       - "/BillLookup/History.aspx?LegSess=89R&Bill=SB2888"
@@ -407,6 +455,9 @@ domains:
   - name: "Virginia Department of Energy"
     id: "va_energy"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.energy.virginia.gov"
     start_paths:
       - "/energy-efficiency"
@@ -431,6 +482,9 @@ domains:
   - name: "Virginia General Assembly"
     id: "va_legislature"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://lis.virginia.gov"
     start_paths:
       - "/cgi-bin/legp604.exe?ses=251&typ=bil&val=hb116"
@@ -453,6 +507,9 @@ domains:
   - name: "Washington State Department of Commerce - Energy"
     id: "wa_commerce"
     enabled: true
+    region:
+      - "us"
+      - "us_states"
     base_url: "https://www.commerce.wa.gov"
     start_paths:
       - "/growing-the-economy/energy"
