@@ -1,10 +1,13 @@
 """Main async crawler."""
 
 import asyncio
+import warnings
 from urllib.parse import urljoin, urlparse
 from typing import Optional
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
+
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 from ..config.settings import CrawlSettings
 from ..models.crawl import CrawlResult, PageStatus

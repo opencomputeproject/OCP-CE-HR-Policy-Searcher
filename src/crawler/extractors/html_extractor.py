@@ -12,13 +12,16 @@ Features:
 """
 
 import re
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
 import yaml
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, Tag, XMLParsedAsHTMLWarning
 from langdetect import detect, LangDetectException
+
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 from ...models.crawl import ExtractedContent
 
