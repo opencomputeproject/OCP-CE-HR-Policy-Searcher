@@ -25,9 +25,11 @@
 
 **Verification:** 150 domains load correctly, 507 tests pass.
 
-### IN PROGRESS: Merge Grid 6.x DeepResearch Entries into Per-State Files
+### COMPLETED: Merge Grid 6.x DeepResearch Entries into Per-State Files
 
 **Goal:** Transfer all domain entries from 5 Grid 6.x DeepResearch files into the per-state YAML files under `config/domains/us/`. Also extract rejected-site entries into `config/rejected_sites/us.yaml` sorted by state.
+
+**Result:** 117 entries merged across 8 states (IN:12, IA:11, MT:12, NV:12, SC:14, TN:15, UT:13, WI:9). 24 rejected entries written to `config/rejected_sites/us.yaml`. Total: 248 domains, 507 tests pass. Committed as `2297e5f`.
 
 **Source files (all in `DeepResearch/`):**
 
@@ -158,7 +160,7 @@ From Grid_6_5 "EVALUATED - NOT RECOMMENDED":
 - Grid_6_5 uses tags like `property_tax`, `sales_tax`, `data_center` etc. not in VALID_TAGS (harmless, just non-standard)
 - Grid_6_2 uses tags like `legislation`, `utilities`, `administrative` not in VALID_TAGS (harmless)
 
-**After completion:** 8 states will go from 0 entries to ~12-20 entries each. Total domain count will increase from 150 to ~250+.
+**After completion:** 8 states went from 0 entries to 9-15 entries each. Total domain count increased from 150 to 248.
 
 ### Previously Completed: Add `region` Field to Domain Configuration (v0.2.0)
 

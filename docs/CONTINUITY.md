@@ -168,8 +168,8 @@ RESPOND WITH JSON ONLY (no explanation):
 
 ## Current Status
 
-**Phase**: ALL COMPLETE + Region tagging + YAML structural fixes + Per-state file split
-**Last Action**: Split us_states.yaml into 50 per-state files, moved us_federal.yaml into us/ subdirectory
+**Phase**: ALL COMPLETE + Region tagging + YAML structural fixes + Per-state file split + Grid 6.x merge
+**Last Action**: Merged 117 Grid 6.x DeepResearch entries into 8 per-state YAML files; created config/rejected_sites/us.yaml with 24 entries
 **Next Action**: DeepResearch for remaining 34 empty state files
 **Blockers**: None
 
@@ -197,7 +197,9 @@ RESPOND WITH JSON ONLY (no explanation):
 - Fixed loader to handle empty domain files (`domains:` with comment parses as None)
 - Fixed Windows console UnicodeEncodeError in notification error logging
 - Enabled `context` keyword category in `keywords.yaml`
-- Total: 150 domains loading across all files, 507 tests passing
+- Merged 117 domain entries from 5 Grid 6.x DeepResearch files into 8 per-state YAML files (IA, IN, NV, UT, SC, TN, MT, WI)
+- Created `config/rejected_sites/us.yaml` with 24 rejected site entries sorted by state
+- Total: 248 domains loading across all files, 507 tests passing
 
 ---
 

@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
+- Merged 117 domain entries from 5 Grid 6.x DeepResearch files into 8 per-state YAML files (IA, IN, NV, UT, SC, TN, MT, WI) covering energy offices, legislative systems, district heating/waste heat, grid operators/regulators, and economic development
+- Created `config/rejected_sites/us.yaml` with 24 rejected site entries sorted by state from all Grid 6.x files
 - Geographic `region` field on all domain YAML entries (list of strings: `eu`, `nordic`, `eu_central`, `eu_west`, `uk`, `us`, `us_states`, `apac`)
 - `--domains` now merges group and region matches: `--domains eu` returns the union of the `eu` group from `groups.yaml` AND any domain with `region: ["eu"]`
 - `list-regions` CLI command to show available geographic regions with domain counts
