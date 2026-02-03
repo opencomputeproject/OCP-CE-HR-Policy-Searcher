@@ -25,6 +25,141 @@
 
 **Verification:** 150 domains load correctly, 507 tests pass.
 
+### IN PROGRESS: Merge Grid 6.x DeepResearch Entries into Per-State Files
+
+**Goal:** Transfer all domain entries from 5 Grid 6.x DeepResearch files into the per-state YAML files under `config/domains/us/`. Also extract rejected-site entries into `config/rejected_sites/us.yaml` sorted by state.
+
+**Source files (all in `DeepResearch/`):**
+
+| File | Format | Domain Entries | Rejected Entries | States |
+|------|--------|---------------|-----------------|--------|
+| Grid_6_1 (energy offices) | YAML | 15 | 5 | IA, IN, NV, UT, SC, TN, MT, WI |
+| Grid_6_2 (legislative systems) | YAML | 19 | 8+ | IA, IN, NV, UT, SC, TN, MT, WI |
+| Grid_6_3 (district heating) | Markdown tables | 47 | unknown | IA, IN, NV, UT, SC, TN, MT, WI |
+| Grid_6_4 (grid operators) | Markdown tables | 23 | unknown | IA, IN, NV, UT, SC, TN, MT, WI |
+| Grid_6_5 (economic dev) | YAML | 19 | 3 | IA, IN, NV, UT, SC, TN, MT, WI |
+| **TOTAL** | | **123** | **16+** | **8 states** |
+
+**CRITICAL: Duplicate ID handling**
+Grid_6_2 and Grid_6_5 share duplicate domain IDs for legislative entries:
+- `us_iowa_legislature` (Grid_6_2 vs Grid_6_5) - SAME base_url, different start_paths/focus
+- `us_indiana_legislature` (Grid_6_5) vs `us_indiana_general_assembly` (Grid_6_2) - different IDs, OK
+- `us_nevada_legislature` (Grid_6_2 vs Grid_6_5) - SAME base_url, different start_paths
+- `us_utah_legislature` (Grid_6_2 vs Grid_6_5) - SAME base_url, different start_paths
+- `us_south_carolina_legislature` (Grid_6_2) vs `us_sc_legislature` (Grid_6_5) - different IDs, OK
+- `us_tennessee_general_assembly` (Grid_6_2) vs `us_tennessee_legislature` (Grid_6_5) - different IDs, OK
+- `us_montana_legislature` (Grid_6_2) vs no equivalent in Grid_6_5
+- `us_wisconsin_legislature` (Grid_6_2) vs `us_wisconsin_legislature` (Grid_6_5) - SAME ID!
+
+**Resolution strategy for duplicates:**
+- When same ID appears in both Grid_6_2 and Grid_6_5: MERGE start_paths from both, keep the more detailed notes (usually Grid_6_2), keep the more complete config
+- When different IDs cover same site: Keep both as separate entries (different crawl focus)
+
+**Entries per state (after dedup):**
+
+**Iowa (IA):**
+- Grid_6_1: us_ia_ieda_energy, us_ia_energy_plan
+- Grid_6_2: us_iowa_legislature (MERGE with 6_5), us_iowa_admin_rules, us_iowa_admin_code_legis
+- Grid_6_5: us_iowa_ieda, us_iowa_dor_datacenter, us_iowa_legislature (MERGE with 6_2)
+- Grid_6_3: ~4 entries (need conversion from MD)
+- Grid_6_4: ~2 entries (need conversion from MD)
+- REJECTED from 6_1: Iowa Utilities Board
+
+**Indiana (IN):**
+- Grid_6_1: us_in_oed
+- Grid_6_2: us_indiana_general_assembly, us_indiana_admin_code
+- Grid_6_5: us_indiana_iedc, us_indiana_legislature
+- Grid_6_3: ~6 entries (need conversion from MD)
+- Grid_6_4: ~2 entries (need conversion from MD)
+- REJECTED from 6_1: Indiana Utility Regulatory Commission
+
+**Nevada (NV):**
+- Grid_6_1: us_nv_goe, us_nv_leg_energy
+- Grid_6_2: us_nevada_legislature (MERGE with 6_5), us_nevada_admin_code
+- Grid_6_5: us_nevada_goed, us_nevada_legislature (MERGE with 6_2)
+- Grid_6_3: ~5 entries (need conversion from MD)
+- Grid_6_4: ~2 entries (need conversion from MD)
+
+**Utah (UT):**
+- Grid_6_1: us_ut_oed, us_ut_oed_efficiency
+- Grid_6_2: us_utah_legislature (MERGE with 6_5), us_utah_admin_code
+- Grid_6_5: us_utah_goeo, us_utah_legislature (MERGE with 6_2)
+- Grid_6_3: ~9 entries (need conversion from MD)
+- Grid_6_4: ~2 entries (need conversion from MD)
+
+**South Carolina (SC):**
+- Grid_6_1: us_sc_energy, us_sc_ors
+- Grid_6_2: us_south_carolina_legislature, us_south_carolina_code
+- Grid_6_5: us_sc_commerce, us_sc_dor, us_sc_legislature
+- Grid_6_3: ~5 entries (need conversion from MD)
+- Grid_6_4: ~4 entries (need conversion from MD)
+
+**Tennessee (TN):**
+- Grid_6_1: us_tn_tdec_oep, us_tn_tdec_financing
+- Grid_6_2: us_tennessee_general_assembly, us_tennessee_bill_search
+- Grid_6_5: us_tennessee_tnecd, us_tennessee_transparent, us_tennessee_legislature
+- Grid_6_3: ~6 entries (need conversion from MD)
+- Grid_6_4: ~2 entries (need conversion from MD)
+
+**Montana (MT):**
+- Grid_6_1: us_mt_deq_energy, us_mt_deq_resources
+- Grid_6_2: us_montana_legislature, us_montana_bill_explorer, us_montana_code
+- Grid_6_5: us_montana_commerce, us_montana_business
+- Grid_6_3: ~8 entries (need conversion from MD)
+- Grid_6_4: ~2 entries (need conversion from MD)
+- REJECTED from 6_1: Montana PSC
+
+**Wisconsin (WI):**
+- Grid_6_1: us_wi_psc_oei, us_wi_leg_psc137
+- Grid_6_2: us_wisconsin_legislature (MERGE with 6_5), us_wisconsin_legis_docs, us_wisconsin_admin_code
+- Grid_6_5: us_wisconsin_wedc, us_wisconsin_legislature (MERGE with 6_2)
+- Grid_6_3: ~4 entries (need conversion from MD)
+- Grid_6_4: ~1 entry (need conversion from MD)
+
+**Rejected sites for `config/rejected_sites/us.yaml` (sorted by state):**
+
+From Grid_6_1 "EVALUATED BUT NOT RECOMMENDED":
+- Iowa: Iowa Utilities Board (https://iub.iowa.gov)
+- Indiana: Indiana Utility Regulatory Commission (https://www.in.gov/iurc)
+- Montana: Montana Public Service Commission (https://psc.mt.gov)
+- South Carolina: SC Public Service Commission (https://psc.sc.gov)
+- Tennessee: Tennessee Regulatory Authority (https://www.tn.gov/tra)
+
+From Grid_6_2 "SITES EVALUATED BUT NOT RECOMMENDED":
+- All states: LegiScan (https://legiscan.com)
+- All states: State Affairs Pro (https://pro.stateaffairs.com)
+- All states: FastDemocracy (https://fastdemocracy.com)
+- Utah: HEAL Utah Bill Tracker (https://www.healutah.org/billtracker/)
+- Montana: MEIC Bill Tracker (https://meic.org/bill-tracker/)
+- Montana: Montana Free Press Capitol Tracker
+- Wisconsin: WI Green Fire (https://wigreenfire.org)
+- Indiana: Citizens Action Coalition (https://www.citact.org)
+- Utah: Utah League of Cities and Towns (https://www.ulct.utah.gov)
+- Iowa: Iowa DD Council (https://www.iowaddcouncil.org)
+
+From Grid_6_5 "EVALUATED - NOT RECOMMENDED":
+- All states: Good Jobs First (https://goodjobsfirst.org)
+- All states: BLS Strategies (https://www.blsstrategies.com)
+- All states: Data Center Dynamics (https://www.datacenterdynamics.com)
+
+**Execution plan:**
+1. Write a Python script to:
+   a. Parse Grid_6_1, 6_2, 6_5 YAML entries (they're bare lists, not wrapped in `domains:`)
+   b. Group by state, deduplicate by ID (merge start_paths for duplicates)
+   c. Append entries to existing per-state YAML files (after the existing entries or replacing the skeleton comment)
+2. Read Grid_6_3 and Grid_6_4 markdown tables, convert to YAML entries, add to same state files
+3. Extract all rejected-site entries, write to `config/rejected_sites/us.yaml` in proper schema
+4. Validate: `load_settings()` loads all domains, no duplicate IDs, 507 tests pass
+5. Commit and push
+
+**Non-standard fields to normalize:**
+- Grid_6_1/6_2/6_5 use `verified_by` and `verified_date` fields (not in template but harmless)
+- Grid_6_1 uses `policy_types: ["grant_program"]` which isn't in VALID_POLICY_TYPES (should map to "incentive")
+- Grid_6_5 uses tags like `property_tax`, `sales_tax`, `data_center` etc. not in VALID_TAGS (harmless, just non-standard)
+- Grid_6_2 uses tags like `legislation`, `utilities`, `administrative` not in VALID_TAGS (harmless)
+
+**After completion:** 8 states will go from 0 entries to ~12-20 entries each. Total domain count will increase from 150 to ~250+.
+
 ### Previously Completed: Add `region` Field to Domain Configuration (v0.2.0)
 
 **What was built:**

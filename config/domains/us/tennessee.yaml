@@ -6,4 +6,496 @@
 # =============================================================================
 
 domains:
-  # Add domain entries here as research is completed
+  - name: "Tennessee Department of Environment and Conservation - Office of Energy Programs"
+    id: "us_tn_tdec_oep"
+    enabled: true
+    base_url: "https://www.tn.gov/environment/program-areas/energy"
+    start_paths:
+      - ".html"
+      - "/state-energy-office--seo-.html"
+      - "/state-energy-office--seo-/programs-projects/programs-and-projects.html"
+    allowed_path_patterns:
+      - "/environment/program-areas/energy*"
+    blocked_path_patterns:
+      - "/environment/news/*"
+      - "/environment/events/*"
+    max_depth: 3
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "funding"
+      - "planning"
+    policy_types:
+      - "guidance"
+      - "incentive"
+      - "grant_program"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      TDEC Office of Energy Programs serves as Governor-designated State Energy Office.
+      Annual reports required per Tenn. Code Ann. 4-3-510(9) and 4-3-1012(5).
+      Key programs: Energy Efficiency and Renewable Energy Loan Program ($29M fund
+      via Pathway Lending), Energy Efficient Schools Initiative, EECBG ($4.6M for
+      distressed counties), Local Government Energy Efficiency Revolving Loan Fund.
+      Coordinates with TVA EnergyRight for IRA Home Energy Rebates. Nashville
+      emerging as data center market in TVA power region. Contact: 1-800-342-1340.
+
+  - name: "Tennessee Clean Energy Financing Programs"
+    id: "us_tn_tdec_financing"
+    enabled: true
+    base_url: "https://www.tn.gov/environment/program-areas/energy/state-energy-office--seo-/programs-projects/programs-and-projects/clean-energy-financing"
+    start_paths:
+      - ".html"
+      - "/energy-efficiency-and-renewable-energy-loan-program.html"
+    allowed_path_patterns:
+      - "/environment/program-areas/energy/state-energy-office*"
+    blocked_path_patterns: []
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "funding"
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "grant_program"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Detailed financing program information. EELP loans $20K-$5M at 4-6% fixed
+      interest for efficiency upgrades, lighting, building envelope, cool roofs,
+      renewables, and cogeneration. Local governments, municipalities, counties,
+      school districts eligible since 2016. Fund comprises TDEC OEP ($14M),
+      TVA ($10-14M), and Pathway Lending ($5M).
+
+  - name: "Tennessee General Assembly"
+    id: "us_tennessee_general_assembly"
+    enabled: true
+    base_url: "https://www.capitol.tn.gov"
+    start_paths:
+      - "/"
+      - "/legislation/"
+      - "/committees/"
+    allowed_path_patterns:
+      - "/legislation/*"
+      - "/committees/*"
+      - "/Bills/*"
+    blocked_path_patterns:
+      - "/audio/*"
+      - "/video/*"
+      - "/photos/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+      - "commerce"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Tennessee General Assembly - 114th General Assembly (2025-2026). Bill tracking 
+      via My Bills personalized system (free account). Key committees: Senate Energy, 
+      Agriculture and Natural Resources Committee (handles energy, natural resources, 
+      pollution, conservation); Senate Commerce and Labor Committee; House equivalent 
+      committees. Legislature composed of 27 Republicans, 6 Democrats (Senate); 73R, 24D, 
+      1I (House). Sessions begin second Tuesday in January, usually adjourn mid-April.
+      Bill search at wapp.capitol.tn.gov/apps/billsearch. Subject index available.
+      First Extraordinary Session (Jan 2025) held. Tennessee Code Annotated Title 4 
+      Chapter 3 Part 10 (TDEC OEP authority), Title 65 (Public Utilities) contain 
+      relevant statutes. TVA dominates electricity market limiting state regulatory scope.
+
+  - name: "Tennessee General Assembly Bill Search"
+    id: "us_tennessee_bill_search"
+    enabled: true
+    base_url: "https://wapp.capitol.tn.gov"
+    start_paths:
+      - "/apps/billsearch/billsearchadvanced.aspx"
+      - "/apps/subjectindex/default.aspx"
+      - "/apps/indexes/"
+    allowed_path_patterns:
+      - "/apps/*"
+    blocked_path_patterns:
+      - "/audio/*"
+      - "/video/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.5
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "bill_tracking"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Tennessee General Assembly web applications portal for advanced bill search,
+      subject index, and bill indexes. Advanced search allows filtering by keyword,
+      sponsor, status, committee, session. Subject index organized alphabetically.
+      Bill Main Index provides session-by-session access. Separate from main capitol.tn.gov
+      but linked. JavaScript required for search functionality. Historical sessions 
+      available through Digital Tennessee (digitaltennessee.tnsos.gov) via TN State 
+      Library and Archives. Use for detailed bill text, amendments, fiscal notes.
+
+  - name: "Tennessee Department of Economic and Community Development"
+    id: "us_tennessee_tnecd"
+    enabled: true
+    base_url: "https://tnecd.com"
+    start_paths:
+      - "/advantages/incentives-grants"
+      - "/advantages"
+    allowed_path_patterns:
+      - "/advantages/*"
+      - "/wp-content/uploads/*"
+    blocked_path_patterns:
+      - "/news/*"
+      - "/events/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "sales_tax"
+      - "data_center"
+      - "job_creation"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      TNECD oversees Tennessee's data center incentive program. Requirements: 
+      $250M capital investment over 3 years (extendable to 5-7 years for larger 
+      projects), 25 jobs at 150% state average occupational wage. Sales tax 
+      exemption on computers, computer systems, software, peripheral devices. 
+      Reduced 1.5% sales tax rate on electricity. Backup power infrastructure 
+      and cooling equipment also exempt. Tenn. Code Ann. § 67-6-206(c).
+
+  - name: "Tennessee Transparent - Economic Development"
+    id: "us_tennessee_transparent"
+    enabled: true
+    base_url: "https://www.tn.gov"
+    start_paths:
+      - "/transparenttn/state-financial-overview/open-ecd"
+    allowed_path_patterns:
+      - "/transparenttn/*"
+      - "/ecd/*"
+    blocked_path_patterns:
+      - "/newsroom/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "reporting"
+      - "incentives"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Tennessee's transparency portal for economic development incentives. 
+      OpenECD section provides tax incentive details including data center 
+      exemptions. Tracks franchise tax (0.25%), excise tax (6.5%), and sales 
+      tax exemption programs.
+
+  - name: "Tennessee General Assembly"
+    id: "us_tennessee_legislature"
+    enabled: true
+    base_url: "https://www.capitol.tn.gov"
+    start_paths:
+      - "/Bills"
+      - "/Archives"
+    allowed_path_patterns:
+      - "/Bills/*"
+      - "/Archives/*"
+    blocked_path_patterns:
+      - "/Video/*"
+      - "/Audio/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "incentives"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Tennessee legislative tracking. Data center incentives codified in 
+      Tenn. Code Ann. § 67-6-206. County tier system affects enhanced job 
+      tax credits availability.
+
+  - name: "Tennessee Department of Environment and Conservation, Office of Energy Programs"
+    id: "us_tn_tennessee_department_of_environment_and_63"
+    enabled: true
+    base_url: "https://www.tn.gov/environment/program-areas/energy.html"
+    start_paths:
+      - "/program-areas/energy.html"
+      - "/program-areas/energy/state-energy-office--seo-.html"
+      - "/program-areas/energy/state-energy-office--seo-/programs-projects/programs-and-projects/clean-energy-financing/energy-efficiency-and-renewable-energy-loan-program.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "reporting"
+      - "industrial"
+      - "planning"
+      - "cogeneration"
+    policy_types:
+      - "regulation"
+      - "incentive"
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Governor-designated State Energy Office. Key programs: Industrial Strategic Energy Management (I-SEM); Energy Efficiency and Renewable Energy Loan Program (EELP) - $33M revolving fund includes co-generation as eligible; Clean Tennessee Energy Grant Program (historical). Partners with Institute of Energy Professionals. Important for industrial efficiency.
+
+  - name: "Tennessee Public Utility Commission (formerly Regulatory Authority)"
+    id: "us_tn_tennessee_public_utility_commission_form_63"
+    enabled: true
+    base_url: "https://www.tn.gov/tpuc.html"
+    start_paths:
+      - "/tpuc.html"
+      - "/tpuc/divisions/utilities-division.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "rates"
+      - "regulation"
+      - "standards"
+    policy_types:
+      - "regulation"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Sets rates for privately owned utilities. Limited direct involvement in thermal/district energy (mixed climate reduces heating demand). Part-time board structure.
+
+  - name: "Tennessee Valley Authority"
+    id: "us_tn_tennessee_valley_authority_63"
+    enabled: true
+    base_url: "https://www.tva.com"
+    start_paths:
+      - "/environment/environmental-stewardship/epa-mitigation-projects"
+      - "/the-powerhouse/topics/energy-efficiency"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "waste_heat"
+      - "industrial"
+    policy_types:
+      - "report"
+      - "guidance"
+      - "incentive"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Nation's largest public power provider (10M customers, 7 states). Historical waste heat recovery project generating ~5 MW from industrial process heat (EPA Mitigation Projects). Wholesale power to 153 local power companies. Economic development division works on facility energy efficiency.
+
+  - name: "TVA EnergyRight Business & Industry Programs"
+    id: "us_tn_tva_energyright_business_industry_progra_63"
+    enabled: true
+    base_url: "https://energyright.com"
+    start_paths:
+      - "/business-industry/"
+      - "/business-industry/incentives/"
+      - "/business-industry/incentives/custom-incentive/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "industrial"
+      - "waste_heat"
+      - "process_heating"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      KEY RESOURCE FOR INDUSTRIAL EFFICIENCY - Custom incentives for process heating and cooling, chiller optimization, pumps/fans, controls - up to $0.18/kWh first year savings. Strategic Energy Management (SEM) 2-year program. Preferred Partners Network. Goodyear received $845K, cut 11M kWh. Max $3M/org/year. Applicable to data center waste heat projects.
+
+  - name: "Metro Nashville District Energy System"
+    id: "us_tn_metro_nashville_district_energy_system_63"
+    enabled: true
+    base_url: "https://www.nashville.gov/departments/district-energy-system"
+    start_paths:
+      - "/departments/district-energy-system"
+      - "/departments/district-energy-system/customers"
+      - "/departments/district-energy-system/glossary"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "municipal_utility"
+    tags:
+      - "steam_system"
+      - "district_heating"
+      - "chilled_water"
+      - "efficiency"
+    policy_types:
+      - "guidance"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - Operating since 1974, one of first US cities to pair district energy with municipal solid waste. Rebuilt 2003 ($46M) using natural gas. Serves 42 downtown buildings including State Capitol, Music City Center, Ryman Auditorium, Bridgestone Arena. ~357M lbs steam, ~65M ton-hours chilled water annually. 91,100 ft underground pipes. Overseen by Metro Water Services. 50-year historic marker unveiled March 2025.
+
+  - name: "University of Tennessee Knoxville Facilities Services - Utilities & Energy"
+    id: "us_tn_university_of_tennessee_knoxville_facili_63"
+    enabled: true
+    base_url: "https://facilities.utk.edu"
+    start_paths:
+      - "/meet-our-teams/operations/"
+      - "/utilities/spconversion/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "steam_system"
+      - "efficiency"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Central steam plant serves 150+ buildings across 8M sq ft. Major coal-to-gas conversion 2014-2016 ($25M) reduced emissions 50%, CO2 by 67%. Natural gas/diesel boilers (5 total, 420,000 lbs steam/hour). 5 MW gas turbine for backup. 11 miles underground steam pipes. EPA Green Power Partner. Detailed Utilities Master Plan.
+
+  - name: "Vanderbilt University Facilities - Energy Production & Utilities"
+    id: "us_tn_vanderbilt_university_facilities_energy_63"
+    enabled: true
+    base_url: "https://www.vanderbilt.edu/facilities"
+    start_paths:
+      - "/energy/"
+      - "/sustainability/"
+      - "/futurevu/central-utilities-initiative-cui/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "CHP"
+      - "steam_system"
+      - "efficiency"
+      - "waste_heat"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - CARBON NEUTRAL SINCE 2020. On-campus co-gen produces 23% electricity and 100% steam for 12M sq ft. Steam provides 90% heating, sterilization, 40% cooling. Coal-free since 2014. Highland Energy Plant (68,000 sq ft, LEED Gold, 2023) produces chilled/hot water. Transitioning steam to hot water for efficiency. Central Utilities Initiative Phase II underway. Excellent model for carbon neutrality and thermal modernization.
+
+  - name: "Tennessee Public Utility Commission (TPUC)"
+    id: "us_tn_tennessee_public_utility_commission_tpuc_64"
+    enabled: true
+    base_url: "https://www.tn.gov/tpuc"
+    start_paths:
+      - "/tpuc/agency/tra-history-and-leadership.html"
+      - "/tpuc/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulatory"
+      - "rates"
+      - "telecommunications"
+    policy_types:
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      LIMITED relevance for data center electric service because TVA is federally regulated, bypassing state PUC jurisdiction. TPUC (renamed from TRA in 2017) regulates privately-owned telephone, natural gas, electric (non-TVA), and water utilities. Primary relevance is telecommunications regulation and wholesale interconnection rates. Five part-time commissioners.

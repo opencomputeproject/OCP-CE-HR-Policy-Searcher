@@ -6,4 +6,482 @@
 # =============================================================================
 
 domains:
-  # Add domain entries here as research is completed
+  - name: "South Carolina Energy Office"
+    id: "us_sc_energy"
+    enabled: true
+    base_url: "https://energy.sc.gov"
+    start_paths:
+      - "/"
+      - "/about-energy-office/about-mission"
+    allowed_path_patterns:
+      - "/*"
+    blocked_path_patterns:
+      - "/files/*"
+      - "/media/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "planning"
+    policy_types:
+      - "guidance"
+      - "incentive"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Principal energy planning entity for South Carolina per SC Energy Efficiency
+      Act (1992, SC Code 48-52). Part of Office of Regulatory Staff. Develops
+      comprehensive state energy plan. EECBG Program funding available.
+      Palmetto Clean Fuels Coalition promotes alternative fuels.
+      Google and Meta have major facilities in the state. Low electricity costs
+      and nuclear power availability attract data centers.
+      State Energy Action Plan submitted annually to Governor and legislature.
+
+  - name: "South Carolina Office of Regulatory Staff"
+    id: "us_sc_ors"
+    enabled: true
+    base_url: "https://ors.sc.gov"
+    start_paths:
+      - "/"
+      - "/consumers/electric-natural-gas/state-energy-office"
+    allowed_path_patterns:
+      - "/consumers/*"
+      - "/regulatory/*"
+    blocked_path_patterns:
+      - "/documents/*"
+      - "/files/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "efficiency"
+      - "reporting"
+      - "mandates"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      ORS represents public interest in utility regulation for electric, natural gas,
+      telecommunications, transportation, water/wastewater. Houses State Energy Office.
+      Works with SC Public Service Commission on utility energy efficiency plans.
+      SC Code Title 48-52 establishes energy efficiency requirements.
+      H.B. 4766 (2008) requires 20% energy reduction by 2020 from 2000 baseline
+      for state agencies and school districts.
+
+  - name: "South Carolina Legislature Online"
+    id: "us_south_carolina_legislature"
+    enabled: true
+    base_url: "https://www.scstatehouse.gov"
+    start_paths:
+      - "/"
+      - "/legislation.php"
+      - "/billsearch.php"
+    allowed_path_patterns:
+      - "/sess*"
+      - "/legislation*"
+      - "/billsearch*"
+      - "/code/*"
+    blocked_path_patterns:
+      - "/video/*"
+      - "/audio/*"
+      - "/photos/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.5
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+      - "economic_development"
+      - "nuclear"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      South Carolina Legislature Online - 126th General Assembly (2025-2026). Bill search
+      by number, keyword, subject, sponsor. Key recent legislation: H.B. 5118/S.B. 909 
+      (2023-24) - "South Carolina Ten-Year Energy Transformation Act" addressing data 
+      center-driven energy demand, grid reliability, new generation requirements; 
+      H.B. 3309 (2025-26) - "South Carolina Energy Security Act" requiring comprehensive 
+      state energy assessment, encouraging nuclear (SMRs, fusion) at brownfield sites.
+      Legislative findings cite "rapidly expanding population and record-breaking economic 
+      development" driving energy infrastructure needs. Title 58 (Public Utilities) 
+      contains SC Code provisions. Labor, Commerce and Industry Committee handles 
+      utility/energy legislation. JavaScript required for bill search functionality.
+
+  - name: "South Carolina Code of Laws"
+    id: "us_south_carolina_code"
+    enabled: true
+    base_url: "https://www.scstatehouse.gov"
+    start_paths:
+      - "/code/statmast.php"
+      - "/code/t48c052.php"  # Title 48 Chapter 52 - Energy Efficiency
+      - "/code/t58.php"  # Title 58 - Public Utilities
+    allowed_path_patterns:
+      - "/code/*"
+    blocked_path_patterns:
+      - "/sess*"  # Sessions separate
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "statutes"
+      - "utilities"
+      - "energy"
+      - "efficiency"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      South Carolina Code of Laws - statutory database. Title 58 (Public Utilities, 
+      Services and Carriers) - core utility regulation including PSC authority, 
+      electrical utilities (Ch 27), certificates of public convenience (Ch 33), 
+      energy efficiency (Ch 37). Title 48 Chapter 52 - SC Energy Efficiency Act (1992)
+      establishing SC Energy Office within Office of Regulatory Staff, requiring 
+      20% energy reduction by 2020 from 2000 baseline for state agencies (H.B. 4766, 2008).
+      SC Code 48-52-620 establishes state energy policy. Codified statutes reflect 
+      enacted legislation; check session laws for recent changes.
+
+  - name: "South Carolina Department of Commerce"
+    id: "us_sc_commerce"
+    enabled: true
+    base_url: "https://www.sccommerce.com"
+    start_paths:
+      - "/why-sc/incentives/sales-use-tax-incentives"
+      - "/why-sc/incentives-taxes"
+    allowed_path_patterns:
+      - "/why-sc/*"
+      - "/incentives/*"
+    blocked_path_patterns:
+      - "/news/*"
+      - "/events/*"
+      - "/media/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "sales_tax"
+      - "data_center"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      SC Commerce certifies qualifying data centers for sales tax exemptions. 
+      Requirements: $50M investment (or $75M combined) in real/personal property 
+      over 5 years, 25 jobs at 150% state/county per capita wage (whichever lower),
+      maintain jobs 3 years. Exemption covers computer equipment, software, 
+      electricity. Google has $1.2B+ investment in state. HB 3720 (2012) created 
+      program; expires December 31, 2031 unless renewed.
+
+  - name: "South Carolina Department of Revenue - Data Centers"
+    id: "us_sc_dor"
+    enabled: true
+    base_url: "https://dor.sc.gov"
+    start_paths:
+      - "/policy"
+      - "/tax"
+    allowed_path_patterns:
+      - "/policy/*"
+      - "/tax/*"
+    blocked_path_patterns:
+      - "/forms/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "incentives"
+      - "sales_tax"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      SC DOR administers data center sales/use tax exemption. Issues exemption 
+      certificates to qualifying taxpayers. Code Section 12-36-2120(79) governs 
+      datacenter exemption. Clawback provisions apply if investment/job 
+      requirements not met within 5-year period.
+
+  - name: "South Carolina Legislature"
+    id: "us_sc_legislature"
+    enabled: true
+    base_url: "https://www.scstatehouse.gov"
+    start_paths:
+      - "/sess"
+      - "/code"
+    allowed_path_patterns:
+      - "/sess/*"
+      - "/code/*"
+    blocked_path_patterns:
+      - "/video/*"
+      - "/audio/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "incentives"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      South Carolina legislative database. Track HB 3720 (data center incentives, 
+      2012) and potential renewal legislation before December 2031 expiration.
+
+  - name: "Public Service Commission of South Carolina"
+    id: "us_sc_public_service_commission_of_south_carol_63"
+    enabled: true
+    base_url: "https://psc.sc.gov"
+    start_paths:
+      - "/electric-cases/"
+      - "/dockets/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulation"
+      - "reporting"
+      - "utility_planning"
+      - "IRP"
+    policy_types:
+      - "regulation"
+      - "law"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Regulates IOUs, reviews Integrated Resource Plans. Act 62 (Energy Freedom Act) defines energy storage to include "thermal" technologies. Key for tracking utility thermal programs. Industrial opt-out exists for 1M+ kWh facilities.
+
+  - name: "University of South Carolina, Facilities Department - Utility Production"
+    id: "us_sc_university_of_south_carolina_facilities_63"
+    enabled: true
+    base_url: "https://sc.edu/about/offices_and_divisions/facilities"
+    start_paths:
+      - "/what_we_do/our_services/"
+      - "/our_teams/facility_services/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "district_heating"
+      - "efficiency"
+      - "steam_plant"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      District energy with ~200,000 lbs/hr steam capacity, 30,000+ tons cooling. 21+ miles underground infrastructure, 1+ mile utility tunnels. Four natural gas plants supply campus. Steam/chilled water to 280+ buildings. Building automation with 525,000+ monitored points. (Note: Failed $24M biomass project settled 2013.)
+
+  - name: "Clemson University, University Facilities - Utility Services"
+    id: "us_sc_clemson_university_university_facilities_63"
+    enabled: true
+    base_url: "https://cufacilities.sites.clemson.edu/utilities"
+    start_paths:
+      - "/utilities/"
+      - "/sustainability/operations/energy.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "CHP"
+      - "district_heating"
+      - "steam_plant"
+      - "geothermal"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - EXCELLENT CHP EXAMPLE - Duke Energy CHP on campus provides steam and can "island" from grid. Net-zero carbon goal 2030. Central Energy Facility plus 3 additional plants with 14,400+ tons chilled water. Coal-to-gas transition 2012. Lee Hall III: 42 geothermal wells (440 ft). H2-Orange hydrogen study with Siemens/Duke (DOE grant). Lake Hartwell condenser cooling.
+
+  - name: "Duke Energy Carolinas, LLC / Duke Energy Progress, LLC"
+    id: "us_sc_duke_energy_carolinas_llc_duke_energy_pr_64"
+    enabled: true
+    base_url: "https://www.duke-energy.com"
+    start_paths:
+      - "/home/billing/rates"
+      - "/business/billing/rates"
+      - "/home/billing/dec-sc-rates"
+      - "/home/billing/de-progress-rates"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "utility"
+    tags:
+      - "rates"
+      - "interconnection"
+      - "economic-development"
+      - "capacity"
+      - "planning"
+    policy_types:
+      - "tariff"
+      - "guidance"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      DEC serves ~680,000 retail customers in upstate SC (Greenville, Spartanburg, Anderson); DEP serves ~177,000 in central/northeastern SC. Rate cases filed July 2025. Tariffs available at etariff.psc.sc.gov/Organization/Detail/407.
+
+  - name: "Dominion Energy South Carolina, Inc."
+    id: "us_sc_dominion_energy_south_carolina_inc_64"
+    enabled: true
+    base_url: "https://www.dominionenergy.com/south-carolina"
+    start_paths:
+      - "/south-carolina/large-business-services"
+      - "/south-carolina/rates-and-tariffs"
+      - "/south-carolina/save-energy"
+      - "/economic-development"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "utility"
+    tags:
+      - "rates"
+      - "interconnection"
+      - "economic-development"
+      - "large-load"
+      - "interruptible"
+    policy_types:
+      - "tariff"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Serves 3.6 million homes/businesses in VA, NC, SC. Acquired SCANA Corporation in 2019. Promotes: "Half of the United States' Internet traffic runs through our backyard." Large Business line: 866-913-9762. Tariffs at etariff.psc.sc.gov/Organization/Detail/411.
+
+  - name: "South Carolina Public Service Authority (Santee Cooper)"
+    id: "us_sc_south_carolina_public_service_authority_64"
+    enabled: true
+    base_url: "https://www.santeecooper.com"
+    start_paths:
+      - "/rates/"
+      - "/about/integrated-resource-plan/"
+      - "/rates/stakeholder-engagement/"
+      - "/policies-reference-materials/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "utility"
+    tags:
+      - "rates"
+      - "economic-development"
+      - "large-load"
+      - "data-center"
+      - "interconnection"
+      - "planning"
+    policy_types:
+      - "tariff"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Most significant data center policy development: Implemented Experimental Large Load Schedule (L-25-LL) effective April 2025 specifically for data centers >50 MW and mobile loads >1,000 kW (including crypto mining). Requires 15-year contracts with capacity payments regardless of usage. Expects 1,000+ MW of new large load demand by 2030. State-owned utility serving 2M+ people. Camp Hall Commerce Park (6,781 acres near Charleston) flagship industrial site. Companies attracted: Google, Volvo, Redwood Materials. Industrial rates 16-30% lower than peer utilities.
+
+  - name: "Public Service Commission of South Carolina"
+    id: "us_sc_public_service_commission_of_south_carol_64"
+    enabled: true
+    base_url: "https://www.psc.sc.gov"
+    start_paths:
+      - "/about-us"
+      - "/consumer-info"
+      - "/law-and-guidelines"
+      - "/forms"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulatory"
+      - "rates"
+      - "tariffs"
+      - "planning"
+      - "interconnection"
+    policy_types:
+      - "regulation"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Seven commissioners (one from each congressional district). Location: 101 Executive Center Dr., Suite 100, Columbia, SC 29210. Phone: 803-896-5100. Livestreams meetings via SCETV. Office of Regulatory Staff (ORS): https://ors.sc.gov is separate advocacy body.

@@ -6,4 +6,422 @@
 # =============================================================================
 
 domains:
-  # Add domain entries here as research is completed
+  - name: "Nevada Governor's Office of Energy"
+    id: "us_nv_goe"
+    enabled: true
+    base_url: "https://www.energy.nv.gov"
+    start_paths:
+      - "/"
+      - "/about-us/"
+    allowed_path_patterns:
+      - "/*"
+    blocked_path_patterns:
+      - "/siteassets/*"
+      - "/documents/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "planning"
+      - "carbon"
+    policy_types:
+      - "guidance"
+      - "incentive"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Cabinet-level director position since 2001. Promotes policy, manages programs,
+      distributes federal funding. Key programs: Renewable Energy Tax Abatement (RETA),
+      Home Energy Retrofit Opportunities for Seniors (HEROS), Performance Contracting
+      Audit Program (PCAAP). NRS Chapter 701 establishes energy policy framework.
+      MASSIVE data center investment: Tract planning $100B in Storey County over 10 years.
+      NV Energy projecting grid could quadruple for data centers.
+      Greenlink West project ($4.2B) transmission backbone Las Vegas-Reno.
+      Status of Energy Report published annually per NRS 701.170.
+
+  - name: "Nevada Legislature - Energy Policy Statutes"
+    id: "us_nv_leg_energy"
+    enabled: true
+    base_url: "https://www.leg.state.nv.us"
+    start_paths:
+      - "/nrs/nrs-701.html"
+    allowed_path_patterns:
+      - "/nrs/nrs-70*"
+      - "/nrs/nrs-704*"
+    blocked_path_patterns:
+      - "/Session/*"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "law"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Nevada Revised Statutes Chapter 701 - Energy Policy. Key sections:
+      NRS 701.170 (annual status report), NRS 701.218 (state building energy tracking),
+      NRS 701.220 (IECC adoption requirements). Chapter 704 covers public utilities.
+      State adopted 2021 IECC with EV-ready appendices.
+
+  - name: "Nevada Legislature"
+    id: "us_nevada_legislature"
+    enabled: true
+    base_url: "https://www.leg.state.nv.us"
+    start_paths:
+      - "/"
+      - "/nrs/nrs-701.html"  # Energy Policy chapter
+      - "/nrs/NRS-704.html"  # Public Utilities chapter
+      - "/division/legal/lawlibrary/"
+    allowed_path_patterns:
+      - "/nrs/*"
+      - "/Session/*"
+      - "/App/NELIS/*"
+    blocked_path_patterns:
+      - "/audio/*"
+      - "/video/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.5
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+      - "renewable"
+      - "reporting"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Nevada Legislature official site with Nevada Revised Statutes (NRS) and bill 
+      tracking (NELIS system). 36th Special Session (Nov 2025) recently concluded. 
+      Critical chapters: NRS 701 (Energy Policy) - Governor's Office of Energy authority,
+      renewable energy rights, state energy reports; NRS 704 (Public Utilities) - 
+      portfolio standard (50% renewables by 2030, 100% carbon-free by 2050 per SB358 2019),
+      energy efficiency measures, net metering, energy storage procurement. 
+      Key recent legislation: SB448 (2021) - transportation electrification, regional 
+      transmission; AB452 (2025) - fuel cost sharing; SB442 (2025) - utility disconnection
+      reporting. Legislature meets biennially in odd years. JavaScript required for 
+      NELIS bill search.
+
+  - name: "Nevada Administrative Code"
+    id: "us_nevada_admin_code"
+    enabled: true
+    base_url: "https://www.leg.state.nv.us"
+    start_paths:
+      - "/nac/"
+      - "/nac/nac-701.html"
+      - "/nac/nac-704.html"
+    allowed_path_patterns:
+      - "/nac/*"
+    blocked_path_patterns:
+      - "/nrs/*"  # Statutes are separate
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulations"
+      - "utilities"
+      - "energy"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Nevada Administrative Code (NAC) - state agency regulations implementing NRS.
+      NAC 701 contains energy policy regulations including energy efficiency programs
+      administered by Governor's Office of Energy. NAC 704 contains Public Utilities 
+      Commission of Nevada (PUCN) regulations implementing portfolio standards, net 
+      metering, utility planning requirements. PUCN oversees NV Energy integrated 
+      resource plans and rate cases. Regulations implement NRS 701.220 (2021 IECC 
+      adoption requirement). Cross-reference with PUCN docket system for pending 
+      rulemakings.
+
+  - name: "Nevada Governor's Office of Economic Development"
+    id: "us_nevada_goed"
+    enabled: true
+    base_url: "https://goed.nv.gov"
+    start_paths:
+      - "/incentives"
+      - "/programs-incentives/incentives"
+    allowed_path_patterns:
+      - "/incentives/*"
+      - "/programs-incentives/*"
+      - "/wp-content/uploads/*"
+    blocked_path_patterns:
+      - "/events/*"
+      - "/news/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "property_tax"
+      - "sales_tax"
+      - "data_center"
+    policy_types:
+      - "incentive"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Nevada GOED administers data center tax abatements. 10-year abatement: $25M 
+      investment, 10 jobs at statewide average wage. 20-year abatement: $100M 
+      investment, 50 jobs. Benefits include 75% personal property tax abatement 
+      and sales/use tax reduced to 2%. Nev. Rev. Stat. § 360.754, § 361.0683. 
+      Nevada requires 50%+ construction workers be state residents. Google, Switch 
+      have received significant abatements ($25M+ per project).
+
+  - name: "Nevada Governor's Office of Energy"
+    id: "us_nv_nevada_governor_s_office_of_energy_63"
+    enabled: true
+    base_url: "https://energy.nv.gov"
+    start_paths:
+      - "/"
+      - "/programs/"
+      - "/resources/"
+      - "/about-us/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "reporting"
+      - "planning"
+      - "renewable_energy"
+    policy_types:
+      - "incentive"
+      - "regulation"
+      - "guidance"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Primary state energy policy office. Manages Renewable Energy Tax Abatement (RETA), RPS reporting, building energy codes, federal funding distribution (IIJA/IRA). Publishes annual "Status of Energy" reports. Focus primarily on electricity and solar; limited district heating content.
+
+  - name: "Public Utilities Commission of Nevada"
+    id: "us_nv_public_utilities_commission_of_nevada_63"
+    enabled: true
+    base_url: "https://puc.nv.gov"
+    start_paths:
+      - "/"
+      - "/About/"
+      - "/Utilities/"
+      - "/About/Docs/Statutes_Regulations/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulation"
+      - "reporting"
+      - "efficiency"
+      - "utility_rates"
+      - "geothermal"
+    policy_types:
+      - "regulation"
+      - "order"
+      - "standard"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Regulates ~400 IOUs including geothermal facilities. Elko and Caliente have PUCN-approved geothermal heating districts. Private heating district exists in southwest Reno. Approves RPS compliance. Docket system for utility filings relevant to thermal energy.
+
+  - name: "Nevada Division of Minerals - Geothermal Program"
+    id: "us_nv_nevada_division_of_minerals_geothermal_p_63"
+    enabled: true
+    base_url: "https://minerals.nv.gov"
+    start_paths:
+      - "/Programs/Geo/Geo/"
+      - "/Programs/Geo/GeoForms/"
+      - "/Programs/Geo/GeoPermits/"
+      - "/Programs/Geo/GeoRenewEnergy/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "geothermal"
+    tags:
+      - "geothermal"
+      - "permitting"
+      - "regulation"
+      - "reporting"
+      - "direct_use"
+    policy_types:
+      - "regulation"
+      - "permit"
+      - "report"
+      - "data"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - State regulatory authority for ALL geothermal wells. Nevada has 26 geothermal plants, ~827 MW capacity—second only to California (~8% state electricity). Monthly/annual production data, drilling permits. Elko and Caliente geothermal heating districts documented. Open data portal available.
+
+  - name: "Nevada Bureau of Mines and Geology - Geothermal Energy Program (University of Nevada, Reno)"
+    id: "us_nv_nevada_bureau_of_mines_and_geology_geoth_63"
+    enabled: true
+    base_url: "https://nbmg.unr.edu"
+    start_paths:
+      - "/Research/GeothermalEnergy.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "geothermal"
+    tags:
+      - "geothermal"
+      - "research"
+      - "direct_use"
+      - "waste_heat"
+    policy_types:
+      - "report"
+      - "guidance"
+      - "research"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Conducts geothermal research including National Geothermal Academy. Current project evaluating geothermal hot water for heating Hawthorne Army Depot—direct district heating potential example. Research on "blind" hidden geothermal systems. ~720 MWe installed but vast untapped potential.
+
+  - name: "University of Nevada Las Vegas - Facilities Management Energy Management"
+    id: "us_nv_university_of_nevada_las_vegas_facilitie_63"
+    enabled: true
+    base_url: "https://www.unlv.edu"
+    start_paths:
+      - "/facilities/energy-management"
+      - "/cer/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "efficiency"
+      - "central_plant"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Centralized thermal plants: 7,500 tons cooling, 75,000 mBH heating. 1.4 MW solar. Center for Energy Research focuses on solar thermal and air-cooled condensers for desert climates. Cooling-focused due to desert climate; limited district heating application.
+
+  - name: "California Independent System Operator (California ISO)"
+    id: "us_nv_california_independent_system_operator_c_64"
+    enabled: true
+    base_url: "https://www.caiso.com"
+    start_paths:
+      - "/generation-transmission/generation/generator-interconnection/"
+      - "/generation-transmission/generation/generator-interconnection/queue-management"
+      - "/legal-regulatory/tariff/"
+      - "/legal-regulatory/business-practice-manuals/"
+      - "/stakeholder/"
+      - "/library/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "grid_operator"
+    tags:
+      - "interconnection"
+      - "queue"
+      - "deliverability"
+      - "WEIM"
+      - "tariff"
+      - "western-markets"
+    policy_types:
+      - "tariff"
+      - "regulation"
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      CAISO operates the Western Energy Imbalance Market extending to 11 western states including Nevada, with $7.82B in cumulative benefits since 2014. Extended Day-Ahead Market (EDAM) launching 2026. Best-structured website for crawling—clean HTML, no JavaScript required. POI Heatmap provides interactive visualization of available interconnection capacity. Cluster-based interconnection process with defined phases.
+
+  - name: "NV Energy (Nevada Power Company / Sierra Pacific Power Company)"
+    id: "us_nv_nv_energy_nevada_power_company_sierra_pa_64"
+    enabled: true
+    base_url: "https://www.nvenergy.com"
+    start_paths:
+      - "/about-nvenergy/rates-regulatory"
+      - "/publish/content/dam/nvenergy/brochures_arch/about-nvenergy/rates-regulatory/electric-schedules-south/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "utility"
+    tags:
+      - "interconnection"
+      - "rates"
+      - "capacity"
+      - "planning"
+      - "renewable"
+      - "data-center-specific"
+    policy_types:
+      - "tariff"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Active data center market with Google facilities in Storey County. Clean Transition Tariff application filed for Google's 115 MW Fervo geothermal project (Docket 24-05023, 24-06014). Rule 9/Rule 15 framework isolates infrastructure costs to data center customers, protecting residential ratepayers. Nevada RPS requires 50% renewable by 2030, 100% carbon-free goal by 2050.

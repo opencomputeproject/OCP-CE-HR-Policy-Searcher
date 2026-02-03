@@ -6,4 +6,426 @@
 # =============================================================================
 
 domains:
-  # Add domain entries here as research is completed
+  - name: "Indiana Office of Energy Development"
+    id: "us_in_oed"
+    enabled: true
+    base_url: "https://www.in.gov/oed"
+    start_paths:
+      - "/"
+      - "/grants-and-funding-opportunities/"
+      - "/grants-and-funding-opportunities/homeowner-incentives/"
+      - "/grants-and-funding-opportunities/energy-efficiency-fund/"
+      - "/grants-and-funding-opportunities/eecbg-program/"
+    allowed_path_patterns:
+      - "/oed/*"
+    blocked_path_patterns:
+      - "/oed/news/*"
+      - "/oed/events/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "planning"
+      - "funding"
+    policy_types:
+      - "incentive"
+      - "guidance"
+      - "grant_program"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Indiana's federally designated State Energy Office. Coordinates state energy
+      policy with executive branch agencies. Administers DOE grant programs including
+      EECBG ($2.4M allocation), Indiana Energy Efficiency Fund ($9.9M revolving loans),
+      and Indiana Energy Saver Program ($182M federal funding). Five pillars policy:
+      affordability, reliability, resiliency, stability, environmental sustainability.
+      IURC requires utility energy efficiency plans every 3 years.
+      Growing Indianapolis data center market with crossroads connectivity.
+
+  - name: "Indiana General Assembly"
+    id: "us_indiana_general_assembly"
+    enabled: true
+    base_url: "https://iga.in.gov"
+    start_paths:
+      - "/"
+      - "/legislative/2026/bills/"
+      - "/legislative/2025/bills/"
+    allowed_path_patterns:
+      - "/legislative/*"
+      - "/**/committees/*"
+      - "/**/bills/*"
+    blocked_path_patterns:
+      - "/audio/*"
+      - "/video/*"
+      - "/photos/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.5
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+      - "economic_development"
+      - "data_centers"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Indiana General Assembly official bill search and tracking system. 2026 Regular 
+      Session currently active. Key committees: House Utilities, Energy and 
+      Telecommunications; Senate Utilities. Recent major legislation: HB 1007, SB 423, 
+      SB 424 (2025) - small modular nuclear reactors driven by data center energy demand.
+      Data center boom driving significant energy legislation - "Big Tech's voracious 
+      appetite for energy" cited in legislative debates. Search bills by keyword, sponsor,
+      committee. Indiana Code Title 8 (Utilities and Transportation) contains relevant 
+      statutes. Legislature passed laws forcing utility customers to fund SMR development
+      costs for data center power needs. JavaScript-heavy interface requires Playwright.
+
+  - name: "Indiana Administrative Code"
+    id: "us_indiana_admin_code"
+    enabled: true
+    base_url: "https://www.in.gov"
+    start_paths:
+      - "/iurc/utility-regulatory-information/rules-and-regulations/"
+      - "/oed/energy-programs/"
+    allowed_path_patterns:
+      - "/iurc/*"
+      - "/oed/*"
+    blocked_path_patterns:
+      - "/news/*"
+      - "/events/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulations"
+      - "utilities"
+      - "energy"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Indiana administrative regulations through IURC and OED portals on IN.gov. 
+      IURC (Indiana Utility Regulatory Commission) publishes utility rules under 
+      170 IAC (Indiana Administrative Code). OED (Office of Energy Development) 
+      administers energy efficiency programs including $182M Indiana Energy Saver 
+      (IRA-funded), $9.9M Energy Efficiency Fund. IURC requires utility energy 
+      efficiency plans every 3 years per Indiana Code 8-1-8.5. Cross-reference 
+      with IGA.in.gov for enabling legislation.
+
+  - name: "Indiana Economic Development Corporation"
+    id: "us_indiana_iedc"
+    enabled: true
+    base_url: "https://iedc.in.gov"
+    start_paths:
+      - "/indiana-advantages/investments/data-center-sales-tax-exemption"
+      - "/indiana-advantages/investments"
+      - "/programs"
+    allowed_path_patterns:
+      - "/indiana-advantages/*"
+      - "/programs/*"
+      - "/about-iedc/*"
+    blocked_path_patterns:
+      - "/news/*"
+      - "/press-releases/*"
+      - "/events/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "sales_tax"
+      - "data_center"
+    policy_types:
+      - "incentive"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Indiana's primary economic development agency. Data Center Gross Retail and 
+      Use Tax Exemption provides sales/use tax exemption on equipment and energy 
+      for up to 25 years (<$750M investment) or 50 years (>$750M). Indiana Code 
+      § 6-2.5-15 governs program. Local governments may provide additional personal 
+      property tax exemptions for $25M+ investments. In 2025, IEDC approved $168M 
+      in data center tax breaks for four major projects.
+
+  - name: "Indiana General Assembly - Bill Tracking"
+    id: "us_indiana_legislature"
+    enabled: true
+    base_url: "https://iga.in.gov"
+    start_paths:
+      - "/legislative"
+      - "/laws"
+    allowed_path_patterns:
+      - "/legislative/*"
+      - "/laws/*"
+    blocked_path_patterns:
+      - "/static/*"
+      - "/archives/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "incentives"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Indiana legislative bill tracking. Key legislation: HB 1405 (data center 
+      taxation), HB 1601 (quantum computing/data center tax exemptions). Required 
+      economic/fiscal impact study every 10 years starting 2030. Investment 
+      thresholds vary by county population ($25M-$150M over 5 years).
+
+  - name: "Indiana Utility Regulatory Commission"
+    id: "us_in_indiana_utility_regulatory_commission_63"
+    enabled: true
+    base_url: "https://www.in.gov/iurc"
+    start_paths:
+      - "/energy-division/"
+      - "/energy-division/electricity-industry/"
+      - "/docketed-cases/"
+      - "/research-policy-and-planning-division/"
+      - "/rulemakings/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "rates"
+      - "regulation"
+      - "efficiency"
+      - "planning"
+      - "mandates"
+      - "thermal_utility"
+    policy_types:
+      - "regulation"
+      - "order"
+      - "standard"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Regulates electric, natural gas, steam, water utilities. Regulates Citizens Thermal Energy as municipal steam utility. Requires IOUs to file efficiency plans every 3 years. Documents steam service contracts with Eli Lilly. Online portal contains case filings. Key for understanding thermal utility regulation.
+
+  - name: "Indiana Office of Utility Consumer Counselor"
+    id: "us_in_indiana_office_of_utility_consumer_couns_63"
+    enabled: true
+    base_url: "https://www.in.gov/oucc"
+    start_paths:
+      - "/about-the-oucc/"
+      - "/natural-gas/"
+      - "/electric/"
+      - "/natural-gas/tips-and-publications/natural-gas-cases-of-note/citizens-thermal-energy/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "consumer_advocacy"
+      - "rates"
+      - "reporting"
+      - "thermal_energy"
+    policy_types:
+      - "guidance"
+      - "report"
+      - "legal_filings"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Independent agency representing ratepayers before IURC. Has specific documentation on Citizens Thermal Energy rate cases. Provides case analysis and testimony on thermal utilities.
+
+  - name: "Citizens Thermal Energy, a division of Citizens Energy Group"
+    id: "us_in_citizens_thermal_energy_a_division_of_ci_63"
+    enabled: true
+    base_url: "https://www.citizensenergygroup.com"
+    start_paths:
+      - "/My-Business/Utility-Services/Thermal"
+      - "/My-Business/Utility-Services/Thermal/History"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "municipal_utility"
+    tags:
+      - "steam_system"
+      - "district_heating"
+      - "chilled_water"
+      - "efficiency"
+    policy_types:
+      - "guidance"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      HIGHEST PRIORITY - 2ND LARGEST DISTRICT STEAM SYSTEM IN THE US. Perry K. Generating Station (est. 1893) provides steam to 250+ commercial buildings and chilled water to 60+ facilities downtown Indianapolis. Customers include Methodist Hospital, Lucas Oil Stadium, Eli Lilly. Multi-fuel capability. Regulated by IURC. Essential documentation for largest Midwestern district energy.
+
+  - name: "Indiana University Capital Planning & Facilities - Energy Management & Utilities"
+    id: "us_in_indiana_university_capital_planning_faci_63"
+    enabled: true
+    base_url: "https://cpf.iu.edu"
+    start_paths:
+      - "/about/units/energy-management-utilities.html"
+      - "/capital-projects/projects/major-renovation/central-heating-plant.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "steam_system"
+      - "CHP"
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "report"
+      - "guidance"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Central Heating Plant (coal-to-gas conversion) provides steam to entire Bloomington campus. Five boilers, four central chilled water plants. 2012 Integrated Energy Master Plan. Planning $65M CHP plant project. Transition from steam to distributed hot-water heating plants. Major infrastructure documentation.
+
+  - name: "Purdue University Physical Facilities - Energy and Utilities"
+    id: "us_in_purdue_university_physical_facilities_en_63"
+    enabled: true
+    base_url: "https://www.purdue.edu/physicalfacilities/units/energy-utilities"
+    start_paths:
+      - "/units/energy-utilities/index.html"
+      - "/units/energy-utilities/wade.html"
+      - "/units/energy-utilities/conservation.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "steam_system"
+      - "CHP"
+      - "waste_heat"
+      - "efficiency"
+    policy_types:
+      - "report"
+      - "guidance"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - Wade Utility Plant CHP produces 50% campus electricity, 100% chilled water, 60% steam. Duke Energy 16 MW CHP plant on campus provides additional steam, reducing CO2 by ~50,000 metric tons annually. 27% GHG reduction 2010-2023. Team of 110 staff. Excellent waste heat recovery documentation.
+
+  - name: "Midcontinent Independent System Operator (MISO)"
+    id: "us_in_midcontinent_independent_system_operator_64"
+    enabled: true
+    base_url: "https://www.misoenergy.org"
+    start_paths:
+      - "/planning/resource-utilization/generator-interconnection/"
+      - "/planning/transmission-planning/mtep/"
+      - "/planning/long-range-transmission-planning/"
+      - "/planning/resource-utilization/GI_Queue/"
+      - "/engage/stakeholder-feedback/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "interconnection"
+      - "capacity"
+      - "planning"
+      - "queue"
+      - "large-load"
+    policy_types:
+      - "guidance"
+      - "report"
+      - "planning"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      MISO faces major data center growth challenges—the 2023 cycle received 123 GW of interconnection requests. Implements queue cap of 50% of non-coincident peak load per study region. MTEP25 includes 435 projects supporting 11.6 GW spot load additions. Uses Expedited Project Review process for urgent large load additions outside standard MTEP cycle. Serves Iowa, Indiana (partial), Wisconsin, and parts of Montana.
+
+  - name: "PJM Interconnection, LLC"
+    id: "us_in_pjm_interconnection_llc_64"
+    enabled: true
+    base_url: "https://www.pjm.com"
+    start_paths:
+      - "/planning/service-requests/interconnection-process-reform"
+      - "/planning/service-requests/"
+      - "/planning/rtep-development/stakeholder-process/developers"
+      - "/planning/resource-adequacy-planning/"
+      - "/committees-and-groups/subcommittees/ips"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "interconnection"
+      - "capacity"
+      - "rates"
+      - "planning"
+      - "queue"
+      - "data-center"
+    policy_types:
+      - "regulation"
+      - "guidance"
+      - "tariff"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PJM faces unprecedented data center demand—projecting 32 GW additional demand by 2028, 60 GW by 2030. Data centers accounted for 40% of capacity costs in recent auction. Active Large Load Additions Workshop with ongoing stakeholder process on data center interconnection reforms. Serves parts of Indiana (border region with Indiana Michigan Power territory).

@@ -1,0 +1,183 @@
+# =============================================================================
+# UNITED STATES - Rejected Sites
+# =============================================================================
+# Sites evaluated during DeepResearch but not recommended for crawling.
+# Sorted by state, then alphabetically.
+# =============================================================================
+
+rejected_sites:
+  # ---------------------------------------------------------------------------
+  # MULTI-STATE / NATIONAL (third-party aggregators)
+  # ---------------------------------------------------------------------------
+
+  - url: "https://legiscan.com"
+    reason: "Third-party bill tracking aggregator, not official government source. Use official state legislature sites instead."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Official state sites become inaccessible or LegiScan provides unique data"
+
+  - url: "https://pro.stateaffairs.com"
+    reason: "Commercial subscription service for legislative tracking. Not a government source. Requires payment for full access."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - commercial service"
+
+  - url: "https://fastdemocracy.com"
+    reason: "Third-party bill tracking aggregator, not official government source."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - third-party aggregator"
+
+  - url: "https://goodjobsfirst.org/states/"
+    reason: "Advocacy organization, not official government source. Useful for research context but not for policy tracking crawler."
+    evaluated_date: "2026-01-15"
+    evaluated_by: "Deep Research Grid 6.5"
+    reconsider_if: "N/A - third-party source"
+
+  - url: "https://www.blsstrategies.com/incentives/"
+    reason: "Private consulting firm, not official government source. Aggregates information but not authoritative."
+    evaluated_date: "2026-01-15"
+    evaluated_by: "Deep Research Grid 6.5"
+    reconsider_if: "N/A - commercial source"
+
+  - url: "https://www.datacenterdynamics.com"
+    reason: "Industry news site, not government source. Good for news monitoring but not authoritative policy source."
+    evaluated_date: "2026-01-15"
+    evaluated_by: "Deep Research Grid 6.5"
+    reconsider_if: "N/A - news source"
+
+  - url: "https://mwalliance.org"
+    reason: "Trade organization (Midwest Energy Efficiency Alliance), not government source."
+    evaluated_date: "2026-01-06"
+    evaluated_by: "Deep Research Grid 6.3"
+    reconsider_if: "N/A - trade organization"
+
+  - url: "https://programs.dsireusa.org"
+    reason: "Third-party aggregator (DSIRE), not primary policy source. Use official state energy office sites."
+    evaluated_date: "2026-01-06"
+    evaluated_by: "Deep Research Grid 6.3"
+    reconsider_if: "N/A - third-party aggregator"
+
+  - url: "https://cleanenergydistricts.org"
+    reason: "Advocacy organization for clean energy districts. Not a government source."
+    evaluated_date: "2026-01-06"
+    evaluated_by: "Deep Research Grid 6.3"
+    reconsider_if: "N/A - advocacy organization"
+
+  - url: "https://westerneim.com"
+    reason: "Western Energy Imbalance Market site. Operates as part of CAISO; recommend crawling caiso.com instead which has comprehensive WEIM documentation."
+    evaluated_date: "2026-01-06"
+    evaluated_by: "Deep Research Grid 6.4"
+    reconsider_if: "N/A - covered by caiso.com"
+
+  # ---------------------------------------------------------------------------
+  # INDIANA
+  # ---------------------------------------------------------------------------
+
+  - url: "https://www.in.gov/iurc"
+    reason: "Regulatory/rate focus. Requires utilities to file efficiency plans but primary policy content is in OED. Case dockets not easily crawlable."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.1"
+    reconsider_if: "Major data center rate case or efficiency proceeding"
+
+  - url: "https://www.citact.org/2025-iga"
+    reason: "Consumer advocacy organization (Citizens Action Coalition). Provides valuable context on utility legislation and data center energy issues but not official source."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - advocacy organization"
+
+  # ---------------------------------------------------------------------------
+  # IOWA
+  # ---------------------------------------------------------------------------
+
+  - url: "https://iub.iowa.gov"
+    reason: "Utility regulatory focus (rates, service quality, safety). Limited energy efficiency policy content. Energy efficiency program oversight shifted to utilities after Senate File 2311 (2018). Better covered by IEDA Energy Office."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.1"
+    reconsider_if: "Major energy efficiency rulemaking or data center rate proceeding"
+
+  - url: "https://www.iowaddcouncil.org/bill-tracker"
+    reason: "Developmental disabilities council bill tracker, not relevant to energy/utilities policy tracking scope."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - out of scope"
+
+  # ---------------------------------------------------------------------------
+  # MONTANA
+  # ---------------------------------------------------------------------------
+
+  - url: "https://psc.mt.gov"
+    reason: "Reviews utility efficiency plans funded through USB but primary policy development and program administration is at DEQ Energy Bureau."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.1"
+    reconsider_if: "Major data center-related rulemaking"
+
+  - url: "https://meic.org/bill-tracker/"
+    reason: "Environmental advocacy organization (Montana Environmental Information Center) tracker. Helpful for identifying relevant bills but not official source."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - advocacy organization"
+
+  - url: "https://projects.montanafreepress.org/capitol-tracker-2025/"
+    reason: "Nonprofit news organization project. Good visualization but pulls from official sources. Use leg.mt.gov directly."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - media/news source"
+
+  - url: "https://montanarenewables.org"
+    reason: "Non-governmental advocacy organization. Not an official government source."
+    evaluated_date: "2026-01-06"
+    evaluated_by: "Deep Research Grid 6.3"
+    reconsider_if: "N/A - advocacy organization"
+
+  # ---------------------------------------------------------------------------
+  # SOUTH CAROLINA
+  # ---------------------------------------------------------------------------
+
+  - url: "https://psc.sc.gov"
+    reason: "Rate-setting focus. ORS and SC Energy Office handle policy content."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.1"
+    reconsider_if: "Major data center-related rate case"
+
+  # ---------------------------------------------------------------------------
+  # TENNESSEE
+  # ---------------------------------------------------------------------------
+
+  - url: "https://www.tn.gov/tra"
+    reason: "TVA dominates Tennessee electricity market (federal entity). TRA has limited jurisdiction over energy efficiency. TDEC OEP is primary state energy policy entity."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.1"
+    reconsider_if: "TRA gains expanded energy efficiency jurisdiction"
+
+  - url: "https://tnadvancedenergy.com"
+    reason: "Trade association (Tennessee Advanced Energy Business Council), not government source."
+    evaluated_date: "2026-01-06"
+    evaluated_by: "Deep Research Grid 6.3"
+    reconsider_if: "N/A - trade association"
+
+  # ---------------------------------------------------------------------------
+  # UTAH
+  # ---------------------------------------------------------------------------
+
+  - url: "https://www.healutah.org/billtracker/"
+    reason: "Advocacy organization (HEAL Utah) bill tracker, not official government source. Use le.utah.gov for official bill content."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - advocacy organization"
+
+  - url: "https://www.ulct.utah.gov/bill-tracking/"
+    reason: "Municipal association bill tracker, not state government source. Member access required for interactive tracker."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - association, not government"
+
+  # ---------------------------------------------------------------------------
+  # WISCONSIN
+  # ---------------------------------------------------------------------------
+
+  - url: "https://wigreenfire.org/tracking-wisconsins-environmental-legislation/"
+    reason: "Environmental advocacy guide. Provides instructions for tracking but not actual policy content. Directs to official legis.wisconsin.gov."
+    evaluated_date: "2026-01-08"
+    evaluated_by: "Deep Research Grid 6.2"
+    reconsider_if: "Never - advocacy organization"

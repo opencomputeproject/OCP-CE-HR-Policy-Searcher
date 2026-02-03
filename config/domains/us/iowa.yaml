@@ -6,4 +6,408 @@
 # =============================================================================
 
 domains:
-  # Add domain entries here as research is completed
+  - name: "Iowa Economic Development Authority - Energy Office"
+    id: "us_ia_ieda_energy"
+    enabled: true
+    base_url: "https://opportunityiowa.gov"
+    start_paths:
+      - "/community/energy"
+      - "/about/boards/iowa-energy-center-board"
+    allowed_path_patterns:
+      - "/community/energy*"
+      - "/about/boards/iowa-energy*"
+      - "/media/*"
+    blocked_path_patterns:
+      - "/events/*"
+      - "/news/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "planning"
+      - "research"
+    policy_types:
+      - "guidance"
+      - "incentive"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Iowa Energy Office manages state, federal, and utility-funded programs.
+      Implements Iowa Energy Plan (2016). Iowa Energy Center Board oversees grants.
+      Major data center presence: Google, Meta, Microsoft in Council Bluffs area.
+      State leads in wind energy (>60% electricity mix). Universal System Benefits
+      programs for efficiency. Alternative Energy Revolving Loan Program available.
+      Key legislation: Iowa Code Chapter 103A (building codes), Senate File 2311 (2018).
+
+  - name: "Iowa Energy Plan Portal"
+    id: "us_ia_energy_plan"
+    enabled: true
+    base_url: "https://www.iowaenergyplan.org"
+    start_paths:
+      - "/"
+    allowed_path_patterns:
+      - "/*"
+    blocked_path_patterns:
+      - "/wp-content/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "planning"
+      - "efficiency"
+    policy_types:
+      - "guidance"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Dedicated portal for Iowa Energy Plan implementation (2016).
+      15 objectives and 45 strategies for balanced energy growth.
+      Includes stakeholder coordination and public forums documentation.
+      Progress reports available. Key resource for state energy policy tracking.
+
+  - name: "Iowa Legislature"
+    id: "us_iowa_legislature"
+    enabled: true
+    base_url: "https://www.legis.iowa.gov"
+    start_paths:
+      - "/legislation/billtracking"
+      - "/legislation/findLegislation/allbills"
+      - "/committees"
+      - "/publications/departments/details?groupID=316"  # Utilities Commission department page
+    allowed_path_patterns:
+      - "/legislation/*"
+      - "/committees/*"
+      - "/publications/*"
+      - "/law/*"
+    blocked_path_patterns:
+      - "/audio/*"
+      - "/video/*"
+      - "/docs/publications/legis_guide/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+      - "economic_development"
+    policy_types:
+      - "law"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Iowa Legislature bill tracking and legislation search system. 91st General Assembly 
+      (2025-2027) currently in session. Key features: Bill Tracking Tools, Bill History, 
+      Daily Legislation (Bill Packet), Bill Version Tracking. Energy/utilities legislation 
+      typically handled by Commerce Committee. Iowa Code Chapter 476 governs utilities, 
+      Chapter 476C provides renewable energy tax credits. Search keywords: "data center", 
+      "energy efficiency", "utilities". Links to Iowa Code and Administrative Rules. 
+      Publications section contains department-filed bills and LSA fiscal estimates.
+
+  - name: "Iowa Administrative Rules"
+    id: "us_iowa_admin_rules"
+    enabled: true
+    base_url: "https://rules.iowa.gov"
+    start_paths:
+      - "/"
+      - "/Notice"
+    allowed_path_patterns:
+      - "/Notice/*"
+      - "/Agency/*"
+    blocked_path_patterns:
+      - "/Account/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulations"
+      - "utilities"
+      - "energy"
+      - "administrative"
+    policy_types:
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Iowa's official administrative rules website. Contains proposed and adopted 
+      rulemaking notices from all state agencies. Key chapters: 199 IAC (Iowa Utilities 
+      Commission rules including Chapter 20 - Electric Service, Chapter 27 - Electric 
+      Cooperatives and Municipal Utilities, Chapter 35 - Energy Efficiency). 
+      261 IAC Chapter 403 - Iowa Energy Center rules. 661 IAC Chapter 303 - State 
+      Building Code energy conservation requirements (2009 IECC). Searchable by 
+      agency, keyword, or rule number. ARC numbers track rulemaking progress.
+
+  - name: "Iowa Administrative Code - Legislature Portal"
+    id: "us_iowa_admin_code_legis"
+    enabled: true
+    base_url: "https://www.legis.iowa.gov"
+    start_paths:
+      - "/law/administrativerules/chapters?agency=199"  # Utilities Commission
+      - "/law/administrativerules/chapters?agency=261"  # Economic Development (Energy Center)
+      - "/law/administrativerules/chapters?agency=661"  # Public Safety (Building Code)
+    allowed_path_patterns:
+      - "/law/administrativerules/*"
+      - "/docs/iac/*"
+    blocked_path_patterns:
+      - "/law/iowaCode/*"  # Separate from admin rules
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulations"
+      - "utilities"
+      - "energy"
+      - "building_codes"
+    policy_types:
+      - "regulation"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Official PDF versions of Iowa Administrative Code chapters via Legislature portal.
+      Agency 199 (IUC): Chapters 1-45 cover electric utilities, natural gas, energy 
+      efficiency (Ch 35), renewable energy, transmission siting. Agency 261 (IEDA): 
+      Chapter 403 - Iowa Energy Center board and programs. Agency 661 (Public Safety): 
+      Chapter 303 - State Building Code energy conservation (2009 IECC for commercial, 
+      residential new construction). PDF format requires download for full text.
+
+  - name: "Iowa Economic Development Authority"
+    id: "us_iowa_ieda"
+    enabled: true
+    base_url: "https://www.iowaeda.com"
+    start_paths:
+      - "/programs"
+      - "/incentives"
+      - "/business"
+    allowed_path_patterns:
+      - "/programs/*"
+      - "/incentives/*"
+      - "/business/*"
+      - "/resources/*"
+    blocked_path_patterns:
+      - "/news/*"
+      - "/press/*"
+      - "/events/*"
+      - "/media/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "property_tax"
+      - "data_center"
+      - "job_creation"
+    policy_types:
+      - "incentive"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Primary economic development agency for Iowa. Administers High Quality Jobs 
+      Program which provides property tax exemptions for data centers (up to 60% 
+      for 20 years). Iowa has attracted Meta, Google, Microsoft, Apple with 
+      approximately $150M+ annually in data center tax breaks. Recent legislation 
+      (Iowa Data Infrastructure Act) offers comprehensive state-level support.
+
+  - name: "Iowa Department of Revenue - Data Centers"
+    id: "us_iowa_dor_datacenter"
+    enabled: true
+    base_url: "https://revenue.iowa.gov"
+    start_paths:
+      - "/taxes/tax-guidance/sales-use-excise-tax/data-centers"
+      - "/taxes/tax-guidance"
+    allowed_path_patterns:
+      - "/taxes/tax-guidance/*"
+      - "/business/*"
+    blocked_path_patterns:
+      - "/forms/*"
+      - "/publications/archived/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "incentives"
+      - "sales_tax"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Official Iowa tax guidance for data center exemptions. Sales and use tax 
+      exemptions require $200M minimum investment over 6 years for full exemption.
+      Smaller investments ($1M+) qualify for partial refunds. HF-976 (2026) adds 
+      10-15 year expiration limits on electricity exemptions and enables tenant 
+      eligibility. Key statute: Iowa Code section 423.3(95).
+
+  - name: "Iowa Utilities Commission"
+    id: "us_ia_iowa_utilities_commission_63"
+    enabled: true
+    base_url: "https://iuc.iowa.gov"
+    start_paths:
+      - "/regulated-industries/electric/"
+      - "/regulated-industries/energy-efficiency-programs/"
+      - "/records-documents/data-reports/"
+      - "/commission-activity/rulemaking-process-proposed-rules/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "mandates"
+      - "reporting"
+      - "efficiency"
+      - "regulation"
+      - "tariffs"
+    policy_types:
+      - "regulation"
+      - "law"
+      - "guidance"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Approves energy efficiency plans per Iowa Code 476.6(13) and (15). Administrative rules at 199 Iowa Administrative Code. Electronic Filing System contains docket proceedings. Regulatory pathway for utility-connected thermal energy systems.
+
+  - name: "University of Iowa Facilities Management / UI Energy Collaborative"
+    id: "us_ia_university_of_iowa_facilities_management_63"
+    enabled: true
+    base_url: "https://facilities.uiowa.edu"
+    start_paths:
+      - "/ui-utility-system/"
+      - "/renewable-energy/"
+      - "/energy-environment/"
+      - "/sustainable-initiatives/"
+      - "/energy-control-center/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "efficiency"
+      - "waste_heat"
+      - "biomass"
+      - "cogeneration"
+      - "sustainability"
+    policy_types:
+      - "report"
+      - "guidance"
+      - "case_study"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - One of most developed university district energy systems in the Midwest. Serves energy equivalent to 42,000 homes. Main Power Plant: 39.6 MW electricity plus steam for heating, cooling, sterilization. Path to Zero Coal by 2025 transitioning to biomass. Trigeneration plant at Oakdale serves data center and research facilities. Chilled water: 4 plants, 40,000+ tons. P3 with ENGIE/Meridiam since 2020. Excellent model for university-scale waste heat recovery.
+
+  - name: "Iowa State University Facilities Planning and Management - Utility Services"
+    id: "us_ia_iowa_state_university_facilities_plannin_63"
+    enabled: true
+    base_url: "https://www.fpm.iastate.edu/utilities"
+    start_paths:
+      - "/utilities/energy_production_facilities.asp"
+      - "/utilities/environmental_performance.asp"
+      - "/utilities/distribution_systems.asp"
+      - "/utilities/statistics_and_data.asp"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "cogeneration"
+      - "efficiency"
+      - "CHP"
+    policy_types:
+      - "report"
+      - "guidance"
+      - "data"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - Operates 46 MW Combined Heat and Power system since 1891. 5 boilers (790,000 lb/hr steam), 4 steam turbine generators. Overall thermal efficiency ~60% vs 33-35% conventional. 7 chillers with 28,000 tons cooling. Circulating fluidized bed boilers. Serves 12 million sq ft campus. Excellent documented CHP case study.
+
+  - name: "Midcontinent Independent System Operator (MISO)"
+    id: "us_ia_midcontinent_independent_system_operator_64"
+    enabled: true
+    base_url: "https://www.misoenergy.org"
+    start_paths:
+      - "/planning/resource-utilization/generator-interconnection/"
+      - "/planning/transmission-planning/mtep/"
+      - "/planning/long-range-transmission-planning/"
+      - "/planning/resource-utilization/GI_Queue/"
+      - "/engage/stakeholder-feedback/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "interconnection"
+      - "capacity"
+      - "planning"
+      - "queue"
+      - "large-load"
+    policy_types:
+      - "guidance"
+      - "report"
+      - "planning"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      MISO faces major data center growth challenges—the 2023 cycle received 123 GW of interconnection requests. Implements queue cap of 50% of non-coincident peak load per study region. MTEP25 includes 435 projects supporting 11.6 GW spot load additions. Uses Expedited Project Review process for urgent large load additions outside standard MTEP cycle. Serves Iowa, Indiana (partial), Wisconsin, and parts of Montana.

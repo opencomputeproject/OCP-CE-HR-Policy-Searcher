@@ -6,4 +6,423 @@
 # =============================================================================
 
 domains:
-  # Add domain entries here as research is completed
+  - name: "Montana Department of Environmental Quality - Energy Bureau"
+    id: "us_mt_deq_energy"
+    enabled: true
+    base_url: "https://deq.mt.gov/energy"
+    start_paths:
+      - "/"
+      - "/resources"
+      - "/incentive"
+      - "/Programs/efficiency"
+      - "/Programs/conservation"
+    allowed_path_patterns:
+      - "/energy/*"
+    blocked_path_patterns:
+      - "/energy/documents/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "funding"
+      - "planning"
+    policy_types:
+      - "guidance"
+      - "incentive"
+      - "grant_program"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Energy Bureau serves as Montana's State Energy Office within DEQ's Air,
+      Energy and Mining Division. Two sections: Energy Efficiency & Compliance
+      Assistance, and Energy Planning. Administers BIL/IRA funding including
+      Grid Resilience Grants, EECBG, Home Energy Rebates Program.
+      Universal System Benefits (USB) Charge per Mont. Code 69-8-402 funds
+      efficiency programs through NorthWestern Energy and Montana-Dakota Utilities.
+      Alternative Energy Revolving Loan Program available. Montana emerging as
+      data center market with hydropower and cold climate advantages.
+      Contact: 406-444-0281 or TDEC.OEP@mt.gov.
+
+  - name: "Montana DEQ Energy Resources and Incentives"
+    id: "us_mt_deq_resources"
+    enabled: true
+    base_url: "https://deq.mt.gov/energy/resources"
+    start_paths:
+      - ""
+    allowed_path_patterns:
+      - "/energy/resources*"
+      - "/energy/incentive*"
+    blocked_path_patterns: []
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Detailed incentive information. Key state incentives:
+      15-24-1401: 50% property tax reduction (9-year phaseout) for renewable >1MW
+      15-6-157: Lower property tax rate for renewable energy transmission lines
+      HB 3 (2007): Property tax incentives for lower-impact energy projects.
+      Montana Climate Solutions Council established by Executive Order (July 2019).
+      Montana Manufacturing Extension Center provides business assistance.
+      Montana Pollution Prevention Program (MTP2) offers no-cost technical assistance.
+
+  - name: "Montana Legislature"
+    id: "us_montana_legislature"
+    enabled: true
+    base_url: "https://leg.mt.gov"
+    start_paths:
+      - "/"
+      - "/bill-info/"
+      - "/committees/interim/etic/"  # Energy and Telecommunications Interim Committee
+    allowed_path_patterns:
+      - "/bill-info/*"
+      - "/bills/*"
+      - "/committees/*"
+      - "/content/*"
+    blocked_path_patterns:
+      - "/audio/*"
+      - "/video/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+      - "renewable"
+      - "telecommunications"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Montana Legislature official site - 2025 Regular Session. Legislature meets 
+      biennially for 90 working days in odd years. New Bill Explorer application 
+      (bills.legmt.gov) with powerful filtering by session, status, date range, 
+      committee, party, requester. Bill Tracker feature with Preference Lists and 
+      Notifications. Key interim committee: Energy and Telecommunications Interim 
+      Committee (ETIC) - oversees PSC and DPSR, issues biennial reports on electricity
+      loads, renewable energy implementation, climate change effects per MCA 5-5-230.
+      ETIC materials include USB (Universal System Benefits) annual reports, PSC 
+      rule memos, renewable energy studies. Montana Code Annotated Title 69 
+      (Public Utilities) available. Public participation via legmt.gov/participate 
+      (requires verified Montana address).
+
+  - name: "Montana Legislature Bill Explorer"
+    id: "us_montana_bill_explorer"
+    enabled: true
+    base_url: "https://bills.legmt.gov"
+    start_paths:
+      - "/"
+    allowed_path_patterns:
+      - "/*"
+    blocked_path_patterns: []
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.5
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "bill_tracking"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Montana Legislature Bill Explorer - new dedicated bill tracking application.
+      Features: filter by Bill Type, Bill Status, Committee, Date Range, Party,
+      Requester (legislator, agency, interest group); export to PDF/CSV; column 
+      customization saved in browser. Bills listed by Bill # then LC #. View bill
+      details including summaries, history, text, amendments, committee reports.
+      Filters can be combined for specific searches (e.g., House bills in Judiciary
+      Committee that passed). Separate from main leg.mt.gov but more user-friendly
+      for bill tracking. JavaScript required for filtering functionality.
+
+  - name: "Montana Code Annotated"
+    id: "us_montana_code"
+    enabled: true
+    base_url: "https://leg.mt.gov"
+    start_paths:
+      - "/bills/mca/title_0690/chapters_index.html"  # Title 69 - Public Utilities
+      - "/bills/mca/title_0150/chapters_index.html"  # Title 15 - Taxation (incentives)
+    allowed_path_patterns:
+      - "/bills/mca/*"
+    blocked_path_patterns:
+      - "/bills/2*"  # Session bills separate
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "statutes"
+      - "utilities"
+      - "energy"
+      - "taxation"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Montana Code Annotated (MCA) - compiled state constitution and laws. Title 69 
+      (Public Utilities): Chapter 3 - Montana Renewable Power Production and Rural 
+      Economic Development Act (69-3-2001 to 69-3-2020) requiring 15% renewable by 2015,
+      Universal System Benefits (USB) charge per 69-8-402. Chapter 8 - Electric Utility
+      Industry Restructuring. Title 15 (Taxation): 15-24-1401 (50% property tax reduction
+      for renewable >1MW, 9-year phaseout), 15-6-157 (lower property tax for renewable 
+      transmission). High Performance Building Standards for state buildings per 2015
+      legislature. MCA searchable by title/chapter/section. Cross-reference with 
+      Administrative Rules of Montana (ARM) for implementing regulations.
+
+  - name: "Montana Department of Commerce - Business"
+    id: "us_montana_commerce"
+    enabled: true
+    base_url: "https://commerce.mt.gov"
+    start_paths:
+      - "/Business"
+      - "/Business/Programs-and-Services/Choose-Montana/Business-Climate"
+    allowed_path_patterns:
+      - "/Business/*"
+      - "/Infrastructure-Planning/*"
+    blocked_path_patterns:
+      - "/news/*"
+      - "/events/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "tax_credit"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Montana has NO specific data center tax incentives but offers general 
+      business programs. Montana has NO state sales tax (beneficial for equipment
+      purchases). Available incentives: Job Growth Incentive Tax Credit (JGTC) 
+      for high-paying jobs ($50K+), Montana Growth Fund loans, CDBG Economic 
+      Development grants. No gross receipts tax, no state inventory tax. 
+      Research and development firms exempt from state corporate income tax 
+      for first 5 years if domiciled in Montana for first time.
+
+  - name: "Montana Business Portal"
+    id: "us_montana_business"
+    enabled: true
+    base_url: "https://business.mt.gov"
+    start_paths:
+      - "/"
+    allowed_path_patterns:
+      - "/*"
+    blocked_path_patterns:
+      - "/news/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "planning"
+    policy_types:
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Montana's consolidated business resource portal. Links to incentive 
+      programs, workforce training, Small Business Development Centers. 
+      Industry Development Program (IDP) assists large industrial projects.
+
+  - name: "Montana Public Service Commission"
+    id: "us_mt_montana_public_service_commission_63"
+    enabled: true
+    base_url: "https://psc.mt.gov"
+    start_paths:
+      - "/Consumers/"
+      - "/Regulation/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulation"
+      - "reporting"
+      - "utility_planning"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+      - "law"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Five-member elected commission. Reviews/approves USB program spending. IRP review authority. Recent NorthWestern Energy rate cases including Yellowstone County Generating Station ($246M). USB funds support efficiency, low-income assistance, and renewable development.
+
+  - name: "Montana State University, University Facilities Management, Engineering & Utilities"
+    id: "us_mt_montana_state_university_university_faci_63"
+    enabled: true
+    base_url: "https://www.montana.edu/ufm/engineeringutilities"
+    start_paths:
+      - "/services.html"
+      - "/heat-plant-and-utility-tunnels.html"
+      - "/living-laboratory.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "district_heating"
+      - "geothermal"
+      - "waste_heat"
+      - "efficiency"
+      - "CHP"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      HIGHEST PRIORITY - NATIONAL MODEL FOR GEOTHERMAL DISTRICT ENERGY. Multiple geothermal districts: 264 boreholes (100 more planned), 56 miles piping, 650,000 sq ft served. Leon Johnson District (2011): 51-52 wells connecting 4 buildings. Norm Asbjornson Hall: LEED Platinum, 104 boreholes (500 ft), 70% less energy. Romney Hall: 84 boreholes (700 ft). Fifth-generation ambient loop enables building-to-building energy sharing. Central Heating Plant (1922): 3 dual-fuel boilers, 90,000 pph peak, steam turbine co-gen (~1 MW). Carbon neutral goal 2040. DOE-documented case study.
+
+  - name: "University of Montana, Facilities Services - Energy and Utilities"
+    id: "us_mt_university_of_montana_facilities_service_63"
+    enabled: true
+    base_url: "https://www.umt.edu/facilities-services/energy-and-utilities"
+    start_paths:
+      - "/heating-and-cooling.php"
+      - "/combined-heat-and-power.php"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "CHP"
+      - "steam_plant"
+      - "efficiency"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      ACTIVE CHP PROJECT - New Combined Heat and Power facility (groundbreaking Nov 2021): Two natural gas turbines + steam turbine, up to 5 MW. Reduces GHG 30% - largest single sustainability investment. Saves $1.5-2M annually. Capable of burning biogas/hydrogen when available. Historic steam plant with 1960s boilers being upgraded.
+
+  - name: "Midcontinent Independent System Operator (MISO)"
+    id: "us_mt_midcontinent_independent_system_operator_64"
+    enabled: true
+    base_url: "https://www.misoenergy.org"
+    start_paths:
+      - "/planning/resource-utilization/generator-interconnection/"
+      - "/planning/transmission-planning/mtep/"
+      - "/planning/long-range-transmission-planning/"
+      - "/planning/resource-utilization/GI_Queue/"
+      - "/engage/stakeholder-feedback/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "interconnection"
+      - "capacity"
+      - "planning"
+      - "queue"
+      - "large-load"
+    policy_types:
+      - "guidance"
+      - "report"
+      - "planning"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      MISO faces major data center growth challenges—the 2023 cycle received 123 GW of interconnection requests. Implements queue cap of 50% of non-coincident peak load per study region. MTEP25 includes 435 projects supporting 11.6 GW spot load additions. Uses Expedited Project Review process for urgent large load additions outside standard MTEP cycle. Serves Iowa, Indiana (partial), Wisconsin, and parts of Montana.
+
+  - name: "NorthWestern Energy Group, Inc."
+    id: "us_mt_northwestern_energy_group_inc_64"
+    enabled: true
+    base_url: "https://www.northwesternenergy.com"
+    start_paths:
+      - "/account-services/for-business/key-accounts"
+      - "/about-us/our-company"
+      - "/docs/default-source/default-document-library/billing-and-payment/rates-and-tariffs/montana/rules/electric/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "utility"
+    tags:
+      - "interconnection"
+      - "rates"
+      - "capacity"
+      - "planning"
+      - "large-customer"
+      - "data-center"
+    policy_types:
+      - "guidance"
+      - "tariff"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Planning to serve at least three data centers scaling to 2,250 MW by 2030 (nearly twice current 1,300 MW peak). Announced deal with Quantica Infrastructure for 1,000 MW data center. Montana PSC ruled September 2025 that NorthWestern must inform potential customers with loads >5 MW about alternative supplier options. Black Hills Corp. merger planned for late 2026. OASIS system: oasis.oati.com/NWMT for interconnection queue.

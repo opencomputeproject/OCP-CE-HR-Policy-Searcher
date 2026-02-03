@@ -6,4 +6,423 @@
 # =============================================================================
 
 domains:
-  # Add domain entries here as research is completed
+  - name: "Utah Office of Energy Development"
+    id: "us_ut_oed"
+    enabled: true
+    base_url: "https://energy.utah.gov"
+    start_paths:
+      - "/"
+    allowed_path_patterns:
+      - "/*"
+    blocked_path_patterns:
+      - "/wp-content/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "planning"
+    policy_types:
+      - "guidance"
+      - "incentive"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Utah's primary office for energy and critical mineral development. Implements
+      state's Strategic Energy Plan. Operation Gigawatt initiative to double power
+      capacity. U-Save Energy Fund provides low-interest loans for public buildings.
+      Utah Energy Infrastructure Authority can authorize tax-free bonds for
+      transmission and pipeline projects. Governor's Energy Development Summit
+      is largest energy event in the West. Meta (Appaloosa Solar Farm) in Cedar City.
+      Google opening Salt Lake City data center. NSA Utah Data Center at Camp Williams.
+      Second-fastest internet speeds in US.
+
+  - name: "Utah Office of Energy Development - Energy Efficiency"
+    id: "us_ut_oed_efficiency"
+    enabled: true
+    base_url: "https://www.energy.nr.utah.gov"
+    start_paths:
+      - "/homepage/technology/energy-efficiency/"
+    allowed_path_patterns:
+      - "/homepage/technology/*"
+      - "/homepage/resources/*"
+    blocked_path_patterns:
+      - "/wp-content/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+    policy_types:
+      - "guidance"
+      - "incentive"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Energy efficiency focused portal. Partners with Intermountain Industrial
+      Assessment Center for no-cost energy consulting to manufacturers (10-20%
+      savings identified). Home Energy Scorecard pilot program per state legislation.
+      Rocky Mountain Power Wattsmart program incentives. Dominion Energy ThermWise
+      program for natural gas efficiency. Weatherization Assistance Program delivers
+      ~35% savings (~$583/year) to low-income households.
+
+  - name: "Utah State Legislature"
+    id: "us_utah_legislature"
+    enabled: true
+    base_url: "https://le.utah.gov"
+    start_paths:
+      - "/"
+      - "/bills/bills_By_Session.jsp"
+      - "/committee/committee.jsp?com=INTPUT"  # Public Utilities, Energy, and Technology Interim Committee
+      - "/~2025/2025.htm"
+    allowed_path_patterns:
+      - "/~*"
+      - "/bills/*"
+      - "/committee/*"
+      - "/xcode/*"
+    blocked_path_patterns:
+      - "/audio/*"
+      - "/video/*"
+      - "/GIS/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.5
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+      - "technology"
+      - "nuclear"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Utah State Legislature official bill tracking and Utah Code access. 2025 General 
+      Session completed (Jan 21 - Mar 7, 2025). Key committees: House Public Utilities 
+      and Energy Committee (HSTPUT), Public Utilities, Energy, and Technology Interim 
+      Committee (INTPUT). Bill tracking via My Legislature feature with RSS feeds.
+      Governor vetoed HB0003, SB0003, SB0037, SB0296 in 2025 session. Utah Code Title 54 
+      (Public Utilities) and Title 63M (State Resource Management) contain energy statutes.
+      2025 session included significant nuclear energy discussions per HEAL Utah tracker.
+      Legislature meets annually Jan-Mar. JavaScript required for committee pages and 
+      bill search filters.
+
+  - name: "Utah Administrative Code"
+    id: "us_utah_admin_code"
+    enabled: true
+    base_url: "https://adminrules.utah.gov"
+    start_paths:
+      - "/"
+      - "/public/search"
+    allowed_path_patterns:
+      - "/public/*"
+    blocked_path_patterns:
+      - "/login/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulations"
+      - "utilities"
+      - "energy"
+      - "buildings"
+    policy_types:
+      - "regulation"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Utah Administrative Code official database. Key sections: R746 (Public Service 
+      Commission rules for utilities), R305 (Division of Air Quality - emissions), 
+      R156-56 (Building codes including energy efficiency). Utah PSC regulates Rocky 
+      Mountain Power and Dominion Energy. R746-312 covers integrated resource planning.
+      S.B. 217 (2022) established U-Save Energy Fund for public building efficiency 
+      implemented through administrative rules. Utah requires utility energy efficiency 
+      plans per Utah Code 54-7-12.8. Searchable by rule number, agency, or keyword.
+
+  - name: "Utah Governor's Office of Economic Opportunity"
+    id: "us_utah_goeo"
+    enabled: true
+    base_url: "https://business.utah.gov"
+    start_paths:
+      - "/recruitment"
+      - "/programs"
+    allowed_path_patterns:
+      - "/recruitment/*"
+      - "/programs/*"
+      - "/incentives/*"
+    blocked_path_patterns:
+      - "/news/*"
+      - "/events/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "tax_credit"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Utah GOEO (formerly GOED) administers EDTIF (Economic Development Tax 
+      Increment Financing) program. Data centers can qualify for refundable tax 
+      credits up to 30% of new state taxes generated over 5-20 years. Senate Bill 
+      114 (2020) modified sales/use tax exemption for data centers 150,000+ sq ft.
+      U.C.A. 63N-2-106(2) governs incentives. Requires 50+ jobs at 110% county 
+      average wage for urban areas. Meta expansion in Eagle Mountain utilized 
+      these incentives.
+
+  - name: "Utah Public Service Commission"
+    id: "us_ut_utah_public_service_commission_63"
+    enabled: true
+    base_url: "https://psc.utah.gov"
+    start_paths:
+      - "/"
+      - "/electric/dockets/all-electric-dockets/"
+      - "/history/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulation"
+      - "utility_rates"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "order"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Independent regulatory body. Regulates electric, natural gas, water, and "heat corporations" under Utah Code 54-2. Rocky Mountain Power proceedings cover efficiency programs and resource planning. Docket system contains regulatory filings.
+
+  - name: "Utah Division of Public Utilities"
+    id: "us_ut_utah_division_of_public_utilities_63"
+    enabled: true
+    base_url: "https://dpu.utah.gov"
+    start_paths:
+      - "/"
+      - "/about/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulation"
+      - "consumer_protection"
+    policy_types:
+      - "recommendation"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Makes recommendations to PSC on rate-making and service quality. Energy section regulates electric and natural gas utilities. Handles consumer complaints.
+
+  - name: "Utah Geological Survey - Geothermal Program"
+    id: "us_ut_utah_geological_survey_geothermal_progra_63"
+    enabled: true
+    base_url: "https://geology.utah.gov"
+    start_paths:
+      - "/energy-minerals/geothermal/"
+      - "/map-pub/survey-notes/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "geothermal"
+    tags:
+      - "geothermal"
+      - "research"
+      - "resources"
+      - "mapping"
+    policy_types:
+      - "report"
+      - "data"
+      - "research"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - Utah has ~73 MW installed but estimated 49,400 MW undeveloped potential. Publishes seminal data on geothermal systems and direct-use applications. Hosts Geothermal Working Group with workshops on ground-source heat pumps. Requesting $5M Geothermal Research Initiative from legislature.
+
+  - name: "Utah Division of Water Rights - Geothermal Program"
+    id: "us_ut_utah_division_of_water_rights_geothermal_63"
+    enabled: true
+    base_url: "https://waterrights.utah.gov"
+    start_paths:
+      - "/geothermal/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "geothermal"
+    tags:
+      - "geothermal"
+      - "permitting"
+      - "regulation"
+    policy_types:
+      - "regulation"
+      - "permit"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Primary state regulator for exploration, drilling, and operation under Utah Geothermal Resource Conservation Act (Section 73-22 UCA). Regulates high-temperature (>120°C), direct-use, and closed-loop heat pump systems. Key permitting authority for geothermal district heating.
+
+  - name: "University of Utah - Sustainability and Energy Management / Energy & Geoscience Institute"
+    id: "us_ut_university_of_utah_sustainability_and_en_63"
+    enabled: true
+    base_url: "https://attheu.utah.edu"
+    start_paths:
+      - "/sustainability/"
+      - "/research/geothermal/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "geothermal"
+      - "district_heating"
+      - "research"
+    policy_types:
+      - "report"
+      - "research"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      EXEMPLARY CASE STUDY - Gardner Commons (2018): First geothermally heated/cooled building using 151 geothermal wells. 25-year geothermal PPA for 20 MW from Soda Lake, NV (50%+ renewable). Utah FORGE: $218M DOE-funded enhanced geothermal lab. Evaluating "ground source and thermal storage systems at campus-wide scale." Carbon neutral goal 2040.
+
+  - name: "Utah Valley University - Sustainability/Geothermal"
+    id: "us_ut_utah_valley_university_sustainability_ge_63"
+    enabled: true
+    base_url: "https://www.uvu.edu"
+    start_paths:
+      - "/sustainability/doing/energy.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "geothermal"
+      - "campus_energy"
+    policy_types:
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Geothermal wells for heating/cooling for over 40 years. Water withdrawn from aquifer, used for HVAC, then reinjected (no net removal). New buildings added to system. Reduced natural gas and electricity use.
+
+  - name: "Salt Lake City Department of Sustainability"
+    id: "us_ut_salt_lake_city_department_of_sustainabil_63"
+    enabled: true
+    base_url: "https://www.slc.gov"
+    start_paths:
+      - "/sustainability/"
+      - "/sustainability/climate-positive/what-were-doing/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "district_heating"
+    tags:
+      - "efficiency"
+      - "planning"
+      - "building_electrification"
+      - "benchmarking"
+    policy_types:
+      - "regulation"
+      - "guidance"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      No traditional downtown district heating, but relevant programs: Elevate Buildings energy benchmarking ordinance (buildings >25,000 sq ft must report electricity, gas, district energy). Community Renewable Energy Act. Wastewater treatment co-gen produces ~6 million kWh/year from methane. Data centers exceeding 10% of floor area are exempt from benchmarking.
+
+  - name: "Rocky Mountain Power (PacifiCorp subsidiary)"
+    id: "us_ut_rocky_mountain_power_pacificorp_subsidia_64"
+    enabled: true
+    base_url: "https://www.rockymountainpower.net"
+    start_paths:
+      - "/about/rates-regulation/utah-rates-tariffs.html"
+      - "/savings-energy-choices/customer-generation/large-interconnections.html"
+      - "/savings-energy-choices/customer-generation/qualifying-facilities.html"
+      - "/working-with-us/large-service-requests.html"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "utility"
+    tags:
+      - "interconnection"
+      - "rates"
+      - "capacity"
+      - "planning"
+      - "renewable"
+      - "large-customer"
+    policy_types:
+      - "tariff"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Serves ~75% of Utah with 1+ million customers. Utah SB132 (signed 2025) creates new framework for large loads 100+ MW allowing RMP to contract individually with data centers requiring 50+ MW without affecting rates for existing customers. Utility has 90 days to evaluate large load impact. Third-party generators can serve large loads if RMP cannot. PSC implementing large load fee structure in Docket 25-R318-01.

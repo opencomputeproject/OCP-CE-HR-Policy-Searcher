@@ -6,4 +6,341 @@
 # =============================================================================
 
 domains:
-  # Add domain entries here as research is completed
+  - name: "Wisconsin Public Service Commission - Office of Energy Innovation"
+    id: "us_wi_psc_oei"
+    enabled: true
+    base_url: "https://psc.wi.gov"
+    start_paths:
+      - "/Pages/ServiceType/OfficeEnergyInnovation.aspx"
+    allowed_path_patterns:
+      - "/Pages/ServiceType/OfficeEnergyInnovation*"
+      - "/Pages/Programs/*"
+      - "/Documents/OEI/*"
+    blocked_path_patterns:
+      - "/ERF/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+      - "funding"
+      - "planning"
+    policy_types:
+      - "guidance"
+      - "incentive"
+      - "grant_program"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Office of Energy Innovation (OEI) houses State Energy Office per Wis. Stat.
+      196.025(7). Administers Focus on Energy statewide efficiency program.
+      Key programs: Grid Resilience Grant Program ($10M+), EECBG, Energy Innovation
+      Grant Program ($7.8M), Rural Energy Startup Program (RESP) for disadvantaged
+      communities, Critical Infrastructure Microgrid pilot grants ($900K).
+      2005 Wisconsin Act 141 requires IOUs spend 1.2% gross revenues on efficiency.
+      Municipal/co-op utilities collect $8/meter average. Quadrennial review process
+      sets goals (completed QP IV in 2022). Biennial Strategic Energy Assessment.
+      Microsoft and others expanding data center presence in Wisconsin.
+
+  - name: "Wisconsin Legislature - Energy Efficiency Rules"
+    id: "us_wi_leg_psc137"
+    enabled: true
+    base_url: "https://docs.legis.wisconsin.gov"
+    start_paths:
+      - "/code/admin_code/psc/137"
+      - "/code/admin_code/psc/137/01"
+    allowed_path_patterns:
+      - "/code/admin_code/psc/137*"
+      - "/statutes/statutes/196*"
+    blocked_path_patterns: []
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      PSC Chapter 137 - Statewide Energy Efficiency and Renewable Resource Programs.
+      Key sections: 137.05 (minimum requirements), 137.07 (large customer programs),
+      137.08 (voluntary utility programs), 137.09 (self-directed programs for large
+      customers >1,000 kWh monthly or >10,000 dekatherms). Wis. Stat. 196.374
+      establishes statutory framework. Wis. Stat. 196.491(2)(a) requires biennial
+      Strategic Energy Assessment. Total Resource Cost (TRC) primary cost-effectiveness
+      test with 10% environmental adder in societal cost test.
+
+  - name: "Wisconsin State Legislature"
+    id: "us_wisconsin_legislature"
+    enabled: true
+    base_url: "https://legis.wisconsin.gov"
+    start_paths:
+      - "/"
+    allowed_path_patterns:
+      - "/*"
+    blocked_path_patterns:
+      - "/lrb/*"  # Reference Bureau internal
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Wisconsin State Legislature main portal. 2025-2026 session active. Links to 
+      Senate, Assembly, Committees, Service Agencies (Legislative Audit Bureau, 
+      Legislative Council, Legislative Fiscal Bureau, Legislative Reference Bureau,
+      Legislative Technology Services Bureau). Email notification service available 
+      for bill tracking. Capitol location: 2 East Main St, Madison. Primary gateway
+      to docs.legis.wisconsin.gov for detailed bill text and committee information.
+      Simple HTML interface, does not require JavaScript for basic navigation.
+
+  - name: "Wisconsin Legislative Documents"
+    id: "us_wisconsin_legis_docs"
+    enabled: true
+    base_url: "https://docs.legis.wisconsin.gov"
+    start_paths:
+      - "/"
+      - "/2025/proposals"
+      - "/2025/committees/assembly/2918"  # Assembly Energy and Utilities Committee
+      - "/statutes/index/index/p/public_utilities"
+    allowed_path_patterns:
+      - "/2025/*"
+      - "/2024/*"
+      - "/statutes/*"
+      - "/document/*"
+    blocked_path_patterns:
+      - "/video/*"
+      - "/audio/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.5
+    category: "legislative"
+    tags:
+      - "legislation"
+      - "utilities"
+      - "energy"
+      - "psc"
+      - "renewable"
+    policy_types:
+      - "law"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Wisconsin Legislative Documents - comprehensive bills, statutes, administrative 
+      code. 2025 Assembly Committee on Energy and Utilities (Committee 2918) handles 
+      utility legislation including PSC authority, wind/solar siting, transmission,
+      battery storage, nuclear prioritization. Key 2025 bills: AB7/SB3 - local approval
+      for wind/solar before PSC approval; bills on transmission facilities, EV charging
+      tax exemptions. Wisconsin Statutes Chapter 196 (Public Utilities) - PSC authority
+      including 196.374 (energy efficiency), 196.491 (strategic energy assessment, 
+      generating facilities, transmission). Chapter 66.0401 - wind/solar siting.
+      Search by statute section, bill number, or browse by committee. JavaScript 
+      required for full functionality.
+
+  - name: "Wisconsin Administrative Code"
+    id: "us_wisconsin_admin_code"
+    enabled: true
+    base_url: "https://docs.legis.wisconsin.gov"
+    start_paths:
+      - "/code/"
+      - "/code/psc"  # Public Service Commission rules
+    allowed_path_patterns:
+      - "/code/*"
+    blocked_path_patterns:
+      - "/statutes/*"
+      - "/2025/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "regulations"
+      - "utilities"
+      - "energy"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-08"
+    notes: |
+      Wisconsin Administrative Code via Legislative Documents portal. PSC (Public 
+      Service Commission) Chapter 137 - Focus on Energy statewide efficiency program:
+      137.05 (minimum requirements), 137.07 (large customer programs), 137.08 
+      (voluntary utility programs), 137.09 (self-directed programs for customers 
+      >1,000 kWh monthly or >10,000 dekatherms). Wis. Stat. 196.374 enables PSC 
+      efficiency regulation; 2005 Wisconsin Act 141 requires IOUs spend 1.2% gross 
+      operating revenues on efficiency/renewables. Total Resource Cost (TRC) test
+      with 10% environmental adder per PSC rules. Focus on Energy delivered through
+      SEERA (Statewide Energy Efficiency and Renewables Administration) via 
+      competitive bid. Cross-reference with PSC dockets for pending rulemakings.
+
+  - name: "Wisconsin Economic Development Corporation"
+    id: "us_wisconsin_wedc"
+    enabled: true
+    base_url: "https://wedc.org"
+    start_paths:
+      - "/programs"
+      - "/programs/enterprise-zone-tax-credit"
+    allowed_path_patterns:
+      - "/programs/*"
+      - "/doing-business-in-wisconsin/*"
+    blocked_path_patterns:
+      - "/news/*"
+      - "/press/*"
+      - "/events/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "tax_credit"
+      - "job_creation"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-15"
+    notes: |
+      Wisconsin has NO specific data center tax incentive legislation. However, 
+      Enterprise Zone Tax Credits may apply to major data center expansions 
+      ($100M+ projects). WEDC approved $91.5M in total incentives FY2025 
+      (highest in 5 years). Enterprise Zones require WEDC designation and Joint 
+      Committee on Finance review. Qualified New Business Venture credits 
+      (25% of equity investment) may benefit early-stage tech. Microsoft has 
+      presence in state. Eli Lilly received $100M Enterprise Zone credits for 
+      $4B expansion (2025).
+
+  - name: "Focus on Energy - Wisconsin Statewide Energy Efficiency and Renewable Energy Program"
+    id: "us_wi_focus_on_energy_wisconsin_statewide_ener_63"
+    enabled: true
+    base_url: "https://focusonenergy.com"
+    start_paths:
+      - "/about/"
+      - "/business/"
+      - "/residential/"
+      - "/evaluation-reports/"
+      - "/financial-resources/"
+      - "/home-energy-rebates/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "rebates"
+      - "reporting"
+    policy_types:
+      - "incentive"
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      Wisconsin's statewide efficiency program funded by ratepayers (~$95M annually, 1.2% utility revenue). Administered by APTIM under PSC. Delivers IRA Home Energy Rebates ($149M allocation). Technology Investment Fund (TIF) provides loans up to $600K. Quadrennial review sets efficiency goals. Well-documented success stories and evaluation reports.
+
+  - name: "UW-Madison Facilities Planning & Management - Physical Plant"
+    id: "us_wi_uw_madison_facilities_planning_managemen_63"
+    enabled: true
+    base_url: "https://physicalplant.wisc.edu"
+    start_paths:
+      - "/service-areas/heating-cooling-plants/"
+      - "/about/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "university_thermal"
+    tags:
+      - "campus_energy"
+      - "efficiency"
+      - "sustainability"
+      - "heating_cooling"
+    policy_types:
+      - "report"
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      PRIORITY TARGET - Serves 330+ buildings including UW Hospital and VA Hospital. Charter Street Heating & Cooling Plant: Four 225,000 lb/hr natural gas/fuel oil boilers, 9.7 MW steam turbine generator. Walnut Street plant for additional capacity. West Campus Cogeneration (MGE operated). Uses Lake Mendota for cooling (500-600M gallons/year). 2020 AASHE recognition. Second Nature Resilience Commitment (2019).
+
+  - name: "Midcontinent Independent System Operator (MISO)"
+    id: "us_wi_midcontinent_independent_system_operator_64"
+    enabled: true
+    base_url: "https://www.misoenergy.org"
+    start_paths:
+      - "/planning/resource-utilization/generator-interconnection/"
+      - "/planning/transmission-planning/mtep/"
+      - "/planning/long-range-transmission-planning/"
+      - "/planning/resource-utilization/GI_Queue/"
+      - "/engage/stakeholder-feedback/"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "interconnection"
+      - "capacity"
+      - "planning"
+      - "queue"
+      - "large-load"
+    policy_types:
+      - "guidance"
+      - "report"
+      - "planning"
+    verified_by: "Deep Research"
+    verified_date: "2026-01-06"
+    notes: |
+      MISO faces major data center growth challenges—the 2023 cycle received 123 GW of interconnection requests. Implements queue cap of 50% of non-coincident peak load per study region. MTEP25 includes 435 projects supporting 11.6 GW spot load additions. Uses Expedited Project Review process for urgent large load additions outside standard MTEP cycle. Serves Iowa, Indiana (partial), Wisconsin, and parts of Montana.
