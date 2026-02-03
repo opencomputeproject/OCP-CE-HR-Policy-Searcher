@@ -1,0 +1,33 @@
+# =============================================================================
+# PENNSYLVANIA (PA)
+# =============================================================================
+# State abbreviation: PA
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Pennsylvania Department of Environmental Protection"
+    id: "pa_dep"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.dep.pa.gov"
+    start_paths:
+      - "/Business/Energy"
+      - "/Citizens/Energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "planning"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    notes: |
+      Gov. Shapiro's "Lightning Plan" for streamlined power approvals.
+      Part of PJM 4-state consortium (PA, MD, NJ, VA) with Data Center Coalition.
+

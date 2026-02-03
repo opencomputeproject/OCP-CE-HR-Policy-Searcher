@@ -2,7 +2,30 @@
 
 ## Current State
 
-### Just Completed: Add `region` Field to Domain Configuration (v0.2.0)
+### Just Completed: Split US Domains into Per-State Files
+
+**What was done:**
+- Split `config/domains/us_states.yaml` (19 entries, 16 states) into 50 individual per-state YAML files under `config/domains/us/`
+- Moved `config/domains/us_federal.yaml` into `config/domains/us/` subdirectory
+- Migrated all existing domain entries preserving exact YAML formatting
+- Created empty skeleton templates for 34 states without entries (ready for DeepResearch)
+- Fixed `_load_domains_directory()` in `loader.py:49` to handle `None` domains value (`content.get("domains") or []`)
+- Fixed Windows console `UnicodeEncodeError` in `notifications.py`
+- Enabled `context` keyword category in `keywords.yaml`
+
+**Files changed:**
+1. `config/domains/us/*.yaml` - 50 new per-state files + us_federal.yaml (moved)
+2. `config/domains/us_states.yaml` - DELETED (migrated)
+3. `config/domains/us_federal.yaml` - DELETED (moved to us/)
+4. `src/config/loader.py` - Fixed None domains handling
+5. `src/utils/notifications.py` - Fixed UnicodeEncodeError
+6. `config/keywords.yaml` - Enabled context category
+7. `CHANGELOG.md` - Updated [Unreleased]
+8. `README.md` - Updated directory tree and domain file references
+
+**Verification:** 150 domains load correctly, 507 tests pass.
+
+### Previously Completed: Add `region` Field to Domain Configuration (v0.2.0)
 
 **What was built:**
 - Added `region` field (list of strings) to every domain in all YAML files

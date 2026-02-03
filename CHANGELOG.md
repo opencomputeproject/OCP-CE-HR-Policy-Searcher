@@ -17,11 +17,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Region counts in `domain-stats` output
 - Updated `_template.yaml` with region field and documentation
 
+### Changed
+- Split `us_states.yaml` into 50 individual per-state YAML files under `config/domains/us/` (e.g., `texas.yaml`, `virginia.yaml`, `alabama.yaml`) to support incremental per-state research
+- Moved `us_federal.yaml` into `config/domains/us/` subdirectory alongside state files
+- Enabled `context` keyword category in `config/keywords.yaml` (data center terms now required in combination matching)
+
 ### Fixed
 - Suppress BeautifulSoup `XMLParsedAsHTMLWarning` when crawling XHTML/XML pages (e.g., German law database)
 - Fixed several country domain files (france, switzerland, austria, belgium, ireland) missing `domains:` YAML wrapper key
 - Fixed `switzerland.yaml` duplicate `domains:` key causing only last block to load (17 domains now load correctly)
 - Fixed `rejected_sites/uk.yaml` mixed format: merged bare list entries from DeepResearch output into proper `rejected_sites:` schema (27 entries)
+- Fixed domain loader crash on empty YAML domain files where `domains:` key parses as `None` instead of `[]`
+- Fixed Windows console `UnicodeEncodeError` in email notification error logging
 
 ## [0.1.0] - 2026-02-03
 
@@ -139,8 +146,8 @@ Initial release of the OCP Heat Reuse Policy Searcher.
 #### Domain Files Included
 - `eu.yaml` - European Union institutions and member states (15 domains)
 - `nordic.yaml` - Nordic countries (7 domains)
-- `us_federal.yaml` - US federal agencies (6 domains)
-- `us_states.yaml` - US state governments (19 domains)
+- `us/us_federal.yaml` - US federal agencies (6 domains)
+- `us/*.yaml` - 50 individual US state files (19 domains across 16 states; 34 states ready for research)
 - `apac.yaml` - Asia-Pacific region (6 domains)
 - `germany.yaml` - German federal law database and ministry FAQ (2 domains)
 - `denmark.yaml` - Danish Energy Agency heat policy (1 domain)

@@ -1,0 +1,33 @@
+# =============================================================================
+# NEW YORK (NY)
+# =============================================================================
+# State abbreviation: NY
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "New York State Energy Research and Development Authority"
+    id: "nyserda"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.nyserda.ny.gov"
+    start_paths:
+      - "/All-Programs/Energy-Efficiency"
+      - "/All-Programs/Clean-Energy-Businesses"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "incentive"
+      - "guidance"
+      - "report"
+    notes: "NY state energy efficiency incentives"
+

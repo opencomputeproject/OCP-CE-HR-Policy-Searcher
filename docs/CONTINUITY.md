@@ -168,9 +168,9 @@ RESPOND WITH JSON ONLY (no explanation):
 
 ## Current Status
 
-**Phase**: ALL COMPLETE + Region tagging + YAML structural fixes
-**Last Action**: Audited and fixed all YAML files under config/domains/ and config/rejected_sites/
-**Next Action**: None pending
+**Phase**: ALL COMPLETE + Region tagging + YAML structural fixes + Per-state file split
+**Last Action**: Split us_states.yaml into 50 per-state files, moved us_federal.yaml into us/ subdirectory
+**Next Action**: DeepResearch for remaining 34 empty state files
 **Blockers**: None
 
 **Summary of All Phases:**
@@ -192,6 +192,11 @@ RESPOND WITH JSON ONLY (no explanation):
   - Fixed `switzerland.yaml`: removed duplicate `domains:` key (17 domains now load, was losing entries)
   - Fixed `rejected_sites/uk.yaml`: merged bare DeepResearch list entries into proper `rejected_sites:` schema (27 entries, deduplicated)
   - All other files confirmed structurally correct
+- Split `us_states.yaml` into 50 individual per-state YAML files under `config/domains/us/`
+- Moved `us_federal.yaml` into `config/domains/us/` subdirectory
+- Fixed loader to handle empty domain files (`domains:` with comment parses as None)
+- Fixed Windows console UnicodeEncodeError in notification error logging
+- Enabled `context` keyword category in `keywords.yaml`
 - Total: 150 domains loading across all files, 507 tests passing
 
 ---

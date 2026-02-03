@@ -1,0 +1,31 @@
+# =============================================================================
+# WASHINGTON (WA)
+# =============================================================================
+# State abbreviation: WA
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Washington State Department of Commerce - Energy"
+    id: "wa_commerce"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.commerce.wa.gov"
+    start_paths:
+      - "/growing-the-economy/energy"
+      - "/energy/low-carbon-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "carbon"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    notes: "Renewable energy requirements, major data center presence"
+

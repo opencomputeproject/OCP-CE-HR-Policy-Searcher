@@ -1,0 +1,33 @@
+# =============================================================================
+# MARYLAND (MD)
+# =============================================================================
+# State abbreviation: MD
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Maryland Energy Administration"
+    id: "md_energy"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://energy.maryland.gov"
+    start_paths:
+      - "/business/Pages/incentives.aspx"
+      - "/Pages/Energy-Efficiency.aspx"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    notes: |
+      SB 0316 (failed): 75% of data center tax revenue to solar escrow.
+      Part of PJM consortium for data center fast-track approvals.
+

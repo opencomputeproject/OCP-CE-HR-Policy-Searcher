@@ -46,7 +46,7 @@ def _load_domains_directory(domains_dir: Path) -> list[dict]:
 
         try:
             content = _load_yaml(yaml_file)
-            domains = content.get("domains", [])
+            domains = content.get("domains") or []
             for domain in domains:
                 domain["_source_file"] = yaml_file.stem
             all_domains.extend(domains)

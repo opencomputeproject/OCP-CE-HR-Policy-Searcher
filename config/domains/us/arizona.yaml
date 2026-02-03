@@ -1,0 +1,30 @@
+# =============================================================================
+# ARIZONA (AZ)
+# =============================================================================
+# State abbreviation: AZ
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Arizona Corporation Commission"
+    id: "az_acc"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://azcc.gov"
+    start_paths:
+      - "/utilities"
+      - "/renewable-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    notes: "Growing Southwest data center market"
+

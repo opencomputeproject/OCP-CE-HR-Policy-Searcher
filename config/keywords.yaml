@@ -657,7 +657,7 @@ stricter_requirements:
       - subject       # Core heat reuse terms
       - policy_type   # Policy indicators
       - incentives    # Financial incentives
-      # - context     # Uncomment to include data center terms
+      - context     # Uncomment to include data center terms
       # - enabling    # Uncomment to include enabling action terms
 
   # ---------------------------------------------------------------------------

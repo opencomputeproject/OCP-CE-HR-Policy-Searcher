@@ -147,7 +147,12 @@ class EmailNotifier:
             return True
         except Exception as e:
             # Log but don't raise - notifications shouldn't break the main process
-            print(f"[WARN] Failed to send email notification: {e}")
+            try:
+                print(f"[WARN] Failed to send email notification: {e}")
+            except UnicodeEncodeError:
+                # Handle Windows console encoding issues
+                safe_msg = str(e).encode('ascii', errors='replace').decode('ascii')
+                print(f"[WARN] Failed to send email notification: {safe_msg}")
             return False
 
     def _create_message(self, notification: Notification) -> MIMEMultipart:

@@ -1,0 +1,31 @@
+# =============================================================================
+# CALIFORNIA (CA)
+# =============================================================================
+# State abbreviation: CA
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "California Energy Commission"
+    id: "ca_energy"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.energy.ca.gov"
+    start_paths:
+      - "/programs-and-topics/programs/building-energy-efficiency-standards"
+      - "/programs-and-topics/topics/data-centers"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "standard"
+      - "regulation"
+    notes: "California Title 24 and data center programs"
+

@@ -1,0 +1,34 @@
+# =============================================================================
+# NEW JERSEY (NJ)
+# =============================================================================
+# State abbreviation: NJ
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "New Jersey Board of Public Utilities"
+    id: "nj_bpu"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.nj.gov/bpu"
+    start_paths:
+      - "/commercial/energy.html"
+      - "/commercial/programs"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+      - "incentive"
+    notes: |
+      A.5462/S.4307: Special tariff for data centers, heat capture encouragement.
+      Part of PJM 4-state consortium.
+      Bowery Bay wastewater plant co-location proposals.
+

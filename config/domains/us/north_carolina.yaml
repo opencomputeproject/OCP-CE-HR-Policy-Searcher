@@ -1,0 +1,54 @@
+# =============================================================================
+# NORTH CAROLINA (NC)
+# =============================================================================
+# State abbreviation: NC
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "North Carolina Utilities Commission"
+    id: "nc_utilities"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.ncuc.gov"
+    start_paths:
+      - "/energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "planning"
+    policy_types:
+      - "regulation"
+    notes: |
+      85 data centers in state.
+      Technical conference on large load additions.
+      Duke Energy ACE tariffs for Amazon, Google, Microsoft.
+
+  - name: "North Carolina General Assembly"
+    id: "nc_legislature"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.ncleg.gov"
+    start_paths:
+      - "/BillLookup/2025/H638"
+      - "/BillLookup/2025/H1002"
+    max_depth: 1
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+    policy_types:
+      - "law"
+    notes: |
+      Track HB 638: Equitable Escalation of Electricity Demand Act.
+      Track HB 1002: Prohibits passing data center costs to ratepayers.
+

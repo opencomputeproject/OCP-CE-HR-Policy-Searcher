@@ -1,0 +1,58 @@
+# =============================================================================
+# TEXAS (TX)
+# =============================================================================
+# State abbreviation: TX
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Texas State Energy Conservation Office"
+    id: "tx_seco"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.seco.cpa.texas.gov"
+    start_paths:
+      - "/energy-efficiency"
+      - "/renewable-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    notes: |
+      Second-largest US data center market (329 facilities).
+      SB 2888 proposed: Energy conservation measures for tax exemptions.
+      DFW area has 159 data centers experiencing "data center boom".
+
+  - name: "Texas Legislature"
+    id: "tx_legislature"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://capitol.texas.gov"
+    start_paths:
+      - "/BillLookup/History.aspx?LegSess=89R&Bill=SB2888"
+      - "/BillLookup/History.aspx?LegSess=89R&Bill=HB4908"
+    max_depth: 1
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "incentives"
+    policy_types:
+      - "law"
+    notes: |
+      Track SB 2888: Tax exemption requirements with efficiency measures.
+      Track HB 4908: Revenue tax and Texas Prosperity Payout Fund.
+

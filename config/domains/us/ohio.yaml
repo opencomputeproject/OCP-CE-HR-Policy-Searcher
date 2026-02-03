@@ -1,0 +1,33 @@
+# =============================================================================
+# OHIO (OH)
+# =============================================================================
+# State abbreviation: OH
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Ohio Department of Development - Energy Office"
+    id: "oh_energy"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://development.ohio.gov"
+    start_paths:
+      - "/energy"
+      - "/business/energy-efficiency"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    notes: |
+      5th largest data center market nationally.
+      AEP requesting cost shift to new customers like data centers.
+

@@ -977,11 +977,14 @@ config/
 │   ├── _template.yaml     # Template for adding new domains
 │   ├── eu.yaml            # European Union
 │   ├── nordic.yaml        # Nordic countries
-│   ├── us_federal.yaml    # US federal agencies
-│   ├── us_states.yaml     # US state governments
 │   ├── apac.yaml          # Asia-Pacific
-│   └── uk/                # Subdirectories are supported
-│       └── government.yaml
+│   ├── us/                # US domains (federal + 50 state files)
+│   │   ├── us_federal.yaml
+│   │   ├── texas.yaml
+│   │   ├── virginia.yaml
+│   │   └── ... (all 50 states)
+│   └── uk/                # UK domains
+│       └── uk.yaml
 └── rejected_sites/        # Sites evaluated but not useful
     ├── _template.yaml     # Template for rejected sites
     ├── general.yaml       # General rejected sites
@@ -1334,7 +1337,7 @@ ruff check src/ && pytest -v
 
 ### Adding a New Domain
 
-1. Open the appropriate regional file in `config/domains/` (e.g., `us_states.yaml`)
+1. Open the appropriate regional file in `config/domains/` (e.g., `config/domains/us/texas.yaml`)
 2. Copy the template from `config/domains/_template.yaml`
 3. Fill in the domain details
 4. Test with: `python -m src.main --domains test --dry-run`

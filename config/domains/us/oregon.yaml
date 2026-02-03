@@ -1,0 +1,31 @@
+# =============================================================================
+# OREGON (OR)
+# =============================================================================
+# State abbreviation: OR
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Oregon Department of Energy"
+    id: "or_energy"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.oregon.gov/energy"
+    start_paths:
+      - "/energy-programs"
+      - "/data-center-program"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "guidance"
+    notes: "Pacific Northwest data center hub with renewable energy focus"
+

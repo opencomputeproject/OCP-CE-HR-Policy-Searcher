@@ -1,0 +1,34 @@
+# =============================================================================
+# MICHIGAN (MI)
+# =============================================================================
+# State abbreviation: MI
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Michigan Public Service Commission"
+    id: "mi_psc"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.michigan.gov/mpsc"
+    start_paths:
+      - "/electric"
+      - "/energy-programs"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+    notes: |
+      50+ data center facilities.
+      100% clean energy mandate by 2040.
+      DTE + Consumers Energy: 6.4 GW data center deals (Oct 2025).
+      Lansing Deep Green: Waste heat to municipal heating, PUE 1.03-1.17.
+

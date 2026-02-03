@@ -1,0 +1,32 @@
+# =============================================================================
+# GEORGIA (GA)
+# =============================================================================
+# State abbreviation: GA
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Georgia Environmental Protection Division"
+    id: "ga_epd"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://epd.georgia.gov"
+    start_paths:
+      - "/air-protection"
+      - "/water-protection"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "planning"
+      - "carbon"
+    policy_types:
+      - "regulation"
+    notes: |
+      Growing data center hub.
+      SB 34: Prohibits passing data center costs to customers.
+

@@ -1,0 +1,33 @@
+# =============================================================================
+# ILLINOIS (IL)
+# =============================================================================
+# State abbreviation: IL
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Illinois Commerce Commission"
+    id: "il_icc"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.icc.illinois.gov"
+    start_paths:
+      - "/electricity"
+      - "/energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "planning"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+    notes: |
+      4th largest data center market nationally.
+      Chicago Quantum & Microelectronics Park: closed-loop wastewater system.
+      Meta's 1.1 GW nuclear purchase agreement at Clinton facility.
+

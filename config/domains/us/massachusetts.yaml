@@ -1,0 +1,31 @@
+# =============================================================================
+# MASSACHUSETTS (MA)
+# =============================================================================
+# State abbreviation: MA
+# Region: us, us_states
+# =============================================================================
+
+domains:
+  - name: "Massachusetts Department of Energy Resources"
+    id: "ma_doer"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+    base_url: "https://www.mass.gov/orgs/department-of-energy-resources"
+    start_paths:
+      - "/energy-efficiency"
+      - "/renewable-energy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    notes: "Northeast data center market with aggressive climate goals"
+
