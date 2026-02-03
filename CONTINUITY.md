@@ -2,9 +2,34 @@
 
 ## Current State
 
-### Version: 0.2.4
+### Version: 0.3.0
 
-### Just Completed: Deduplicate uk.yaml Domain Entries
+### Just Completed: Verbose Pipeline Logging (`--verbose`)
+
+**What was done:**
+- Added detailed per-page diagnostic logging when `--verbose` flag is passed
+- New `RunLogger.detail()` method for indented subordinate log lines without timestamps
+- New `KeywordMatcher.get_failure_reason()` method returns the specific reason a page failed keyword filtering
+- Modified `run_batch()` in `main.py` to collect verbose data during the page loop (collect-then-log pattern) and output organized blocks after the loop
+- Uses `url_filter.check_url()` instead of `should_skip()` to get `FilterResult` with reason details
+- Verbose output covers all pipeline stages: URL pre-filter, keyword matching (passed/failed/near-misses), Haiku screening, Sonnet analysis
+- Near-miss reporting shows pages scoring >= 60% of keyword threshold, capped at 15 entries
+- Added `_short_url()` helper to truncate URL paths for display
+- Zero overhead when `--verbose` is not passed (all collection gated on `if verbose`)
+- 4 new tests for `get_failure_reason()` in `tests/unit/test_keywords.py`
+
+**Result:** 525 tests pass. Version bumped 0.2.4 → 0.3.0.
+
+**Files changed:**
+1. `src/logging/run_logger.py` - Added `detail()` method
+2. `src/analysis/keywords.py` - Added `get_failure_reason()` method
+3. `src/main.py` - Added `_short_url()` helper, verbose collection and output blocks in `run_batch()`
+4. `tests/unit/test_keywords.py` - Added `TestGetFailureReason` class with 4 tests
+5. `CHANGELOG.md` - Documented feature under [0.3.0]
+6. `CONTINUITY.md` - Updated current state
+7. `pyproject.toml` - Version bump 0.2.4 → 0.3.0
+
+### Previously Completed: Deduplicate uk.yaml Domain Entries
 
 **What was done:**
 - Removed 3 duplicate entries from `config/domains/uk.yaml`:

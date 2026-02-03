@@ -230,6 +230,15 @@ class RunLogger:
         self._write(f"  [{ts}] [ERROR] {msg}")
         self._log_json("error", message=msg, **kwargs)
 
+    def detail(self, msg: str, **kwargs) -> None:
+        """Log a detail line without timestamp, indented to align with info text.
+
+        Used for verbose output subordinate to a parent info() line.
+        The 13-space prefix aligns with the text after '  [HH:MM:SS] '.
+        """
+        self._write(f"             {msg}")
+        self._log_json("detail", message=msg, **kwargs)
+
     def end_run(
         self,
         stats: RunStats,

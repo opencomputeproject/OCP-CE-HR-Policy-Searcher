@@ -801,3 +801,68 @@ class TestCompoundWordIntegration:
         keywords_found = {m.keyword for m in result.matches}
         assert "Abwärme" in keywords_found or "Abwärmenutzung" in keywords_found
         assert "Rechenzentrum" in keywords_found or "Rechenzentren" in keywords_found
+
+
+# =============================================================================
+# GET_FAILURE_REASON TESTS
+# =============================================================================
+
+
+class TestGetFailureReason(TestStricterConfig):
+    """Tests for get_failure_reason method."""
+
+    def test_get_failure_reason_below_score(self, stricter_config):
+        """Should return score reason when score is below threshold."""
+        matcher = KeywordMatcher(stricter_config)
+        # Single low-weight keyword = below min score of 5.0
+        result = KeywordMatchResult(
+            matches=[KeywordMatch("data center", "context", 1.0, 1, "...")],
+            score=1.0,
+            unique_matches=1,
+        )
+
+        reason = matcher.get_failure_reason(result, 1000)
+        assert "Below min score" in reason
+        assert "5.0" in reason
+
+    def test_get_failure_reason_below_matches(self, stricter_config):
+        """Should return matches reason when unique matches below threshold."""
+        matcher = KeywordMatcher(stricter_config)
+        # High score but only 1 unique match (threshold is 2)
+        result = KeywordMatchResult(
+            matches=[KeywordMatch("waste heat", "subject", 3.0, 5, "...")],
+            score=15.0,
+            unique_matches=1,
+        )
+
+        reason = matcher.get_failure_reason(result, 1000)
+        assert "Below min matches" in reason
+        assert "2" in reason
+
+    def test_get_failure_reason_no_combination(self, stricter_config):
+        """Should return combination reason when no required combo satisfied."""
+        matcher = KeywordMatcher(stricter_config)
+        # Two subject keywords but no context/policy_type/incentives
+        result = KeywordMatchResult(
+            matches=[
+                KeywordMatch("waste heat", "subject", 3.0, 1, "..."),
+                KeywordMatch("heat recovery", "subject", 3.0, 1, "..."),
+            ],
+            score=6.0,
+            unique_matches=2,
+        )
+
+        reason = matcher.get_failure_reason(result, 1000)
+        assert "combination" in reason.lower()
+
+    def test_get_failure_reason_passes(self, stricter_config):
+        """Should return empty string when content passes all checks."""
+        matcher = KeywordMatcher(stricter_config)
+        text = (
+            "This data center waste heat recovery regulation requires "
+            "all facilities to implement heat reuse systems. "
+        ) * 10
+
+        result = matcher.match(text)
+        reason = matcher.get_failure_reason(result, len(text))
+        assert reason == ""

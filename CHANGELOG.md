@@ -7,7 +7,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-03
+
 ### Added
+- Verbose pipeline logging (`--verbose`): when enabled, logs per-page diagnostic details at every filtering stage (URL pre-filter, keyword matching, Haiku screening, Sonnet analysis) so users can understand exactly why pages were filtered out
+- `RunLogger.detail()` method for indented subordinate log lines without timestamps
+- `KeywordMatcher.get_failure_reason()` method that returns the specific reason a page failed keyword filtering
+- Near-miss reporting in verbose mode: shows pages that scored >= 60% of the keyword threshold but still failed, capped at 15 entries
 - Merged 117 domain entries from 5 Grid 6.x DeepResearch files into 8 per-state YAML files (IA, IN, NV, UT, SC, TN, MT, WI) covering energy offices, legislative systems, district heating/waste heat, grid operators/regulators, and economic development
 - Created `config/rejected_sites/us.yaml` with 24 rejected site entries sorted by state from all Grid 6.x files
 - Geographic `region` field on all domain YAML entries (list of strings: `eu`, `nordic`, `eu_central`, `eu_west`, `uk`, `us`, `us_states`, `apac`)

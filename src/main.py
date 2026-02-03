@@ -921,6 +921,26 @@ def cmd_list_runs(args) -> int:
     return 0
 
 
+def _short_url(url: str, max_len: int = 45) -> str:
+    """Extract URL path and truncate for display.
+
+    Args:
+        url: Full URL string
+        max_len: Maximum length of returned string
+
+    Returns:
+        URL path, truncated with '..' if too long
+    """
+    from urllib.parse import urlparse
+    try:
+        path = urlparse(url).path
+    except Exception:
+        path = url
+    if len(path) > max_len:
+        return path[:max_len - 2] + ".."
+    return path
+
+
 async def run_batch(
     domains: list,
     settings,
@@ -938,6 +958,8 @@ async def run_batch(
     Returns:
         Tuple of (crawl_results, policies)
     """
+    verbose = getattr(args, 'verbose', False)
+
     # Crawl
     crawler = AsyncCrawler(settings.crawl, domains, keyword_matcher, logger)
     crawl_results = await crawler.crawl_all()
@@ -950,22 +972,47 @@ async def run_batch(
     cache_hits = 0
     cache_skipped_not_relevant = 0
 
+    # Verbose collection lists
+    if verbose:
+        filtered_details = []       # (url, FilterResult)
+        kw_passed_details = []      # (url, KeywordMatchResult)
+        kw_failed_reasons = {}      # reason -> count
+        kw_near_misses = []         # (url, KeywordMatchResult, reason)
+        screening_details = []      # (url, ScreeningResult, passed)
+        analysis_details = []       # (url, PolicyAnalysis, accepted)
+
+        # Near-miss threshold: 60% of min score
+        min_score = keyword_matcher.thresholds.get("minimum_keyword_score", 5.0)
+        near_miss_threshold = min_score * 0.6
+
     for result in crawl_results:
         if not result.is_success:
             continue
 
         # URL pre-filtering (skip obviously irrelevant URLs before LLM)
-        if url_filter and url_filter.should_skip(result.url):
-            urls_filtered += 1
-            continue
+        if url_filter:
+            filter_result = url_filter.check_url(result.url)
+            if filter_result.should_skip:
+                urls_filtered += 1
+                if verbose:
+                    filtered_details.append((result.url, filter_result))
+                continue
 
         # Keyword check (with stricter requirements)
         content = result.content or ""
         kw_result = keyword_matcher.match(content)
         if not keyword_matcher.is_relevant(kw_result, len(content)):
+            if verbose:
+                reason = keyword_matcher.get_failure_reason(kw_result, len(content))
+                kw_failed_reasons[reason] = kw_failed_reasons.get(reason, 0) + 1
+                # Track near-misses: pages with score >= 60% of threshold
+                if kw_result.final_score >= near_miss_threshold and len(kw_near_misses) < 15:
+                    kw_near_misses.append((result.url, kw_result, reason))
             continue
 
         keywords_passed += 1
+        if verbose:
+            kw_passed_details.append((result.url, kw_result))
 
         # Check URL cache before LLM analysis
         content_hash = compute_content_hash(content) if url_cache else ""
@@ -983,7 +1030,7 @@ async def run_batch(
         # LLM analysis
         if claude_client:
             try:
-                # Two-stage analysis: Haiku screening → Sonnet extraction
+                # Two-stage analysis: Haiku screening -> Sonnet extraction
                 if settings.analysis.enable_two_stage:
                     screening = await claude_client.screen_relevance(
                         content,
@@ -991,7 +1038,10 @@ async def run_batch(
                         screening_model=settings.analysis.screening_model,
                         min_confidence=settings.analysis.screening_min_confidence,
                     )
-                    if not screening.relevant or screening.confidence < settings.analysis.screening_min_confidence:
+                    screening_passed = screening.relevant and screening.confidence >= settings.analysis.screening_min_confidence
+                    if verbose:
+                        screening_details.append((result.url, screening, screening_passed))
+                    if not screening_passed:
                         # Screened out - cache as not relevant and skip
                         if url_cache:
                             url_cache.set(
@@ -1019,7 +1069,11 @@ async def run_batch(
                         policy_type=analysis.policy_type if analysis.is_relevant else "",
                     )
 
-                if analysis.is_relevant and analysis.relevance_score >= settings.analysis.min_relevance_score:
+                accepted = analysis.is_relevant and analysis.relevance_score >= settings.analysis.min_relevance_score
+                if verbose:
+                    analysis_details.append((result.url, analysis, accepted))
+
+                if accepted:
                     policy = claude_client.to_policy(analysis, result.url, result.language or "unknown")
                     if policy:
                         policies.append(policy)
@@ -1044,7 +1098,7 @@ async def run_batch(
             except LLMParseError as e:
                 # Parse/validation errors
                 logger.warning(f"LLM parse error for {result.url}: {e}")
-                if args.verbose and e.raw_response:
+                if verbose and e.raw_response:
                     logger.info(f"  Raw response: {e.raw_response[:200]}...")
 
             except LLMServiceError as e:
@@ -1094,6 +1148,77 @@ async def run_batch(
                 f"Screening: {screening_stats['calls']} calls, "
                 f"{screening_stats['tokens_input']} input tokens"
             )
+
+    # ── Verbose output blocks ──────────────────────────────────────────
+    if verbose:
+        # URL pre-filter details
+        if filtered_details:
+            logger.info(f"URL pre-filter: skipped {len(filtered_details)} URLs (details)")
+            for url, fr in filtered_details:
+                reason_str = fr.reason or fr.rule_type or "unknown"
+                logger.detail(f"{_short_url(url):<47} -> {reason_str}")
+
+        # Keyword filtering details
+        kw_min_score = keyword_matcher.thresholds.get("minimum_keyword_score", 5.0)
+        kw_min_matches = keyword_matcher.thresholds.get("minimum_matches", 2)
+        combo_cfg = keyword_matcher.stricter.get("required_combinations", {})
+        combo_enabled = combo_cfg.get("enabled", False)
+
+        logger.info(f"Keywords: {keywords_passed}/{after_filter} pages passed (details)")
+        logger.detail(
+            f"Thresholds: score>={kw_min_score}  matches>={kw_min_matches}  "
+            f"combinations={'required' if combo_enabled else 'disabled'}"
+        )
+
+        if kw_passed_details:
+            logger.detail("")
+            logger.detail(f"PASSED ({len(kw_passed_details)}):")
+            for url, kr in kw_passed_details:
+                cats = ",".join(sorted(kr.categories_matched))
+                boost_str = f"  boost=+{kr.boost_applied}" if kr.boost_applied > 0 else ""
+                penalty_str = f"  penalty=-{kr.penalty_applied}" if kr.penalty_applied > 0 else ""
+                logger.detail(
+                    f"  {_short_url(url):<45} score={kr.final_score:<5.1f} "
+                    f"matches={kr.unique_matches}  cats={{{cats}}}{boost_str}{penalty_str}"
+                )
+
+        if kw_failed_reasons:
+            logger.detail("")
+            logger.detail("FAILED by reason:")
+            for reason, count in sorted(kw_failed_reasons.items(), key=lambda x: -x[1]):
+                logger.detail(f"  {reason:<45} {count} pages")
+
+        if kw_near_misses:
+            logger.detail("")
+            logger.detail(f"Near misses (score>={near_miss_threshold:.1f}, {len(kw_near_misses)} pages):")
+            for url, kr, reason in kw_near_misses:
+                cats = ",".join(sorted(kr.categories_matched)) if kr.categories_matched else "none"
+                logger.detail(
+                    f"  {_short_url(url):<45} score={kr.final_score:<5.1f} "
+                    f"matches={kr.unique_matches}  cats={{{cats}}}  [{reason}]"
+                )
+
+        # Screening details
+        if screening_details:
+            logger.info(f"Screening: {len(screening_details)} pages (details)")
+            for url, sr, passed in screening_details:
+                status = "PASS" if passed else "FAIL"
+                threshold_note = "" if passed else f"  [below threshold {settings.analysis.screening_min_confidence}]"
+                logger.detail(
+                    f"  {status} {_short_url(url):<43} confidence={sr.confidence}{threshold_note}"
+                )
+
+        # Analysis details
+        if analysis_details:
+            logger.info(f"Analysis: {len(analysis_details)} pages (details)")
+            for url, ar, accepted in analysis_details:
+                status = "PASS" if accepted else "FAIL"
+                explanation = ""
+                if hasattr(ar, 'relevance_explanation') and ar.relevance_explanation:
+                    explanation = f'  "{ar.relevance_explanation[:60]}"'
+                logger.detail(
+                    f"  {status} {_short_url(url):<43} relevance={ar.relevance_score}{explanation}"
+                )
 
     # Return batch stats along with results
     batch_stats = {

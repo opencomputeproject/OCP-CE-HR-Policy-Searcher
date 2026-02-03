@@ -357,6 +357,36 @@ class KeywordMatcher:
 
         return True
 
+    def get_failure_reason(
+        self, result: KeywordMatchResult, content_length: int = 0
+    ) -> str:
+        """Return the first reason a match result would fail is_relevant().
+
+        Mirrors the check order in is_relevant() so the reason matches
+        the actual gate that rejected the page.
+
+        Args:
+            result: KeywordMatchResult from match()
+            content_length: Length of content for density calculation
+
+        Returns:
+            Reason string (e.g. "Below min score (5.0)"), or "" if it passes
+        """
+        min_score = self.thresholds.get("minimum_keyword_score", 5.0)
+        min_matches = self.thresholds.get("minimum_matches", 2)
+
+        if result.final_score < min_score:
+            return f"Below min score ({min_score})"
+
+        if result.unique_matches < min_matches:
+            return f"Below min matches ({min_matches})"
+
+        stricter_result = self.check_stricter_requirements(result, content_length)
+        if not stricter_result.passed:
+            return stricter_result.reason
+
+        return ""
+
     def get_filter_stats(
         self, result: KeywordMatchResult, content_length: int
     ) -> dict:
