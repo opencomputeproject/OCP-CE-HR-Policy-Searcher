@@ -1,0 +1,37 @@
+
+# =============================================================================
+# SWEDEN - CONFIRMED DATA CENTER REPORTING
+# =============================================================================
+
+domains:
+  - name: "Swedish Energy Agency - Data Center Reporting"
+    id: "energimyndigheten_dc"
+    enabled: true
+    base_url: "https://www.energimyndigheten.se"
+    start_paths:
+      - "/en/sustainability/data-centers-energy-performance/"
+      - "/en/climate/climate/data-centre-energy-performance-reporting/"
+      - "/effektiv-energianvandning/foretag/rapportering-av-datacenters-energiprestanda/"
+    allowed_path_patterns:
+      - "/en/sustainability/*"
+      - "/en/climate/*"
+      - "/effektiv-energianvandning/*datacenter*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "reporting"
+      - "efficiency"
+      - "heat_reuse"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    notes: |
+      CONFIRMED WORKING - Sweden's data center energy reporting page.
+      Law 2025:570 requires reporting for 500kW+ facilities.
+      Article 26.6 waste heat requirement in consultation (Nov 2025).
+      Sweden is national coordinator for EU database.
+      Keywords: spillvärme, datacenter, energiprestanda
+      Both Swedish and English versions available.

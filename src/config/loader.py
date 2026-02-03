@@ -47,6 +47,8 @@ def _load_domains_directory(domains_dir: Path) -> list[dict]:
         try:
             content = _load_yaml(yaml_file)
             domains = content.get("domains", [])
+            for domain in domains:
+                domain["_source_file"] = yaml_file.stem
             all_domains.extend(domains)
         except Exception as e:
             raise ConfigurationError(f"Error loading {yaml_file}: {e}")
@@ -234,17 +236,17 @@ def load_settings(
 
 
 def get_enabled_domains(domains_config: dict, group: str = "all") -> list[dict]:
-    """Get domains for a group.
+    """Get domains for a group or domain file.
 
     Args:
         domains_config: Configuration dict with 'domains' and 'groups' keys
-        group: Group name (default "all" returns all enabled domains)
+        group: Group name, domain file name, or "all" (default)
 
     Returns:
-        List of domain dicts matching the group
+        List of domain dicts matching the group or file
 
     Raises:
-        ConfigurationError: If group doesn't exist
+        ConfigurationError: If group/file doesn't exist
     """
     all_domains = {d["id"]: d for d in domains_config.get("domains", [])}
 
@@ -253,10 +255,25 @@ def get_enabled_domains(domains_config: dict, group: str = "all") -> list[dict]:
 
     groups = domains_config.get("groups", {})
     if group not in groups:
-        available = ", ".join(sorted(groups.keys()))
-        raise ConfigurationError(
-            f"Unknown group: '{group}'. Available groups: {available}"
+        # Fallback: try matching as a domain file name
+        file_domains = [
+            d for d in all_domains.values()
+            if d.get("_source_file") == group and d.get("enabled", True)
+        ]
+        if file_domains:
+            return file_domains
+
+        # Neither group nor file matched
+        available_groups = ", ".join(sorted(groups.keys()))
+        available_files = sorted(
+            {d["_source_file"] for d in all_domains.values() if "_source_file" in d}
+            - set(groups.keys())
         )
+        msg = f"Unknown group or file: '{group}'."
+        msg += f"\n  Available groups: {available_groups}"
+        if available_files:
+            msg += f"\n  Available domain files: {', '.join(available_files)}"
+        raise ConfigurationError(msg)
 
     group_ids = groups[group].get("domains", [])
 
@@ -281,6 +298,20 @@ def list_groups(domains_config: dict) -> dict[str, str]:
         name: config.get("description", "No description")
         for name, config in groups.items()
     }
+
+
+def get_available_domain_files(domains_config: dict) -> dict[str, int]:
+    """List available domain file names with enabled domain counts.
+
+    Returns:
+        Dict mapping file stem to count of enabled domains in that file.
+    """
+    file_counts: dict[str, int] = {}
+    for d in domains_config.get("domains", []):
+        source = d.get("_source_file")
+        if source and d.get("enabled", True):
+            file_counts[source] = file_counts.get(source, 0) + 1
+    return dict(sorted(file_counts.items()))
 
 
 def list_domains(domains_config: dict) -> list[dict]:

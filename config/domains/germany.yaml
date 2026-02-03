@@ -1,0 +1,65 @@
+# =============================================================================
+# GERMANY - CONFIRMED DATA CENTER HEAT REUSE LAW (EnEfG)
+# =============================================================================
+# Germany's 2023 Energy Efficiency Act has MANDATORY heat reuse requirements
+# for data centers. This is the strongest validation target.
+# =============================================================================
+
+domains:
+  - name: "Germany Federal Law Database - EnEfG"
+    id: "gesetze_enefg"
+    enabled: true
+    base_url: "https://www.gesetze-im-internet.de"
+    start_paths:
+      - "/enefg/"
+      - "/enefg/__11.html"  # Climate-neutral data centers requirements
+      - "/enefg/__12.html"  # Energy management systems
+      - "/enefg/__13.html"  # Information disclosure requirements
+      - "/enefg/__14.html"  # Energy efficiency registry
+      - "/enefg/anlage_3.html"  # Reporting requirements annex
+    allowed_path_patterns:
+      - "/enefg/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "efficiency"
+      - "reporting"
+      - "heat_reuse"
+    policy_types:
+      - "law"
+      - "regulation"
+    notes: |
+      CONFIRMED WORKING - German Energy Efficiency Act (EnEfG) 2023.
+      §11 requires 10-20% heat reuse for data centers (phased in 2026-2028).
+      §12 mandates energy/environmental management systems.
+      §13 requires annual public reporting of energy performance.
+      §14 establishes national energy efficiency registry.
+      Keywords: Rechenzentren, wiederverwendeter Energie, Abwärme, Energieeffizienz
+
+  - name: "Germany BMWK - Data Center FAQ"
+    id: "bmwk_rechenzentren"
+    enabled: true
+    base_url: "https://www.bmwk.de"
+    start_paths:
+      - "/RZReg/Downloads/faq-anforderungen-rechenzentren-im-enefg.html"
+    allowed_path_patterns:
+      - "/RZReg/*"
+      - "/Redaktion/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "guidance"
+      - "reporting"
+    policy_types:
+      - "guidance"
+    notes: |
+      CONFIRMED WORKING - Ministry FAQ on EnEfG data center requirements.
+      Practical implementation guidance for operators.
+      Links to registry and reporting requirements.

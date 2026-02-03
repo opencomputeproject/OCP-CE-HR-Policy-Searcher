@@ -1,0 +1,35 @@
+
+# =============================================================================
+# DENMARK - CONFIRMED HEAT POLICY FRAMEWORK
+# =============================================================================
+
+domains:
+  - name: "Danish Energy Agency - Heat"
+    id: "ens_dk_heat"
+    enabled: true
+    base_url: "https://ens.dk"
+    start_paths:
+      - "/en/supply-and-consumption/heat"
+      - "/en/our-responsibilities/heat"
+    allowed_path_patterns:
+      - "/en/supply-and-consumption/*"
+      - "/en/our-responsibilities/*"
+      - "/media/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "district_heating"
+      - "planning"
+    policy_types:
+      - "guidance"
+      - "regulation"
+    notes: |
+      CONFIRMED WORKING - Danish Energy Agency heat policy section.
+      Heat Supply Act framework.
+      Municipality heat planning requirements.
+      Apple/Facebook data centers supply district heating under this framework.
+      English version available.
+      Keywords: fjernvarme, overskudsvarme, heat supply

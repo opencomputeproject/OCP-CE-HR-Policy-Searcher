@@ -12,6 +12,7 @@ import yaml
 from .config.loader import (
     load_settings,
     get_enabled_domains,
+    get_available_domain_files,
     list_groups,
     list_domains,
     ConfigurationError,
@@ -120,7 +121,7 @@ Examples:
     )
     estimate_parser.add_argument(
         "--domains", default="all",
-        help="Domain group to estimate (default: all)"
+        help="Domain group or file name to estimate (default: all)"
     )
     estimate_parser.add_argument(
         "--pages-per-domain", type=int, default=50,
@@ -202,7 +203,7 @@ Examples:
 
     # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
-    parser.add_argument("--domains", default="all", help="Domain group to scan (use 'list-groups' to see options)")
+    parser.add_argument("--domains", default="all", help="Domain group or file name to scan (use 'list-groups' to see options)")
     parser.add_argument("--dry-run", action="store_true", help="Don't write to Sheets")
     parser.add_argument("--skip-llm", action="store_true", help="Skip LLM analysis")
     parser.add_argument("--verbose", "-v", action="store_true")
@@ -380,7 +381,7 @@ def cmd_list_rejected(args) -> int:
 
 
 def cmd_list_groups(args) -> int:
-    """List available domain groups."""
+    """List available domain groups and file names."""
     try:
         _, domains_config, _ = load_settings()
         groups = list_groups(domains_config)
@@ -392,7 +393,17 @@ def cmd_list_groups(args) -> int:
         for name, desc in sorted(groups.items()):
             print(f"  {name:<20} {desc}")
 
-        print(f"\nUsage: python -m src.main --domains <group_name>")
+        # Show domain files that aren't already group names
+        file_counts = get_available_domain_files(domains_config)
+        file_only = {f: c for f, c in file_counts.items() if f not in groups}
+        if file_only:
+            print("\nDomain files (also usable with --domains):\n")
+            print(f"  {'File':<20} {'Domains'}")
+            print(f"  {'-'*20} {'-'*10}")
+            for name, count in sorted(file_only.items()):
+                print(f"  {name:<20} {count} domain{'s' if count != 1 else ''}")
+
+        print("\nUsage: python -m src.main --domains <group_or_file>")
         return 0
     except Exception as e:
         print(f"Error: {e}")

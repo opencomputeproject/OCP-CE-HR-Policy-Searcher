@@ -151,7 +151,7 @@ python -m src.main [OPTIONS]
 ```
 
 **Options:**
-- `--domains GROUP` - Domain group to scan (see groups below)
+- `--domains GROUP` - Domain group or file name to scan (see below)
 - `--dry-run` - Don't write to Google Sheets (testing mode)
 - `--skip-llm` - Use keyword matching only (no Claude API calls)
 - `--verbose` - Enable verbose logging
@@ -188,6 +188,20 @@ Testing:
 - `sample_nordic` - Sample Nordic countries (3 domains)
 - `sample_apac` - Sample APAC countries (2 domains)
 
+**Domain Files (no group entry needed):**
+
+You can also use the name of any domain file in `config/domains/` directly. This is useful when you add a new file and want to scan just those domains without editing `groups.yaml`:
+
+```bash
+# Scan all domains from config/domains/germany.yaml
+python -m src.main --domains germany
+
+# Scan all domains from config/domains/denmark.yaml
+python -m src.main --domains denmark
+```
+
+When a name matches both a group and a file (e.g., `eu`), the group takes priority. Use `list-groups` to see all available groups and domain files.
+
 ### Examples
 
 ```bash
@@ -196,6 +210,9 @@ python -m src.main --domains eu
 
 # Nordic countries (heat reuse leaders)
 python -m src.main --domains nordic
+
+# Scan domains from a specific file (no group needed)
+python -m src.main --domains germany --dry-run
 
 # Asia-Pacific region
 python -m src.main --domains apac --skip-llm

@@ -10,6 +10,7 @@ import yaml
 from src.config.loader import (
     load_settings,
     get_enabled_domains,
+    get_available_domain_files,
     list_groups,
     list_domains,
     ConfigurationError,
@@ -114,6 +115,35 @@ domains:
 
         assert result == []
 
+    def test_domains_tagged_with_source_file(self, tmp_path):
+        """Should tag each domain with _source_file matching the file stem."""
+        domains_dir = tmp_path / "domains"
+        domains_dir.mkdir()
+
+        (domains_dir / "germany.yaml").write_text("""
+domains:
+  - id: domain_de1
+    name: German Domain 1
+    base_url: https://de1.com
+  - id: domain_de2
+    name: German Domain 2
+    base_url: https://de2.com
+""")
+        (domains_dir / "france.yaml").write_text("""
+domains:
+  - id: domain_fr1
+    name: French Domain 1
+    base_url: https://fr1.com
+""")
+
+        result = _load_domains_directory(domains_dir)
+
+        assert len(result) == 3
+        # Files loaded in sorted order: france.yaml then germany.yaml
+        assert result[0]["_source_file"] == "france"
+        assert result[1]["_source_file"] == "germany"
+        assert result[2]["_source_file"] == "germany"
+
 
 class TestGetEnabledDomains:
     """Tests for get_enabled_domains function."""
@@ -210,6 +240,85 @@ class TestGetEnabledDomains:
         assert len(result) == 1
         assert result[0]["id"] == "enabled"
 
+    def test_file_name_fallback(self):
+        """Should return domains from matching file when group doesn't exist."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": True, "_source_file": "germany"},
+                {"id": "d2", "enabled": True, "_source_file": "germany"},
+                {"id": "d3", "enabled": True, "_source_file": "france"},
+            ],
+            "groups": {
+                "eu": {"domains": ["d1", "d3"]},
+            },
+        }
+
+        result = get_enabled_domains(config, "germany")
+
+        assert len(result) == 2
+        ids = [d["id"] for d in result]
+        assert "d1" in ids
+        assert "d2" in ids
+        assert "d3" not in ids
+
+    def test_group_takes_priority_over_file(self):
+        """Group should take priority when name matches both group and file."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": True, "_source_file": "eu"},
+                {"id": "d2", "enabled": True, "_source_file": "eu"},
+                {"id": "d3", "enabled": True, "_source_file": "eu"},
+            ],
+            "groups": {
+                "eu": {
+                    "description": "EU group",
+                    "domains": ["d1"],  # Group only includes d1
+                },
+            },
+        }
+
+        result = get_enabled_domains(config, "eu")
+
+        # Should use group (1 domain), not file (3 domains)
+        assert len(result) == 1
+        assert result[0]["id"] == "d1"
+
+    def test_file_fallback_skips_disabled(self):
+        """File-name matching should skip disabled domains."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": True, "_source_file": "germany"},
+                {"id": "d2", "enabled": False, "_source_file": "germany"},
+            ],
+            "groups": {},
+        }
+
+        result = get_enabled_domains(config, "germany")
+
+        assert len(result) == 1
+        assert result[0]["id"] == "d1"
+
+    def test_error_shows_available_files(self):
+        """Error should show both groups and available file names."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": True, "_source_file": "germany"},
+                {"id": "d2", "enabled": True, "_source_file": "france"},
+            ],
+            "groups": {
+                "eu": {"domains": ["d1"]},
+            },
+        }
+
+        with pytest.raises(ConfigurationError) as exc_info:
+            get_enabled_domains(config, "nonexistent")
+
+        error_msg = str(exc_info.value)
+        assert "nonexistent" in error_msg
+        assert "eu" in error_msg  # group listed
+        assert "germany" in error_msg  # file listed (not a group name)
+        assert "france" in error_msg  # file listed (not a group name)
+
 
 class TestListGroups:
     """Tests for list_groups function."""
@@ -249,6 +358,59 @@ class TestListGroups:
         result = list_groups(config)
 
         assert result == {}
+
+
+class TestGetAvailableDomainFiles:
+    """Tests for get_available_domain_files function."""
+
+    def test_returns_file_counts(self):
+        """Should return file names with enabled domain counts."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": True, "_source_file": "germany"},
+                {"id": "d2", "enabled": True, "_source_file": "germany"},
+                {"id": "d3", "enabled": True, "_source_file": "france"},
+            ],
+        }
+
+        result = get_available_domain_files(config)
+
+        assert result == {"france": 1, "germany": 2}
+
+    def test_excludes_disabled(self):
+        """Should not count disabled domains."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": True, "_source_file": "germany"},
+                {"id": "d2", "enabled": False, "_source_file": "germany"},
+                {"id": "d3", "enabled": True, "_source_file": "france"},
+            ],
+        }
+
+        result = get_available_domain_files(config)
+
+        assert result == {"france": 1, "germany": 1}
+
+    def test_empty_domains(self):
+        """Should return empty dict when no domains."""
+        config = {"domains": []}
+
+        result = get_available_domain_files(config)
+
+        assert result == {}
+
+    def test_domains_without_source_file(self):
+        """Should skip domains without _source_file tag."""
+        config = {
+            "domains": [
+                {"id": "d1", "enabled": True},
+                {"id": "d2", "enabled": True, "_source_file": "germany"},
+            ],
+        }
+
+        result = get_available_domain_files(config)
+
+        assert result == {"germany": 1}
 
 
 class TestListDomains:
@@ -328,3 +490,21 @@ class TestLoadSettingsIntegration:
         quick_domains = get_enabled_domains(domains_config, "quick")
 
         assert len(quick_domains) == 2
+
+    def test_file_targeting_germany(self):
+        """Should get Germany-specific domains via file name."""
+        _, domains_config, _ = load_settings()
+
+        germany_domains = get_enabled_domains(domains_config, "germany")
+
+        assert len(germany_domains) >= 1
+        # All should come from germany.yaml
+        for d in germany_domains:
+            assert d.get("_source_file") == "germany"
+
+    def test_domains_have_source_file_tags(self):
+        """All domains should have _source_file tags after loading."""
+        _, domains_config, _ = load_settings()
+
+        for d in domains_config["domains"]:
+            assert "_source_file" in d, f"Domain {d['id']} missing _source_file tag"
