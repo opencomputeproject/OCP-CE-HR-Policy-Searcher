@@ -26,6 +26,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Enabled `context` keyword category in `config/keywords.yaml` (data center terms now required in combination matching)
 
 ### Fixed
+- Removed 3 duplicate entries from `config/domains/uk.yaml`: first `uk_legislation` (less complete, kept second with more start_paths), `nwf_uk` (empty stub of `uk_national_wealth_fund`), `dfe_ni` (empty stub of `uk_ni_economy`). UK domains: 77 → 74.
 - Fixed `config/domains/us/california.yaml` structure: 17 domain entries from Deep Research were bare YAML list items at root level (outside the `domains:` key) and missing `enabled: true`. Restructured all entries under `domains:` with standard schema fields (`region`, `category`, `tags`, `rate_limit_seconds`). California domains went from 1 to 20 (total domains: 248 → 266).
 - Fixed keyword matching for compound-word languages (German, Dutch, Swedish, Danish) by using substring matching instead of `\b` word boundaries for `de`, `nl`, `sv`, `da` patterns. Previously, keywords like "Abwärme" and "Rechenzentrum" failed to match inside compound words like "Rechenzentrumsabwärme", causing 0% keyword pass rate on German pages.
 - Suppress BeautifulSoup `XMLParsedAsHTMLWarning` when crawling XHTML/XML pages (e.g., German law database)

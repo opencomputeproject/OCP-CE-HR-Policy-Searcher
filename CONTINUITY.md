@@ -4,7 +4,23 @@
 
 ### Version: 0.2.4
 
-### Just Completed: Fix California Domain YAML Structure
+### Just Completed: Deduplicate uk.yaml Domain Entries
+
+**What was done:**
+- Removed 3 duplicate entries from `config/domains/uk.yaml`:
+  1. First `uk_legislation` entry (less complete) — kept second entry with more start_paths, `enabled: true`, allowed/blocked path patterns
+  2. `nwf_uk` — empty stub duplicate of `uk_national_wealth_fund`
+  3. `dfe_ni` — empty stub duplicate of `uk_ni_economy`
+- Entries sharing a base_url but with different IDs and different crawl focus were kept (intentional separate crawl targets)
+
+**Result:** UK domains: 77 → 74. Total enabled domains: 264. 521 tests pass.
+
+**Files changed:**
+1. `config/domains/uk.yaml` - Removed 3 duplicate entries
+2. `CHANGELOG.md` - Documented fix
+3. `CONTINUITY.md` - Updated current state
+
+### Previously Completed: Fix California Domain YAML Structure
 
 **What was done:**
 - Restructured `config/domains/us/california.yaml`: 17 domain entries from Deep Research were bare YAML list items at root level (outside the `domains:` key) and missing `enabled: true`

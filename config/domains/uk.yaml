@@ -255,38 +255,6 @@ domains:
 
   ### Legislative and Specialized Bodies
 
-  - name: UK Legislation
-    id: uk_legislation
-    base_url: https://www.legislation.gov.uk
-    start_paths:
-      - /ukpga/2023/52  # Energy Act 2023
-      - /asp/2021/9     # Heat Networks (Scotland) Act 2021
-      - /uksi/2014/3120 # Heat Network Metering Regulations
-      - /ssi/2023/123   # Heat Network Zones Scotland Regs
-      - /new/uk
-    language: en
-    region:
-      - "uk"
-    requires_playwright: false
-    category: legislation
-    tags:
-      - primary_legislation
-      - secondary_legislation
-      - statutory_instruments
-    policy_types:
-      - Energy Act 2023 (heat network zoning powers)
-      - Heat Networks (Scotland) Act 2021
-      - Heat Network (Metering and Billing) Regulations 2014
-      - Climate Change Act 2008
-      - Environment (Wales) Act 2016
-      - Climate Change (Northern Ireland) Act 2022
-    notes: >
-      Official UK legislation repository. Essential for tracking enacted
-      laws vs consultations/guidance. Energy Act 2023 provides heat network
-      zoning and regulation powers. Heat Networks (Scotland) Act 2021 is
-      primary Scottish heat network law. Server-rendered, no JS required.
-      XML and PDF formats available for all legislation.
-
   - name: National Wealth Fund
     id: uk_national_wealth_fund
     base_url: https://www.nationalwealthfund.org.uk
@@ -1913,29 +1881,6 @@ domains:
   # NATIONAL INVESTMENT BODIES
   # -------------------------------------------
 
-  - name: "National Wealth Fund"
-    id: "nwf_uk"
-    country: "United Kingdom"
-    region:
-      - "uk"
-    base_url: "https://www.nationalwealthfund.org.uk"
-    recommended_start_paths:
-      - "/news"
-      - "/About-us"
-    language: "en"
-    justification: |
-      UK's primary public investment vehicle for net zero infrastructure. £27.8bn 
-      capitalization. Offers £4bn local authority lending at gilts+40bps. Streamlined 
-      access for GHNF applicants. Supports heat networks, grid upgrades, carbon capture.
-      Old Oak data center heat network received support via GLA Green Finance Fund.
-    requires_playwright: false
-    confidence: HIGH
-    estimated_rate_limit: 2.0
-    notes: |
-      Replaced UK Infrastructure Bank (UKIB) in October 2024.
-      Key for local authority heat network financing.
-      Partners with DESNZ on heat network projects.
-
   - name: "British Business Bank"
     id: "bbb_uk"
     country: "United Kingdom"
@@ -2234,27 +2179,6 @@ domains:
     notes: |
       Gateway to all NI business support.
       Links to Invest NI programs.
-
-  - name: "Department for the Economy Northern Ireland"
-    id: "dfe_ni"
-    country: "Northern Ireland"
-    region:
-      - "uk"
-    base_url: "https://www.economy-ni.gov.uk"
-    recommended_start_paths:
-      - "/articles/energy"
-      - "/news"
-    language: "en"
-    justification: |
-      NI government department responsible for energy policy and economic 
-      development. Energy Strategy mandate: 25% energy consumption reduction 
-      by 2030. Sets policy direction for Invest NI schemes.
-    requires_playwright: false
-    confidence: HIGH
-    estimated_rate_limit: 2.0
-    notes: |
-      Policy lead for NI energy efficiency.
-      EECG administered by Invest NI on their behalf.
 
   - name: "Northern Ireland Sustainable Energy Programme (NISEP)"
     id: "nisep_ni"
