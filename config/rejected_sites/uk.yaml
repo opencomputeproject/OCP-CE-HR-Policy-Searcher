@@ -1,0 +1,126 @@
+rejected_sites:
+  # News and Trade Media
+  - url: https://www.datacenterdynamics.com
+    evaluated_date: '2026-02-03'
+    reason: Industry news site, not official government source
+    reconsider_if: null
+
+  - url: https://www.hvnplus.co.uk
+    evaluated_date: '2026-02-03'
+    reason: Trade press, not official government source
+
+  - url: https://www.constructionenquirer.com
+    evaluated_date: '2026-02-03'
+    reason: Industry news, not official government source
+
+  # Industry Associations
+  - url: https://www.techuk.org
+    evaluated_date: '2026-02-03'
+    reason: Trade body; administers CCA for data centers but not government
+    reconsider_if: They publish binding policy documents rather than advocacy
+
+  - url: https://www.energy-uk.org.uk
+    evaluated_date: '2026-02-03'
+    reason: Energy industry trade body, not government
+
+  - url: https://www.theade.co.uk
+    evaluated_date: '2026-02-03'
+    reason: Heat network trade body (Association for Decentralised Energy), not government
+    reconsider_if: Government formally designates as standards body
+
+  - url: https://www.heatnic.uk
+    evaluated_date: '2026-02-03'
+    reason: Government-industry advisory body, not primary policy source
+    reconsider_if: They become a formal regulatory or standards body
+
+  - url: https://www.eudca.org
+    evaluated_date: '2026-02-03'
+    reason: EU-level industry body (European Data Centre Association), not government
+
+  - url: https://www.thebesa.com
+    evaluated_date: '2026-01-06'
+    reason: Industry trade body (Building Engineering Services Association), not official government policy
+
+  - url: https://www.heatpumps.org.uk
+    evaluated_date: '2026-01-06'
+    reason: Industry trade association (Heat Pump Association), not government policy source
+
+  - url: https://www.datacentrealliance.org
+    evaluated_date: '2026-01-06'
+    reason: Industry trade association; strategic partner of UKPN but not government/regulatory body
+    reconsider_if: Government formally designates as advisory body
+
+  - url: https://www.nationalgrid.com
+    evaluated_date: '2026-01-06'
+    reason: Corporate parent company site; use NESO for system operation and National Grid ED for distribution
+
+  - url: https://www.nienetworks.co.uk
+    evaluated_date: '2026-01-06'
+    reason: Northern Ireland distribution network; separate regulatory framework, limited DC market in NI
+    reconsider_if: Significant NI data center developments
+
+  # Academic/Research
+  - url: https://commonslibrary.parliament.uk
+    evaluated_date: '2026-02-03'
+    reason: Secondary analysis/briefings, not primary policy
+    reconsider_if: Need to track parliamentary research briefings on heat network legislation
+
+  - url: https://lordslibrary.parliament.uk
+    evaluated_date: '2026-01-06'
+    reason: Secondary analysis rather than primary legislation (same as Commons Library)
+
+  - url: https://www.bregroup.com
+    evaluated_date: '2026-01-06'
+    reason: Private research organisation (formerly government-owned); produces BREEAM standards but not policy maker
+
+  # Consultancies and Think Tanks
+  - url: https://www.aecom.com
+    evaluated_date: '2026-02-03'
+    reason: Infrastructure consultancy (authored GLA heat reuse report), not government
+
+  - url: https://www.instituteforgovernment.org.uk
+    evaluated_date: '2026-02-03'
+    reason: Think tank, not government
+
+  - url: https://www.gemserv.com
+    evaluated_date: '2026-02-03'
+    reason: HNES delivery partner but not government body
+
+  # Regulatory (covered elsewhere or limited scope)
+  - url: https://www.uregni.gov.uk
+    evaluated_date: '2026-01-06'
+    reason: NI electricity and gas regulator; heat networks not regulated in NI (covered by GB Ofgem from 2026)
+    reconsider_if: NI develops separate heat network regulations
+
+  - url: https://www.gov.uk/government/organisations/competition-and-markets-authority
+    evaluated_date: '2026-01-06'
+    reason: Appeals body for some Ofgem decisions; not primary policy source for data center heat reuse
+
+  # Legacy/Superseded
+  - url: https://data.nationalgrideso.com
+    evaluated_date: '2026-01-06'
+    reason: Legacy domain redirects to neso.energy/data-portal; NESO Data Portal included instead
+
+  - url: https://publications.parliament.uk
+    evaluated_date: '2026-01-06'
+    reason: Older system being replaced by bills.parliament.uk; bills tracker is more comprehensive
+
+  # Covered by other domain entries
+  - url: https://www.gov.scot/policies/legislation/
+    evaluated_date: '2026-01-06'
+    reason: Covered under Grid Cell 1.1 (Energy Ministries); parliament.scot is primary source
+
+  - url: https://www.gov.uk/government/publications
+    evaluated_date: '2026-01-06'
+    reason: Covered under Grid Cell 1.1 (Energy Ministries); would duplicate DESNZ entries
+
+  # Login-Required
+  - url: https://hnes-application-portal.gov.uk
+    evaluated_date: '2026-02-03'
+    reason: Requires Expression of Interest registration, not publicly crawlable
+    reconsider_if: Public-facing content is added outside the login wall
+
+  - url: https://epr.ofgem.gov.uk
+    evaluated_date: '2026-02-03'
+    reason: Some sections require registration, not fully publicly crawlable
+    reconsider_if: Public API or open data portal becomes available

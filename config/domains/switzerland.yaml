@@ -23,3 +23,456 @@ domains:
       - "law"
       - "regulation"
     notes: "Mandatory heat supply at cost for >2 GWh waste heat"
+
+# =============================================================================
+# SWITZERLAND - FEDERAL LEVEL
+# =============================================================================
+
+  # --- Federal Energy Law ---
+  - name: "Swiss Federal Energy Act (EnG)"
+    id: "ch_eng_fedlex"
+    enabled: true
+    base_url: "https://fedlex.data.admin.ch"
+    start_paths:
+      - "/filestore/fedlex.data.admin.ch/eli/cc/2017/762/20210101/de/pdf-a/fedlex-data-admin-ch-eli-cc-2017-762-20210101-de-pdf-a.pdf"
+    allowed_path_patterns:
+      - "/filestore/*eli/cc/2017/762*"
+    max_depth: 1
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "framework"
+      - "cantonal_authority"
+    policy_types:
+      - "law"
+    notes: |
+      Federal Energy Act (EnG) 2016 - Framework law.
+      Article 45: Gives cantons authority over building energy regulations.
+      Priority for renewable energy and waste heat utilization.
+      Keywords: Energiegesetz, Abwärme, erneuerbare Energie
+
+  - name: "Swiss Federal Law Database - EnG"
+    id: "ch_admin_eng"
+    enabled: true
+    base_url: "https://www.admin.ch"
+    start_paths:
+      - "/ch/d/sr/7/730.0.de.pdf"
+    allowed_path_patterns:
+      - "/ch/d/sr/7/730*"
+    max_depth: 1
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "framework"
+    policy_types:
+      - "law"
+    notes: |
+      Federal Energy Act current consolidated version (updated 2025).
+      Official source for Swiss federal legislation.
+
+  # --- BFE (Federal Office of Energy) ---
+  - name: "BFE Energy Policy Overview"
+    id: "bfe_energy_policy"
+    enabled: true
+    base_url: "https://www.bfe.admin.ch"
+    start_paths:
+      - "/bfe/en/home/policy/energy-policy.html"
+      - "/bfe/en/home/politik/energiestrategie-2050.html"
+    allowed_path_patterns:
+      - "/bfe/en/home/policy/*"
+      - "/bfe/en/home/politik/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "strategy"
+      - "net_zero"
+    policy_types:
+      - "strategy"
+      - "guidance"
+    notes: |
+      Energy Strategy 2050: Net-zero emissions by 2050.
+      Buildings must be 100% CO2-neutral.
+      Framework for cantonal implementation.
+
+  - name: "BFE District Heat & Thermal Networks"
+    id: "bfe_district_heat"
+    enabled: true
+    base_url: "https://www.bfe.admin.ch"
+    start_paths:
+      - "/bfe/en/home/supply/energy-efficiency/district-heat.html"
+      - "/bfe/en/home/supply/energy-efficiency/thermal-energy-storage.html"
+      - "/bfe/en/home/versorgung/waermestrategie-2050.html"
+    allowed_path_patterns:
+      - "/bfe/en/home/supply/energy-efficiency/*"
+      - "/bfe/en/home/versorgung/*waerme*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "district_heating"
+      - "heat_reuse"
+      - "thermal_storage"
+    policy_types:
+      - "guidance"
+      - "strategy"
+    notes: |
+      Heat Strategy 2050 - thermal networks for waste heat utilization.
+      Seasonal heat storage from cooling/industrial processes.
+      Keywords: Fernwärme, thermische Netze, Abwärmenutzung
+
+  - name: "BAFU Buildings Climate Policy"
+    id: "bafu_buildings"
+    enabled: true
+    base_url: "https://www.bafu.admin.ch"
+    start_paths:
+      - "/bafu/en/home/topics/climate/info-specialists/reduction-measures/buildings.html"
+    allowed_path_patterns:
+      - "/bafu/en/home/topics/climate/*buildings*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "environment_ministry"
+    tags:
+      - "buildings"
+      - "heat_reuse"
+      - "co2_levy"
+    policy_types:
+      - "program"
+      - "guidance"
+    notes: |
+      Buildings Programme promotes waste heat recovery.
+      Funded by CO2 levy revenue.
+      Federal-cantonal coordination on building efficiency.
+
+# =============================================================================
+# SWITZERLAND - CANTON ZURICH (Most Explicit DC Requirements)
+# =============================================================================
+
+  - name: "Zurich Data Center Guidance 2023"
+    id: "zh_dc_guidance"
+    enabled: true
+    base_url: "https://www.zh.ch"
+    start_paths:
+      - "/content/dam/zhweb/bilder-dokumente/themen/planen-bauen/bauvorschriften/bauvorschriften-im-energiebereich/energetische-bauvorschriften/merkblaetter/2023_rechenzentren_v1.pdf"
+    allowed_path_patterns:
+      - "/content/dam/zhweb/*rechenzentren*"
+    max_depth: 1
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "cantonal_authority"
+    tags:
+      - "mandates"
+      - "heat_reuse"
+      - "data_centers"
+    policy_types:
+      - "guidance"
+      - "regulation"
+    notes: |
+      KEY DOCUMENT: 50-page data center guidance (German).
+      MANDATORY: Data center operators must reuse waste heat.
+      References SIA 2068 standard in development.
+      Keywords: Rechenzentren, Abwärmenutzung, Energiegesetz
+
+  - name: "Zurich Energy Building Regulations"
+    id: "zh_energy_buildings"
+    enabled: true
+    base_url: "https://www.zh.ch"
+    start_paths:
+      - "/de/planen-bauen/bauvorschriften/bauvorschriften-gebaeude-energie.html"
+      - "/de/planen-bauen/bauvorschriften/bauvorschriften-gebaeude-energie/heizungsersatz.html"
+    allowed_path_patterns:
+      - "/de/planen-bauen/bauvorschriften/bauvorschriften-gebaeude-energie*"
+    max_depth: 2
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "cantonal_authority"
+    tags:
+      - "buildings"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+      - "guidance"
+    notes: |
+      Zurich cantonal building energy regulations.
+      Heating replacement requirements.
+      Links to data center specific requirements.
+
+  - name: "Zurich Energy Act (Energiegesetz)"
+    id: "zh_energiegesetz"
+    enabled: true
+    base_url: "http://www2.zhlex.zh.ch"
+    start_paths:
+      - "/appl/zhlex_r.nsf/0/C6A2F62EC8C36128C1257EF5002BAD07/$file/730.1_19.6.83_91.pdf"
+    allowed_path_patterns:
+      - "/appl/zhlex_r.nsf/*730.1*"
+    max_depth: 1
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "heat_reuse"
+    policy_types:
+      - "law"
+    notes: |
+      Zurich Energy Act full text.
+      Obliges data center operators to reuse waste heat.
+      In force September 1, 2022.
+
+  - name: "Zurich Special Building Ordinance I"
+    id: "zh_bbv1"
+    enabled: true
+    base_url: "https://www.zh.ch"
+    start_paths:
+      - "/content/dam/zhweb/bilder-dokumente/footer/news/2022/06/Besondere%20Bauverordnung%20I.pdf"
+    allowed_path_patterns:
+      - "/content/dam/zhweb/*Bauverordnung*"
+    max_depth: 1
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "heat_reuse"
+      - "buildings"
+    policy_types:
+      - "regulation"
+    notes: |
+      Special Building Ordinance I with waste heat utilization provisions.
+      Implements Zurich Energy Act requirements.
+
+  - name: "Zurich Municipal Energy Planning"
+    id: "zh_municipal_energy"
+    enabled: true
+    base_url: "https://www.zh.ch"
+    start_paths:
+      - "/de/umwelt-tiere/klima/gemeinden/energie.html"
+    allowed_path_patterns:
+      - "/de/umwelt-tiere/klima/gemeinden/*"
+    max_depth: 2
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "cantonal_authority"
+    tags:
+      - "planning"
+      - "district_heating"
+    policy_types:
+      - "guidance"
+    notes: |
+      Municipal energy planning framework.
+      Integrates data center waste heat into thermal networks.
+
+# =============================================================================
+# SWITZERLAND - MuKEn (Model Cantonal Regulations)
+# =============================================================================
+
+  - name: "MuKEn 2014 Full Document"
+    id: "muken_2014"
+    enabled: true
+    base_url: "https://www.sz.ch"
+    start_paths:
+      - "/public/upload/assets/75105/Mustervorschriften_der_Kantone_im_Energiebereich_MuKEn.pdf"
+    allowed_path_patterns:
+      - "/public/upload/assets/*MuKEn*"
+    max_depth: 1
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "heat_reuse"
+      - "model_regulation"
+    policy_types:
+      - "regulation"
+    notes: |
+      MuKEn 2014 - Model Cantonal Energy Regulations.
+      Article 1.18: Waste heat must be utilized where technically
+      possible and economically viable.
+      Adopted by 22+ cantons.
+
+  - name: "EnDK MuKEn Overview"
+    id: "endk_muken"
+    enabled: true
+    base_url: "https://www.endk.ch"
+    start_paths:
+      - "/de/energiepolitik-der-kantone/muken"
+    allowed_path_patterns:
+      - "/de/energiepolitik-der-kantone/*"
+    max_depth: 2
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "coordination_body"
+    tags:
+      - "model_regulation"
+      - "cantonal"
+    policy_types:
+      - "guidance"
+    notes: |
+      Conference of Cantonal Energy Directors.
+      MuKEn 2025 adopted August 2025 (implementation 2025-2030).
+      Harmonized energy regulations across cantons.
+
+# =============================================================================
+# SWITZERLAND - SDEA (Swiss Datacenter Efficiency Association)
+# =============================================================================
+
+  - name: "SDEA Datacenter Certification"
+    id: "sdea_main"
+    enabled: true
+    base_url: "https://www.sdea.ch"
+    start_paths:
+      - "/"
+      - "/association"
+      - "/label"
+      - "/certification"
+      - "/services"
+    allowed_path_patterns:
+      - "/*"
+    max_depth: 2
+    language: "en"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "standards"
+    tags:
+      - "certification"
+      - "efficiency"
+      - "heat_reuse"
+    policy_types:
+      - "standard"
+      - "certification"
+    notes: |
+      Swiss Datacenter Efficiency Association - voluntary certification.
+      Supported by BFE/SwissEnergy program.
+      Heat recycling/reuse is KEY METRIC.
+      Gold/Silver/Bronze levels, independent audit.
+      Partners: HPE, EPFL EcoCloud, HSLU, asut.
+
+# =============================================================================
+# SWITZERLAND - EnergieSchweiz (SwissEnergy Program)
+# =============================================================================
+
+  - name: "EnergieSchweiz Data Centers"
+    id: "energieschweiz_dc"
+    enabled: true
+    base_url: "https://www.energieschweiz.ch"
+    start_paths:
+      - "//unternehmen/serverraeume/"
+    allowed_path_patterns:
+      - "/unternehmen/serverraeume*"
+      - "//unternehmen/serverraeume*"
+    max_depth: 2
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "program"
+    tags:
+      - "efficiency"
+      - "data_centers"
+      - "heat_reuse"
+    policy_types:
+      - "program"
+      - "guidance"
+    notes: |
+      KEY PAGE: Data centers & server rooms efficiency.
+      46% combined efficiency potential (IT + infrastructure).
+      2019 study: Only 1 in 3 DCs utilized waste heat.
+      Example: 2 MW DC could heat 480 mid-size apartments.
+      Keywords: Rechenzentren, Serverräume, Abwärmenutzung
+
+  - name: "EnergieSchweiz Waste Heat Utilization"
+    id: "energieschweiz_abwaerme"
+    enabled: true
+    base_url: "https://www.energieschweiz.ch"
+    start_paths:
+      - "/prozesse-infrastruktur/abwaermenutzung/"
+      - "/prozesse-infrastruktur/"
+    allowed_path_patterns:
+      - "/prozesse-infrastruktur/*"
+    max_depth: 2
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "program"
+    tags:
+      - "heat_reuse"
+      - "industry"
+    policy_types:
+      - "guidance"
+      - "program"
+    notes: |
+      Industrial waste heat utilization guidance.
+      Up to 40% thermal energy savings with heat exchangers.
+      Financial support for thermal process analyses.
+
+  - name: "EnergieSchweiz District Heating"
+    id: "energieschweiz_fernwaerme"
+    enabled: true
+    base_url: "https://www.energieschweiz.ch"
+    start_paths:
+      - "/erneuerbare-energien/fernwaerme/"
+      - "/stories/waermenetze/"
+      - "/stories/wie-funktioniert-fernwaerme/"
+    allowed_path_patterns:
+      - "/erneuerbare-energien/fernwaerme*"
+      - "/stories/*waerme*"
+    max_depth: 2
+    language: "de"
+    region:
+      - "eu_central"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "program"
+    tags:
+      - "district_heating"
+      - "heat_reuse"
+    policy_types:
+      - "guidance"
+    notes: |
+      District heating from industry and data centers.
+      Thermal networks stories and technical guidance.
+      Keywords: Fernwärme, Wärmenetze, Abwärme

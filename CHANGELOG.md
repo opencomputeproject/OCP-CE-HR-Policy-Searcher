@@ -20,6 +20,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 - Suppress BeautifulSoup `XMLParsedAsHTMLWarning` when crawling XHTML/XML pages (e.g., German law database)
 - Fixed several country domain files (france, switzerland, austria, belgium, ireland) missing `domains:` YAML wrapper key
+- Fixed `switzerland.yaml` duplicate `domains:` key causing only last block to load (17 domains now load correctly)
+- Fixed `rejected_sites/uk.yaml` mixed format: merged bare list entries from DeepResearch output into proper `rejected_sites:` schema (27 entries)
 
 ## [0.1.0] - 2026-02-03
 

@@ -168,8 +168,8 @@ RESPOND WITH JSON ONLY (no explanation):
 
 ## Current Status
 
-**Phase**: ALL COMPLETE + Region tagging
-**Last Action**: Added `uk` region to VALID_REGIONS and tagged all DeepResearch domain files with region fields
+**Phase**: ALL COMPLETE + Region tagging + YAML structural fixes
+**Last Action**: Audited and fixed all YAML files under config/domains/ and config/rejected_sites/
 **Next Action**: None pending
 **Blockers**: None
 
@@ -188,7 +188,11 @@ RESPOND WITH JSON ONLY (no explanation):
   - Grid 5.1 (EU emerging): `region: ["eu"]` — 13 entries
   - Grid 6.x (US states): `region: ["us", "us_states"]` — 131 entries across 5 files
 - Updated CHANGELOG.md to include `uk` in the region list
-- All 507 tests passing
+- Audited all 14 domain YAML files and 2 rejected_sites YAML files for structural issues:
+  - Fixed `switzerland.yaml`: removed duplicate `domains:` key (17 domains now load, was losing entries)
+  - Fixed `rejected_sites/uk.yaml`: merged bare DeepResearch list entries into proper `rejected_sites:` schema (27 entries, deduplicated)
+  - All other files confirmed structurally correct
+- Total: 150 domains loading across all files, 507 tests passing
 
 ---
 
