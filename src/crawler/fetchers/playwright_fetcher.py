@@ -9,6 +9,7 @@ from playwright.async_api import async_playwright, Browser, BrowserContext
 
 from ...config.settings import CrawlSettings
 from ...models.crawl import CrawlResult, PageStatus
+from .http_fetcher import diagnose_denial_from_text
 
 
 class PlaywrightFetcher:
@@ -61,11 +62,20 @@ class PlaywrightFetcher:
                 )
 
             if response.status >= 400:
+                pw_status_map = {
+                    403: PageStatus.ACCESS_DENIED,
+                    404: PageStatus.NOT_FOUND,
+                    429: PageStatus.RATE_LIMITED,
+                }
+                status = pw_status_map.get(response.status, PageStatus.UNKNOWN_ERROR)
+                body = await page.content()
+                headers = {k: v for k, v in response.headers.items()}
+                reason = diagnose_denial_from_text(response.status, body, headers)
                 return CrawlResult(
                     url=url,
-                    status=PageStatus.UNKNOWN_ERROR,
+                    status=status,
                     response_time_ms=elapsed,
-                    error_message=f"HTTP {response.status}",
+                    error_message=reason,
                     used_playwright=True,
                 )
 

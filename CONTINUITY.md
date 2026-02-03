@@ -4,7 +4,26 @@
 
 ### Version: 0.3.0
 
-### Just Completed: `--domains` Individual Domain ID Targeting
+### Just Completed: Access Denied Diagnostic Logging
+
+**What was done:**
+- Added `_diagnose_response()` and `diagnose_denial_from_text()` in `http_fetcher.py` to analyze HTTP error responses (checks Server header for Cloudflare/Akamai, scans response body for 11 denial patterns)
+- Fixed Playwright fetcher: HTTP 403/404/429 now correctly mapped to ACCESS_DENIED/NOT_FOUND/RATE_LIMITED (was all UNKNOWN_ERROR)
+- Real-time log lines now include reason: `[WARN] access_denied: /path (HTTP 403 -- Cloudflare bot protection)`
+- Verbose mode adds blocked-pages section: groups by status, shows per-page reasons, and provides actionable suggestions (e.g., "try requires_playwright: true")
+- 9 new unit tests in `test_denial_diagnosis.py`
+- 537 tests pass
+
+**Files changed:**
+1. `src/crawler/fetchers/http_fetcher.py` - Added `_diagnose_response()`, `diagnose_denial_from_text()`, `_DENIAL_PATTERNS`
+2. `src/crawler/fetchers/playwright_fetcher.py` - Fixed status mapping, added diagnosis
+3. `src/crawler/async_crawler.py` - Log line now includes error_message
+4. `src/main.py` - Added blocked_details collection and verbose output block with suggestions
+5. `tests/unit/test_denial_diagnosis.py` - 9 new tests
+6. `CHANGELOG.md` - Added entries under [Unreleased]
+7. `CONTINUITY.md` - This file
+
+### Previously Completed: `--domains` Individual Domain ID Targeting
 
 **What was done:**
 - Added domain ID as a fallback in `get_enabled_domains()` resolution (step 5b, after file name match)
@@ -12,14 +31,6 @@
 - Updated CLI help text, docstring, README resolution order, CHANGELOG
 - 3 new unit tests: `test_domain_id_match`, `test_domain_id_skips_disabled`, `test_domain_id_fallback_order`
 - 528 tests pass
-
-**Files changed:**
-1. `src/config/loader.py` - Added domain ID fallback in `get_enabled_domains()`
-2. `src/main.py` - Updated `--domains` help text
-3. `tests/unit/test_config_loader.py` - 3 new tests
-4. `README.md` - Updated resolution order, added example
-5. `CHANGELOG.md` - Added entry under [Unreleased]
-6. `CONTINUITY.md` - This file
 
 ### Previously Completed: DeepResearch Domain Integration (20260203_0818)
 

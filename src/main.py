@@ -975,6 +975,7 @@ async def run_batch(
     # Verbose collection lists
     if verbose:
         filtered_details = []       # (url, FilterResult)
+        blocked_details = []        # (url, status_value, error_message, used_playwright)
         kw_passed_details = []      # (url, KeywordMatchResult)
         kw_failed_reasons = {}      # reason -> count
         kw_near_misses = []         # (url, KeywordMatchResult, reason)
@@ -987,6 +988,11 @@ async def run_batch(
 
     for result in crawl_results:
         if not result.is_success:
+            if verbose and result.is_blocked:
+                blocked_details.append((
+                    result.url, result.status.value,
+                    result.error_message or "unknown", result.used_playwright,
+                ))
             continue
 
         # URL pre-filtering (skip obviously irrelevant URLs before LLM)
@@ -1157,6 +1163,50 @@ async def run_batch(
             for url, fr in filtered_details:
                 reason_str = fr.reason or fr.rule_type or "unknown"
                 logger.detail(f"{_short_url(url):<47} -> {reason_str}")
+
+        # Blocked pages details
+        if blocked_details:
+            logger.info(f"Blocked pages: {len(blocked_details)} (details)")
+            # Group by status
+            by_status: dict[str, list] = {}
+            for url, status_val, msg, pw in blocked_details:
+                by_status.setdefault(status_val, []).append((url, msg, pw))
+            for status_val, entries in by_status.items():
+                logger.detail(f"{status_val.upper()} ({len(entries)}):")
+                for url, msg, pw in entries:
+                    pw_note = " [playwright]" if pw else ""
+                    logger.detail(f"  {_short_url(url):<45} {msg}{pw_note}")
+
+            # Actionable suggestions
+            suggestions = []
+            cf_count = sum(1 for _, _, m, pw in blocked_details if "cloudflare" in m.lower() and not pw)
+            if cf_count:
+                suggestions.append(
+                    f"Cloudflare bot protection ({cf_count} pages): "
+                    "try requires_playwright: true in domain config"
+                )
+            cf_pw_count = sum(1 for _, _, m, pw in blocked_details if "cloudflare" in m.lower() and pw)
+            if cf_pw_count:
+                suggestions.append(
+                    f"Cloudflare blocking Playwright too ({cf_pw_count} pages): "
+                    "site may block headless browsers -- flag for manual review"
+                )
+            captcha_count = sum(1 for _, sv, _, _ in blocked_details if sv == "captcha")
+            if captcha_count:
+                suggestions.append(
+                    f"CAPTCHA ({captcha_count} pages): requires human review"
+                )
+            rl_count = sum(1 for _, sv, _, _ in blocked_details if sv == "rate_limited")
+            if rl_count:
+                suggestions.append(
+                    f"Rate limited ({rl_count} pages): "
+                    "try increasing rate_limit_seconds in domain config"
+                )
+            if suggestions:
+                logger.detail("")
+                logger.detail("Suggestions:")
+                for s in suggestions:
+                    logger.detail(f"  {s}")
 
         # Keyword filtering details
         kw_min_score = keyword_matcher.thresholds.get("minimum_keyword_score", 5.0)

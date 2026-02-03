@@ -93,7 +93,8 @@ class AsyncCrawler:
                         if link not in self._visited:
                             queue.append((link, depth + 1))
             elif result.is_blocked:
-                self.logger.warning(f"{result.status.value}: {urlparse(url).path}")
+                reason = f" ({result.error_message})" if result.error_message else ""
+                self.logger.warning(f"{result.status.value}: {urlparse(url).path}{reason}")
             else:
                 self.logger.warning(f"Error: {urlparse(url).path} - {result.error_message}")
 

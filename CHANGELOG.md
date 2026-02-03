@@ -15,6 +15,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - 10 new policy types: `legislation`, `incentives`, `energy_efficiency`, `waste_heat_recovery`, `reporting_requirements`, `regulatory_authority`, `building_codes`, `grid_interconnection`, `district_heating`, `certification`
 - 5 test groups in `groups.yaml` for validating new domains: `test_new`, `test_new_zh`, `test_new_de`, `test_new_eu`, `test_new_us`
 - `--domains` now accepts individual domain IDs (e.g., `--domains us_va_hb323_2026`) to scan a single domain without creating a group
+- Access denied diagnostic logging: HTTP 403 and other blocked responses now include the reason (Cloudflare bot protection, Akamai WAF, Access Denied, rate limited, etc.) in both real-time log output and verbose summary
+- Verbose mode blocked-pages section with per-page reasons and actionable suggestions (e.g., "try requires_playwright: true")
+
+### Fixed
+- Playwright fetcher now correctly maps HTTP 403/404/429 to ACCESS_DENIED/NOT_FOUND/RATE_LIMITED (previously all were UNKNOWN_ERROR)
 
 ### Changed
 - Domain YAML files now use country-level regions (e.g., `germany` instead of only `eu_central`, `singapore` instead of only `apac`) for finer-grained geographic filtering

@@ -12,6 +12,58 @@ from ...config.settings import CrawlSettings
 from ...models.crawl import CrawlResult, PageStatus
 
 
+_DENIAL_PATTERNS = [
+    ("cloudflare", "Cloudflare bot protection"),
+    ("akamaighost", "Akamai WAF"),
+    ("access denied", "Access Denied"),
+    ("403 forbidden", "Forbidden"),
+    ("bot detection", "bot detection"),
+    ("automated access", "automated access blocked"),
+    ("please verify", "verification required"),
+    ("rate limit", "rate limited"),
+    ("ip address", "IP-based block"),
+    ("sign in to continue", "sign-in required"),
+    ("login required", "login required"),
+]
+
+
+def _diagnose_response(response) -> str:
+    """Build a diagnostic reason string from an error HTTP response."""
+    code = response.status_code
+    server = (response.headers.get("server", "") or "").lower()
+    body = response.text[:2000].lower() if response.text else ""
+
+    # Check Server header
+    if "cloudflare" in server:
+        return f"HTTP {code} -- Cloudflare bot protection"
+    if "akamaighost" in server:
+        return f"HTTP {code} -- Akamai WAF"
+
+    # Check body for known patterns
+    for pattern, label in _DENIAL_PATTERNS:
+        if pattern in body:
+            return f"HTTP {code} -- {label}"
+
+    return f"HTTP {code}"
+
+
+def diagnose_denial_from_text(status_code: int, body: str, headers: dict) -> str:
+    """Build a diagnostic reason from raw text and headers (for Playwright)."""
+    server = (headers.get("server", "") or "").lower()
+    body_lower = body[:2000].lower() if body else ""
+
+    if "cloudflare" in server:
+        return f"HTTP {status_code} -- Cloudflare bot protection"
+    if "akamaighost" in server:
+        return f"HTTP {status_code} -- Akamai WAF"
+
+    for pattern, label in _DENIAL_PATTERNS:
+        if pattern in body_lower:
+            return f"HTTP {status_code} -- {label}"
+
+    return f"HTTP {status_code}"
+
+
 class HttpFetcher:
     def __init__(self, settings: CrawlSettings):
         self.settings = settings
@@ -54,11 +106,12 @@ class HttpFetcher:
             }
 
             if response.status_code in status_map:
+                reason = _diagnose_response(response)
                 return CrawlResult(
                     url=url,
                     status=status_map[response.status_code],
                     response_time_ms=elapsed,
-                    error_message=f"HTTP {response.status_code}",
+                    error_message=reason,
                 )
             elif response.status_code >= 400:
                 return CrawlResult(
