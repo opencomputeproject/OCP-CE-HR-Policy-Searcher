@@ -2,9 +2,29 @@
 
 ## Current State
 
-### Version: 0.2.2 (commit `2e3958e`, pushed to origin/master)
+### Version: 0.2.4
 
-### Just Completed: Fix Compound-Word Language Keyword Matching
+### Just Completed: Fix California Domain YAML Structure
+
+**What was done:**
+- Restructured `config/domains/us/california.yaml`: 17 domain entries from Deep Research were bare YAML list items at root level (outside the `domains:` key) and missing `enabled: true`
+- Moved all 17 entries under the `domains:` key with proper indentation
+- Added `enabled: true` to each entry
+- Normalized non-standard fields: `country` → removed, `confidence` → removed, `estimated_rate_limit` → `rate_limit_seconds`, `region: "US-California"` → `region: ["us", "us_states"]`
+- Added standard schema fields: `category`, `tags`, `max_depth`, `verified_by`, `verified_date`
+- Merged `justification` content into `notes` field
+- Normalized `policy_types` to valid values (law, regulation, directive, incentive, guidance, standard, report)
+- Removed dead 404 start path `/programs-and-topics/topics/data-centers` from `ca_energy`
+
+**Result:** California domains went from 1 to 20. Total enabled domains: 266. 521 tests pass.
+
+**Files changed:**
+1. `config/domains/us/california.yaml` - Full restructure
+2. `CHANGELOG.md` - Documented fix
+3. `CONTINUITY.md` - Updated current state
+4. `pyproject.toml` - Version bump 0.2.3 → 0.2.4
+
+### Previously Completed: Fix Compound-Word Language Keyword Matching
 
 **What was done:**
 - Fixed `_compile_patterns()` in `src/analysis/keywords.py` to use substring matching (no `\b` word boundaries) for compound-word languages: German (de), Dutch (nl), Swedish (sv), Danish (da)

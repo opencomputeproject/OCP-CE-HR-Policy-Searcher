@@ -3,21 +3,28 @@
 # =============================================================================
 # State abbreviation: CA
 # Region: us, us_states
+#
+# California focuses on energy efficiency standards (Title 24) and economic
+# incentives (SGIP) rather than mandatory waste heat reuse. Key tension:
+# AI/tech growth vs. ratepayer protection.
 # =============================================================================
 
 domains:
+  # ---------------------------------------------------------------------------
+  # CALIFORNIA ENERGY COMMISSION (CEC) - Primary Energy Regulator
+  # ---------------------------------------------------------------------------
+
   - name: "California Energy Commission"
     id: "ca_energy"
     enabled: true
-    region:
-      - "us"
-      - "us_states"
     base_url: "https://www.energy.ca.gov"
     start_paths:
       - "/programs-and-topics/programs/building-energy-efficiency-standards"
-      - "/programs-and-topics/topics/data-centers"
     max_depth: 2
     language: "en"
+    region:
+      - "us"
+      - "us_states"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "energy_ministry"
@@ -29,3 +36,582 @@ domains:
       - "regulation"
     notes: "California Title 24 and data center programs"
 
+  - name: "CEC Building Energy Efficiency Standards"
+    id: "cec_title24"
+    enabled: true
+    base_url: "https://www.energy.ca.gov"
+    start_paths:
+      - "/programs-and-topics/programs/building-energy-efficiency-standards"
+      - "/programs-and-topics/programs/building-energy-efficiency-standards/2025-building-energy-efficiency"
+      - "/sites/default/files/2023-09/2022_CEC-Computer_Room_and_Data_Centers_ADA.pdf"
+      - "/sites/default/files/2021-01/2019_CEC-Computer%20Rooms%20Data%20Centers-ADA.pdf"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "standards"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "standard"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Title 24 Part 6 Section 120.6(j) & 140.9(a) contain mandatory requirements
+      for computer rooms >20 W/ft² ITE load. Includes economizer requirements,
+      air containment mandates, UPS efficiency standards, fan power limits.
+      2022 code updates significantly tightened data center requirements.
+      - Section 120.6(j): Mandatory requirements
+      - Section 140.9(a): Prescriptive requirements
+      - Economizer: air 55°F DB/50°F WB; water 40°F DB/35°F WB
+      - Air containment required for rooms >10 kW ITE design load
+      - Healthcare facilities exempt from computer room requirements
+
+  - name: "CEC Efficiency Division"
+    id: "cec_efficiency"
+    enabled: true
+    base_url: "https://www.energy.ca.gov"
+    start_paths:
+      - "/about/divisions-and-offices/efficiency-division"
+      - "/programs-and-topics/topics/building-design-and-construction"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "mandates"
+    policy_types:
+      - "regulation"
+      - "standard"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Efficiency Division develops appliance and building energy standards.
+      Responsible for computer/display regulations (Title 20, §1601-1609).
+      Has authority to develop DC-specific efficiency standards if AB 222 passes.
+
+  - name: "CEC Building Benchmarking Program (AB 802)"
+    id: "cec_ab802"
+    enabled: true
+    base_url: "https://www.energy.ca.gov"
+    start_paths:
+      - "/programs-and-topics/programs/building-energy-benchmarking-program"
+      - "/benchmarking"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "reporting"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      AB 802 requires annual benchmarking for commercial buildings >50,000 ft².
+      Uses ENERGY STAR Portfolio Manager. Affects large data centers.
+      Public disclosure of building energy performance.
+      Penalties: $500-$2,000 per category per day for non-compliance.
+      - Commercial buildings: reporting since 2018
+      - Multi-family (17+ units): reporting since 2019
+      - Report due June 1 annually
+      - Exemptions for cities with local ordinances (LA, SF, SD, SJ)
+
+  - name: "CEC Combined Heat and Power Program"
+    id: "cec_chp"
+    enabled: true
+    base_url: "https://www.energy.ca.gov"
+    start_paths:
+      - "/data-reports/california-power-generation-and-power-sources/combined-heat-and-power"
+      - "/programs-and-topics/programs/waste-heat-and-carbon-emissions-reduction-act"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      AB 1613 (2007) Waste Heat and Carbon Emissions Reduction Act.
+      Feed-in tariff for CHP ≤20 MW. CARB target: 4,000 MW additional CHP.
+      Most relevant for data center waste heat utilization.
+
+  - name: "CEC Data Center Research"
+    id: "cec_dc_research"
+    enabled: true
+    base_url: "https://www.energy.ca.gov"
+    start_paths:
+      - "/sites/default/files/2024-05/CEC-500-2024-035.pdf"
+      - "/programs-and-topics/topics/research"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "research"
+      - "efficiency"
+    policy_types:
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      2024 study on enabling energy-efficient data centers in smart power distribution.
+      Research informs future regulatory development.
+      Technical analysis of DC efficiency opportunities.
+
+  # ---------------------------------------------------------------------------
+  # CALIFORNIA PUBLIC UTILITIES COMMISSION (CPUC)
+  # ---------------------------------------------------------------------------
+
+  - name: "CPUC Self-Generation Incentive Program (SGIP)"
+    id: "cpuc_sgip"
+    enabled: true
+    base_url: "https://www.cpuc.ca.gov"
+    start_paths:
+      - "/industries-and-topics/electrical-energy/demand-side-management/self-generation-incentive-program"
+      - "/sgip"
+      - "/-/media/cpuc-website/divisions/energy-division/documents/self-generation-incentive-program/2025-sgip-handbook-v1.pdf"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "incentive"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      SGIP provides financial incentives for waste heat to power, CHP, fuel cells,
+      energy storage. $813.4M authorized 2020-2024. Eligible technologies include
+      pressure reduction turbines, microturbines, gas turbines.
+      Primary state incentive mechanism for DC waste heat utilization.
+      - Administered by PG&E, SCE, SoCalGas, SDG&E/CSE
+      - Incentive rates: $150-$1,100/kWh for storage; tiered for generation
+      - Program continues through 2025+
+
+  - name: "CPUC Combined Heat and Power Program"
+    id: "cpuc_chp"
+    enabled: true
+    base_url: "https://www.cpuc.ca.gov"
+    start_paths:
+      - "/industries-and-topics/electrical-energy/electric-power-procurement/combined-heat-and-power-program-overview"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "incentives"
+      - "efficiency"
+    policy_types:
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      CPUC QF/CHP Program under PURPA. Establishes contracting framework
+      for combined heat and power facilities. Relevant for DC waste heat
+      projects that generate electricity.
+
+  - name: "CPUC Electric Rates"
+    id: "cpuc_rates"
+    enabled: true
+    base_url: "https://www.cpuc.ca.gov"
+    start_paths:
+      - "/industries-and-topics/electrical-energy/electric-rates"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "planning"
+    policy_types:
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Rate regulation affects DC economics. Current debate on cost allocation
+      for DC grid upgrades. Resolution E-5420 modified interconnection cost
+      reimbursement for transmission-level DCs.
+
+  - name: "CPUC Public Advocates Office"
+    id: "cpuc_public_advocates"
+    enabled: true
+    base_url: "https://www.publicadvocates.cpuc.ca.gov"
+    start_paths:
+      - "/press-room/commentary"
+      - "/press-room/commentary/251027-how-will-data-center-growth-impact-california-ratepayers"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "research"
+      - "planning"
+    policy_types:
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Independent advocate for utility ratepayers. Actively commenting on
+      DC growth impacts and cost allocation. Source for regulatory proceedings
+      and policy debates around DC energy use.
+
+  # ---------------------------------------------------------------------------
+  # CALIFORNIA AIR RESOURCES BOARD (CARB)
+  # ---------------------------------------------------------------------------
+
+  - name: "CARB Emergency Backup Generators"
+    id: "carb_generators"
+    enabled: true
+    base_url: "https://ww2.arb.ca.gov"
+    start_paths:
+      - "/our-work/programs/emergency-backup-generators"
+      - "/resources/fact-sheets/carb-regulations-allow-use-back-generators-during-public-safety-power-shutoff"
+      - "/resources/documents/advisory293"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "mandates"
+      - "carbon"
+    policy_types:
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      CARB regulates backup generators for DCs. Stricter than EPA standards.
+      35 local air districts enforce permitting. Large generators (>50 hp)
+      require permits. PSPS allowances for emergency operation.
+      - CO, NOx, SOx, particulate standards
+      - Different rules during Public Safety Power Shutoffs
+      - Local air district permits required
+
+  # ---------------------------------------------------------------------------
+  # CALIFORNIA ISO (CAISO)
+  # ---------------------------------------------------------------------------
+
+  - name: "CAISO Large Load Interconnection"
+    id: "caiso_large_load"
+    enabled: true
+    base_url: "https://www.caiso.com"
+    start_paths:
+      - "/generation-transmission/load/large-load"
+      - "/generation-transmission/generation/generator-interconnection"
+      - "/generation-transmission/generation/generator-interconnection/queue-management"
+      - "/generation-transmission/generation/generator-interconnection/interconnection-request-study"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      CAISO manages grid interconnection for DCs. 18.7 GW of DC service capacity
+      requested statewide. Cluster 15 processed 541 applications (347 GW).
+      Average 9.2 years in queue. Interconnection reform ongoing (2024-2025).
+      - Load interconnections governed by utility tariffs
+      - 2022 MOU links CEC-CPUC-CAISO planning
+      - $4.8B transmission upgrades in 2024-2025 plan
+
+  - name: "CAISO Transmission Planning"
+    id: "caiso_transmission"
+    enabled: true
+    base_url: "https://www.caiso.com"
+    start_paths:
+      - "/documents/iso-board-approved-2024-2025-transmission-plan.pdf"
+      - "/about/news/energy-matters-blog"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "planning"
+      - "research"
+    policy_types:
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Annual transmission plans include DC load forecasts. CEC projects
+      +2.3 GW DC load by 2030, +3.3 GW by 2035. South Bay: $2B+ upgrades
+      for 2.5 GW DC/electrification load.
+
+  # ---------------------------------------------------------------------------
+  # CALIFORNIA LEGISLATURE - BILL TRACKING
+  # ---------------------------------------------------------------------------
+
+  - name: "California Legislative Information"
+    id: "ca_leginfo"
+    enabled: true
+    base_url: "https://leginfo.legislature.ca.gov"
+    start_paths:
+      - "/faces/billSearchClient.xhtml"
+      - "/faces/billStatusClient.xhtml?bill_id=202520260SB57"
+      - "/faces/billNavClient.xhtml?bill_id=202520260SB57"
+      - "/faces/billTextClient.xhtml?bill_id=202520260AB222"
+      - "/faces/billStatusClient.xhtml?bill_id=202520260AB222"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "reporting"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Official bill tracking system. SB 57 (SIGNED Oct 2025): CPUC study on DC
+      cost shifts, report due Jan 2027. AB 222 (HELD): Would require annual
+      CEC reporting on DC energy consumption, PUE metrics, renewable %.
+      - Search keywords: "data center", "energy efficiency", "heat recovery"
+      - Check Senate Energy, Utilities, Communications Committee
+      - Check Assembly Utilities and Energy Committee
+      - 2026 session likely to revisit DC regulation
+
+  - name: "California Senate Energy Committee"
+    id: "ca_senate_seuc"
+    enabled: true
+    base_url: "https://seuc.senate.ca.gov"
+    start_paths:
+      - "/hearings"
+      - "/system/files/2025-04/sb-57-analysis.pdf"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "research"
+    policy_types:
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Senate Energy, Utilities, and Communications Committee. Produces bill
+      analyses for energy legislation. SB 57 analysis details legislative
+      intent and stakeholder positions.
+
+  - name: "California Assembly Utilities Committee"
+    id: "ca_assembly_util"
+    enabled: true
+    base_url: "https://autl.assembly.ca.gov"
+    start_paths:
+      - "/hearings"
+      - "/system/files/2025-04/ab-222-bauer-kahan.pdf"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "research"
+    policy_types:
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Assembly Utilities and Energy Committee. Produces analyses for DC
+      energy bills. AB 222 analysis covers proposed DC reporting requirements.
+
+  - name: "Senator Padilla Press - SB 57"
+    id: "ca_sd18_sb57"
+    enabled: true
+    base_url: "https://sd18.senate.ca.gov"
+    start_paths:
+      - "/news"
+      - "/news/legislation-protect-california-ratepayers-paying-data-centers-energy-costs-signed-law"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "research"
+    policy_types:
+      - "law"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Senator Steve Padilla (SD-18) authored SB 57. Press releases provide
+      context on legislative intent and original provisions stripped from bill
+      (100% carbon-free electricity by 2030, battery storage mandates).
+
+  # ---------------------------------------------------------------------------
+  # TITLE 24 STAKEHOLDER RESOURCES
+  # ---------------------------------------------------------------------------
+
+  - name: "Title 24 Stakeholders - Data Center Efficiency"
+    id: "title24_stakeholders"
+    enabled: true
+    base_url: "https://title24stakeholders.com"
+    start_paths:
+      - "/measures/cycle-2022/data-center-efficiency/"
+      - "/wp-content/uploads/2019/06/T24-2022-Submeasure-Summary_Data-Centers_Final2.pdf"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "standards"
+    tags:
+      - "efficiency"
+      - "research"
+    policy_types:
+      - "standard"
+      - "report"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      CEC-affiliated stakeholder site for Title 24 development. Contains
+      detailed technical documentation on data center efficiency measures,
+      cost-effectiveness analyses, and implementation guidance.
+      - 2022 cycle data center submeasure documentation
+      - Technical basis for code requirements
+      - Stakeholder comments and responses
+
+  - name: "Energy Code Ace - Computer Rooms"
+    id: "energycodeace"
+    enabled: true
+    base_url: "https://energycodeace.com"
+    start_paths:
+      - "/site/custom/public/reference-ace-2013/Documents/104computerrooms.htm"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "standards"
+    tags:
+      - "efficiency"
+    policy_types:
+      - "guidance"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      IOU-funded compliance resource for Title 24. Provides plain-language
+      explanations of computer room requirements. Useful for understanding
+      technical implementation details.
+
+  # ---------------------------------------------------------------------------
+  # ICC SAFE - CALIFORNIA BUILDING CODE
+  # ---------------------------------------------------------------------------
+
+  - name: "ICC California Energy Code"
+    id: "iccsafe_caec"
+    enabled: true
+    base_url: "https://codes.iccsafe.org"
+    start_paths:
+      - "/content/CAAC2022P1/chapter-10-administrative-regulations-for-the-california-energy-commission-cec"
+    max_depth: 1
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "standards"
+    tags:
+      - "mandates"
+    policy_types:
+      - "standard"
+      - "regulation"
+    verified_by: "Deep Research"
+    verified_date: "2026-02-03"
+    notes: |
+      Official published California Energy Code (Title 24 Part 6).
+      ICC hosts authenticated code text. Administrative regulations
+      govern CEC enforcement authority.
+      - May require navigation to specific sections
+      - Full code text available
+      - Check Part 1 (Administrative) and Part 6 (Energy)
+
+# =============================================================================
+# PRIORITY SEARCHES:
+# - Title 24 computer room requirements
+# - SGIP waste heat to power incentives
+# - AB 222 revival in 2026 session
+# - CPUC DC cost allocation proceedings
+# - CAISO interconnection queue reform
+# =============================================================================
