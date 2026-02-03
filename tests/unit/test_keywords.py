@@ -3,6 +3,7 @@
 import pytest
 
 from src.analysis.keywords import (
+    COMPOUND_LANGUAGES,
     KeywordMatcher,
     KeywordMatch,
     KeywordMatchResult,
@@ -600,3 +601,203 @@ class TestEdgeCasesStricter:
 
         check = matcher.check_stricter_requirements(result, 0)
         assert check is not None  # Should not raise error
+
+
+# =============================================================================
+# COMPOUND-WORD LANGUAGE TESTS
+# =============================================================================
+
+
+class TestCompoundLanguagesConstant:
+    """Tests for the COMPOUND_LANGUAGES constant."""
+
+    def test_compound_languages_includes_expected(self):
+        """COMPOUND_LANGUAGES should contain de, nl, sv, da."""
+        assert "de" in COMPOUND_LANGUAGES
+        assert "nl" in COMPOUND_LANGUAGES
+        assert "sv" in COMPOUND_LANGUAGES
+        assert "da" in COMPOUND_LANGUAGES
+
+    def test_compound_languages_excludes_non_compound(self):
+        """COMPOUND_LANGUAGES should not contain en, fr, it, es."""
+        assert "en" not in COMPOUND_LANGUAGES
+        assert "fr" not in COMPOUND_LANGUAGES
+        assert "it" not in COMPOUND_LANGUAGES
+        assert "es" not in COMPOUND_LANGUAGES
+
+
+class TestCompoundWordMatching:
+    """Tests for compound-word language matching (German, Dutch, Swedish, Danish)."""
+
+    @pytest.fixture
+    def compound_config(self):
+        """Config with compound-word language keywords."""
+        return {
+            "keywords": {
+                "subject": {
+                    "weight": 3.0,
+                    "terms": {
+                        "en": ["waste heat", "heat recovery"],
+                        "de": ["Abwärme", "Wärmerückgewinnung"],
+                        "nl": ["restwarmte", "warmteterugwinning"],
+                        "sv": ["spillvärme", "värmeåtervinning"],
+                        "da": ["overskudsvarme", "spildvarme"],
+                    },
+                },
+                "context": {
+                    "weight": 1.0,
+                    "terms": {
+                        "en": ["data center"],
+                        "de": ["Rechenzentrum", "Rechenzentren"],
+                        "nl": ["datacentrum"],
+                        "sv": ["datacenter"],
+                        "da": ["datacenter"],
+                    },
+                },
+                "policy_type": {
+                    "weight": 2.0,
+                    "terms": {
+                        "en": ["regulation", "law"],
+                        "de": ["Verordnung", "Gesetz", "Pflicht"],
+                        "nl": ["verordening", "wet"],
+                        "sv": ["förordning", "lag"],
+                        "da": ["forordning", "lov"],
+                    },
+                },
+            },
+            "thresholds": {
+                "minimum_keyword_score": 5.0,
+                "minimum_matches": 2,
+            },
+            "exclusions": [],
+        }
+
+    # --- German compound word tests ---
+
+    def test_german_keyword_in_compound_word(self, compound_config):
+        """German 'Abwärme' should match inside 'Rechenzentrumsabwärme'."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match("Die Rechenzentrumsabwärme kann genutzt werden.")
+
+        assert result.has_matches
+        assert any(m.keyword == "Abwärme" for m in result.matches)
+
+    def test_german_keyword_standalone(self, compound_config):
+        """German 'Abwärme' should still match as a standalone word."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match("Die Abwärme aus dem Betrieb ist nutzbar.")
+
+        assert result.has_matches
+        assert any(m.keyword == "Abwärme" for m in result.matches)
+
+    def test_german_rechenzentrum_in_compound(self, compound_config):
+        """'Rechenzentrum' should match inside 'Rechenzentrumsabwärme'."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match("Die Rechenzentrumsabwärme wird genutzt.")
+
+        assert any(m.keyword == "Rechenzentrum" for m in result.matches)
+
+    def test_german_verordnung_in_compound(self, compound_config):
+        """'Verordnung' should match inside 'Energieverordnung'."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match("Die Energieverordnung regelt die Abwärmenutzung.")
+
+        assert any(m.keyword == "Verordnung" for m in result.matches)
+
+    def test_german_pflicht_in_compound(self, compound_config):
+        """'Pflicht' should match inside 'Abwärmenutzungspflicht'."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match("Die Abwärmenutzungspflicht gilt ab 2025.")
+
+        assert any(m.keyword == "Pflicht" for m in result.matches)
+
+    def test_german_multiple_compounds_in_sentence(self, compound_config):
+        """Multiple German compound words should all match."""
+        matcher = KeywordMatcher(compound_config)
+        text = "Die Rechenzentrumsabwärme unterliegt der Energieverordnung."
+        result = matcher.match(text)
+
+        keywords_found = {m.keyword for m in result.matches}
+        assert "Abwärme" in keywords_found
+        assert "Rechenzentrum" in keywords_found
+        assert "Verordnung" in keywords_found
+
+    # --- Dutch compound word test ---
+
+    def test_dutch_keyword_in_compound(self, compound_config):
+        """Dutch 'restwarmte' should match inside 'restwarmtebenutting'."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match("De restwarmtebenutting van datacentra.")
+
+        assert any(m.keyword == "restwarmte" for m in result.matches)
+
+    # --- Swedish compound word test ---
+
+    def test_swedish_keyword_in_compound(self, compound_config):
+        """Swedish 'spillvärme' should match inside 'spillvärmeanvändning'."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match("Spillvärmeanvändning från datacenter ökar.")
+
+        assert any(m.keyword == "spillvärme" for m in result.matches)
+
+    # --- Danish compound word test ---
+
+    def test_danish_keyword_in_compound(self, compound_config):
+        """Danish 'overskudsvarme' should match inside 'overskudsvarmeudnyttelse'."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match("Overskudsvarmeudnyttelse er vigtig.")
+
+        assert any(m.keyword == "overskudsvarme" for m in result.matches)
+
+    # --- English word boundaries preserved ---
+
+    def test_english_word_boundaries_preserved(self, compound_config):
+        """English keywords should still use word boundaries."""
+        matcher = KeywordMatcher(compound_config)
+        # "regulations" should NOT match "regulation" with \b
+        result = matcher.match("These are general heating systems.")
+
+        assert not any(m.keyword == "heat recovery" for m in result.matches)
+
+    def test_english_exact_word_still_matches(self, compound_config):
+        """English keywords with word boundaries still match exact words."""
+        matcher = KeywordMatcher(compound_config)
+        result = matcher.match(
+            "The new regulation on waste heat from data centers."
+        )
+
+        assert any(m.keyword == "regulation" for m in result.matches)
+        assert any(m.keyword == "waste heat" for m in result.matches)
+
+
+class TestCompoundWordIntegration:
+    """Integration test with actual config for German compound words."""
+
+    def test_german_policy_text_with_actual_config(self):
+        """German policy text with compound words should match using real config."""
+        from src.config.loader import load_settings
+
+        _, _, keywords_config = load_settings()
+        matcher = KeywordMatcher(keywords_config)
+
+        german_text = """
+        Energieeffizienzgesetz (EnEfG)
+
+        Dieses Gesetz regelt die Anforderungen an Betreiber von Rechenzentren
+        hinsichtlich der Abwärmenutzung. Rechenzentren mit einer Leistung von
+        über 500 kW müssen ihre Rechenzentrumsabwärme für Fernwärmenetze
+        verfügbar machen, soweit dies wirtschaftlich zumutbar ist.
+
+        Die Abwärmenutzungspflicht tritt ab 2025 in Kraft. Eine Wärmeplanung
+        ist für alle neuen Rechenzentren verpflichtend.
+        """
+
+        result = matcher.match(german_text)
+
+        assert result.has_matches
+        assert result.score > 5.0
+        assert result.unique_matches >= 3
+
+        keywords_found = {m.keyword for m in result.matches}
+        assert "Abwärme" in keywords_found or "Abwärmenutzung" in keywords_found
+        assert "Rechenzentrum" in keywords_found or "Rechenzentren" in keywords_found

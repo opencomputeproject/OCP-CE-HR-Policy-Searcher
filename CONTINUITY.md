@@ -2,7 +2,25 @@
 
 ## Current State
 
-### Just Completed: Split US Domains into Per-State Files
+### Just Completed: Fix Compound-Word Language Keyword Matching
+
+**What was done:**
+- Fixed `_compile_patterns()` in `src/analysis/keywords.py` to use substring matching (no `\b` word boundaries) for compound-word languages: German (de), Dutch (nl), Swedish (sv), Danish (da)
+- English, French, Italian, and Spanish keywords retain `\b` word boundaries
+- Added `COMPOUND_LANGUAGES` constant to `src/analysis/keywords.py`
+- Added 14 unit tests for compound word matching across all four affected languages
+- Added German policy text integration test using actual `config/keywords.yaml`
+
+**Root cause:** `\b` word boundaries prevented keywords like "Abwärme" from matching inside compound words like "Rechenzentrumsabwärme", causing 0/383 pages to pass keyword filtering in German-language crawls.
+
+**Files changed:**
+1. `src/analysis/keywords.py` - Added `COMPOUND_LANGUAGES` constant, conditional pattern compilation
+2. `tests/unit/test_keywords.py` - Added `TestCompoundLanguagesConstant`, `TestCompoundWordMatching`, `TestCompoundWordIntegration` classes
+3. `CHANGELOG.md` - Documented fix under [Unreleased]
+4. `CONTINUITY.md` - Updated current state
+5. `pyproject.toml` - Version bump 0.2.1 -> 0.2.2
+
+### Previously: Split US Domains into Per-State Files
 
 **What was done:**
 - Split `config/domains/us_states.yaml` (19 entries, 16 states) into 50 individual per-state YAML files under `config/domains/us/`

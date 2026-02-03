@@ -26,6 +26,11 @@ from dataclasses import dataclass, field
 import re
 from typing import Optional
 
+# Languages that use compound words where keywords may appear as substrings
+# of larger words. For these languages, patterns skip \b word boundaries so
+# that e.g. "Abwärme" matches inside "Rechenzentrumsabwärme".
+COMPOUND_LANGUAGES: set[str] = {"de", "nl", "sv", "da"}
+
 
 @dataclass
 class KeywordMatch:
@@ -112,14 +117,25 @@ class KeywordMatcher:
         self._compile_boost_penalty_patterns()
 
     def _compile_patterns(self) -> None:
-        """Compile keyword patterns for matching."""
+        """Compile keyword patterns for matching.
+
+        For compound-word languages (German, Dutch, Swedish, Danish),
+        patterns use substring matching so that keywords match inside
+        compound words. Other languages use word boundaries (\\b).
+        """
         for category, config in self.keywords.items():
             terms = config.get("terms", {})
             for lang, keyword_list in terms.items():
                 for keyword in keyword_list:
-                    pattern = re.compile(
-                        r"\b" + re.escape(keyword) + r"\b", re.IGNORECASE
-                    )
+                    if lang in COMPOUND_LANGUAGES:
+                        pattern = re.compile(
+                            re.escape(keyword), re.IGNORECASE
+                        )
+                    else:
+                        pattern = re.compile(
+                            r"\b" + re.escape(keyword) + r"\b",
+                            re.IGNORECASE,
+                        )
                     self._patterns[f"{category}:{lang}:{keyword}"] = pattern
 
     def _compile_boost_penalty_patterns(self) -> None:

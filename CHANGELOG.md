@@ -25,6 +25,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Enabled `context` keyword category in `config/keywords.yaml` (data center terms now required in combination matching)
 
 ### Fixed
+- Fixed keyword matching for compound-word languages (German, Dutch, Swedish, Danish) by using substring matching instead of `\b` word boundaries for `de`, `nl`, `sv`, `da` patterns. Previously, keywords like "Abwärme" and "Rechenzentrum" failed to match inside compound words like "Rechenzentrumsabwärme", causing 0% keyword pass rate on German pages.
 - Suppress BeautifulSoup `XMLParsedAsHTMLWarning` when crawling XHTML/XML pages (e.g., German law database)
 - Fixed several country domain files (france, switzerland, austria, belgium, ireland) missing `domains:` YAML wrapper key
 - Fixed `switzerland.yaml` duplicate `domains:` key causing only last block to load (17 domains now load correctly)
