@@ -2,6 +2,8 @@
 
 ## Current State
 
+### Version: 0.2.2 (commit `2e3958e`, pushed to origin/master)
+
 ### Just Completed: Fix Compound-Word Language Keyword Matching
 
 **What was done:**
@@ -19,6 +21,16 @@
 3. `CHANGELOG.md` - Documented fix under [Unreleased]
 4. `CONTINUITY.md` - Updated current state
 5. `pyproject.toml` - Version bump 0.2.1 -> 0.2.2
+
+**Verification:** 521 tests pass.
+
+### Also Completed: Disable Keyword Density Filter Default
+
+**What was done:** Changed `config/keywords.yaml` density from `enabled: true, min_density: 1.0` to `enabled: false, min_density: 0`.
+
+**Why:** The density gate (1.0 matches per 1000 chars) was too aggressive for real-world pages. HTML boilerplate (nav, header, footer) inflates character count, pushing density below threshold even for relevant pages. Evidence: 0/383 pages passed in Switzerland crawl, 0/83 in California crawl.
+
+**Filtering now relies on:** keyword score + unique matches + required_combinations + Haiku screening + Sonnet analysis. Density can be re-enabled via `--min-density <value>` CLI flag.
 
 ### Previously: Split US Domains into Per-State Files
 

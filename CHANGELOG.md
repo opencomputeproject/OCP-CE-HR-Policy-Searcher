@@ -20,6 +20,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Updated `_template.yaml` with region field and documentation
 
 ### Changed
+- Disabled keyword density filter by default (`min_density: 0`) in `config/keywords.yaml`. The required_combinations check + two-stage LLM screening (Haiku → Sonnet) provide sufficient filtering. The density gate was too aggressive for real-world pages with HTML boilerplate, causing 0% pass rate. Can be re-enabled via `--min-density <value>`.
 - Split `us_states.yaml` into 50 individual per-state YAML files under `config/domains/us/` (e.g., `texas.yaml`, `virginia.yaml`, `alabama.yaml`) to support incremental per-state research
 - Moved `us_federal.yaml` into `config/domains/us/` subdirectory alongside state files
 - Enabled `context` keyword category in `config/keywords.yaml` (data center terms now required in combination matching)

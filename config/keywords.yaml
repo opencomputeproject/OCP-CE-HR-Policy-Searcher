@@ -647,8 +647,8 @@ stricter_requirements:
   #   3.0  = very strict (3 matches per 1000 chars)
   # ---------------------------------------------------------------------------
   density:
-    enabled: true
-    min_density: 1.0  # Matches per 1000 characters
+    enabled: false
+    min_density: 0  # Disabled: required_combinations + LLM screening provide sufficient filtering
 
     # Only count matches from these categories for density calculation
     # Leave empty [] to count all categories
