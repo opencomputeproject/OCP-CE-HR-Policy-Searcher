@@ -961,7 +961,8 @@ async def run_batch(
     verbose = getattr(args, 'verbose', False)
 
     # Crawl
-    crawler = AsyncCrawler(settings.crawl, domains, keyword_matcher, logger)
+    skip_exts = url_filter.config.skip_extensions if url_filter else None
+    crawler = AsyncCrawler(settings.crawl, domains, keyword_matcher, logger, skip_exts)
     crawl_results = await crawler.crawl_all()
     logger.info(f"Crawled {len(crawl_results)} pages")
 

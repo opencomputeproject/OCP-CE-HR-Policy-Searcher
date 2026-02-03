@@ -438,6 +438,57 @@ url_filters:
         assert url_filter.should_skip("https://example.com/file.zip")
 
 
+class TestURLFilterCgiBinException:
+    """Tests for CGI-bin .exe exception."""
+
+    def test_exe_in_cgi_bin_not_skipped(self):
+        """Test that .exe in /cgi-bin/ paths is not skipped."""
+        config = URLFilterConfig(skip_extensions=[".exe"])
+        url_filter = URLFilter(config)
+
+        assert not url_filter.should_skip(
+            "https://lis.virginia.gov/cgi-bin/legp604.exe?ses=251&typ=bil&val=hb116"
+        )
+
+    def test_exe_outside_cgi_bin_still_skipped(self):
+        """Test that .exe outside /cgi-bin/ is still skipped."""
+        config = URLFilterConfig(skip_extensions=[".exe"])
+        url_filter = URLFilter(config)
+
+        assert url_filter.should_skip("https://example.com/downloads/setup.exe")
+
+    def test_cgi_bin_non_exe_still_skipped(self):
+        """Test that non-.exe extensions in /cgi-bin/ are still skipped."""
+        config = URLFilterConfig(skip_extensions=[".pdf"])
+        url_filter = URLFilter(config)
+
+        assert url_filter.should_skip(
+            "https://example.com/cgi-bin/report.pdf"
+        )
+
+    def test_cgi_bin_case_insensitive(self):
+        """Test that /cgi-bin/ detection is case-insensitive (path is lowered)."""
+        config = URLFilterConfig(skip_extensions=[".exe"])
+        url_filter = URLFilter(config)
+
+        assert not url_filter.should_skip(
+            "https://example.com/CGI-BIN/script.exe?param=1"
+        )
+
+    def test_cgi_bin_stats_counted_correctly(self):
+        """Test that CGI-bin exceptions are not counted as skipped."""
+        config = URLFilterConfig(skip_extensions=[".exe"])
+        url_filter = URLFilter(config)
+
+        url_filter.should_skip("https://lis.virginia.gov/cgi-bin/legp604.exe?ses=251")
+        url_filter.should_skip("https://example.com/setup.exe")
+
+        stats = url_filter.get_stats()
+        assert stats.total_checked == 2
+        assert stats.total_skipped == 1
+        assert stats.by_extension == 1
+
+
 class TestURLFilterEdgeCases:
     """Tests for edge cases and error handling."""
 

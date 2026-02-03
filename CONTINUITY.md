@@ -4,7 +4,30 @@
 
 ### Version: 0.3.0
 
-### Just Completed: Access Denied Diagnostic Logging
+### Just Completed: URL Filtering Fixes (CGI-bin, path-only check, config-driven extensions)
+
+**What was done:**
+- Fixed URL pre-filter `_check_extension()` in `url_filter.py` to exempt `/cgi-bin/` paths from `.exe` extension filtering — Virginia legislature CGI scripts (`legp604.exe?ses=251&typ=bil&val=hb116`) were incorrectly skipped as binary files
+- Fixed link extractor `_extract_links()` in `async_crawler.py` to check `parsed.path.lower()` instead of `full_url.lower()` — query strings could interfere with extension matching
+- Link extractor now uses `skip_extensions` from URL filter config (passed via `AsyncCrawler.__init__`) instead of a hard-coded 5-extension list, keeping crawl-time and analysis-time filtering consistent
+- Added `_DEFAULT_SKIP_EXTENSIONS` fallback in `async_crawler.py` for when no config is provided
+- Fixed `virginia.yaml` YAML indentation for `us_va_hb323_2026` domain entry
+- Added `virginia` to `VALID_REGIONS` in `loader.py`
+- 5 new tests in `test_url_filter.py` (CGI-bin exception), 9 new tests in `test_link_extractor.py`
+- 551 tests pass
+
+**Files changed:**
+1. `src/analysis/url_filter.py` - CGI-bin exception in `_check_extension()`
+2. `src/crawler/async_crawler.py` - Path-only extension check, config-driven extensions, `_DEFAULT_SKIP_EXTENSIONS`
+3. `src/main.py` - Pass `skip_extensions` from URL filter config to `AsyncCrawler`
+4. `config/domains/us/virginia.yaml` - Fixed YAML indentation
+5. `src/config/loader.py` - Added `virginia` to `VALID_REGIONS`
+6. `tests/unit/test_url_filter.py` - 5 new CGI-bin tests
+7. `tests/unit/test_link_extractor.py` - 9 new tests (path-only, CGI-bin, config extensions)
+8. `CHANGELOG.md` - Documented fixes
+9. `CONTINUITY.md` - This file
+
+### Previously Completed: Access Denied Diagnostic Logging
 
 **What was done:**
 - Added `_diagnose_response()` and `diagnose_denial_from_text()` in `http_fetcher.py` to analyze HTTP error responses (checks Server header for Cloudflare/Akamai, scans response body for 11 denial patterns)

@@ -190,6 +190,9 @@ class URLFilter:
         for ext in self.config.skip_extensions:
             ext_lower = ext.lower()
             if path.endswith(ext_lower):
+                # CGI scripts use .exe but return HTML content
+                if ext_lower == ".exe" and "/cgi-bin/" in path:
+                    continue
                 return FilterResult(
                     should_skip=True,
                     reason=f"Skipped extension: {ext}",

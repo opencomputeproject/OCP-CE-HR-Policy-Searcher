@@ -19,6 +19,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Verbose mode blocked-pages section with per-page reasons and actionable suggestions (e.g., "try requires_playwright: true")
 
 ### Fixed
+- URL pre-filter `.exe` extension check now exempts CGI-bin paths (`/cgi-bin/*.exe?...`), which are dynamic scripts returning HTML (e.g., Virginia legislature `legp604.exe`)
+- Link extractor now checks file extension on URL path only, not full URL with query string — previously a query like `?val=hb116` could prevent extension matching
+- Link extractor extension list now uses `skip_extensions` from `config/url_filters.yaml` instead of a hard-coded list, keeping crawl-time and analysis-time filtering consistent
+- Fixed `virginia.yaml` YAML indentation for `us_va_hb323_2026` domain entry
 - Playwright fetcher now correctly maps HTTP 403/404/429 to ACCESS_DENIED/NOT_FOUND/RATE_LIMITED (previously all were UNKNOWN_ERROR)
 
 ### Changed

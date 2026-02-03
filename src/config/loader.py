@@ -423,6 +423,7 @@ VALID_REGIONS = {
     "oregon": "Oregon",
     "texas": "Texas",
     "california": "California",
+    "virginia": "Virginia",
 }
 
 

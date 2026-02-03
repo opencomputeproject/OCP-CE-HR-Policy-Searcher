@@ -21,6 +21,9 @@ from .detection.captcha import detect_captcha
 from .detection.js_required import detect_js_required
 
 
+_DEFAULT_SKIP_EXTENSIONS = [".pdf", ".doc", ".docx", ".zip", ".jpg", ".png"]
+
+
 class AsyncCrawler:
     def __init__(
         self,
@@ -28,11 +31,15 @@ class AsyncCrawler:
         domains: list[dict],
         keyword_matcher: KeywordMatcher,
         logger: RunLogger,
+        skip_extensions: Optional[list[str]] = None,
     ):
         self.settings = settings
         self.domains = domains
         self.keyword_matcher = keyword_matcher
         self.logger = logger
+        self.skip_extensions = [
+            ext.lower() for ext in (skip_extensions or _DEFAULT_SKIP_EXTENSIONS)
+        ]
 
         self.http_fetcher = HttpFetcher(settings)
         self.playwright_fetcher: Optional[PlaywrightFetcher] = None
@@ -150,8 +157,12 @@ class AsyncCrawler:
                 continue
             if parsed.scheme not in ("http", "https"):
                 continue
-            if any(full_url.lower().endswith(ext) for ext in [".pdf", ".doc", ".zip", ".jpg", ".png"]):
-                continue
+
+            path_lower = parsed.path.lower()
+            if any(path_lower.endswith(ext) for ext in self.skip_extensions):
+                # CGI scripts use .exe but return HTML content
+                if not (path_lower.endswith(".exe") and "/cgi-bin/" in path_lower):
+                    continue
 
             normalized = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
             if parsed.query:

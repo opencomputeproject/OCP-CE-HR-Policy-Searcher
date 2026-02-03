@@ -57,3 +57,39 @@ domains:
       Track HB 116/SB 192: Data center energy efficiency requirements.
       Most active state for data center legislation (28 bills in 2025).
 
+  - name: "Virginia HB323 - Data Center Heat Reuse Study"
+    id: "us_va_hb323_2026"
+    enabled: true
+    base_url: "https://lis.virginia.gov"
+    start_paths:
+      - "/bill-details/20261/HB323"
+    max_depth: 2
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+      - "virginia"
+    requires_playwright: true  # Site is JavaScript SPA - requires rendering
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "pending"
+      - "study"
+      - "waste_heat"
+      - "department_of_energy"
+      - "data_center_specific"
+    policy_types:
+      - "legislation"
+      - "waste_heat_recovery"
+    verified_by: "Web Search - News Coverage"
+    verified_date: "2026-02-03"
+    sponsor: "Del. Rip Sullivan (D-Fairfax)"
+    session: "2026 Regular Session"
+    status: "Introduced"
+    notes: |
+        Directs Virginia Department of Energy to study ways to utilize 
+        data center waste heat for surrounding buildings.
+        Modeled after European examples (Nordic district heating).
+        Sullivan is key OCP ally - participated in OCP Heat Reuse webinar.
+        Related bills: HB906 (load flexibility), HB824 (energy generation/storage).
+        NOTE: lis.virginia.gov requires JavaScript/Playwright to render content.
