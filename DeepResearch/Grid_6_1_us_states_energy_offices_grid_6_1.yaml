@@ -1,0 +1,688 @@
+# US States - Energy Ministries/Offices
+# Generated: 2026-01-08
+# Grid Cell: 6.1
+# Region: Iowa, Indiana, Nevada, Utah, South Carolina, Tennessee, Montana, Wisconsin
+#
+# Context: These 8 US states have significant data center presence but were not
+# previously covered in the policy tracker. Each state has a designated State 
+# Energy Office (SEO) that receives federal DOE funding and implements energy
+# efficiency programs. Structure varies - some are standalone agencies, others
+# within economic development, environmental, or regulatory departments.
+#
+# Data Center Presence:
+# - Iowa: Google, Meta, Microsoft in Council Bluffs/Altoona; benefits from wind energy
+# - Indiana: Growing Indianapolis market; crossroads connectivity
+# - Nevada: Reno/Tahoe market; Switch facilities; massive $100B investments planned
+# - Utah: Salt Lake City market; Meta, NSA facilities; cold climate benefits
+# - South Carolina: Google, Meta facilities; low electricity costs; nuclear power
+# - Tennessee: Nashville emerging market; TVA power region
+# - Montana: Emerging market; hydropower and cold climate advantages
+# - Wisconsin: Microsoft and others expanding; strong efficiency programs
+
+# =============================================================================
+# IOWA
+# =============================================================================
+
+- name: "Iowa Economic Development Authority - Energy Office"
+  id: "us_ia_ieda_energy"
+  enabled: true
+  base_url: "https://opportunityiowa.gov"
+  start_paths:
+    - "/community/energy"
+    - "/about/boards/iowa-energy-center-board"
+  allowed_path_patterns:
+    - "/community/energy*"
+    - "/about/boards/iowa-energy*"
+    - "/media/*"
+  blocked_path_patterns:
+    - "/events/*"
+    - "/news/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+    - "planning"
+    - "research"
+  policy_types:
+    - "guidance"
+    - "incentive"
+    - "report"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Iowa Energy Office manages state, federal, and utility-funded programs.
+    Implements Iowa Energy Plan (2016). Iowa Energy Center Board oversees grants.
+    Major data center presence: Google, Meta, Microsoft in Council Bluffs area.
+    State leads in wind energy (>60% electricity mix). Universal System Benefits
+    programs for efficiency. Alternative Energy Revolving Loan Program available.
+    Key legislation: Iowa Code Chapter 103A (building codes), Senate File 2311 (2018).
+
+- name: "Iowa Energy Plan Portal"
+  id: "us_ia_energy_plan"
+  enabled: true
+  base_url: "https://www.iowaenergyplan.org"
+  start_paths:
+    - "/"
+  allowed_path_patterns:
+    - "/*"
+  blocked_path_patterns:
+    - "/wp-content/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "planning"
+    - "efficiency"
+  policy_types:
+    - "guidance"
+    - "report"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Dedicated portal for Iowa Energy Plan implementation (2016).
+    15 objectives and 45 strategies for balanced energy growth.
+    Includes stakeholder coordination and public forums documentation.
+    Progress reports available. Key resource for state energy policy tracking.
+
+# =============================================================================
+# INDIANA
+# =============================================================================
+
+- name: "Indiana Office of Energy Development"
+  id: "us_in_oed"
+  enabled: true
+  base_url: "https://www.in.gov/oed"
+  start_paths:
+    - "/"
+    - "/grants-and-funding-opportunities/"
+    - "/grants-and-funding-opportunities/homeowner-incentives/"
+    - "/grants-and-funding-opportunities/energy-efficiency-fund/"
+    - "/grants-and-funding-opportunities/eecbg-program/"
+  allowed_path_patterns:
+    - "/oed/*"
+  blocked_path_patterns:
+    - "/oed/news/*"
+    - "/oed/events/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+    - "planning"
+    - "funding"
+  policy_types:
+    - "incentive"
+    - "guidance"
+    - "grant_program"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Indiana's federally designated State Energy Office. Coordinates state energy
+    policy with executive branch agencies. Administers DOE grant programs including
+    EECBG ($2.4M allocation), Indiana Energy Efficiency Fund ($9.9M revolving loans),
+    and Indiana Energy Saver Program ($182M federal funding). Five pillars policy:
+    affordability, reliability, resiliency, stability, environmental sustainability.
+    IURC requires utility energy efficiency plans every 3 years.
+    Growing Indianapolis data center market with crossroads connectivity.
+
+# =============================================================================
+# NEVADA
+# =============================================================================
+
+- name: "Nevada Governor's Office of Energy"
+  id: "us_nv_goe"
+  enabled: true
+  base_url: "https://www.energy.nv.gov"
+  start_paths:
+    - "/"
+    - "/about-us/"
+  allowed_path_patterns:
+    - "/*"
+  blocked_path_patterns:
+    - "/siteassets/*"
+    - "/documents/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+    - "planning"
+    - "carbon"
+  policy_types:
+    - "guidance"
+    - "incentive"
+    - "report"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Cabinet-level director position since 2001. Promotes policy, manages programs,
+    distributes federal funding. Key programs: Renewable Energy Tax Abatement (RETA),
+    Home Energy Retrofit Opportunities for Seniors (HEROS), Performance Contracting
+    Audit Program (PCAAP). NRS Chapter 701 establishes energy policy framework.
+    MASSIVE data center investment: Tract planning $100B in Storey County over 10 years.
+    NV Energy projecting grid could quadruple for data centers.
+    Greenlink West project ($4.2B) transmission backbone Las Vegas-Reno.
+    Status of Energy Report published annually per NRS 701.170.
+
+- name: "Nevada Legislature - Energy Policy Statutes"
+  id: "us_nv_leg_energy"
+  enabled: true
+  base_url: "https://www.leg.state.nv.us"
+  start_paths:
+    - "/nrs/nrs-701.html"
+  allowed_path_patterns:
+    - "/nrs/nrs-70*"
+    - "/nrs/nrs-704*"
+  blocked_path_patterns:
+    - "/Session/*"
+  max_depth: 1
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "efficiency"
+    - "planning"
+  policy_types:
+    - "law"
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Nevada Revised Statutes Chapter 701 - Energy Policy. Key sections:
+    NRS 701.170 (annual status report), NRS 701.218 (state building energy tracking),
+    NRS 701.220 (IECC adoption requirements). Chapter 704 covers public utilities.
+    State adopted 2021 IECC with EV-ready appendices.
+
+# =============================================================================
+# UTAH
+# =============================================================================
+
+- name: "Utah Office of Energy Development"
+  id: "us_ut_oed"
+  enabled: true
+  base_url: "https://energy.utah.gov"
+  start_paths:
+    - "/"
+  allowed_path_patterns:
+    - "/*"
+  blocked_path_patterns:
+    - "/wp-content/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+    - "planning"
+  policy_types:
+    - "guidance"
+    - "incentive"
+    - "report"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Utah's primary office for energy and critical mineral development. Implements
+    state's Strategic Energy Plan. Operation Gigawatt initiative to double power
+    capacity. U-Save Energy Fund provides low-interest loans for public buildings.
+    Utah Energy Infrastructure Authority can authorize tax-free bonds for
+    transmission and pipeline projects. Governor's Energy Development Summit
+    is largest energy event in the West. Meta (Appaloosa Solar Farm) in Cedar City.
+    Google opening Salt Lake City data center. NSA Utah Data Center at Camp Williams.
+    Second-fastest internet speeds in US.
+
+- name: "Utah Office of Energy Development - Energy Efficiency"
+  id: "us_ut_oed_efficiency"
+  enabled: true
+  base_url: "https://www.energy.nr.utah.gov"
+  start_paths:
+    - "/homepage/technology/energy-efficiency/"
+  allowed_path_patterns:
+    - "/homepage/technology/*"
+    - "/homepage/resources/*"
+  blocked_path_patterns:
+    - "/wp-content/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+  policy_types:
+    - "guidance"
+    - "incentive"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Energy efficiency focused portal. Partners with Intermountain Industrial
+    Assessment Center for no-cost energy consulting to manufacturers (10-20%
+    savings identified). Home Energy Scorecard pilot program per state legislation.
+    Rocky Mountain Power Wattsmart program incentives. Dominion Energy ThermWise
+    program for natural gas efficiency. Weatherization Assistance Program delivers
+    ~35% savings (~$583/year) to low-income households.
+
+# =============================================================================
+# SOUTH CAROLINA
+# =============================================================================
+
+- name: "South Carolina Energy Office"
+  id: "us_sc_energy"
+  enabled: true
+  base_url: "https://energy.sc.gov"
+  start_paths:
+    - "/"
+    - "/about-energy-office/about-mission"
+  allowed_path_patterns:
+    - "/*"
+  blocked_path_patterns:
+    - "/files/*"
+    - "/media/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+    - "planning"
+  policy_types:
+    - "guidance"
+    - "incentive"
+    - "report"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Principal energy planning entity for South Carolina per SC Energy Efficiency
+    Act (1992, SC Code 48-52). Part of Office of Regulatory Staff. Develops
+    comprehensive state energy plan. EECBG Program funding available.
+    Palmetto Clean Fuels Coalition promotes alternative fuels.
+    Google and Meta have major facilities in the state. Low electricity costs
+    and nuclear power availability attract data centers.
+    State Energy Action Plan submitted annually to Governor and legislature.
+
+- name: "South Carolina Office of Regulatory Staff"
+  id: "us_sc_ors"
+  enabled: true
+  base_url: "https://ors.sc.gov"
+  start_paths:
+    - "/"
+    - "/consumers/electric-natural-gas/state-energy-office"
+  allowed_path_patterns:
+    - "/consumers/*"
+    - "/regulatory/*"
+  blocked_path_patterns:
+    - "/documents/*"
+    - "/files/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "efficiency"
+    - "reporting"
+    - "mandates"
+  policy_types:
+    - "regulation"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    ORS represents public interest in utility regulation for electric, natural gas,
+    telecommunications, transportation, water/wastewater. Houses State Energy Office.
+    Works with SC Public Service Commission on utility energy efficiency plans.
+    SC Code Title 48-52 establishes energy efficiency requirements.
+    H.B. 4766 (2008) requires 20% energy reduction by 2020 from 2000 baseline
+    for state agencies and school districts.
+
+# =============================================================================
+# TENNESSEE
+# =============================================================================
+
+- name: "Tennessee Department of Environment and Conservation - Office of Energy Programs"
+  id: "us_tn_tdec_oep"
+  enabled: true
+  base_url: "https://www.tn.gov/environment/program-areas/energy"
+  start_paths:
+    - ".html"
+    - "/state-energy-office--seo-.html"
+    - "/state-energy-office--seo-/programs-projects/programs-and-projects.html"
+  allowed_path_patterns:
+    - "/environment/program-areas/energy*"
+  blocked_path_patterns:
+    - "/environment/news/*"
+    - "/environment/events/*"
+  max_depth: 3
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+    - "funding"
+    - "planning"
+  policy_types:
+    - "guidance"
+    - "incentive"
+    - "grant_program"
+    - "report"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    TDEC Office of Energy Programs serves as Governor-designated State Energy Office.
+    Annual reports required per Tenn. Code Ann. 4-3-510(9) and 4-3-1012(5).
+    Key programs: Energy Efficiency and Renewable Energy Loan Program ($29M fund
+    via Pathway Lending), Energy Efficient Schools Initiative, EECBG ($4.6M for
+    distressed counties), Local Government Energy Efficiency Revolving Loan Fund.
+    Coordinates with TVA EnergyRight for IRA Home Energy Rebates. Nashville
+    emerging as data center market in TVA power region. Contact: 1-800-342-1340.
+
+- name: "Tennessee Clean Energy Financing Programs"
+  id: "us_tn_tdec_financing"
+  enabled: true
+  base_url: "https://www.tn.gov/environment/program-areas/energy/state-energy-office--seo-/programs-projects/programs-and-projects/clean-energy-financing"
+  start_paths:
+    - ".html"
+    - "/energy-efficiency-and-renewable-energy-loan-program.html"
+  allowed_path_patterns:
+    - "/environment/program-areas/energy/state-energy-office*"
+  blocked_path_patterns: []
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "funding"
+    - "incentives"
+    - "efficiency"
+  policy_types:
+    - "incentive"
+    - "grant_program"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Detailed financing program information. EELP loans $20K-$5M at 4-6% fixed
+    interest for efficiency upgrades, lighting, building envelope, cool roofs,
+    renewables, and cogeneration. Local governments, municipalities, counties,
+    school districts eligible since 2016. Fund comprises TDEC OEP ($14M),
+    TVA ($10-14M), and Pathway Lending ($5M).
+
+# =============================================================================
+# MONTANA
+# =============================================================================
+
+- name: "Montana Department of Environmental Quality - Energy Bureau"
+  id: "us_mt_deq_energy"
+  enabled: true
+  base_url: "https://deq.mt.gov/energy"
+  start_paths:
+    - "/"
+    - "/resources"
+    - "/incentive"
+    - "/Programs/efficiency"
+    - "/Programs/conservation"
+  allowed_path_patterns:
+    - "/energy/*"
+  blocked_path_patterns:
+    - "/energy/documents/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+    - "funding"
+    - "planning"
+  policy_types:
+    - "guidance"
+    - "incentive"
+    - "grant_program"
+    - "report"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Energy Bureau serves as Montana's State Energy Office within DEQ's Air,
+    Energy and Mining Division. Two sections: Energy Efficiency & Compliance
+    Assistance, and Energy Planning. Administers BIL/IRA funding including
+    Grid Resilience Grants, EECBG, Home Energy Rebates Program.
+    Universal System Benefits (USB) Charge per Mont. Code 69-8-402 funds
+    efficiency programs through NorthWestern Energy and Montana-Dakota Utilities.
+    Alternative Energy Revolving Loan Program available. Montana emerging as
+    data center market with hydropower and cold climate advantages.
+    Contact: 406-444-0281 or TDEC.OEP@mt.gov.
+
+- name: "Montana DEQ Energy Resources and Incentives"
+  id: "us_mt_deq_resources"
+  enabled: true
+  base_url: "https://deq.mt.gov/energy/resources"
+  start_paths:
+    - ""
+  allowed_path_patterns:
+    - "/energy/resources*"
+    - "/energy/incentive*"
+  blocked_path_patterns: []
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "energy_ministry"
+  tags:
+    - "incentives"
+    - "efficiency"
+    - "research"
+  policy_types:
+    - "incentive"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Detailed incentive information. Key state incentives:
+    15-24-1401: 50% property tax reduction (9-year phaseout) for renewable >1MW
+    15-6-157: Lower property tax rate for renewable energy transmission lines
+    HB 3 (2007): Property tax incentives for lower-impact energy projects.
+    Montana Climate Solutions Council established by Executive Order (July 2019).
+    Montana Manufacturing Extension Center provides business assistance.
+    Montana Pollution Prevention Program (MTP2) offers no-cost technical assistance.
+
+# =============================================================================
+# WISCONSIN
+# =============================================================================
+
+- name: "Wisconsin Public Service Commission - Office of Energy Innovation"
+  id: "us_wi_psc_oei"
+  enabled: true
+  base_url: "https://psc.wi.gov"
+  start_paths:
+    - "/Pages/ServiceType/OfficeEnergyInnovation.aspx"
+  allowed_path_patterns:
+    - "/Pages/ServiceType/OfficeEnergyInnovation*"
+    - "/Pages/Programs/*"
+    - "/Documents/OEI/*"
+  blocked_path_patterns:
+    - "/ERF/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 3.0
+  category: "energy_ministry"
+  tags:
+    - "efficiency"
+    - "incentives"
+    - "funding"
+    - "planning"
+  policy_types:
+    - "guidance"
+    - "incentive"
+    - "grant_program"
+    - "report"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Office of Energy Innovation (OEI) houses State Energy Office per Wis. Stat.
+    196.025(7). Administers Focus on Energy statewide efficiency program.
+    Key programs: Grid Resilience Grant Program ($10M+), EECBG, Energy Innovation
+    Grant Program ($7.8M), Rural Energy Startup Program (RESP) for disadvantaged
+    communities, Critical Infrastructure Microgrid pilot grants ($900K).
+    2005 Wisconsin Act 141 requires IOUs spend 1.2% gross revenues on efficiency.
+    Municipal/co-op utilities collect $8/meter average. Quadrennial review process
+    sets goals (completed QP IV in 2022). Biennial Strategic Energy Assessment.
+    Microsoft and others expanding data center presence in Wisconsin.
+
+- name: "Wisconsin Legislature - Energy Efficiency Rules"
+  id: "us_wi_leg_psc137"
+  enabled: true
+  base_url: "https://docs.legis.wisconsin.gov"
+  start_paths:
+    - "/code/admin_code/psc/137"
+    - "/code/admin_code/psc/137/01"
+  allowed_path_patterns:
+    - "/code/admin_code/psc/137*"
+    - "/statutes/statutes/196*"
+  blocked_path_patterns: []
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "efficiency"
+    - "reporting"
+  policy_types:
+    - "regulation"
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    PSC Chapter 137 - Statewide Energy Efficiency and Renewable Resource Programs.
+    Key sections: 137.05 (minimum requirements), 137.07 (large customer programs),
+    137.08 (voluntary utility programs), 137.09 (self-directed programs for large
+    customers >1,000 kWh monthly or >10,000 dekatherms). Wis. Stat. 196.374
+    establishes statutory framework. Wis. Stat. 196.491(2)(a) requires biennial
+    Strategic Energy Assessment. Total Resource Cost (TRC) primary cost-effectiveness
+    test with 10% environmental adder in societal cost test.
+
+# =============================================================================
+# EVALUATED BUT NOT RECOMMENDED
+# =============================================================================
+
+# Iowa Utilities Board
+# - name: "Iowa Utilities Board"
+#   url: "https://iub.iowa.gov"
+#   region: "Iowa"
+#   topic: "Energy Regulation"
+#   reason_excluded: |
+#     Utility regulatory focus (rates, service quality, safety).
+#     Limited energy efficiency policy content beyond rate case proceedings.
+#     Energy efficiency program oversight shifted to utilities themselves
+#     after Senate File 2311 (2018). Better covered by IEDA Energy Office.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Major energy efficiency rulemaking or data center rate proceeding"
+
+# Indiana Utility Regulatory Commission
+# - name: "Indiana Utility Regulatory Commission"
+#   url: "https://www.in.gov/iurc"
+#   region: "Indiana"
+#   topic: "Utility Regulation"
+#   reason_excluded: |
+#     Regulatory/rate focus. Requires utilities to file efficiency plans
+#     but primary policy content is in OED. Case dockets not easily crawlable.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Major data center rate case or efficiency proceeding"
+
+# Montana Public Service Commission
+# - name: "Montana Public Service Commission"
+#   url: "https://psc.mt.gov"
+#   region: "Montana"
+#   topic: "Utility Regulation"
+#   reason_excluded: |
+#     Reviews utility efficiency plans funded through USB but primary
+#     policy development and program administration is at DEQ Energy Bureau.
+#   checked_date: "2026-01-08"
+
+# South Carolina Public Service Commission
+# - name: "South Carolina Public Service Commission"
+#   url: "https://psc.sc.gov"
+#   region: "South Carolina"
+#   topic: "Utility Regulation"
+#   reason_excluded: |
+#     Rate-setting focus. ORS and SC Energy Office handle policy content.
+#   checked_date: "2026-01-08"
+
+# Tennessee Regulatory Authority
+# - name: "Tennessee Regulatory Authority"
+#   url: "https://www.tn.gov/tra"
+#   region: "Tennessee"
+#   topic: "Utility Regulation"
+#   reason_excluded: |
+#     TVA dominates Tennessee electricity market (federal entity).
+#     TRA has limited jurisdiction over energy efficiency.
+#     TDEC OEP is primary state energy policy entity.
+#   checked_date: "2026-01-08"

@@ -1,0 +1,958 @@
+# US States - Legislative Systems
+# Generated: 2026-01-08
+# Grid Cell: 6.2
+# States: Iowa, Indiana, Nevada, Utah, South Carolina, Tennessee, Montana, Wisconsin
+# Focus: State legislature bill tracking systems, energy/utilities committees, administrative rules
+
+# ==============================================================================
+# IOWA
+# ==============================================================================
+
+# Iowa Legislature - Bill Tracking
+- name: "Iowa Legislature"
+  id: "us_iowa_legislature"
+  enabled: true
+  base_url: "https://www.legis.iowa.gov"
+  start_paths:
+    - "/legislation/billtracking"
+    - "/legislation/findLegislation/allbills"
+    - "/committees"
+    - "/publications/departments/details?groupID=316"  # Utilities Commission department page
+  allowed_path_patterns:
+    - "/legislation/*"
+    - "/committees/*"
+    - "/publications/*"
+    - "/law/*"
+  blocked_path_patterns:
+    - "/audio/*"
+    - "/video/*"
+    - "/docs/publications/legis_guide/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+    - "economic_development"
+  policy_types:
+    - "law"
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Iowa Legislature bill tracking and legislation search system. 91st General Assembly 
+    (2025-2027) currently in session. Key features: Bill Tracking Tools, Bill History, 
+    Daily Legislation (Bill Packet), Bill Version Tracking. Energy/utilities legislation 
+    typically handled by Commerce Committee. Iowa Code Chapter 476 governs utilities, 
+    Chapter 476C provides renewable energy tax credits. Search keywords: "data center", 
+    "energy efficiency", "utilities". Links to Iowa Code and Administrative Rules. 
+    Publications section contains department-filed bills and LSA fiscal estimates.
+
+# Iowa Administrative Rules
+- name: "Iowa Administrative Rules"
+  id: "us_iowa_admin_rules"
+  enabled: true
+  base_url: "https://rules.iowa.gov"
+  start_paths:
+    - "/"
+    - "/Notice"
+  allowed_path_patterns:
+    - "/Notice/*"
+    - "/Agency/*"
+  blocked_path_patterns:
+    - "/Account/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "regulations"
+    - "utilities"
+    - "energy"
+    - "administrative"
+  policy_types:
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Iowa's official administrative rules website. Contains proposed and adopted 
+    rulemaking notices from all state agencies. Key chapters: 199 IAC (Iowa Utilities 
+    Commission rules including Chapter 20 - Electric Service, Chapter 27 - Electric 
+    Cooperatives and Municipal Utilities, Chapter 35 - Energy Efficiency). 
+    261 IAC Chapter 403 - Iowa Energy Center rules. 661 IAC Chapter 303 - State 
+    Building Code energy conservation requirements (2009 IECC). Searchable by 
+    agency, keyword, or rule number. ARC numbers track rulemaking progress.
+
+# Iowa Administrative Code via Legislature
+- name: "Iowa Administrative Code - Legislature Portal"
+  id: "us_iowa_admin_code_legis"
+  enabled: true
+  base_url: "https://www.legis.iowa.gov"
+  start_paths:
+    - "/law/administrativerules/chapters?agency=199"  # Utilities Commission
+    - "/law/administrativerules/chapters?agency=261"  # Economic Development (Energy Center)
+    - "/law/administrativerules/chapters?agency=661"  # Public Safety (Building Code)
+  allowed_path_patterns:
+    - "/law/administrativerules/*"
+    - "/docs/iac/*"
+  blocked_path_patterns:
+    - "/law/iowaCode/*"  # Separate from admin rules
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "regulations"
+    - "utilities"
+    - "energy"
+    - "building_codes"
+  policy_types:
+    - "regulation"
+    - "standard"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Official PDF versions of Iowa Administrative Code chapters via Legislature portal.
+    Agency 199 (IUC): Chapters 1-45 cover electric utilities, natural gas, energy 
+    efficiency (Ch 35), renewable energy, transmission siting. Agency 261 (IEDA): 
+    Chapter 403 - Iowa Energy Center board and programs. Agency 661 (Public Safety): 
+    Chapter 303 - State Building Code energy conservation (2009 IECC for commercial, 
+    residential new construction). PDF format requires download for full text.
+
+# ==============================================================================
+# INDIANA
+# ==============================================================================
+
+# Indiana General Assembly
+- name: "Indiana General Assembly"
+  id: "us_indiana_general_assembly"
+  enabled: true
+  base_url: "https://iga.in.gov"
+  start_paths:
+    - "/"
+    - "/legislative/2026/bills/"
+    - "/legislative/2025/bills/"
+  allowed_path_patterns:
+    - "/legislative/*"
+    - "/**/committees/*"
+    - "/**/bills/*"
+  blocked_path_patterns:
+    - "/audio/*"
+    - "/video/*"
+    - "/photos/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 2.5
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+    - "economic_development"
+    - "data_centers"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Indiana General Assembly official bill search and tracking system. 2026 Regular 
+    Session currently active. Key committees: House Utilities, Energy and 
+    Telecommunications; Senate Utilities. Recent major legislation: HB 1007, SB 423, 
+    SB 424 (2025) - small modular nuclear reactors driven by data center energy demand.
+    Data center boom driving significant energy legislation - "Big Tech's voracious 
+    appetite for energy" cited in legislative debates. Search bills by keyword, sponsor,
+    committee. Indiana Code Title 8 (Utilities and Transportation) contains relevant 
+    statutes. Legislature passed laws forcing utility customers to fund SMR development
+    costs for data center power needs. JavaScript-heavy interface requires Playwright.
+
+# Indiana Administrative Code
+- name: "Indiana Administrative Code"
+  id: "us_indiana_admin_code"
+  enabled: true
+  base_url: "https://www.in.gov"
+  start_paths:
+    - "/iurc/utility-regulatory-information/rules-and-regulations/"
+    - "/oed/energy-programs/"
+  allowed_path_patterns:
+    - "/iurc/*"
+    - "/oed/*"
+  blocked_path_patterns:
+    - "/news/*"
+    - "/events/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "regulations"
+    - "utilities"
+    - "energy"
+  policy_types:
+    - "regulation"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Indiana administrative regulations through IURC and OED portals on IN.gov. 
+    IURC (Indiana Utility Regulatory Commission) publishes utility rules under 
+    170 IAC (Indiana Administrative Code). OED (Office of Energy Development) 
+    administers energy efficiency programs including $182M Indiana Energy Saver 
+    (IRA-funded), $9.9M Energy Efficiency Fund. IURC requires utility energy 
+    efficiency plans every 3 years per Indiana Code 8-1-8.5. Cross-reference 
+    with IGA.in.gov for enabling legislation.
+
+# ==============================================================================
+# NEVADA
+# ==============================================================================
+
+# Nevada Legislature
+- name: "Nevada Legislature"
+  id: "us_nevada_legislature"
+  enabled: true
+  base_url: "https://www.leg.state.nv.us"
+  start_paths:
+    - "/"
+    - "/nrs/nrs-701.html"  # Energy Policy chapter
+    - "/nrs/NRS-704.html"  # Public Utilities chapter
+    - "/division/legal/lawlibrary/"
+  allowed_path_patterns:
+    - "/nrs/*"
+    - "/Session/*"
+    - "/App/NELIS/*"
+  blocked_path_patterns:
+    - "/audio/*"
+    - "/video/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 2.5
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+    - "renewable"
+    - "reporting"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Nevada Legislature official site with Nevada Revised Statutes (NRS) and bill 
+    tracking (NELIS system). 36th Special Session (Nov 2025) recently concluded. 
+    Critical chapters: NRS 701 (Energy Policy) - Governor's Office of Energy authority,
+    renewable energy rights, state energy reports; NRS 704 (Public Utilities) - 
+    portfolio standard (50% renewables by 2030, 100% carbon-free by 2050 per SB358 2019),
+    energy efficiency measures, net metering, energy storage procurement. 
+    Key recent legislation: SB448 (2021) - transportation electrification, regional 
+    transmission; AB452 (2025) - fuel cost sharing; SB442 (2025) - utility disconnection
+    reporting. Legislature meets biennially in odd years. JavaScript required for 
+    NELIS bill search.
+
+# Nevada Administrative Code
+- name: "Nevada Administrative Code"
+  id: "us_nevada_admin_code"
+  enabled: true
+  base_url: "https://www.leg.state.nv.us"
+  start_paths:
+    - "/nac/"
+    - "/nac/nac-701.html"
+    - "/nac/nac-704.html"
+  allowed_path_patterns:
+    - "/nac/*"
+  blocked_path_patterns:
+    - "/nrs/*"  # Statutes are separate
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "regulations"
+    - "utilities"
+    - "energy"
+    - "efficiency"
+  policy_types:
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Nevada Administrative Code (NAC) - state agency regulations implementing NRS.
+    NAC 701 contains energy policy regulations including energy efficiency programs
+    administered by Governor's Office of Energy. NAC 704 contains Public Utilities 
+    Commission of Nevada (PUCN) regulations implementing portfolio standards, net 
+    metering, utility planning requirements. PUCN oversees NV Energy integrated 
+    resource plans and rate cases. Regulations implement NRS 701.220 (2021 IECC 
+    adoption requirement). Cross-reference with PUCN docket system for pending 
+    rulemakings.
+
+# ==============================================================================
+# UTAH
+# ==============================================================================
+
+# Utah State Legislature
+- name: "Utah State Legislature"
+  id: "us_utah_legislature"
+  enabled: true
+  base_url: "https://le.utah.gov"
+  start_paths:
+    - "/"
+    - "/bills/bills_By_Session.jsp"
+    - "/committee/committee.jsp?com=INTPUT"  # Public Utilities, Energy, and Technology Interim Committee
+    - "/~2025/2025.htm"
+  allowed_path_patterns:
+    - "/~*"
+    - "/bills/*"
+    - "/committee/*"
+    - "/xcode/*"
+  blocked_path_patterns:
+    - "/audio/*"
+    - "/video/*"
+    - "/GIS/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 2.5
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+    - "technology"
+    - "nuclear"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Utah State Legislature official bill tracking and Utah Code access. 2025 General 
+    Session completed (Jan 21 - Mar 7, 2025). Key committees: House Public Utilities 
+    and Energy Committee (HSTPUT), Public Utilities, Energy, and Technology Interim 
+    Committee (INTPUT). Bill tracking via My Legislature feature with RSS feeds.
+    Governor vetoed HB0003, SB0003, SB0037, SB0296 in 2025 session. Utah Code Title 54 
+    (Public Utilities) and Title 63M (State Resource Management) contain energy statutes.
+    2025 session included significant nuclear energy discussions per HEAL Utah tracker.
+    Legislature meets annually Jan-Mar. JavaScript required for committee pages and 
+    bill search filters.
+
+# Utah Administrative Code
+- name: "Utah Administrative Code"
+  id: "us_utah_admin_code"
+  enabled: true
+  base_url: "https://adminrules.utah.gov"
+  start_paths:
+    - "/"
+    - "/public/search"
+  allowed_path_patterns:
+    - "/public/*"
+  blocked_path_patterns:
+    - "/login/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "regulations"
+    - "utilities"
+    - "energy"
+    - "buildings"
+  policy_types:
+    - "regulation"
+    - "standard"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Utah Administrative Code official database. Key sections: R746 (Public Service 
+    Commission rules for utilities), R305 (Division of Air Quality - emissions), 
+    R156-56 (Building codes including energy efficiency). Utah PSC regulates Rocky 
+    Mountain Power and Dominion Energy. R746-312 covers integrated resource planning.
+    S.B. 217 (2022) established U-Save Energy Fund for public building efficiency 
+    implemented through administrative rules. Utah requires utility energy efficiency 
+    plans per Utah Code 54-7-12.8. Searchable by rule number, agency, or keyword.
+
+# ==============================================================================
+# SOUTH CAROLINA
+# ==============================================================================
+
+# South Carolina Legislature Online
+- name: "South Carolina Legislature Online"
+  id: "us_south_carolina_legislature"
+  enabled: true
+  base_url: "https://www.scstatehouse.gov"
+  start_paths:
+    - "/"
+    - "/legislation.php"
+    - "/billsearch.php"
+  allowed_path_patterns:
+    - "/sess*"
+    - "/legislation*"
+    - "/billsearch*"
+    - "/code/*"
+  blocked_path_patterns:
+    - "/video/*"
+    - "/audio/*"
+    - "/photos/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 2.5
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+    - "economic_development"
+    - "nuclear"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    South Carolina Legislature Online - 126th General Assembly (2025-2026). Bill search
+    by number, keyword, subject, sponsor. Key recent legislation: H.B. 5118/S.B. 909 
+    (2023-24) - "South Carolina Ten-Year Energy Transformation Act" addressing data 
+    center-driven energy demand, grid reliability, new generation requirements; 
+    H.B. 3309 (2025-26) - "South Carolina Energy Security Act" requiring comprehensive 
+    state energy assessment, encouraging nuclear (SMRs, fusion) at brownfield sites.
+    Legislative findings cite "rapidly expanding population and record-breaking economic 
+    development" driving energy infrastructure needs. Title 58 (Public Utilities) 
+    contains SC Code provisions. Labor, Commerce and Industry Committee handles 
+    utility/energy legislation. JavaScript required for bill search functionality.
+
+# South Carolina Code of Laws
+- name: "South Carolina Code of Laws"
+  id: "us_south_carolina_code"
+  enabled: true
+  base_url: "https://www.scstatehouse.gov"
+  start_paths:
+    - "/code/statmast.php"
+    - "/code/t48c052.php"  # Title 48 Chapter 52 - Energy Efficiency
+    - "/code/t58.php"  # Title 58 - Public Utilities
+  allowed_path_patterns:
+    - "/code/*"
+  blocked_path_patterns:
+    - "/sess*"  # Sessions separate
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "legislative"
+  tags:
+    - "statutes"
+    - "utilities"
+    - "energy"
+    - "efficiency"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    South Carolina Code of Laws - statutory database. Title 58 (Public Utilities, 
+    Services and Carriers) - core utility regulation including PSC authority, 
+    electrical utilities (Ch 27), certificates of public convenience (Ch 33), 
+    energy efficiency (Ch 37). Title 48 Chapter 52 - SC Energy Efficiency Act (1992)
+    establishing SC Energy Office within Office of Regulatory Staff, requiring 
+    20% energy reduction by 2020 from 2000 baseline for state agencies (H.B. 4766, 2008).
+    SC Code 48-52-620 establishes state energy policy. Codified statutes reflect 
+    enacted legislation; check session laws for recent changes.
+
+# ==============================================================================
+# TENNESSEE
+# ==============================================================================
+
+# Tennessee General Assembly
+- name: "Tennessee General Assembly"
+  id: "us_tennessee_general_assembly"
+  enabled: true
+  base_url: "https://www.capitol.tn.gov"
+  start_paths:
+    - "/"
+    - "/legislation/"
+    - "/committees/"
+  allowed_path_patterns:
+    - "/legislation/*"
+    - "/committees/*"
+    - "/Bills/*"
+  blocked_path_patterns:
+    - "/audio/*"
+    - "/video/*"
+    - "/photos/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+    - "commerce"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Tennessee General Assembly - 114th General Assembly (2025-2026). Bill tracking 
+    via My Bills personalized system (free account). Key committees: Senate Energy, 
+    Agriculture and Natural Resources Committee (handles energy, natural resources, 
+    pollution, conservation); Senate Commerce and Labor Committee; House equivalent 
+    committees. Legislature composed of 27 Republicans, 6 Democrats (Senate); 73R, 24D, 
+    1I (House). Sessions begin second Tuesday in January, usually adjourn mid-April.
+    Bill search at wapp.capitol.tn.gov/apps/billsearch. Subject index available.
+    First Extraordinary Session (Jan 2025) held. Tennessee Code Annotated Title 4 
+    Chapter 3 Part 10 (TDEC OEP authority), Title 65 (Public Utilities) contain 
+    relevant statutes. TVA dominates electricity market limiting state regulatory scope.
+
+# Tennessee General Assembly - Bill Search
+- name: "Tennessee General Assembly Bill Search"
+  id: "us_tennessee_bill_search"
+  enabled: true
+  base_url: "https://wapp.capitol.tn.gov"
+  start_paths:
+    - "/apps/billsearch/billsearchadvanced.aspx"
+    - "/apps/subjectindex/default.aspx"
+    - "/apps/indexes/"
+  allowed_path_patterns:
+    - "/apps/*"
+  blocked_path_patterns:
+    - "/audio/*"
+    - "/video/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 2.5
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "bill_tracking"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Tennessee General Assembly web applications portal for advanced bill search,
+    subject index, and bill indexes. Advanced search allows filtering by keyword,
+    sponsor, status, committee, session. Subject index organized alphabetically.
+    Bill Main Index provides session-by-session access. Separate from main capitol.tn.gov
+    but linked. JavaScript required for search functionality. Historical sessions 
+    available through Digital Tennessee (digitaltennessee.tnsos.gov) via TN State 
+    Library and Archives. Use for detailed bill text, amendments, fiscal notes.
+
+# ==============================================================================
+# MONTANA
+# ==============================================================================
+
+# Montana Legislature
+- name: "Montana Legislature"
+  id: "us_montana_legislature"
+  enabled: true
+  base_url: "https://leg.mt.gov"
+  start_paths:
+    - "/"
+    - "/bill-info/"
+    - "/committees/interim/etic/"  # Energy and Telecommunications Interim Committee
+  allowed_path_patterns:
+    - "/bill-info/*"
+    - "/bills/*"
+    - "/committees/*"
+    - "/content/*"
+  blocked_path_patterns:
+    - "/audio/*"
+    - "/video/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+    - "renewable"
+    - "telecommunications"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Montana Legislature official site - 2025 Regular Session. Legislature meets 
+    biennially for 90 working days in odd years. New Bill Explorer application 
+    (bills.legmt.gov) with powerful filtering by session, status, date range, 
+    committee, party, requester. Bill Tracker feature with Preference Lists and 
+    Notifications. Key interim committee: Energy and Telecommunications Interim 
+    Committee (ETIC) - oversees PSC and DPSR, issues biennial reports on electricity
+    loads, renewable energy implementation, climate change effects per MCA 5-5-230.
+    ETIC materials include USB (Universal System Benefits) annual reports, PSC 
+    rule memos, renewable energy studies. Montana Code Annotated Title 69 
+    (Public Utilities) available. Public participation via legmt.gov/participate 
+    (requires verified Montana address).
+
+# Montana Legislature - Bill Explorer
+- name: "Montana Legislature Bill Explorer"
+  id: "us_montana_bill_explorer"
+  enabled: true
+  base_url: "https://bills.legmt.gov"
+  start_paths:
+    - "/"
+  allowed_path_patterns:
+    - "/*"
+  blocked_path_patterns: []
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 2.5
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "bill_tracking"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Montana Legislature Bill Explorer - new dedicated bill tracking application.
+    Features: filter by Bill Type, Bill Status, Committee, Date Range, Party,
+    Requester (legislator, agency, interest group); export to PDF/CSV; column 
+    customization saved in browser. Bills listed by Bill # then LC #. View bill
+    details including summaries, history, text, amendments, committee reports.
+    Filters can be combined for specific searches (e.g., House bills in Judiciary
+    Committee that passed). Separate from main leg.mt.gov but more user-friendly
+    for bill tracking. JavaScript required for filtering functionality.
+
+# Montana Code Annotated
+- name: "Montana Code Annotated"
+  id: "us_montana_code"
+  enabled: true
+  base_url: "https://leg.mt.gov"
+  start_paths:
+    - "/bills/mca/title_0690/chapters_index.html"  # Title 69 - Public Utilities
+    - "/bills/mca/title_0150/chapters_index.html"  # Title 15 - Taxation (incentives)
+  allowed_path_patterns:
+    - "/bills/mca/*"
+  blocked_path_patterns:
+    - "/bills/2*"  # Session bills separate
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "legislative"
+  tags:
+    - "statutes"
+    - "utilities"
+    - "energy"
+    - "taxation"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Montana Code Annotated (MCA) - compiled state constitution and laws. Title 69 
+    (Public Utilities): Chapter 3 - Montana Renewable Power Production and Rural 
+    Economic Development Act (69-3-2001 to 69-3-2020) requiring 15% renewable by 2015,
+    Universal System Benefits (USB) charge per 69-8-402. Chapter 8 - Electric Utility
+    Industry Restructuring. Title 15 (Taxation): 15-24-1401 (50% property tax reduction
+    for renewable >1MW, 9-year phaseout), 15-6-157 (lower property tax for renewable 
+    transmission). High Performance Building Standards for state buildings per 2015
+    legislature. MCA searchable by title/chapter/section. Cross-reference with 
+    Administrative Rules of Montana (ARM) for implementing regulations.
+
+# ==============================================================================
+# WISCONSIN
+# ==============================================================================
+
+# Wisconsin State Legislature
+- name: "Wisconsin State Legislature"
+  id: "us_wisconsin_legislature"
+  enabled: true
+  base_url: "https://legis.wisconsin.gov"
+  start_paths:
+    - "/"
+  allowed_path_patterns:
+    - "/*"
+  blocked_path_patterns:
+    - "/lrb/*"  # Reference Bureau internal
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Wisconsin State Legislature main portal. 2025-2026 session active. Links to 
+    Senate, Assembly, Committees, Service Agencies (Legislative Audit Bureau, 
+    Legislative Council, Legislative Fiscal Bureau, Legislative Reference Bureau,
+    Legislative Technology Services Bureau). Email notification service available 
+    for bill tracking. Capitol location: 2 East Main St, Madison. Primary gateway
+    to docs.legis.wisconsin.gov for detailed bill text and committee information.
+    Simple HTML interface, does not require JavaScript for basic navigation.
+
+# Wisconsin Legislative Documents
+- name: "Wisconsin Legislative Documents"
+  id: "us_wisconsin_legis_docs"
+  enabled: true
+  base_url: "https://docs.legis.wisconsin.gov"
+  start_paths:
+    - "/"
+    - "/2025/proposals"
+    - "/2025/committees/assembly/2918"  # Assembly Energy and Utilities Committee
+    - "/statutes/index/index/p/public_utilities"
+  allowed_path_patterns:
+    - "/2025/*"
+    - "/2024/*"
+    - "/statutes/*"
+    - "/document/*"
+  blocked_path_patterns:
+    - "/video/*"
+    - "/audio/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 2.5
+  category: "legislative"
+  tags:
+    - "legislation"
+    - "utilities"
+    - "energy"
+    - "psc"
+    - "renewable"
+  policy_types:
+    - "law"
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Wisconsin Legislative Documents - comprehensive bills, statutes, administrative 
+    code. 2025 Assembly Committee on Energy and Utilities (Committee 2918) handles 
+    utility legislation including PSC authority, wind/solar siting, transmission,
+    battery storage, nuclear prioritization. Key 2025 bills: AB7/SB3 - local approval
+    for wind/solar before PSC approval; bills on transmission facilities, EV charging
+    tax exemptions. Wisconsin Statutes Chapter 196 (Public Utilities) - PSC authority
+    including 196.374 (energy efficiency), 196.491 (strategic energy assessment, 
+    generating facilities, transmission). Chapter 66.0401 - wind/solar siting.
+    Search by statute section, bill number, or browse by committee. JavaScript 
+    required for full functionality.
+
+# Wisconsin Administrative Code
+- name: "Wisconsin Administrative Code"
+  id: "us_wisconsin_admin_code"
+  enabled: true
+  base_url: "https://docs.legis.wisconsin.gov"
+  start_paths:
+    - "/code/"
+    - "/code/psc"  # Public Service Commission rules
+  allowed_path_patterns:
+    - "/code/*"
+  blocked_path_patterns:
+    - "/statutes/*"
+    - "/2025/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "regulations"
+    - "utilities"
+    - "energy"
+    - "efficiency"
+  policy_types:
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-08"
+  notes: |
+    Wisconsin Administrative Code via Legislative Documents portal. PSC (Public 
+    Service Commission) Chapter 137 - Focus on Energy statewide efficiency program:
+    137.05 (minimum requirements), 137.07 (large customer programs), 137.08 
+    (voluntary utility programs), 137.09 (self-directed programs for customers 
+    >1,000 kWh monthly or >10,000 dekatherms). Wis. Stat. 196.374 enables PSC 
+    efficiency regulation; 2005 Wisconsin Act 141 requires IOUs spend 1.2% gross 
+    operating revenues on efficiency/renewables. Total Resource Cost (TRC) test
+    with 10% environmental adder per PSC rules. Focus on Energy delivered through
+    SEERA (Statewide Energy Efficiency and Renewables Administration) via 
+    competitive bid. Cross-reference with PSC dockets for pending rulemakings.
+
+
+# ==============================================================================
+# SITES EVALUATED BUT NOT RECOMMENDED
+# ==============================================================================
+
+# EVALUATED - NOT RECOMMENDED
+# - name: "LegiScan - All States"
+#   url: "https://legiscan.com"
+#   region: "US States"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Third-party aggregator, not official government source. While useful for
+#     research, policy tracking tool should use primary government sources for
+#     authoritative content. LegiScan pulls from official sources but adds
+#     commercial layer. Use official state legislature sites instead.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Official state sites become inaccessible or LegiScan provides unique data"
+
+# - name: "State Affairs Pro"
+#   url: "https://pro.stateaffairs.com"
+#   region: "US States"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Commercial subscription service for legislative tracking. Not a government
+#     source. Requires payment for full access.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - commercial service"
+
+# - name: "FastDemocracy"
+#   url: "https://fastdemocracy.com"
+#   region: "US States"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Third-party bill tracking aggregator, not official government source.
+#     Provides value-added analytics but not authoritative policy content.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - third-party aggregator"
+
+# - name: "HEAL Utah Bill Tracker"
+#   url: "https://www.healutah.org/billtracker/"
+#   region: "Utah"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Advocacy organization bill tracker, not official government source.
+#     Useful for identifying relevant bills but not for authoritative text.
+#     Use le.utah.gov for official bill content.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - advocacy organization"
+
+# - name: "Montana Environmental Information Center Bill Tracker"
+#   url: "https://meic.org/bill-tracker/"
+#   region: "Montana"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Environmental advocacy organization tracker. Helpful for identifying
+#     relevant environmental/energy bills but not official source. Points to
+#     leg.mt.gov for actual content.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - advocacy organization"
+
+# - name: "Montana Free Press Capitol Tracker"
+#   url: "https://projects.montanafreepress.org/capitol-tracker-2025/"
+#   region: "Montana"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Nonprofit news organization project. Good visualization and accessibility
+#     but pulls from official sources. Use leg.mt.gov directly.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - media/news source"
+
+# - name: "Wisconsin's Green Fire Environmental Legislation Tracker"
+#   url: "https://wigreenfire.org/tracking-wisconsins-environmental-legislation/"
+#   region: "Wisconsin"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Environmental advocacy guide. Provides instructions for tracking but
+#     not actual policy content. Directs to official legis.wisconsin.gov.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - advocacy organization"
+
+# - name: "Citizens Action Coalition Indiana Bill Tracker"
+#   url: "https://www.citact.org/2025-iga"
+#   region: "Indiana"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Consumer advocacy organization. Provides valuable context on utility
+#     legislation and data center energy issues but not official source.
+#     Contains useful analysis of HB1007, SB423, SB424 (SMR bills) and
+#     data center energy demand impacts. Use for research context, not
+#     authoritative policy text.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - advocacy organization"
+
+# - name: "Utah League of Cities and Towns Bill Tracking"
+#   url: "https://www.ulct.utah.gov/bill-tracking/"
+#   region: "Utah"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Municipal association bill tracker, not state government source.
+#     Tracks bills affecting local governments but member access required
+#     for interactive tracker.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - association, not government"
+
+# - name: "Iowa DD Council Bill Tracker"
+#   url: "https://www.iowaddcouncil.org/bill-tracker"
+#   region: "Iowa"
+#   topic: "Legislative Systems"
+#   reason_excluded: |
+#     Developmental disabilities council bill tracker, not relevant to
+#     energy/utilities policy tracking scope.
+#   checked_date: "2026-01-08"
+#   reconsider_if: "Never - out of scope"

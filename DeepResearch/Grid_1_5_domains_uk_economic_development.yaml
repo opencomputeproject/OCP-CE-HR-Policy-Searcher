@@ -1,0 +1,598 @@
+# ============================================
+# UK ECONOMIC DEVELOPMENT - GRID CELL 1.5
+# Policy Tracker Domain Configuration
+# Created: 2026-01-06
+# ============================================
+# Focus: Government programs offering incentives, grants, tax benefits
+# for data centers, energy efficiency, and heat recovery infrastructure
+# ============================================
+
+# -------------------------------------------
+# NATIONAL INVESTMENT BODIES
+# -------------------------------------------
+
+- name: "National Wealth Fund"
+  id: "nwf_uk"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.nationalwealthfund.org.uk"
+  recommended_start_paths:
+    - "/news"
+    - "/About-us"
+  language: "en"
+  justification: |
+    UK's primary public investment vehicle for net zero infrastructure. £27.8bn 
+    capitalization. Offers £4bn local authority lending at gilts+40bps. Streamlined 
+    access for GHNF applicants. Supports heat networks, grid upgrades, carbon capture.
+    Old Oak data center heat network received support via GLA Green Finance Fund.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Replaced UK Infrastructure Bank (UKIB) in October 2024.
+    Key for local authority heat network financing.
+    Partners with DESNZ on heat network projects.
+
+- name: "British Business Bank"
+  id: "bbb_uk"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.british-business-bank.co.uk"
+  recommended_start_paths:
+    - "/finance-options"
+    - "/business-guidance/guidance-articles/sustainability"
+    - "/news"
+  language: "en"
+  justification: |
+    UK's economic development bank for SMEs. Administers Growth Guarantee Scheme 
+    and Green GGS pilot for sustainable asset finance. Invested in Iceotope 
+    (data center cooling technology) via British Patient Capital. Key channel 
+    for green finance guidance and delivery partner accreditation.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Green GGS pilot launched July 2024 - £30m initial allocation.
+    Works alongside National Wealth Fund for SME sector.
+    Source for green finance product guidance.
+
+# -------------------------------------------
+# INDUSTRIAL DECARBONISATION FUNDS
+# -------------------------------------------
+
+- name: "Industrial Energy Transformation Fund (IETF)"
+  id: "ietf_uk"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.gov.uk/government/collections/industrial-energy-transformation-fund"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    £500m fund for industrial decarbonisation (2020-2028). Data centers explicitly 
+    eligible. Phase 3 allowed waste heat recovery for export to heat networks. 
+    Grants £30K-£30M. England/Wales/NI only. Program CLOSED but policy precedent 
+    critical for future schemes.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Phase 3 CLOSED April 2024, no successor planned.
+    Key insight: explicit data center eligibility language.
+    Scotland has separate SIETF scheme.
+    Contact: ietf@energysecurity.gov.uk
+
+- name: "Scottish Industrial Energy Transformation Fund (SIETF)"
+  id: "sietf_scotland"
+  country: "Scotland"
+  region:
+    - "uk"
+  base_url: "https://www.gov.scot/policies/energy-efficiency/scottish-industrial-energy-transformation-fund"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    Scotland's £34m industrial decarbonisation fund. Explicitly includes data 
+    centres. Projects must demonstrate carbon reduction and completion by March 2026.
+    Works through Scottish Enterprise and HIE. Aligns with Green Industrial Strategy.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Expressions of interest closed March 2025.
+    Contact via Scottish Enterprise or HIE.
+    Separate from UK IETF - different criteria.
+
+# -------------------------------------------
+# SCOTTISH ENTERPRISE AGENCIES
+# -------------------------------------------
+
+- name: "Scottish Enterprise"
+  id: "scottish_enterprise"
+  country: "Scotland"
+  region:
+    - "uk"
+  base_url: "https://www.scottish-enterprise.com"
+  recommended_start_paths:
+    - "/how-we-can-help/funding-and-grants/business-grants-and-funding-calls"
+    - "/our-organisation/accessing-our-information/subsidy-schemes"
+  language: "en"
+  justification: |
+    Scotland's national economic development agency. Delivers SIETF, R&D grants 
+    (SMART: SCOTLAND up to £100K), Capital Investment Scheme. Environmental 
+    Protection Scheme and Regional Investment Scheme applicable to data centers.
+    Key contact for SIETF: ian.carstairs@scotent.co.uk
+  requires_playwright: true
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Multiple subsidy scheme PDFs available.
+    Digital solutions for energy transition funding call active.
+    Fair working practices requirements for funding.
+
+- name: "Highlands and Islands Enterprise"
+  id: "hie_scotland"
+  country: "Scotland"
+  region:
+    - "uk"
+  base_url: "https://www.hie.co.uk"
+  recommended_start_paths:
+    - "/support"
+    - "/growth"
+  language: "en"
+  justification: |
+    Economic development for Highland and Island regions. Delivers SIETF in 
+    region (contact: Keith.Masson@hient.co.uk). Data center and renewable 
+    energy projects eligible. Relevant for distributed data center deployments.
+  requires_playwright: true
+  confidence: MEDIUM
+  estimated_rate_limit: 2.0
+  notes: |
+    Separate from Scottish Enterprise territory.
+    Lower data center density but growing interest.
+
+- name: "Business Energy Scotland"
+  id: "business_energy_scotland"
+  country: "Scotland"
+  region:
+    - "uk"
+  base_url: "https://businessenergyscotland.org"
+  recommended_start_paths:
+    - "/smeloan"
+    - "/funding-reduce-your-business-energy-costs"
+  language: "en"
+  justification: |
+    Scottish Government SME energy efficiency support. Interest-free loans up 
+    to £100K plus £30K cashback grants. Covers heating/cooling equipment, 
+    renewable heat technologies. Over £55m already lent to 1,500+ projects.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Managed by Energy Saving Trust for Scottish Government.
+    12-month trading history required.
+    Must be <25% owned by larger enterprise.
+
+# -------------------------------------------
+# WELSH GOVERNMENT PROGRAMS
+# -------------------------------------------
+
+- name: "Business Wales"
+  id: "business_wales"
+  country: "Wales"
+  region:
+    - "uk"
+  base_url: "https://businesswales.gov.wales"
+  recommended_start_paths:
+    - "/business-finance"
+    - "/growing-a-business/green-growth"
+  language: "en"
+  justification: |
+    Welsh Government business support hub. SMART Cymru R&D grants, Future 
+    Proofing Fund (£5K-£10K for energy efficiency), capital grant support.
+    Growing data center market in Wales (Vantage, CGI facilities).
+  requires_playwright: true
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Also available in Welsh (businesswales.gov.wales/cy).
+    Growing data center interest in Newport, Bridgend.
+    Welsh Government actively courting hyperscalers.
+
+- name: "Development Bank of Wales"
+  id: "dev_bank_wales"
+  country: "Wales"
+  region:
+    - "uk"
+  base_url: "https://developmentbank.wales"
+  recommended_start_paths:
+    - "/business-loans"
+    - "/green-business-loan"
+  language: "en"
+  justification: |
+    Welsh development bank providing green business loans for decarbonisation.
+    Funded consultancy support for decarbonisation planning. Works with 
+    Welsh Government on economic development strategy.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Green Business Loan includes funded consultancy.
+    Partner for Welsh Government schemes.
+
+- name: "Welsh Government Energy Service (WGES)"
+  id: "wges_wales"
+  country: "Wales"
+  region:
+    - "uk"
+  base_url: "https://www.gov.wales/welsh-government-energy-service"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    Record £107.7m in public sector energy efficiency grants 2024-25.
+    233 projects across 45 organizations. Heat pumps, solar, energy efficient 
+    lighting. Model for public sector decarbonisation support.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Public sector focus but policy precedent.
+    28,847 tonnes CO2e reduction estimated 2024-25.
+
+- name: "Salix Finance Wales"
+  id: "salix_wales"
+  country: "Wales"
+  region:
+    - "uk"
+  base_url: "https://www.salixfinance.co.uk/wales"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    Public sector energy efficiency and decarbonisation funding for Wales.
+    Wales Funding Programme loans, DIGARBON scheme for education sector.
+    Recycling Fund model for reinvestment.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Public sector only.
+    DIGARBON: £20m education decarbonisation.
+    Model for portfolio approach to net zero.
+
+- name: "Ynni Cymru"
+  id: "ynni_cymru_wales"
+  country: "Wales"
+  region:
+    - "uk"
+  base_url: "https://www.gov.wales/ynni-cymru"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    Welsh Government community energy program. £10m capital grants for 
+    community-led renewable energy and Smart Local Energy Systems.
+    Solar, heat pumps, battery storage, EV charging. 2035 net-zero target.
+  requires_playwright: false
+  confidence: MEDIUM
+  estimated_rate_limit: 2.0
+  notes: |
+    Community focus but relevant policy model.
+    Aligns with Wales 2035 net-zero electricity target.
+
+# -------------------------------------------
+# NORTHERN IRELAND PROGRAMS
+# -------------------------------------------
+
+- name: "Invest Northern Ireland"
+  id: "invest_ni"
+  country: "Northern Ireland"
+  region:
+    - "uk"
+  base_url: "https://www.investni.com"
+  recommended_start_paths:
+    - "/support-for-business/reduce-waste-and-save-energy"
+    - "/support-for-business/reduce-waste-and-save-energy/energy-efficiency-capital-grant"
+    - "/support-for-business/reduce-waste-and-save-energy/resource-efficiency-capital-grant"
+  language: "en"
+  justification: |
+    NI's inward investment and business support agency. Energy Efficiency 
+    Capital Grant (EECG) up to £150K for heating/cooling, lighting, renewables.
+    Resource Efficiency Capital Grant (RECG) up to £50K. £20m 5-year program.
+    Currently PAUSED for review but expected to reopen.
+  requires_playwright: true
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    EECG paused April 2025 for review.
+    Grant rates: 50% small, 40% medium, 30% large.
+    UK Shared Prosperity Fund supported first year.
+    Excludes CHP and biomass burners.
+
+- name: "Northern Ireland Business Info"
+  id: "nibusinessinfo"
+  country: "Northern Ireland"
+  region:
+    - "uk"
+  base_url: "https://www.nibusinessinfo.co.uk"
+  recommended_start_paths:
+    - "/business-support"
+    - "/content/energy-efficiency-capital-grant"
+  language: "en"
+  justification: |
+    Official NI business support portal. Aggregates all NI funding schemes
+    including EECG, RECG, NISEP. Good overview source for NI-specific programs.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Gateway to all NI business support.
+    Links to Invest NI programs.
+
+- name: "Department for the Economy Northern Ireland"
+  id: "dfe_ni"
+  country: "Northern Ireland"
+  region:
+    - "uk"
+  base_url: "https://www.economy-ni.gov.uk"
+  recommended_start_paths:
+    - "/articles/energy"
+    - "/news"
+  language: "en"
+  justification: |
+    NI government department responsible for energy policy and economic 
+    development. Energy Strategy mandate: 25% energy consumption reduction 
+    by 2030. Sets policy direction for Invest NI schemes.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Policy lead for NI energy efficiency.
+    EECG administered by Invest NI on their behalf.
+
+- name: "Northern Ireland Sustainable Energy Programme (NISEP)"
+  id: "nisep_ni"
+  country: "Northern Ireland"
+  region:
+    - "uk"
+  base_url: "https://www.uregni.gov.uk/nisep"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    £8m annual fund from electricity customer PSO levy. Business schemes 
+    include 20% grants on energy saving technologies via Power NI. 
+    Extended to March 2027. 22 schemes from 10 managers.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Utility Regulator oversees PSO.
+    Includes innovative renewable heating category.
+    Air source heat pump schemes available.
+
+# -------------------------------------------
+# INVESTMENT ZONES & FREEPORTS
+# -------------------------------------------
+
+- name: "UK Investment Zones - GOV.UK"
+  id: "investment_zones_uk"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.gov.uk/government/collections/investment-zones"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    12 Investment Zones across UK (8 England, 4 devolved). £80m per zone 
+    over 5 years. Tax incentives: 100% business rates relief, enhanced 
+    capital allowances, SDLT relief, employer NI relief. University-anchored 
+    knowledge clusters. Focus on digital/tech, green industries.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Locations include Liverpool, West Midlands, Glasgow, Manchester, Tees Valley.
+    Tax sites max 600 hectares (3 x 200ha).
+    No VAT/customs benefits (unlike Freeports).
+    £160m per zone over 10 years confirmed.
+
+- name: "UK Freeports - GOV.UK"
+  id: "freeports_uk"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.gov.uk/guidance/freeports"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    8 Freeports in England (Teesside, Humber, Thames, etc.) plus Scottish/Welsh 
+    Green Freeports. Same tax incentives as Investment Zones PLUS customs 
+    benefits. Extended to Sept 2031 (England), 2034 (Scotland/Wales). 
+    £25m per Freeport for land/infrastructure.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Tax incentives: Enhanced capital allowances, SDLT relief, employer NI relief.
+    100% business rates relief in tax sites.
+    Key for data center colocation with ports/logistics.
+    Grid connection delays identified as major barrier.
+
+- name: "Scottish Green Freeports"
+  id: "green_freeports_scotland"
+  country: "Scotland"
+  region:
+    - "uk"
+  base_url: "https://www.gov.scot/policies/investment/green-freeports"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    Scotland's freeport model with ESG requirements. Inverness & Cromarty Firth
+    and Forth Green Freeports. Tax reliefs extended to September 2034.
+    Green emphasis aligns with data center sustainability requirements.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    ESG angle differentiates from English Freeports.
+    Longer tax relief period than England.
+
+# -------------------------------------------
+# TAX INCENTIVES (HISTORICAL/REFERENCE)
+# -------------------------------------------
+
+- name: "Energy Technology List (ETL) - Archived"
+  id: "etl_archived"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.gov.uk/government/publications/enhanced-capital-allowance-scheme-for-energy-saving-technologies"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    HISTORICAL REFERENCE: Enhanced Capital Allowances (ECA) scheme ended 
+    April 2020. 100% first-year allowance for energy-efficient equipment.
+    Revenue redirected to IETF. Important policy precedent for future 
+    tax-based energy efficiency incentives.
+  requires_playwright: false
+  confidence: MEDIUM
+  estimated_rate_limit: 2.0
+  notes: |
+    SCHEME CLOSED April 2020.
+    Superseded by full expensing (100% for main pool).
+    Annual Investment Allowance now £1m permanently.
+    Track for potential revival or successor schemes.
+
+- name: "Full Expensing and Capital Allowances"
+  id: "capital_allowances_uk"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.gov.uk/capital-allowances"
+  recommended_start_paths:
+    - "/claim-capital-allowances"
+    - "/first-year-allowances"
+  language: "en"
+  justification: |
+    Current UK capital allowances framework. Full expensing (100% first-year) 
+    for main pool plant/machinery since April 2023. 50% for special rate pool.
+    Annual Investment Allowance £1m permanent. EV charging points 100% FYA 
+    extended to March 2025.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Full expensing largely replaces ECA benefit.
+    Key for data center capital equipment investment.
+    Structures and Buildings Allowance (SBA) 3% for buildings.
+
+# -------------------------------------------
+# LOW CARBON INFRASTRUCTURE TRANSITION
+# -------------------------------------------
+
+- name: "Low Carbon Infrastructure Transition Programme (LCITP)"
+  id: "lcitp_scotland"
+  country: "Scotland"
+  region:
+    - "uk"
+  base_url: "https://www.gov.scot/policies/renewable-and-low-carbon-energy/low-carbon-infrastructure-transition-programme"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    Scottish programme for low-carbon infrastructure projects. Expert advice 
+    and capital finance support. Covers heat recovery, district heating, 
+    hydrogen. Requires well-defined projects with site, technology, end users.
+    Partnership: Scottish Government, SE, HIE, Scottish Futures Trust.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Investment-grade business case development support.
+    Must demonstrate significant GHG reduction.
+    Good fit for data center heat reuse projects.
+
+- name: "District Heating Loan Fund Scotland"
+  id: "dh_loan_scotland"
+  country: "Scotland"
+  region:
+    - "uk"
+  base_url: "https://energysavingtrust.org.uk/programme/district-heating-loan-fund"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    Capital loans for district heating projects in Scotland. Managed by 
+    Energy Saving Trust for Scottish Government. Unsecured loans, 10-15 year 
+    repayment. £20m+ lent to 53 projects since 2011. Available to LAs, RSLs, 
+    SMEs, ESCOs.
+  requires_playwright: false
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    Expression of interest form required.
+    Projects >£500K considered case-by-case.
+    Co-investment available >£1m.
+    Contact: districtheatingloans@est.org.uk
+
+# -------------------------------------------
+# SUBSIDY CONTROL & COMPLIANCE
+# -------------------------------------------
+
+- name: "UK Subsidy Control - GOV.UK"
+  id: "subsidy_control_uk"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.gov.uk/government/collections/subsidy-control-act-2022-guidance"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    Post-Brexit subsidy control framework. Replaced EU State Aid rules.
+    Relevant for understanding grant/incentive compliance. Minimal Financial 
+    Assistance threshold £315K over 3 years. NI Protocol businesses may 
+    still fall under EU de minimis rules (€200K).
+  requires_playwright: false
+  confidence: MEDIUM
+  estimated_rate_limit: 2.0
+  notes: |
+    Subsidy Control Act 2022.
+    Competition and Markets Authority (CMA) oversight.
+    Different rules for NI Protocol scope.
+
+# -------------------------------------------
+# REGIONAL GREEN FINANCE
+# -------------------------------------------
+
+- name: "GLA Green Finance Fund"
+  id: "gla_gff_london"
+  country: "United Kingdom"
+  region:
+    - "uk"
+  base_url: "https://www.london.gov.uk/programmes-strategies/environment-and-climate-change/climate-change/green-finance"
+  recommended_start_paths:
+    - "/"
+  language: "en"
+  justification: |
+    £500m Green Finance Fund for London from UKIB. Covers retrofit, heat 
+    networks, renewable energy, green transport. All 32 boroughs eligible.
+    Old Oak/Park Royal data center heat network supported through this.
+    Blueprint for replication by other combined authorities.
+  requires_playwright: true
+  confidence: HIGH
+  estimated_rate_limit: 2.0
+  notes: |
+    First UKIB investment in London.
+    Model for combined authority green finance.
+    Local Energy Accelerator also provides support.
+

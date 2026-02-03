@@ -8,7 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
-- Geographic `region` field on all domain YAML entries (list of strings: `eu`, `nordic`, `eu_central`, `eu_west`, `us`, `us_states`, `apac`)
+- Geographic `region` field on all domain YAML entries (list of strings: `eu`, `nordic`, `eu_central`, `eu_west`, `uk`, `us`, `us_states`, `apac`)
 - `--domains` now merges group and region matches: `--domains eu` returns the union of the `eu` group from `groups.yaml` AND any domain with `region: ["eu"]`
 - `list-regions` CLI command to show available geographic regions with domain counts
 - `list-groups` output now shows how many extra domains each group gains via region tags

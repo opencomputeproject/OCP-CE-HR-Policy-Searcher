@@ -168,9 +168,9 @@ RESPOND WITH JSON ONLY (no explanation):
 
 ## Current Status
 
-**Phase**: ALL COMPLETE
-**Last Action**: Completed Phase 5 result caching
-**Next Action**: All phases implemented
+**Phase**: ALL COMPLETE + Region tagging
+**Last Action**: Added `uk` region to VALID_REGIONS and tagged all DeepResearch domain files with region fields
+**Next Action**: None pending
 **Blockers**: None
 
 **Summary of All Phases:**
@@ -180,6 +180,15 @@ RESPOND WITH JSON ONLY (no explanation):
 - Phase 3: Content extraction with boilerplate removal
 - Phase 4: Two-stage Haiku/Sonnet LLM analysis
 - Phase 5: URL result caching for repeated runs
+
+**Post-Phase Work:**
+- Added `uk` region to `VALID_REGIONS` in `src/config/loader.py` and `_template.yaml`
+- Tagged all 11 DeepResearch domain files with correct `region` fields:
+  - Grid 1.x (UK): `region: ["uk"]` — 92 entries across 5 files
+  - Grid 5.1 (EU emerging): `region: ["eu"]` — 13 entries
+  - Grid 6.x (US states): `region: ["us", "us_states"]` — 131 entries across 5 files
+- Updated CHANGELOG.md to include `uk` in the region list
+- All 507 tests passing
 
 ---
 

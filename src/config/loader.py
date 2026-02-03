@@ -395,6 +395,7 @@ VALID_REGIONS = {
     "nordic": "Nordic countries (Sweden, Denmark, Finland, Norway, Iceland)",
     "eu_central": "Germany, Switzerland, Austria, France",
     "eu_west": "Netherlands, Belgium, Ireland",
+    "uk": "United Kingdom (England, Scotland, Wales, Northern Ireland)",
     "us": "United States (federal and state)",
     "us_states": "US state governments",
     "apac": "Asia-Pacific region",

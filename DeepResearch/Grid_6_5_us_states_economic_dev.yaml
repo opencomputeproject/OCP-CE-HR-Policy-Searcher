@@ -1,0 +1,827 @@
+# ============================================================================
+# Grid Cell 6.5: US States - Economic Development
+# Generated: 2026-01-15
+# Research Focus: State economic development programs and data center incentives
+# Target States: Iowa, Indiana, Nevada, Utah, South Carolina, Tennessee, 
+#                Montana, Wisconsin
+# ============================================================================
+
+# -----------------------------------------------------------------------------
+# IOWA - High Priority (Major Data Center Hub)
+# Meta, Google, Microsoft, Apple facilities - $150M+ annual incentives
+# -----------------------------------------------------------------------------
+
+- name: "Iowa Economic Development Authority"
+  id: "us_iowa_ieda"
+  enabled: true
+  base_url: "https://www.iowaeda.com"
+  start_paths:
+    - "/programs"
+    - "/incentives"
+    - "/business"
+  allowed_path_patterns:
+    - "/programs/*"
+    - "/incentives/*"
+    - "/business/*"
+    - "/resources/*"
+  blocked_path_patterns:
+    - "/news/*"
+    - "/press/*"
+    - "/events/*"
+    - "/media/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "property_tax"
+    - "data_center"
+    - "job_creation"
+  policy_types:
+    - "incentive"
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Primary economic development agency for Iowa. Administers High Quality Jobs 
+    Program which provides property tax exemptions for data centers (up to 60% 
+    for 20 years). Iowa has attracted Meta, Google, Microsoft, Apple with 
+    approximately $150M+ annually in data center tax breaks. Recent legislation 
+    (Iowa Data Infrastructure Act) offers comprehensive state-level support.
+
+- name: "Iowa Department of Revenue - Data Centers"
+  id: "us_iowa_dor_datacenter"
+  enabled: true
+  base_url: "https://revenue.iowa.gov"
+  start_paths:
+    - "/taxes/tax-guidance/sales-use-excise-tax/data-centers"
+    - "/taxes/tax-guidance"
+  allowed_path_patterns:
+    - "/taxes/tax-guidance/*"
+    - "/business/*"
+  blocked_path_patterns:
+    - "/forms/*"
+    - "/publications/archived/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "incentives"
+    - "sales_tax"
+    - "efficiency"
+  policy_types:
+    - "regulation"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Official Iowa tax guidance for data center exemptions. Sales and use tax 
+    exemptions require $200M minimum investment over 6 years for full exemption.
+    Smaller investments ($1M+) qualify for partial refunds. HF-976 (2026) adds 
+    10-15 year expiration limits on electricity exemptions and enables tenant 
+    eligibility. Key statute: Iowa Code section 423.3(95).
+
+- name: "Iowa Legislature - Bill Tracking"
+  id: "us_iowa_legislature"
+  enabled: true
+  base_url: "https://www.legis.iowa.gov"
+  start_paths:
+    - "/legislation"
+    - "/docs/iac"
+  allowed_path_patterns:
+    - "/legislation/*"
+    - "/docs/iac/*"
+    - "/docs/code/*"
+  blocked_path_patterns:
+    - "/docs/iac/history/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 3.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "reporting"
+    - "incentives"
+  policy_types:
+    - "law"
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Iowa legislative database for tracking data center bills and administrative 
+    rules. Key rules: IAC 701-215.12, 701-215.13, 701-230.12 for data center 
+    exemptions. 2026 legislation requires large data centers to annually report 
+    electricity use and backup generator fuel purchases.
+
+# -----------------------------------------------------------------------------
+# INDIANA - High Priority (Significant Growth Market)
+# $168M+ recent incentive approvals, Google, Amazon, Meta presence
+# -----------------------------------------------------------------------------
+
+- name: "Indiana Economic Development Corporation"
+  id: "us_indiana_iedc"
+  enabled: true
+  base_url: "https://iedc.in.gov"
+  start_paths:
+    - "/indiana-advantages/investments/data-center-sales-tax-exemption"
+    - "/indiana-advantages/investments"
+    - "/programs"
+  allowed_path_patterns:
+    - "/indiana-advantages/*"
+    - "/programs/*"
+    - "/about-iedc/*"
+  blocked_path_patterns:
+    - "/news/*"
+    - "/press-releases/*"
+    - "/events/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "sales_tax"
+    - "data_center"
+  policy_types:
+    - "incentive"
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Indiana's primary economic development agency. Data Center Gross Retail and 
+    Use Tax Exemption provides sales/use tax exemption on equipment and energy 
+    for up to 25 years (<$750M investment) or 50 years (>$750M). Indiana Code 
+    § 6-2.5-15 governs program. Local governments may provide additional personal 
+    property tax exemptions for $25M+ investments. In 2025, IEDC approved $168M 
+    in data center tax breaks for four major projects.
+
+- name: "Indiana General Assembly - Bill Tracking"
+  id: "us_indiana_legislature"
+  enabled: true
+  base_url: "https://iga.in.gov"
+  start_paths:
+    - "/legislative"
+    - "/laws"
+  allowed_path_patterns:
+    - "/legislative/*"
+    - "/laws/*"
+  blocked_path_patterns:
+    - "/static/*"
+    - "/archives/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 3.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "incentives"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Indiana legislative bill tracking. Key legislation: HB 1405 (data center 
+    taxation), HB 1601 (quantum computing/data center tax exemptions). Required 
+    economic/fiscal impact study every 10 years starting 2030. Investment 
+    thresholds vary by county population ($25M-$150M over 5 years).
+
+# -----------------------------------------------------------------------------
+# NEVADA - High Priority (Switch, Google, major hyperscale presence)
+# Reno/Tahoe Reno Industrial Center - major data center corridor
+# -----------------------------------------------------------------------------
+
+- name: "Nevada Governor's Office of Economic Development"
+  id: "us_nevada_goed"
+  enabled: true
+  base_url: "https://goed.nv.gov"
+  start_paths:
+    - "/incentives"
+    - "/programs-incentives/incentives"
+  allowed_path_patterns:
+    - "/incentives/*"
+    - "/programs-incentives/*"
+    - "/wp-content/uploads/*"
+  blocked_path_patterns:
+    - "/events/*"
+    - "/news/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "property_tax"
+    - "sales_tax"
+    - "data_center"
+  policy_types:
+    - "incentive"
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Nevada GOED administers data center tax abatements. 10-year abatement: $25M 
+    investment, 10 jobs at statewide average wage. 20-year abatement: $100M 
+    investment, 50 jobs. Benefits include 75% personal property tax abatement 
+    and sales/use tax reduced to 2%. Nev. Rev. Stat. § 360.754, § 361.0683. 
+    Nevada requires 50%+ construction workers be state residents. Google, Switch 
+    have received significant abatements ($25M+ per project).
+
+- name: "Nevada Legislature"
+  id: "us_nevada_legislature"
+  enabled: true
+  base_url: "https://www.leg.state.nv.us"
+  start_paths:
+    - "/Session"
+    - "/NRS"
+    - "/NAC"
+  allowed_path_patterns:
+    - "/Session/*"
+    - "/NRS/*"
+    - "/NAC/*"
+    - "/App/NELIS/*"
+  blocked_path_patterns:
+    - "/Audio/*"
+    - "/Video/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 3.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "incentives"
+  policy_types:
+    - "law"
+    - "regulation"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Nevada legislative database. Key data center legislation: S.B. 170 (78th 
+    Session, 2015) established data center abatement framework. NELIS system 
+    provides searchable bill tracking and exhibit documents.
+
+# -----------------------------------------------------------------------------
+# UTAH - Medium-High Priority (Facebook/Meta, Novva presence)
+# Growing market with EDTIF program, data center sales tax exemption (SB 114)
+# -----------------------------------------------------------------------------
+
+- name: "Utah Governor's Office of Economic Opportunity"
+  id: "us_utah_goeo"
+  enabled: true
+  base_url: "https://business.utah.gov"
+  start_paths:
+    - "/recruitment"
+    - "/programs"
+  allowed_path_patterns:
+    - "/recruitment/*"
+    - "/programs/*"
+    - "/incentives/*"
+  blocked_path_patterns:
+    - "/news/*"
+    - "/events/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "tax_credit"
+  policy_types:
+    - "incentive"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Utah GOEO (formerly GOED) administers EDTIF (Economic Development Tax 
+    Increment Financing) program. Data centers can qualify for refundable tax 
+    credits up to 30% of new state taxes generated over 5-20 years. Senate Bill 
+    114 (2020) modified sales/use tax exemption for data centers 150,000+ sq ft.
+    U.C.A. 63N-2-106(2) governs incentives. Requires 50+ jobs at 110% county 
+    average wage for urban areas. Meta expansion in Eagle Mountain utilized 
+    these incentives.
+
+- name: "Utah State Legislature"
+  id: "us_utah_legislature"
+  enabled: true
+  base_url: "https://le.utah.gov"
+  start_paths:
+    - "/bills"
+    - "/code"
+  allowed_path_patterns:
+    - "/bills/*"
+    - "/code/*"
+    - "/xcode/*"
+  blocked_path_patterns:
+    - "/audio/*"
+    - "/video/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 3.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "incentives"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Utah legislative tracking system. Key legislation: SB 114 (Sales and Use 
+    Tax Exemption Amendments, 2020) for data centers. REDTIF (Rural Economic 
+    Development Tax Increment Financing) provides enhanced incentives for rural 
+    data center locations.
+
+# -----------------------------------------------------------------------------
+# SOUTH CAROLINA - Medium-High Priority (Google presence)
+# $50M+ investment threshold, sales tax exemption on equipment & electricity
+# -----------------------------------------------------------------------------
+
+- name: "South Carolina Department of Commerce"
+  id: "us_sc_commerce"
+  enabled: true
+  base_url: "https://www.sccommerce.com"
+  start_paths:
+    - "/why-sc/incentives/sales-use-tax-incentives"
+    - "/why-sc/incentives-taxes"
+  allowed_path_patterns:
+    - "/why-sc/*"
+    - "/incentives/*"
+  blocked_path_patterns:
+    - "/news/*"
+    - "/events/*"
+    - "/media/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "sales_tax"
+    - "data_center"
+  policy_types:
+    - "incentive"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    SC Commerce certifies qualifying data centers for sales tax exemptions. 
+    Requirements: $50M investment (or $75M combined) in real/personal property 
+    over 5 years, 25 jobs at 150% state/county per capita wage (whichever lower),
+    maintain jobs 3 years. Exemption covers computer equipment, software, 
+    electricity. Google has $1.2B+ investment in state. HB 3720 (2012) created 
+    program; expires December 31, 2031 unless renewed.
+
+- name: "South Carolina Department of Revenue - Data Centers"
+  id: "us_sc_dor"
+  enabled: true
+  base_url: "https://dor.sc.gov"
+  start_paths:
+    - "/policy"
+    - "/tax"
+  allowed_path_patterns:
+    - "/policy/*"
+    - "/tax/*"
+  blocked_path_patterns:
+    - "/forms/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "incentives"
+    - "sales_tax"
+    - "reporting"
+  policy_types:
+    - "regulation"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    SC DOR administers data center sales/use tax exemption. Issues exemption 
+    certificates to qualifying taxpayers. Code Section 12-36-2120(79) governs 
+    datacenter exemption. Clawback provisions apply if investment/job 
+    requirements not met within 5-year period.
+
+- name: "South Carolina Legislature"
+  id: "us_sc_legislature"
+  enabled: true
+  base_url: "https://www.scstatehouse.gov"
+  start_paths:
+    - "/sess"
+    - "/code"
+  allowed_path_patterns:
+    - "/sess/*"
+    - "/code/*"
+  blocked_path_patterns:
+    - "/video/*"
+    - "/audio/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 3.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "incentives"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    South Carolina legislative database. Track HB 3720 (data center incentives, 
+    2012) and potential renewal legislation before December 2031 expiration.
+
+# -----------------------------------------------------------------------------
+# TENNESSEE - Medium-High Priority (Growing Southeast market)
+# $250M investment threshold, sales tax exemption + reduced electricity rate
+# -----------------------------------------------------------------------------
+
+- name: "Tennessee Department of Economic and Community Development"
+  id: "us_tennessee_tnecd"
+  enabled: true
+  base_url: "https://tnecd.com"
+  start_paths:
+    - "/advantages/incentives-grants"
+    - "/advantages"
+  allowed_path_patterns:
+    - "/advantages/*"
+    - "/wp-content/uploads/*"
+  blocked_path_patterns:
+    - "/news/*"
+    - "/events/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "sales_tax"
+    - "data_center"
+    - "job_creation"
+  policy_types:
+    - "incentive"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    TNECD oversees Tennessee's data center incentive program. Requirements: 
+    $250M capital investment over 3 years (extendable to 5-7 years for larger 
+    projects), 25 jobs at 150% state average occupational wage. Sales tax 
+    exemption on computers, computer systems, software, peripheral devices. 
+    Reduced 1.5% sales tax rate on electricity. Backup power infrastructure 
+    and cooling equipment also exempt. Tenn. Code Ann. § 67-6-206(c).
+
+- name: "Tennessee Transparent - Economic Development"
+  id: "us_tennessee_transparent"
+  enabled: true
+  base_url: "https://www.tn.gov"
+  start_paths:
+    - "/transparenttn/state-financial-overview/open-ecd"
+  allowed_path_patterns:
+    - "/transparenttn/*"
+    - "/ecd/*"
+  blocked_path_patterns:
+    - "/newsroom/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 2.0
+  category: "regulatory"
+  tags:
+    - "reporting"
+    - "incentives"
+  policy_types:
+    - "report"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Tennessee's transparency portal for economic development incentives. 
+    OpenECD section provides tax incentive details including data center 
+    exemptions. Tracks franchise tax (0.25%), excise tax (6.5%), and sales 
+    tax exemption programs.
+
+- name: "Tennessee General Assembly"
+  id: "us_tennessee_legislature"
+  enabled: true
+  base_url: "https://www.capitol.tn.gov"
+  start_paths:
+    - "/Bills"
+    - "/Archives"
+  allowed_path_patterns:
+    - "/Bills/*"
+    - "/Archives/*"
+  blocked_path_patterns:
+    - "/Video/*"
+    - "/Audio/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 3.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "incentives"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Tennessee legislative tracking. Data center incentives codified in 
+    Tenn. Code Ann. § 67-6-206. County tier system affects enhanced job 
+    tax credits availability.
+
+# -----------------------------------------------------------------------------
+# MONTANA - Lower Priority (Emerging market, no specific DC incentives)
+# No state sales tax; general business incentives available
+# -----------------------------------------------------------------------------
+
+- name: "Montana Department of Commerce - Business"
+  id: "us_montana_commerce"
+  enabled: true
+  base_url: "https://commerce.mt.gov"
+  start_paths:
+    - "/Business"
+    - "/Business/Programs-and-Services/Choose-Montana/Business-Climate"
+  allowed_path_patterns:
+    - "/Business/*"
+    - "/Infrastructure-Planning/*"
+  blocked_path_patterns:
+    - "/news/*"
+    - "/events/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "tax_credit"
+  policy_types:
+    - "incentive"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Montana has NO specific data center tax incentives but offers general 
+    business programs. Montana has NO state sales tax (beneficial for equipment
+    purchases). Available incentives: Job Growth Incentive Tax Credit (JGTC) 
+    for high-paying jobs ($50K+), Montana Growth Fund loans, CDBG Economic 
+    Development grants. No gross receipts tax, no state inventory tax. 
+    Research and development firms exempt from state corporate income tax 
+    for first 5 years if domiciled in Montana for first time.
+
+- name: "Montana Business Portal"
+  id: "us_montana_business"
+  enabled: true
+  base_url: "https://business.mt.gov"
+  start_paths:
+    - "/"
+  allowed_path_patterns:
+    - "/*"
+  blocked_path_patterns:
+    - "/news/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "planning"
+  policy_types:
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Montana's consolidated business resource portal. Links to incentive 
+    programs, workforce training, Small Business Development Centers. 
+    Industry Development Program (IDP) assists large industrial projects.
+
+# -----------------------------------------------------------------------------
+# WISCONSIN - Lower Priority (No specific DC incentives)
+# Enterprise Zone Tax Credits available for major expansions; Microsoft present
+# -----------------------------------------------------------------------------
+
+- name: "Wisconsin Economic Development Corporation"
+  id: "us_wisconsin_wedc"
+  enabled: true
+  base_url: "https://wedc.org"
+  start_paths:
+    - "/programs"
+    - "/programs/enterprise-zone-tax-credit"
+  allowed_path_patterns:
+    - "/programs/*"
+    - "/doing-business-in-wisconsin/*"
+  blocked_path_patterns:
+    - "/news/*"
+    - "/press/*"
+    - "/events/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: false
+  rate_limit_seconds: 2.0
+  category: "economic_dev"
+  tags:
+    - "incentives"
+    - "tax_credit"
+    - "job_creation"
+  policy_types:
+    - "incentive"
+    - "guidance"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Wisconsin has NO specific data center tax incentive legislation. However, 
+    Enterprise Zone Tax Credits may apply to major data center expansions 
+    ($100M+ projects). WEDC approved $91.5M in total incentives FY2025 
+    (highest in 5 years). Enterprise Zones require WEDC designation and Joint 
+    Committee on Finance review. Qualified New Business Venture credits 
+    (25% of equity investment) may benefit early-stage tech. Microsoft has 
+    presence in state. Eli Lilly received $100M Enterprise Zone credits for 
+    $4B expansion (2025).
+
+- name: "Wisconsin Legislature"
+  id: "us_wisconsin_legislature"
+  enabled: true
+  base_url: "https://docs.legis.wisconsin.gov"
+  start_paths:
+    - "/statutes"
+    - "/2023/related/acts_index"
+  allowed_path_patterns:
+    - "/statutes/*"
+    - "/*/related/acts_index/*"
+    - "/code/*"
+  blocked_path_patterns:
+    - "/video/*"
+    - "/audio/*"
+  max_depth: 2
+  language: "en"
+  region:
+    - "us"
+    - "us_states"
+  requires_playwright: true
+  rate_limit_seconds: 3.0
+  category: "legislative"
+  tags:
+    - "mandates"
+    - "incentives"
+  policy_types:
+    - "law"
+  verified_by: "Deep Research"
+  verified_date: "2026-01-15"
+  notes: |
+    Wisconsin legislative database. Enterprise Zone and Business Development 
+    Tax Credit statutes. Governor's FY2025-27 budget includes modifications 
+    to wage thresholds (indexing for inflation) and zone limits. Watch for 
+    potential data center-specific legislation as market grows.
+
+# ============================================================================
+# EVALUATED - NOT RECOMMENDED
+# Sites checked but not included in primary configuration
+# ============================================================================
+
+# EVALUATED - NOT RECOMMENDED
+# - name: "Good Jobs First - State Profiles"
+#   url: "https://goodjobsfirst.org/states/"
+#   region: "US States"
+#   topic: "Economic Development"
+#   reason_excluded: |
+#     Advocacy organization, not official government source. Useful for 
+#     research context but not for policy tracking crawler.
+#   checked_date: "2026-01-15"
+#   reconsider_if: "N/A - third-party source"
+
+# EVALUATED - NOT RECOMMENDED
+# - name: "BLS Strategies State Incentives Pages"
+#   url: "https://www.blsstrategies.com/incentives/"
+#   region: "US States"
+#   topic: "Economic Development"
+#   reason_excluded: |
+#     Private consulting firm, not official government source. Aggregates 
+#     information but not authoritative.
+#   checked_date: "2026-01-15"
+#   reconsider_if: "N/A - commercial source"
+
+# EVALUATED - NOT RECOMMENDED
+# - name: "Data Center Dynamics Tax Incentives"
+#   url: "https://www.datacenterdynamics.com"
+#   region: "US States"
+#   topic: "Economic Development"
+#   reason_excluded: |
+#     Industry news site, not government source. Good for news monitoring 
+#     but not authoritative policy source.
+#   checked_date: "2026-01-15"
+#   reconsider_if: "N/A - news source"
+
+# ============================================================================
+# RESEARCH NOTES
+# ============================================================================
+# 
+# PATTERNS DISCOVERED:
+# - States with specific data center incentives: Iowa, Indiana, Nevada, 
+#   South Carolina, Tennessee
+# - States without specific DC incentives but with applicable programs: 
+#   Utah (EDTIF), Montana (no sales tax), Wisconsin (Enterprise Zones)
+# - Investment thresholds range widely: $10M (Indiana smaller counties) 
+#   to $250M (Tennessee)
+# - Job creation requirements typically 10-50 jobs at 100-150% average wage
+# - Exemption periods: 10-50 years depending on investment size
+# - Most states have clawback provisions for non-compliance
+#
+# TECHNICAL NOTES:
+# - Most economic development sites work without JavaScript
+# - Legislative sites often require Playwright for bill search functionality
+# - State .gov domains are generally stable and well-maintained
+# - Rate limiting 2-3 seconds recommended for government sites
+#
+# RECOMMENDATIONS FOR YAML ORGANIZATION:
+# - These sites fit well in a "domains_us_states_economic_dev.yaml" file
+# - Can be combined with existing US state energy/environmental sites
+# - Regional grouping by policy type (economic_dev, regulatory, legislative) 
+#   works well within state groupings
+#
+# PRIORITY FOR POLICY TRACKER EXPANSION:
+# 1. Iowa (highest DC investment, most active policy changes)
+# 2. Indiana (rapid growth, recent large approvals)
+# 3. Nevada (established program, hyperscale presence)
+# 4. Tennessee (growing market, comprehensive incentives)
+# 5. South Carolina (Google presence, 2031 sunset approaching)
+# 6. Utah (growing market, recent legislation)
+# 7. Wisconsin/Montana (lower priority, no specific DC incentives)
+#
+# HEAT REUSE RELEVANCE:
+# - None of these economic development programs specifically address heat 
+#   reuse, but they establish the policy framework for data center development
+# - Heat reuse requirements could potentially be added as conditions for 
+#   receiving incentives (similar to job creation requirements)
+# - Tracking these programs helps identify where data centers are being built,
+#   which is prerequisite information for heat reuse policy advocacy
+# ============================================================================
