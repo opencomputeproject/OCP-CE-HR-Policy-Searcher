@@ -210,6 +210,24 @@ Examples:
         help="Show all runs (default: last 10)"
     )
 
+    # report subcommand
+    report_parser = subparsers.add_parser(
+        "report",
+        help="Generate detailed run report with per-domain breakdown and suggestions",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python -m src.main report                            # Most recent run
+  python -m src.main report --log 2                    # 2nd most recent
+  python -m src.main report --log 20260203             # Run from date
+  python -m src.main report --log run_20260203_164401  # Specific run ID
+"""
+    )
+    report_parser.add_argument(
+        "--log", "-l", metavar="ID",
+        help="Run to report: number (1=latest, 2=previous...), date (20260115), or run ID"
+    )
+
     # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
     parser.add_argument("--domains", default="all", help="Domain group, region, file name, or domain ID to scan (use 'list-groups' to see options)")
@@ -918,6 +936,50 @@ def cmd_list_runs(args) -> int:
         print("  (showing last 10 runs - use --all to see all)")
         print("")
 
+    return 0
+
+
+def cmd_report(args) -> int:
+    """Generate detailed run report with per-domain breakdown."""
+    import json as _json
+    from .reporting.run_report import load_run_events, parse_run_events, format_report
+
+    log_pattern = getattr(args, 'log', None)
+
+    if log_pattern:
+        log_file = find_run_log(log_pattern)
+        if not log_file:
+            print(f"\nNo run log found matching: {log_pattern}")
+            print("")
+            print("Use one of these formats:")
+            print("  --log 1              # Most recent run")
+            print("  --log 2              # Second most recent run")
+            print("  --log 20260115       # Run from specific date")
+            print("  --log run_20260115_143022  # Full run ID")
+            print("")
+            print("Use 'list-runs' to see available runs:")
+            print("  python -m src.main list-runs")
+            print("")
+            return 1
+    else:
+        log_file = get_last_run_log()
+        if not log_file:
+            print("\nNo run logs found.")
+            print("Run a scan first: python -m src.main --domains quick --dry-run")
+            print("")
+            return 1
+
+    run_id = log_file.stem
+
+    try:
+        events = load_run_events(log_file)
+    except (_json.JSONDecodeError, IOError) as e:
+        print(f"\nError reading log file: {e}")
+        return 1
+
+    report = parse_run_events(events, run_id)
+    output = format_report(report)
+    _safe_print(output)
     return 0
 
 
@@ -1788,6 +1850,8 @@ def main():
         sys.exit(cmd_last_run(args))
     elif args.command == "list-runs":
         sys.exit(cmd_list_runs(args))
+    elif args.command == "report":
+        sys.exit(cmd_report(args))
     else:
         # Default: run scan
         code = asyncio.run(run(args))

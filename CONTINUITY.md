@@ -4,7 +4,27 @@
 
 ### Version: 0.3.0
 
-### Just Completed: URL Filtering Fixes (CGI-bin, path-only check, config-driven extensions)
+### Just Completed: `report` CLI Command
+
+**What was done:**
+- Created `src/reporting/` module with `run_report.py` (~420 lines) for parsing run logs and generating formatted terminal reports
+- Parses JSON event stream from any run log, reconstructing per-domain stats via state machine (keyed on "Starting: {domain_id}" markers)
+- Report sections: Header, Result Summary, Pipeline Funnel (visual bar chart), Domain Breakdown (blocked/error details), Filter Details (URL pre-filter + keyword reasons), Suggestions (heuristic rules), Configuration Summary
+- Suggestion heuristics: zero policies bottleneck analysis, high block rate per domain, download errors, 404 stale URLs, timeout errors, captcha blocking
+- Works with ALL existing log files (no new data needed); filter details only appear when `--verbose` was used during the run
+- Added `report` subcommand in main.py with `--log` flag (same pattern as `last-run`)
+- 31 unit tests covering parsing, formatting, suggestions, edge cases
+- 582 tests pass
+
+**Files changed:**
+1. `src/reporting/__init__.py` - New package
+2. `src/reporting/run_report.py` - Data model, event parser, report formatter, suggestions
+3. `src/main.py` - Added `report` subcommand parser, `cmd_report()` handler, dispatch
+4. `tests/unit/test_run_report.py` - 31 tests
+5. `CHANGELOG.md` - Documented feature
+6. `CONTINUITY.md` - This file
+
+### Previously Completed: URL Filtering Fixes (CGI-bin, path-only check, config-driven extensions)
 
 **What was done:**
 - Fixed URL pre-filter `_check_extension()` in `url_filter.py` to exempt `/cgi-bin/` paths from `.exe` extension filtering — Virginia legislature CGI scripts (`legp604.exe?ses=251&typ=bil&val=hb116`) were incorrectly skipped as binary files

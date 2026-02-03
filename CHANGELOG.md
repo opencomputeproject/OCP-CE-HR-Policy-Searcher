@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `--domains` now accepts individual domain IDs (e.g., `--domains us_va_hb323_2026`) to scan a single domain without creating a group
 - Access denied diagnostic logging: HTTP 403 and other blocked responses now include the reason (Cloudflare bot protection, Akamai WAF, Access Denied, rate limited, etc.) in both real-time log output and verbose summary
 - Verbose mode blocked-pages section with per-page reasons and actionable suggestions (e.g., "try requires_playwright: true")
+- `report` CLI command: generates a detailed formatted report from any run log with header, result summary, pipeline funnel (visual bar chart), per-domain breakdown with blocked/error details, URL filter and keyword filter analysis, actionable suggestions, and configuration summary. Accepts `--log` flag for selecting runs by index, date, or run ID
 
 ### Fixed
 - URL pre-filter `.exe` extension check now exempts CGI-bin paths (`/cgi-bin/*.exe?...`), which are dynamic scripts returning HTML (e.g., Virginia legislature `legp604.exe`)
