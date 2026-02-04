@@ -85,10 +85,12 @@ class AsyncCrawler:
         results = []
         base_url = domain["base_url"]
         max_depth = domain.get("max_depth", self.settings.max_depth)
+        max_pages = domain.get("max_pages", self.settings.max_pages_per_domain)
+        domain_id = domain.get("id", "")
 
         queue = [(urljoin(base_url, p), 0) for p in domain.get("start_paths", ["/"])]
 
-        while queue and len(results) < self.settings.max_pages_per_domain:
+        while queue and len(results) < max_pages:
             url, depth = queue.pop(0)
 
             if url in self._visited:
@@ -96,6 +98,7 @@ class AsyncCrawler:
             self._visited.add(url)
 
             result = await self._fetch_page(url, domain)
+            result.domain_id = domain_id
             results.append(result)
 
             if result.is_success:

@@ -34,6 +34,7 @@ class CrawlResult:
     error_message: Optional[str] = None
     requires_human_review: bool = False
     used_playwright: bool = False
+    domain_id: Optional[str] = None
 
     @property
     def is_success(self) -> bool:

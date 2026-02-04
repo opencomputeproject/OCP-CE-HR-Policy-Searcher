@@ -1022,6 +1022,9 @@ async def run_batch(
     """
     verbose = getattr(args, 'verbose', False)
 
+    # Build domain lookup for per-domain config overrides
+    domain_lookup = {d["id"]: d for d in domains if "id" in d}
+
     # Crawl
     skip_exts = url_filter.config.skip_extensions if url_filter else None
     crawl_blocked = url_filter.config.crawl_blocked_patterns if url_filter else None
@@ -1071,9 +1074,11 @@ async def run_batch(
         # Keyword check (with stricter requirements)
         content = result.content or ""
         kw_result = keyword_matcher.match(content)
-        if not keyword_matcher.is_relevant(kw_result, len(content), url=result.url):
+        domain_config = domain_lookup.get(result.domain_id, {}) if result.domain_id else {}
+        domain_min_score = domain_config.get("min_keyword_score")
+        if not keyword_matcher.is_relevant(kw_result, len(content), url=result.url, min_score_override=domain_min_score):
             if verbose:
-                reason = keyword_matcher.get_failure_reason(kw_result, len(content), url=result.url)
+                reason = keyword_matcher.get_failure_reason(kw_result, len(content), url=result.url, min_score_override=domain_min_score)
                 kw_failed_reasons[reason] = kw_failed_reasons.get(reason, 0) + 1
                 # Track near-misses: pages with effective score >= 60% of threshold
                 effective_score = kw_result.final_score + keyword_matcher.url_bonus(result.url)

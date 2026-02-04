@@ -1074,6 +1074,17 @@ Domains can also use **path pattern filtering** to control which links the crawl
 
 Common junk paths (`/login`, `/developers/*`, `/admin/*`, etc.) are blocked globally via `url_filters.yaml` — domain configs only need site-specific patterns.
 
+Domains can also override global crawl and analysis settings:
+
+```yaml
+  - name: "Virginia HB323"
+    id: "us_va_hb323_2026"
+    max_pages: 20              # Override global max_pages_per_domain
+    min_keyword_score: 3.0     # Override global minimum_keyword_score
+```
+
+This is useful for focused single-bill domains (tight page budget) or sites with terse legislative text (lower keyword threshold, compensated by URL bonuses).
+
 **To add a new domain:** Copy from `_template.yaml`, fill in the fields, and add to the appropriate regional file. Be sure to set the `region` field — domains without it will generate a startup warning.
 
 ### Groups (`config/groups.yaml`)

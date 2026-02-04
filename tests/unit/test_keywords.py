@@ -984,3 +984,86 @@ class TestURLBonus:
         # Should work without url parameter
         relevant = matcher.is_relevant(result, len(text))
         assert isinstance(relevant, bool)
+
+
+class TestMinScoreOverride:
+    """Test per-domain min_keyword_score override."""
+
+    @pytest.fixture
+    def matcher(self):
+        """Matcher with default threshold of 5.0."""
+        return KeywordMatcher({
+            "keywords": {
+                "subject": {
+                    "weight": 2.0,
+                    "terms": {"en": ["waste heat", "heat reuse"]},
+                },
+                "context": {
+                    "weight": 1.0,
+                    "terms": {"en": ["data center", "energy"]},
+                },
+            },
+            "thresholds": {
+                "minimum_keyword_score": 5.0,
+                "minimum_matches": 2,
+            },
+        })
+
+    def test_override_lowers_threshold(self, matcher):
+        """min_score_override=3.0 lets a score of ~3.0 pass."""
+        text = "waste heat data center"
+        result = matcher.match(text)
+        # Score: waste heat (2.0) + data center (1.0) = 3.0
+        assert not matcher.is_relevant(result, len(text))
+        assert matcher.is_relevant(result, len(text), min_score_override=3.0)
+
+    def test_override_raises_threshold(self, matcher):
+        """min_score_override=20.0 rejects a score that would normally pass."""
+        text = "waste heat heat reuse data center energy"
+        result = matcher.match(text)
+        assert result.final_score >= 5.0
+        assert matcher.is_relevant(result, len(text))
+        assert not matcher.is_relevant(result, len(text), min_score_override=20.0)
+
+    def test_override_none_uses_default(self, matcher):
+        """min_score_override=None falls back to config threshold (5.0)."""
+        text = "waste heat data center"
+        result = matcher.match(text)
+        # Score ~3.0, below default 5.0
+        assert not matcher.is_relevant(result, len(text), min_score_override=None)
+
+    def test_override_zero_accepts_any_score(self, matcher):
+        """min_score_override=0 effectively disables score gating."""
+        text = "waste heat data center"
+        result = matcher.match(text)
+        assert matcher.is_relevant(result, len(text), min_score_override=0)
+
+    def test_override_in_failure_reason(self, matcher):
+        """get_failure_reason reflects the override threshold, not default."""
+        text = "waste heat data center"
+        result = matcher.match(text)
+        reason = matcher.get_failure_reason(result, len(text), min_score_override=4.0)
+        assert "4.0" in reason
+
+    def test_override_with_url_bonus_stacks(self, matcher):
+        """min_score_override and url_bonus work together."""
+        text = "waste heat data center"  # score ~3.0
+        result = matcher.match(text)
+        gov_url = "https://example.gov/page"  # +1.0 bonus
+        # effective = 3.0 + 1.0 = 4.0
+        assert not matcher.is_relevant(result, len(text), url=gov_url, min_score_override=5.0)
+        assert matcher.is_relevant(result, len(text), url=gov_url, min_score_override=4.0)
+
+    def test_override_does_not_bypass_min_matches(self, matcher):
+        """Even with low score threshold, min_matches must still be met."""
+        text = "waste heat"  # only 1 unique match
+        result = matcher.match(text)
+        assert result.unique_matches == 1
+        assert not matcher.is_relevant(result, len(text), min_score_override=0)
+
+    def test_failure_reason_default_threshold_when_no_override(self, matcher):
+        """Without override, failure reason shows default threshold (5.0)."""
+        text = "waste heat data center"
+        result = matcher.match(text)
+        reason = matcher.get_failure_reason(result, len(text))
+        assert "5.0" in reason

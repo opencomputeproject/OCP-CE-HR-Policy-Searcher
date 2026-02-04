@@ -27,6 +27,8 @@ domains:
 
     # Optional: Crawl settings (defaults from settings.yaml if not specified)
     max_depth: 2                            # How many link levels to follow
+    max_pages: 50                           # Max pages for this domain (default: global max_pages_per_domain)
+    min_keyword_score: 5.0                  # Keyword score threshold override (default: global minimum_keyword_score)
     language: "en"                          # Primary language (en, de, fr, etc.)
     requires_playwright: false              # Set true for JavaScript-heavy sites
     rate_limit_seconds: 2.0                 # Delay between requests

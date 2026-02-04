@@ -377,7 +377,7 @@ class KeywordMatcher:
 
     def is_relevant(
         self, result: KeywordMatchResult, content_length: int = 0,
-        url: str = "",
+        url: str = "", min_score_override: Optional[float] = None,
     ) -> bool:
         """Check if a match result indicates relevant content.
 
@@ -385,12 +385,13 @@ class KeywordMatcher:
             result: KeywordMatchResult from match()
             content_length: Length of content for density calculation
             url: Page URL for URL-based bonus scoring
+            min_score_override: Per-domain override for minimum keyword score
 
         Returns:
             True if content should be analyzed by LLM
         """
         # Check basic thresholds
-        min_score = self.thresholds.get("minimum_keyword_score", 5.0)
+        min_score = min_score_override if min_score_override is not None else self.thresholds.get("minimum_keyword_score", 5.0)
         min_matches = self.thresholds.get("minimum_matches", 2)
 
         # Apply URL bonus to final score
@@ -413,7 +414,7 @@ class KeywordMatcher:
 
     def get_failure_reason(
         self, result: KeywordMatchResult, content_length: int = 0,
-        url: str = "",
+        url: str = "", min_score_override: Optional[float] = None,
     ) -> str:
         """Return the first reason a match result would fail is_relevant().
 
@@ -424,11 +425,12 @@ class KeywordMatcher:
             result: KeywordMatchResult from match()
             content_length: Length of content for density calculation
             url: Page URL for URL-based bonus scoring
+            min_score_override: Per-domain override for minimum keyword score
 
         Returns:
             Reason string (e.g. "Below min score (5.0)"), or "" if it passes
         """
-        min_score = self.thresholds.get("minimum_keyword_score", 5.0)
+        min_score = min_score_override if min_score_override is not None else self.thresholds.get("minimum_keyword_score", 5.0)
         min_matches = self.thresholds.get("minimum_matches", 2)
 
         effective_score = result.final_score

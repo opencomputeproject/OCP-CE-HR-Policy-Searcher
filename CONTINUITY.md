@@ -2,9 +2,34 @@
 
 ## Current State
 
-### Version: 0.3.4
+### Version: 0.3.5
 
-### Just Completed: Multi-Signal Scoring with URL Bonuses (Backlog Item 3)
+### Just Completed: Per-Domain Config Overrides (Backlog Item 4)
+
+**What was done:**
+- Added `domain_id: Optional[str] = None` field to `CrawlResult` model in `crawl.py`
+- Modified `crawl_domain()` in `async_crawler.py` to use per-domain `max_pages` override (falls back to global `max_pages_per_domain`) and set `domain_id` on each result
+- Added `min_score_override: Optional[float] = None` parameter to `is_relevant()` and `get_failure_reason()` in `keywords.py`
+- Built `domain_lookup` dict in `run_batch()` in `main.py` keyed by domain ID, passes `min_score_override` from domain config to keyword checks
+- Updated `virginia.yaml`: added `max_pages: 20` and `min_keyword_score: 3.0` on `us_va_hb323_2026` domain
+- Updated `_template.yaml` with documentation for `max_pages` and `min_keyword_score` fields
+- 8 new unit tests in `TestMinScoreOverride` class covering threshold lowering/raising, None fallback, zero threshold, failure reason messages, URL bonus stacking, min_matches enforcement
+- 625 tests pass
+
+**Files changed:**
+1. `src/models/crawl.py` - Added `domain_id` field to `CrawlResult`
+2. `src/crawler/async_crawler.py` - Per-domain `max_pages` override, set `domain_id` on results
+3. `src/analysis/keywords.py` - `min_score_override` param on `is_relevant()` and `get_failure_reason()`
+4. `src/main.py` - Domain lookup dict, pass `min_score_override` to keyword checks
+5. `config/domains/us/virginia.yaml` - Added `max_pages: 20`, `min_keyword_score: 3.0` on HB323 domain
+6. `config/domains/_template.yaml` - Documented `max_pages` and `min_keyword_score` fields
+7. `tests/unit/test_keywords.py` - 8 new tests in `TestMinScoreOverride`
+8. `CHANGELOG.md` - Documented feature
+9. `CONTINUITY.md` - This file
+
+**Backlog status:** Items 1-4 DONE. See `docs/Backlog_20260204.md` for remaining items (5-9).
+
+### Previously Completed: Multi-Signal Scoring with URL Bonuses (Backlog Item 3)
 
 **What was done:**
 - Added `url_bonus()` method to `KeywordMatcher` in `keywords.py` that calculates bonus score from URL patterns

@@ -72,6 +72,8 @@ domains:
     blocked_path_patterns:
       - "/session-details/*"    # Site-specific: irrelevant session navigation pages
     max_depth: 2
+    max_pages: 20              # Tight budget: SPA with many nav links
+    min_keyword_score: 3.0     # Terse legislative text scores low; URL bonuses compensate
     language: "en"
     region:
       - "us"
