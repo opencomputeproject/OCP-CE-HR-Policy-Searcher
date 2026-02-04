@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings
 class CrawlSettings(BaseModel):
     """Crawler configuration."""
     max_depth: int = Field(default=3, ge=1, le=10)
-    max_pages_per_domain: int = Field(default=100, ge=1)
+    max_pages_per_domain: int = Field(default=200, ge=1)
     delay_seconds: float = Field(default=3.0, ge=0.5)
     timeout_seconds: int = Field(default=30, ge=5)
     max_concurrent: int = Field(default=3, ge=1, le=10)

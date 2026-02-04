@@ -15,7 +15,7 @@ crawl:
   max_depth: 3
 
   # Maximum pages to crawl per domain (safety limit)
-  max_pages_per_domain: 100
+  max_pages_per_domain: 200
 
   # Delay between requests to same domain (seconds)
   # Be respectful to government servers

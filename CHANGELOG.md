@@ -34,6 +34,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Playwright fetcher now correctly maps HTTP 403/404/429 to ACCESS_DENIED/NOT_FOUND/RATE_LIMITED (previously all were UNKNOWN_ERROR)
 
 ### Changed
+- Raised default `max_pages_per_domain` from 100 to 200 in both `config/settings.yaml` and `src/config/settings.py`. After Items 1-2 (crawl-time path filtering + content-area link extraction) most crawls use far fewer pages, but larger legislative sites benefit from the higher limit. Individual domains can still override with the `max_pages` field
 - Domain YAML files now use country-level regions (e.g., `germany` instead of only `eu_central`, `singapore` instead of only `apac`) for finer-grained geographic filtering
 - Domain categories aligned with DeepResearch taxonomy (e.g., `legislation` instead of `legislative`, `regulation` instead of `regulatory`)
 - Domain notes enriched with specific regulatory thresholds, effective dates, article numbers, and compliance requirements from DeepResearch verification

@@ -2,9 +2,28 @@
 
 ## Current State
 
-### Version: 0.3.7
+### Version: 0.3.8
 
-### Just Completed: MutationObserver SPA Wait Strategy (Backlog Item 5)
+### Just Completed: Raise Default max_pages_per_domain (Backlog Item 6)
+
+**What was done:**
+- Changed `max_pages_per_domain` from 100 to 200 in `config/settings.yaml` and `src/config/settings.py`
+- After Items 1-2 (crawl-time path filtering + content-area link extraction), most crawls use far fewer pages than the limit, but larger legislative sites benefit from the higher default
+- Individual domains can still override with the `max_pages` field (Item 4)
+- No new tests needed — the only test referencing `max_pages_per_domain` sets its own value (50), unaffected by the default change
+- 651 tests pass
+
+**Files changed:**
+1. `config/settings.yaml` - Changed `max_pages_per_domain: 100` → `200`
+2. `src/config/settings.py` - Changed `default=100` → `default=200` in `CrawlSettings.max_pages_per_domain`
+3. `CHANGELOG.md` - Documented change
+4. `CONTINUITY.md` - This file
+5. `pyproject.toml` - Version bump 0.3.7 → 0.3.8
+6. `docs/Backlog_20260204.md` - Item 6: DONE
+
+**Backlog status:** Items 1-6 DONE. See `docs/Backlog_20260204.md` for remaining items (7-9).
+
+### Previously Completed: MutationObserver SPA Wait Strategy (Backlog Item 5)
 
 **What was done:**
 - Replaced `wait_until="networkidle"` with `wait_until="domcontentloaded"` in `PlaywrightFetcher.fetch()` — `networkidle` caused timeouts on SPA sites with analytics polling or WebSocket connections
