@@ -45,10 +45,6 @@ domains:
       - "/cgi-bin/legp604.exe?ses=251&typ=bil&val=sb192"
     allowed_path_patterns:
       - "/cgi-bin/legp604.exe*"
-    blocked_path_patterns:
-      - "/developers/*"
-      - "/developer/*"
-      - "/login"
     max_depth: 1
     language: "en"
     requires_playwright: true
@@ -74,12 +70,7 @@ domains:
       - "/bill-text/*"
       - "/vote/*"
     blocked_path_patterns:
-      - "/developers/*"
-      - "/developer/*"
-      - "/session-details/*"
-      - "/login"
-      - "/forgot-password"
-      - "/register"
+      - "/session-details/*"    # Site-specific: irrelevant session navigation pages
     max_depth: 2
     language: "en"
     region:

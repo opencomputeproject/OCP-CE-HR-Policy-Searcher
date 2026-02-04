@@ -1017,6 +1017,7 @@ config/
 ├── keywords.yaml          # Search terms in 8 languages
 ├── groups.yaml            # Domain groups (you can edit this!)
 ├── notifications.yaml     # Email & alert configuration
+├── url_filters.yaml       # URL pre-filtering & crawl-time blocked patterns
 ├── domains/               # Domain definitions (supports subdirectories)
 │   ├── _template.yaml     # Template for adding new domains
 │   ├── eu.yaml            # European Union
@@ -1055,6 +1056,23 @@ domains:
 ```
 
 The `region` field is a list of geographic regions this domain belongs to. It enables `--domains eu` to find this domain even if it's not explicitly listed in `groups.yaml`. Valid regions include broad regions (`eu`, `nordic`, `eu_central`, `eu_west`, `uk`, `us`, `us_states`, `apac`), country-level regions (`germany`, `france`, `switzerland`, `singapore`, `japan`, etc.), and US state-level regions (`oregon`, `texas`, `california`). Run `python -m src.main list-regions` for the full list.
+
+Domains can also use **path pattern filtering** to control which links the crawler follows:
+
+```yaml
+  - name: "Virginia HB323"
+    id: "us_va_hb323_2026"
+    base_url: "https://lis.virginia.gov"
+    start_paths:
+      - "/bill-details/20261/HB323"
+    allowed_path_patterns:       # Only follow links matching these (glob)
+      - "/bill-details/*"
+      - "/bill-text/*"
+    blocked_path_patterns:       # Never follow links matching these (glob)
+      - "/session-details/*"     # Site-specific junk
+```
+
+Common junk paths (`/login`, `/developers/*`, `/admin/*`, etc.) are blocked globally via `url_filters.yaml` — domain configs only need site-specific patterns.
 
 **To add a new domain:** Copy from `_template.yaml`, fill in the fields, and add to the appropriate regional file. Be sure to set the `region` field — domains without it will generate a startup warning.
 

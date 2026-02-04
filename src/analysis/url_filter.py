@@ -45,6 +45,7 @@ class URLFilterConfig:
     skip_patterns: list[str] = field(default_factory=list)
     skip_extensions: list[str] = field(default_factory=list)
     domain_overrides: dict[str, dict] = field(default_factory=dict)
+    crawl_blocked_patterns: list[str] = field(default_factory=list)
 
     # Compiled regex patterns (populated lazily)
     _compiled_patterns: list[re.Pattern] = field(
@@ -299,6 +300,7 @@ def load_url_filters(config_path: Optional[Path] = None) -> URLFilterConfig:
             skip_patterns=filters.get("skip_patterns", []),
             skip_extensions=filters.get("skip_extensions", []),
             domain_overrides=filters.get("domain_overrides", {}),
+            crawl_blocked_patterns=filters.get("crawl_blocked_patterns", []),
         )
     except Exception as e:
         print(f"Warning: Failed to load URL filters from {config_path}: {e}")

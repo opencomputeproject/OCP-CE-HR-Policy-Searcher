@@ -33,6 +33,7 @@ class AsyncCrawler:
         keyword_matcher: KeywordMatcher,
         logger: RunLogger,
         skip_extensions: Optional[list[str]] = None,
+        crawl_blocked_patterns: Optional[list[str]] = None,
     ):
         self.settings = settings
         self.domains = domains
@@ -41,6 +42,7 @@ class AsyncCrawler:
         self.skip_extensions = [
             ext.lower() for ext in (skip_extensions or _DEFAULT_SKIP_EXTENSIONS)
         ]
+        self.crawl_blocked_patterns = crawl_blocked_patterns or []
 
         self.http_fetcher = HttpFetcher(settings)
         self.playwright_fetcher: Optional[PlaywrightFetcher] = None
@@ -150,9 +152,10 @@ class AsyncCrawler:
         links = []
         base_domain = urlparse(domain["base_url"]).netloc
 
-        # Domain-level path pattern filtering (crawl-time budget protection)
+        # Path pattern filtering (crawl-time budget protection)
+        # Global patterns from url_filters.yaml + domain-specific patterns merged
         allowed_patterns = domain.get("allowed_path_patterns", [])
-        blocked_patterns = domain.get("blocked_path_patterns", [])
+        blocked_patterns = self.crawl_blocked_patterns + domain.get("blocked_path_patterns", [])
 
         for a in soup.find_all("a", href=True):
             full_url = urljoin(base_url, a["href"])

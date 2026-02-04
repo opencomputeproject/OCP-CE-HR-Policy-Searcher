@@ -1,4 +1,4 @@
-"""Unit tests for AsyncCrawler._extract_links with extension filtering."""
+"""Unit tests for AsyncCrawler._extract_links: extension, path pattern, and global pattern filtering."""
 
 import pytest
 
@@ -339,3 +339,84 @@ class TestPathPatternFiltering:
         )
         assert len(links) == 1
         assert "/policies/energy" in links[0]
+
+
+class TestGlobalBlockedPatterns:
+    """Test crawl_blocked_patterns (global) merging with domain patterns."""
+
+    def test_global_patterns_block_links(self):
+        """Global crawl_blocked_patterns block links even with no domain patterns."""
+        crawler = _make_crawler(crawl_blocked_patterns=["/login", "/developers/*"])
+        domain = {"base_url": "https://example.gov"}
+        html = _make_html([
+            "/login",
+            "/developers/api-reference",
+            "/policies/energy",
+        ])
+
+        links = crawler._extract_links(
+            html, "https://example.gov/", domain
+        )
+        assert len(links) == 1
+        assert "/policies/energy" in links[0]
+
+    def test_global_and_domain_patterns_merge(self):
+        """Both global and domain blocked patterns are enforced together."""
+        crawler = _make_crawler(crawl_blocked_patterns=["/login", "/admin/*"])
+        domain = {
+            "base_url": "https://lis.virginia.gov",
+            "blocked_path_patterns": ["/session-details/*"],
+        }
+        html = _make_html([
+            "/login",                    # blocked by global
+            "/admin/settings",           # blocked by global
+            "/session-details/20261",    # blocked by domain
+            "/bill-details/20261/HB323", # passes both
+        ])
+
+        links = crawler._extract_links(
+            html, "https://lis.virginia.gov/", domain
+        )
+        assert len(links) == 1
+        assert "/bill-details/20261/HB323" in links[0]
+
+    def test_global_patterns_with_domain_allowed(self):
+        """Global blocked patterns apply even when domain has allowed patterns."""
+        crawler = _make_crawler(crawl_blocked_patterns=["/auth/*"])
+        domain = {
+            "base_url": "https://example.gov",
+            "allowed_path_patterns": ["/auth/*", "/policies/*"],
+        }
+        html = _make_html([
+            "/auth/callback",     # matches allowed but blocked by global
+            "/policies/energy",   # matches allowed, not blocked
+        ])
+
+        links = crawler._extract_links(
+            html, "https://example.gov/", domain
+        )
+        assert len(links) == 1
+        assert "/policies/energy" in links[0]
+
+    def test_no_global_patterns_still_works(self):
+        """Domain patterns work when no global patterns are configured."""
+        crawler = _make_crawler(crawl_blocked_patterns=[])
+        domain = {
+            "base_url": "https://example.gov",
+            "blocked_path_patterns": ["/admin/*"],
+        }
+        html = _make_html([
+            "/admin/settings",
+            "/policies/energy",
+        ])
+
+        links = crawler._extract_links(
+            html, "https://example.gov/", domain
+        )
+        assert len(links) == 1
+        assert "/policies/energy" in links[0]
+
+    def test_default_crawl_blocked_patterns_is_empty(self):
+        """Crawler without crawl_blocked_patterns defaults to empty list."""
+        crawler = _make_crawler()
+        assert crawler.crawl_blocked_patterns == []

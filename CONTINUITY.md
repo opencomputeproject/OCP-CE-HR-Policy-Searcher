@@ -2,9 +2,34 @@
 
 ## Current State
 
-### Version: 0.3.1
+### Version: 0.3.2
 
-### Just Completed: Crawl-Time Path Pattern Filtering (Backlog Item 1)
+### Just Completed: Global Crawl-Time Blocked Patterns (DRY improvement to Backlog Item 1)
+
+**What was done:**
+- Added `crawl_blocked_patterns` section to `config/url_filters.yaml` with ~30 common junk path patterns (auth flows, developer docs, admin areas, search/feeds, social/sharing, careers, media galleries)
+- These global patterns apply to ALL domains at crawl time — domains no longer need to repeat common patterns like `/login`, `/developers/*`, `/admin/*`
+- Domain-specific `blocked_path_patterns` merge additively: `blocked = global + domain-specific`
+- Added `crawl_blocked_patterns` field to `URLFilterConfig` dataclass in `url_filter.py`
+- Added `crawl_blocked_patterns` parameter to `AsyncCrawler.__init__()`
+- Updated `main.py` to pass global patterns from URL filter config to crawler
+- Cleaned up Virginia configs: removed patterns now covered globally, kept only site-specific patterns
+- 5 new unit tests in `TestGlobalBlockedPatterns` class
+- 597 tests pass
+
+**Files changed:**
+1. `config/url_filters.yaml` - Added `crawl_blocked_patterns` section (~30 patterns)
+2. `src/analysis/url_filter.py` - Added `crawl_blocked_patterns` field to `URLFilterConfig`, load in `load_url_filters()`
+3. `src/crawler/async_crawler.py` - Added `crawl_blocked_patterns` constructor param, merge in `_extract_links()`
+4. `src/main.py` - Pass global patterns to `AsyncCrawler`
+5. `config/domains/us/virginia.yaml` - Removed globally-covered patterns, kept site-specific only
+6. `tests/unit/test_link_extractor.py` - 5 new tests in `TestGlobalBlockedPatterns`
+7. `CHANGELOG.md` - Documented feature
+8. `CONTINUITY.md` - This file
+
+**Backlog status:** See `docs/Backlog_20260204.md` for remaining items (2-9).
+
+### Previously Completed: Crawl-Time Path Pattern Filtering (Backlog Item 1)
 
 **What was done:**
 - Implemented `allowed_path_patterns` and `blocked_path_patterns` enforcement in `_extract_links()` in `async_crawler.py`
@@ -23,8 +48,6 @@
 3. `tests/unit/test_link_extractor.py` - 10 new tests in `TestPathPatternFiltering` class
 4. `CHANGELOG.md` - Documented feature
 5. `CONTINUITY.md` - This file
-
-**Backlog status:** See `docs/Backlog_20260204.md` for remaining items (2-9).
 
 ### Previously Completed: `report` CLI Command
 

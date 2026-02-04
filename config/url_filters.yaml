@@ -122,6 +122,64 @@ url_filters:
     - "[?&]utm_"
 
   # =========================================================================
+  # CRAWL-TIME BLOCKED PATTERNS (glob/fnmatch, applied during link extraction)
+  # =========================================================================
+  # These prevent the crawler from FOLLOWING links to these paths, saving the
+  # page budget. Uses fnmatch glob patterns (same as domain YAML configs).
+  # Domain-specific blocked_path_patterns merge WITH these -- domains don't
+  # need to repeat common patterns.
+  #
+  # Unlike skip_paths above (which block AFTER fetching), these block BEFORE
+  # fetching, so pages are never downloaded at all.
+  crawl_blocked_patterns:
+    # Authentication & account flows
+    - "/login"
+    - "/logout"
+    - "/signin"
+    - "/signup"
+    - "/register"
+    - "/forgot-password"
+    - "/reset-password"
+    - "/auth/*"
+    - "/account/*"
+    - "/profile/*"
+
+    # Developer/API documentation (common SPA crawl explosion source)
+    - "/developer/*"
+    - "/developers/*"
+    - "/api/*"
+    - "/api-*"
+    - "/docs/api/*"
+    - "/swagger*"
+
+    # Admin areas
+    - "/admin/*"
+    - "/wp-admin/*"
+    - "/cms/*"
+
+    # Search, feeds, utilities
+    - "/search"
+    - "/search/*"
+    - "/sitemap*"
+    - "/rss*"
+    - "/feed*"
+
+    # Social/sharing
+    - "/share/*"
+    - "/print/*"
+
+    # Career/job pages
+    - "/careers"
+    - "/careers/*"
+    - "/jobs"
+    - "/jobs/*"
+
+    # Media galleries
+    - "/gallery/*"
+    - "/photos/*"
+    - "/videos/*"
+
+  # =========================================================================
   # FILE EXTENSIONS TO SKIP
   # =========================================================================
   # Binary files and documents that can't be analyzed as HTML.
