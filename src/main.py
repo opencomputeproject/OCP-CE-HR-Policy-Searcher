@@ -228,6 +228,8 @@ Examples:
         help="Run to report: number (1=latest, 2=previous...), date (20260115), or run ID"
     )
 
+    subparsers.add_parser("help", help="Show detailed help with examples")
+
     # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
     parser.add_argument("--domains", default="all", help="Domain group, region, file name, or domain ID to scan (use 'list-groups' to see options)")
@@ -936,6 +938,82 @@ def cmd_list_runs(args) -> int:
         print("  (showing last 10 runs - use --all to see all)")
         print("")
 
+    return 0
+
+
+def cmd_help(args) -> int:
+    """Show formatted help menu with examples for all commands."""
+    print("""
+============================================================
+  OCP Heat Reuse Policy Searcher
+============================================================
+
+  SCANNING
+  --------
+  python -m src.main                           Scan all domains
+  python -m src.main --domains eu              Scan EU domains
+  python -m src.main --domains germany         Scan German domains
+  python -m src.main --domains us_va_hb323_2026  Scan single domain
+  python -m src.main --dry-run --verbose       Dry run with details
+  python -m src.main --skip-llm                Keyword-only (no API cost)
+  python -m src.main --min-keyword-score 3.0   Lower keyword threshold
+
+  FILTERING
+  ---------
+  python -m src.main --category legislation    Filter by category
+  python -m src.main --tag mandates            Filter by tag
+  python -m src.main --policy-type law         Filter by policy type
+  python -m src.main --tag waste_heat --tag efficiency  Multiple tags
+  python -m src.main --match-all-tags          Require all tags match
+
+  CHUNKING
+  --------
+  python -m src.main --chunk-size 10           Process 10 domains at a time
+  python -m src.main --chunk 2/4               Process chunk 2 of 4
+  python -m src.main --chunk-delay 30          30s pause between chunks
+
+  VIEWING RESULTS
+  ---------------
+  python -m src.main report                    Report for last run
+  python -m src.main report --log 2            Report for 2nd most recent
+  python -m src.main report --log 20260203     Report by date
+  python -m src.main last-run                  Summary of last run
+  python -m src.main last-run --config         Show run configuration
+  python -m src.main list-runs                 List all runs
+
+  DOMAIN MANAGEMENT
+  -----------------
+  python -m src.main list-domains              List all domains
+  python -m src.main list-groups               List groups & regions
+  python -m src.main list-regions              List geographic regions
+  python -m src.main domain-stats              Show categorization stats
+  python -m src.main list-categories           List available categories
+  python -m src.main list-tags                 List available tags
+  python -m src.main list-policy-types         List policy types
+
+  SITE MANAGEMENT
+  ---------------
+  python -m src.main reject-site --url URL --reason "..."
+  python -m src.main list-rejected             List rejected sites
+  python -m src.main list-rejected -v          With full details
+
+  COST & NOTIFICATIONS
+  --------------------
+  python -m src.main cost-history              View API costs
+  python -m src.main estimate-cost --domains eu  Estimate scan cost
+  python -m src.main test-notifications        Test email setup
+  python -m src.main alerts                    View alert history
+
+  CACHE
+  -----
+  python -m src.main --no-cache                Disable URL caching
+  python -m src.main --clear-cache             Clear cache first
+
+============================================================
+  Use --help on any command for more details
+  python -m src.main report --help
+============================================================
+""")
     return 0
 
 
@@ -1859,6 +1937,8 @@ def main():
         sys.exit(cmd_list_runs(args))
     elif args.command == "report":
         sys.exit(cmd_report(args))
+    elif args.command == "help":
+        sys.exit(cmd_help(args))
     else:
         # Default: run scan
         code = asyncio.run(run(args))

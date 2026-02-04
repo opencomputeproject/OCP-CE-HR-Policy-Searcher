@@ -2,9 +2,29 @@
 
 ## Current State
 
-### Version: 0.3.8
+### Version: 0.3.9
 
-### Just Completed: Raise Default max_pages_per_domain (Backlog Item 6)
+### Just Completed: Pretty Help Command (Backlog Item 7)
+
+**What was done:**
+- Added `help` subcommand to `src/main.py` that prints a formatted, visually organized help menu
+- Organized by workflow sections: Scanning, Filtering, Chunking, Viewing Results, Domain Management, Site Management, Cost & Notifications, Cache
+- Shows copy-paste examples for all commands — users can run `python -m src.main help` to see everything at a glance
+- Separate from `--help` (which argparse provides for per-command details)
+- 2 new smoke tests: return code check and output content verification
+- 653 tests pass
+
+**Files changed:**
+1. `src/main.py` - Added `help` subparser, `cmd_help()` handler, dispatch entry
+2. `tests/unit/test_help_command.py` - New file with 2 tests
+3. `CHANGELOG.md` - Documented feature
+4. `CONTINUITY.md` - This file
+5. `pyproject.toml` - Version bump 0.3.8 → 0.3.9
+6. `docs/Backlog_20260204.md` - Item 7: DONE
+
+**Backlog status:** Items 1-7 DONE. See `docs/Backlog_20260204.md` for remaining items (8-9).
+
+### Previously Completed: Raise Default max_pages_per_domain (Backlog Item 6)
 
 **What was done:**
 - Changed `max_pages_per_domain` from 100 to 200 in `config/settings.yaml` and `src/config/settings.py`

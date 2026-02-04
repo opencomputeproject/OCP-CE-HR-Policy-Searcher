@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
+- `help` CLI command: formatted, visually organized help menu with copy-paste examples grouped by workflow (Scanning, Filtering, Chunking, Viewing Results, Domain Management, Site Management, Cost & Notifications, Cache). Run with `python -m src.main help`
 - MutationObserver-based DOM stabilization for Playwright fetcher: replaces `wait_until="networkidle"` with `domcontentloaded` + a MutationObserver that waits for the DOM to stop changing (500ms of no mutations, 10s max timeout). This correctly captures SPA-rendered content on React/Vue/Angular sites without timing out on analytics polling or WebSocket connections. Static pages resolve near-instantly via "already-stable". Falls back gracefully if JS evaluation fails
 - Crawl-time path pattern filtering: `allowed_path_patterns` and `blocked_path_patterns` in domain YAML configs are now enforced during link extraction, preventing the crawler from following irrelevant links that waste the page budget (e.g., `/developers/*`, `/login` on SPA sites)
 - Global `crawl_blocked_patterns` in `config/url_filters.yaml`: ~30 common junk path patterns (auth, developer docs, admin, search, careers, media) applied to ALL domains at crawl time, so individual domain configs only need site-specific patterns. Domain `blocked_path_patterns` merge additively with global patterns
