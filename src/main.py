@@ -246,6 +246,14 @@ Examples:
         help="URL(s) to generate domain config from (can use multiple times)"
     )
     add_domain_parser.add_argument(
+        "--name", default=None,
+        help="Override the auto-detected domain name"
+    )
+    add_domain_parser.add_argument(
+        "--id", default=None,
+        help="Override the auto-generated domain ID"
+    )
+    add_domain_parser.add_argument(
         "--file", default=None,
         help="Target YAML file under config/domains/ (default: auto-detect from URL)"
     )
@@ -966,7 +974,12 @@ def cmd_list_runs(args) -> int:
 
 
 async def cmd_add_domain(args) -> int:
-    """Generate domain YAML from URL(s)."""
+    """Generate domain YAML from URL(s).
+
+    Multiple URLs on the same hostname are merged into a single domain
+    entry with combined start_paths.
+    """
+    from collections import defaultdict
     from pathlib import Path
     from .tools.domain_generator import (
         generate_domain_id, detect_region, suggest_output_file,
@@ -975,25 +988,44 @@ async def cmd_add_domain(args) -> int:
     from .crawler.fetchers.http_fetcher import HttpFetcher
     from .crawler.extractors.html_extractor import HtmlExtractor, load_extraction_config
 
+    # Group URLs by hostname so same-host URLs become one entry
+    url_groups: dict[str, list[str]] = defaultdict(list)
+    for url in args.url:
+        url_groups[urlparse(url).netloc].append(url)
+
+    # --name / --id only valid for a single hostname group
+    name_override = getattr(args, "name", None)
+    id_override = getattr(args, "id", None)
+    if (name_override or id_override) and len(url_groups) > 1:
+        print("Error: --name and --id can only be used when all URLs share the same hostname")
+        return 1
+
     settings, _, _ = load_settings()
     http_fetcher = HttpFetcher(settings.crawl)
     await http_fetcher.initialize()
     extractor = HtmlExtractor(load_extraction_config())
 
     try:
-        for url in args.url:
-            parsed = urlparse(url)
-            hostname = parsed.netloc
-            path = parsed.path or "/"
+        for hostname, urls in url_groups.items():
+            # Collect start_paths from all URLs (preserving query strings)
+            start_paths: list[str] = []
+            for url in urls:
+                p = urlparse(url)
+                path = p.path or "/"
+                start_path = f"{path}?{p.query}" if p.query else path
+                if start_path not in start_paths:
+                    start_paths.append(start_path)
 
-            # Fetch the page
-            result = await http_fetcher.fetch(url)
+            # Fetch metadata from the first URL
+            first_url = urls[0]
+            first_parsed = urlparse(first_url)
+            result = await http_fetcher.fetch(first_url)
             needs_playwright = False
             title = hostname
             language = "en"
 
             if result.is_success:
-                extracted = extractor.extract(result.content, url)
+                extracted = extractor.extract(result.content, first_url)
                 title = extracted.title or hostname
                 language = extracted.language or "en"
                 try:
@@ -1010,53 +1042,47 @@ async def cmd_add_domain(args) -> int:
                     from .crawler.fetchers.playwright_fetcher import PlaywrightFetcher
                     pw = PlaywrightFetcher(settings.crawl)
                     await pw.initialize()
-                    pw_result = await pw.fetch(url)
+                    pw_result = await pw.fetch(first_url)
                     await pw.close()
                     if pw_result.is_success:
-                        extracted = extractor.extract(pw_result.content, url)
+                        extracted = extractor.extract(pw_result.content, first_url)
                         title = extracted.title or hostname
                         language = extracted.language or "en"
                 except Exception as e:
-                    print(f"Warning: Could not fetch {url}: {e}")
+                    print(f"Warning: Could not fetch {first_url}: {e}")
 
-            domain_id = generate_domain_id(hostname)
+            final_name = name_override or title
+            final_id = id_override or generate_domain_id(hostname)
             region = detect_region(hostname)
             suggested_file = suggest_output_file(hostname)
 
             entry = build_domain_entry(
-                name=title,
-                domain_id=domain_id,
-                base_url=f"{parsed.scheme}://{hostname}",
-                start_paths=[path],
+                name=final_name,
+                domain_id=final_id,
+                base_url=f"{first_parsed.scheme}://{hostname}",
+                start_paths=start_paths,
                 language=language,
                 requires_playwright=needs_playwright,
                 region=region,
             )
 
-            yaml_output = format_domain_yaml(entry, standalone=True)
-
             if getattr(args, "dry_run", False):
-                print(f"\n# Generated for: {url}")
+                print(f"\n# Generated for: {', '.join(urls)}")
                 print(f"# Suggested file: config/domains/{suggested_file}")
-                print(yaml_output)
+                print(format_domain_yaml(entry, standalone=True))
             else:
                 target = args.file or suggested_file
                 target_path = Path(f"config/domains/{target}")
                 target_path.parent.mkdir(parents=True, exist_ok=True)
 
                 if target_path.exists():
-                    # Append the entry to existing file
-                    append_yaml = format_domain_yaml(entry, standalone=False)
                     with open(target_path, "a", encoding="utf-8") as f:
-                        f.write(f"\n  # Auto-generated from {url}\n")
-                        # Indent list item to align under domains: key
-                        for line in append_yaml.splitlines():
-                            f.write(f"  {line}\n")
+                        f.write(f"\n{format_domain_yaml(entry, standalone=False)}")
                 else:
                     with open(target_path, "w", encoding="utf-8") as f:
-                        f.write(yaml_output)
+                        f.write(format_domain_yaml(entry, standalone=True))
 
-                print(f"Added domain '{domain_id}' to {target_path}")
+                print(f"Added domain '{final_id}' to {target_path}")
 
     finally:
         await http_fetcher.close()
@@ -1119,6 +1145,8 @@ def cmd_help(args) -> int:
   python -m src.main add-domain --url URL --dry-run  Generate domain YAML
   python -m src.main add-domain --url URL            Write to auto-detected file
   python -m src.main add-domain --url URL --file us/virginia.yaml
+  python -m src.main add-domain --url URL --name "Texas Legislature" --id tx_legislature
+  python -m src.main add-domain --url URL1 --url URL2  Merge into one entry
 
   SITE MANAGEMENT
   ---------------

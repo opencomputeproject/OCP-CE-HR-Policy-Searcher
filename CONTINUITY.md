@@ -2,40 +2,42 @@
 
 ## Current State
 
-### Version: 0.3.10
+### Version: 0.3.11
 
-### Just Completed: Auto-Generate Domain YAML from URL(s) (Backlog Item 8)
+### Just Completed: Improve `add-domain` YAML Output & Usability
 
 **What was done:**
-- Created `src/tools/domain_generator.py` with pure functions (no I/O, fully testable):
-  - `generate_domain_id(hostname)` — generates domain IDs from hostname (US state `.gov` → `{abbrev}_{agency}`, federal `.gov` → `us_{name}`, `.gov.uk` → `uk_{name}`, international TLDs, generic hostnames). Truncates to 30 chars
-  - `detect_region(hostname)` — detects geographic region(s) from TLD using `TLD_REGION_MAP` (12 international government TLDs). Longest-suffix-first matching (`.gov.uk` before `.gov`)
-  - `suggest_output_file(hostname)` — suggests target `config/domains/` file based on TLD (US state → `us/{state}.yaml`, federal → `us/us_federal.yaml`, international → matched file)
-  - `build_domain_entry(...)` — builds complete domain entry dict with sensible defaults
-  - `format_domain_yaml(entry, standalone=True)` — formats as YAML, optionally wrapped in `domains:` key
-  - `US_STATE_ABBREVS` — all 50 states + DC
-  - `TLD_REGION_MAP` — 12 international government TLDs with regions and suggested files
-- Added `add-domain` subcommand to `src/main.py`:
-  - `--url` (multiple), `--file`, `--dry-run` arguments
-  - Handler fetches URL (HTTP first, Playwright fallback), extracts title/language, detects JS requirements, generates domain YAML
-  - Dry-run prints YAML with suggested file comment; otherwise appends/creates file
-- Updated `cmd_help()` with DOMAIN GENERATION section
-- 45 new unit tests in `tests/unit/test_domain_generator.py` (5 test classes: TestGenerateDomainId, TestDetectRegion, TestSuggestOutputFile, TestBuildDomainEntry, TestFormatDomainYaml)
-- Fixed TLD matching for bare hostnames (`gov.uk`, `riksdagen.se`, `retsinformation.dk`) — `_match_tld()` now checks both `endswith` and exact match
-- Fixed `.gov.uk` ID generation for bare `gov.uk` hostname
-- 698 tests pass
+- Replaced `yaml.dump()` with custom YAML formatter matching hand-crafted file style:
+  - Canonical field order: name, id, enabled, region, base_url, start_paths, max_depth, language, requires_playwright, rate_limit_seconds, category, tags, policy_types, verified_by, verified_date, notes
+  - Quoted strings for name, id, base_url, verified_by, verified_date, category
+  - Quoted list items for region, start_paths, tags, policy_types
+  - Empty lists and empty strings omitted entirely (no `tags: []` or `category: ""`)
+  - Multi-line notes use `|` literal block style; single-line notes stay inline
+  - Lowercase booleans (`true`/`false`), one-decimal floats (`2.0`)
+- Added `--name` and `--id` CLI flags to override auto-detected values
+- Multiple URLs on the same hostname are automatically merged into a single entry with combined start_paths
+- Query strings in URLs are now preserved in start_paths (previously stripped)
+- Fixed append-to-existing-file logic (was fragile indentation hack, now uses properly formatted output)
+- 18 new tests (63 total in test_domain_generator.py): TestFormatDomainYamlStyle (15), TestQueryStringPreservation (3)
+- 716 tests pass
 
 **Files changed:**
-1. `src/tools/__init__.py` - New empty package
-2. `src/tools/domain_generator.py` - New file with pure generation functions (~235 lines)
-3. `src/main.py` - Added `add-domain` subparser, `cmd_add_domain()` async handler, dispatch entry, updated `cmd_help()`
-4. `tests/unit/test_domain_generator.py` - New file with 45 tests
-5. `CHANGELOG.md` - Documented feature
-6. `CONTINUITY.md` - This file
-7. `pyproject.toml` - Version bump 0.3.9 → 0.3.10
-8. `docs/Backlog_20260204.md` - Item 8: DONE
+1. `src/tools/domain_generator.py` - Custom YAML formatter (`_format_entry_yaml`, `_yaml_scalar`, `_FIELD_ORDER`, `_QUOTED_FIELDS`), removed `yaml` import
+2. `src/main.py` - URL grouping by hostname, `--name`/`--id` args, query string preservation, fixed append logic, updated `cmd_help()`
+3. `tests/unit/test_domain_generator.py` - Updated `test_appending_valid_yaml`, added TestFormatDomainYamlStyle (15 tests), TestQueryStringPreservation (3 tests)
+4. `CHANGELOG.md` - Updated add-domain entry
+5. `CONTINUITY.md` - This file
+6. `pyproject.toml` - Version bump 0.3.10 → 0.3.11
 
 **Backlog status:** Items 1-8 DONE. See `docs/Backlog_20260204.md` for remaining item (9).
+
+### Previously Completed: Auto-Generate Domain YAML from URL(s) (Backlog Item 8)
+
+**What was done:**
+- Created `src/tools/domain_generator.py` with pure functions (no I/O, fully testable)
+- Added `add-domain` subcommand to `src/main.py`
+- 45 unit tests, 698 tests pass
+- Version 0.3.10
 
 ### Previously Completed: Pretty Help Command (Backlog Item 7)
 

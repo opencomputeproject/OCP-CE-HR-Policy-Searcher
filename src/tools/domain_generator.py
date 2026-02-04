@@ -9,8 +9,6 @@ import re
 from datetime import date
 from urllib.parse import urlparse
 
-import yaml
-
 
 # ---------------------------------------------------------------------------
 # US state name -> two-letter abbreviation
@@ -214,21 +212,97 @@ def build_domain_entry(
     }
 
 
+# ---------------------------------------------------------------------------
+# Custom YAML formatter — matches hand-crafted domain file style
+# ---------------------------------------------------------------------------
+
+# Canonical field order (derived from _template.yaml, texas.yaml, virginia.yaml)
+_FIELD_ORDER = [
+    "name", "id", "enabled", "region", "base_url", "start_paths",
+    "max_depth", "language", "requires_playwright", "rate_limit_seconds",
+    "category", "tags", "policy_types", "verified_by", "verified_date", "notes",
+]
+
+# Scalar string fields that should be double-quoted in output
+_QUOTED_FIELDS = {"name", "id", "base_url", "verified_by", "verified_date", "category"}
+
+# List fields whose items should be double-quoted
+_QUOTED_LIST_FIELDS = {"region", "start_paths", "tags", "policy_types"}
+
+
+def _yaml_scalar(key: str, value: object) -> str:
+    """Format a scalar YAML value for *key*."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, float):
+        return f"{value:.1f}" if value == int(value) else str(value)
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, str):
+        if key in _QUOTED_FIELDS:
+            return f'"{value}"'
+        return value
+    return str(value)
+
+
+def _format_entry_yaml(entry: dict, indent: str = "    ") -> str:
+    """Render one domain entry as a YAML list item with canonical field order.
+
+    The first field uses ``  - `` prefix (list-item marker under ``domains:``).
+    Subsequent fields use *indent* (default 4 spaces) for alignment.
+    """
+    lines: list[str] = []
+    first = True
+
+    for key in _FIELD_ORDER:
+        if key not in entry:
+            continue
+        value = entry[key]
+
+        # Skip empty lists and empty strings (matches hand-crafted style)
+        if isinstance(value, list) and not value:
+            continue
+        if isinstance(value, str) and not value:
+            continue
+
+        prefix = "  - " if first else indent
+        first = False
+
+        if isinstance(value, list):
+            lines.append(f"{prefix}{key}:")
+            quote = key in _QUOTED_LIST_FIELDS
+            for item in value:
+                item_str = f'"{item}"' if quote else str(item)
+                lines.append(f"{indent}  - {item_str}")
+        elif key == "notes" and isinstance(value, str) and "\n" in value:
+            lines.append(f"{prefix}{key}: |")
+            for note_line in value.rstrip("\n").split("\n"):
+                lines.append(f"{indent}  {note_line}")
+        else:
+            lines.append(f"{prefix}{key}: {_yaml_scalar(key, value)}")
+
+    # Any extra fields not in _FIELD_ORDER
+    for key in entry:
+        if key not in _FIELD_ORDER:
+            value = entry[key]
+            if isinstance(value, list) and not value:
+                continue
+            if isinstance(value, str) and not value:
+                continue
+            lines.append(f"{indent}{key}: {_yaml_scalar(key, value)}")
+
+    return "\n".join(lines) + "\n"
+
+
 def format_domain_yaml(entry: dict, *, standalone: bool = True) -> str:
-    """Format a domain entry dict as YAML.
+    """Format a domain entry dict as YAML matching hand-crafted file style.
 
     Args:
         entry: Domain entry dict from build_domain_entry().
         standalone: If True, wrap in ``domains:`` key for a new file.
-                    If False, format as a list item for appending.
+                    If False, format as a list item for appending to existing file.
     """
+    body = _format_entry_yaml(entry)
     if standalone:
-        data = {"domains": [entry]}
-    else:
-        data = [entry]
-    return yaml.dump(
-        data,
-        default_flow_style=False,
-        allow_unicode=True,
-        sort_keys=False,
-    )
+        return "domains:\n" + body
+    return body
