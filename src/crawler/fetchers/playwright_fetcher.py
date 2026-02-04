@@ -48,10 +48,9 @@ class PlaywrightFetcher:
         try:
             response = await page.goto(
                 url,
-                wait_until="networkidle",
+                wait_until="domcontentloaded",
                 timeout=self.settings.timeout_seconds * 1000,
             )
-            elapsed = int((datetime.utcnow() - start).total_seconds() * 1000)
 
             if response is None:
                 return CrawlResult(
@@ -62,6 +61,7 @@ class PlaywrightFetcher:
                 )
 
             if response.status >= 400:
+                elapsed = int((datetime.utcnow() - start).total_seconds() * 1000)
                 pw_status_map = {
                     403: PageStatus.ACCESS_DENIED,
                     404: PageStatus.NOT_FOUND,
@@ -79,6 +79,13 @@ class PlaywrightFetcher:
                     used_playwright=True,
                 )
 
+            # Wait for SPA content to render via DOM stabilization
+            try:
+                await self._wait_for_dom_stable(page)
+            except Exception:
+                pass  # Continue with whatever content we have
+
+            elapsed = int((datetime.utcnow() - start).total_seconds() * 1000)
             content = await page.content()
             title = await page.title()
 
@@ -109,6 +116,53 @@ class PlaywrightFetcher:
             )
         finally:
             await page.close()
+
+    async def _wait_for_dom_stable(
+        self, page, timeout_ms: int = 10000, stable_ms: int = 500
+    ):
+        """Wait until DOM stops changing, indicating SPA rendering is complete.
+
+        Uses MutationObserver to detect when no DOM mutations occur for
+        ``stable_ms`` milliseconds.  Falls back gracefully on error so the
+        caller always gets *some* content.
+
+        Args:
+            page: Playwright page object.
+            timeout_ms: Maximum time to wait for stability.
+            stable_ms: Milliseconds of no mutations to consider stable.
+        """
+        await page.evaluate(
+            """([timeoutMs, stableMs]) => new Promise((resolve) => {
+                const timeout = setTimeout(() => {
+                    if (observer) observer.disconnect();
+                    resolve('timeout');
+                }, timeoutMs);
+
+                let timer = null;
+                const observer = new MutationObserver(() => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        observer.disconnect();
+                        clearTimeout(timeout);
+                        resolve('stable');
+                    }, stableMs);
+                });
+
+                observer.observe(document.body || document.documentElement, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true,
+                });
+
+                // Start the stable timer immediately in case DOM is already stable
+                timer = setTimeout(() => {
+                    observer.disconnect();
+                    clearTimeout(timeout);
+                    resolve('already-stable');
+                }, stableMs);
+            })""",
+            [timeout_ms, stable_ms],
+        )
 
     async def close(self) -> None:
         if self._context:

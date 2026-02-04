@@ -2,9 +2,33 @@
 
 ## Current State
 
-### Version: 0.3.6
+### Version: 0.3.7
 
-### Just Completed: Configurable URL Bonus Patterns (DRY improvement to Backlog Item 3)
+### Just Completed: MutationObserver SPA Wait Strategy (Backlog Item 5)
+
+**What was done:**
+- Replaced `wait_until="networkidle"` with `wait_until="domcontentloaded"` in `PlaywrightFetcher.fetch()` — `networkidle` caused timeouts on SPA sites with analytics polling or WebSocket connections
+- Added `_wait_for_dom_stable()` method that injects a MutationObserver into the page via `page.evaluate()`, waiting until no DOM mutations occur for 500ms (configurable via `stable_ms` parameter)
+- 10s maximum timeout (`timeout_ms` parameter) prevents infinite waits on constantly-mutating DOMs
+- DOM stabilization resolves with `'stable'` (mutations stopped), `'timeout'` (max wait reached), or `'already-stable'` (no mutations detected within initial 500ms — typical for static HTML pages)
+- Wrapped in try/except so if JS evaluation fails, fetch still returns whatever content is available
+- `elapsed` timing now includes DOM stabilization wait, giving accurate `response_time_ms` values
+- HTTP error responses (403, 404, 429) return early without calling DOM stabilization (no point waiting for SPA rendering on error pages)
+- Works universally for all sites: static pages resolve near-instantly, SPA pages wait for rendering, broken pages fall back gracefully
+- 11 new async unit tests in `tests/unit/test_playwright_fetcher.py` covering all code paths
+- 651 tests pass
+
+**Files changed:**
+1. `src/crawler/fetchers/playwright_fetcher.py` - Changed `wait_until`, added `_wait_for_dom_stable()`, integrated DOM stabilization into `fetch()`
+2. `tests/unit/test_playwright_fetcher.py` - New file with 11 async tests in `TestDOMStabilization` class
+3. `CHANGELOG.md` - Documented feature
+4. `CONTINUITY.md` - This file
+5. `pyproject.toml` - Version bump 0.3.6 → 0.3.7
+6. `docs/Backlog_20260204.md` - Item 5: DONE
+
+**Backlog status:** Items 1-5 DONE. See `docs/Backlog_20260204.md` for remaining items (6-9).
+
+### Previously Completed: Configurable URL Bonus Patterns (DRY improvement to Backlog Item 3)
 
 **What was done:**
 - Moved URL bonus configuration from hardcoded Python constants to `config/keywords.yaml` `url_bonuses` section
@@ -25,7 +49,7 @@
 5. `CHANGELOG.md` - Documented feature
 6. `CONTINUITY.md` - This file
 
-**Backlog status:** Items 1-4 DONE. See `docs/Backlog_20260204.md` for remaining items (5-9).
+**Backlog status:** Items 1-5 DONE. See `docs/Backlog_20260204.md` for remaining items (6-9).
 
 ### Previously Completed: Per-Domain Config Overrides (Backlog Item 4)
 
