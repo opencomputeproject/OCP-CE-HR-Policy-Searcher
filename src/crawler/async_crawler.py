@@ -1,6 +1,7 @@
 """Main async crawler."""
 
 import asyncio
+import fnmatch
 import warnings
 from urllib.parse import urljoin, urlparse
 from typing import Optional
@@ -149,6 +150,10 @@ class AsyncCrawler:
         links = []
         base_domain = urlparse(domain["base_url"]).netloc
 
+        # Domain-level path pattern filtering (crawl-time budget protection)
+        allowed_patterns = domain.get("allowed_path_patterns", [])
+        blocked_patterns = domain.get("blocked_path_patterns", [])
+
         for a in soup.find_all("a", href=True):
             full_url = urljoin(base_url, a["href"])
             parsed = urlparse(full_url)
@@ -162,6 +167,16 @@ class AsyncCrawler:
             if any(path_lower.endswith(ext) for ext in self.skip_extensions):
                 # CGI scripts use .exe but return HTML content
                 if not (path_lower.endswith(".exe") and "/cgi-bin/" in path_lower):
+                    continue
+
+            # Blocked patterns: reject known-bad paths before checking allow list
+            if blocked_patterns:
+                if any(fnmatch.fnmatch(path_lower, p.lower()) for p in blocked_patterns):
+                    continue
+
+            # Allowed patterns: when set, only follow links matching at least one
+            if allowed_patterns:
+                if not any(fnmatch.fnmatch(path_lower, p.lower()) for p in allowed_patterns):
                     continue
 
             normalized = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"

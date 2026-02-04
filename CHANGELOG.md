@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
+- Crawl-time path pattern filtering: `allowed_path_patterns` and `blocked_path_patterns` in domain YAML configs are now enforced during link extraction, preventing the crawler from following irrelevant links that waste the page budget (e.g., `/developers/*`, `/login` on SPA sites)
 - Integrated 17 domain entries from DeepResearch session (20260203_0818) with enriched metadata across 11 YAML files: verified tags, policy types, categories, notes with specific regulatory details, `verified_by`/`verified_date` fields
 - 13 country-level and state-level geographic regions: `europe`, `germany`, `france`, `netherlands`, `denmark`, `sweden`, `norway`, `ireland`, `switzerland`, `singapore`, `japan`, `oregon`, `texas`, `california`
 - 10 new domain categories: `legislation`, `regulatory_authority`, `regulation`, `building_codes`, `guidance`, `policy`, `cantonal_authority`, `coordination_body`, `program`, `environment_ministry`

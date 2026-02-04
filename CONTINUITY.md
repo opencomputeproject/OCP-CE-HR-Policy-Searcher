@@ -2,9 +2,31 @@
 
 ## Current State
 
-### Version: 0.3.0
+### Version: 0.3.1
 
-### Just Completed: `report` CLI Command
+### Just Completed: Crawl-Time Path Pattern Filtering (Backlog Item 1)
+
+**What was done:**
+- Implemented `allowed_path_patterns` and `blocked_path_patterns` enforcement in `_extract_links()` in `async_crawler.py`
+- These fields were already documented in `_template.yaml` and present on 128 of 275 domains, but the crawler never read them
+- Uses `fnmatch` (glob-style) matching against lowercased URL paths
+- Blocked patterns checked first (reject known-bad before allow-list check)
+- Empty `allowed_path_patterns` = allow all (backward compatible)
+- Start paths bypass filtering (added directly to queue by `crawl_domain()`)
+- Added path patterns to Virginia domains: `va_legislature` and `us_va_hb323_2026`
+- 10 new unit tests covering all filtering scenarios
+- 592 tests pass
+
+**Files changed:**
+1. `src/crawler/async_crawler.py` - Added `fnmatch` import, path pattern filtering in `_extract_links()`
+2. `config/domains/us/virginia.yaml` - Added `allowed_path_patterns` and `blocked_path_patterns` to `va_legislature` and `us_va_hb323_2026`
+3. `tests/unit/test_link_extractor.py` - 10 new tests in `TestPathPatternFiltering` class
+4. `CHANGELOG.md` - Documented feature
+5. `CONTINUITY.md` - This file
+
+**Backlog status:** See `docs/Backlog_20260204.md` for remaining items (2-9).
+
+### Previously Completed: `report` CLI Command
 
 **What was done:**
 - Created `src/reporting/` module with `run_report.py` (~420 lines) for parsing run logs and generating formatted terminal reports
