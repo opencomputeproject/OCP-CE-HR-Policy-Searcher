@@ -2,9 +2,30 @@
 
 ## Current State
 
-### Version: 0.3.12
+### Version: 0.3.13
 
-### Just Completed: Paywalled Site Credential Support (Backlog Item 9)
+### Just Completed: README Documentation Overhaul
+
+**What was done:**
+- Added Features list entries for credential support, domain auto-generation, run reports, cost tracking
+- Added `add-domain`, `report`, and `help` commands to Usage section with examples
+- Added Site Credentials configuration section documenting all 4 auth types with YAML examples
+- Updated Configuration file tree to include `credentials.yaml.example`
+- Updated Project Structure tree to include `src/tools/`, `src/reporting/`, `src/crawler/auth.py`
+- Updated Test Structure: lists all 21 test files (774 total), removed per-class detail
+- Updated "Adding a New Domain" to show `add-domain` quick path before manual instructions
+- Updated "flagged for human review" section to mention credential support
+- Updated test description to reflect current scope (was "configuration loading and keyword matching")
+
+**Files changed:**
+1. `README.md` - 10 edits across Features, Usage, Configuration, Project Structure, Tests sections
+2. `CHANGELOG.md` - Documented README overhaul
+3. `CONTINUITY.md` - This file
+4. `pyproject.toml` - Version bump 0.3.12 → 0.3.13
+
+**Backlog status:** All items (1-9) DONE. Full backlog complete.
+
+### Previously Completed: Paywalled Site Credential Support (Backlog Item 9)
 
 **What was done:**
 - Four authentication types for accessing login-gated policy sites:

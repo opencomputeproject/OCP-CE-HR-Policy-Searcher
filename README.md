@@ -69,7 +69,7 @@ Some pages can't be fully processed automatically:
 - **Login required** — Member-only content
 - **JavaScript-heavy sites** — Some pages need a real browser (the tool will retry with one)
 
-These are logged and marked for manual review.
+These are logged and marked for manual review. For paywalled and login-required sites, you can configure credentials to authenticate automatically — see [Site Credentials](#site-credentials-configcredentialsyaml) below.
 
 ---
 
@@ -78,9 +78,13 @@ These are logged and marked for manual review.
 - **Smart crawling**: HTTP-first with Playwright fallback for JavaScript sites
 - **Multi-language support**: Detects policies in English, German, French, Dutch, Swedish, Danish
 - **Paywall/CAPTCHA detection**: Flags pages requiring human review
-- **Keyword scoring**: Weighted keyword matching with configurable thresholds
+- **Site credential support**: Authenticate with login-gated sites (form, basic auth, cookies, API keys)
+- **Keyword scoring**: Weighted keyword matching with URL bonuses and configurable thresholds
 - **LLM analysis**: Claude API for intelligent policy extraction and summarization
+- **Domain auto-generation**: Create domain configs from URLs with `add-domain` command
 - **Deduplication**: Avoids re-adding existing policies to Google Sheets
+- **Run reports**: Detailed per-domain breakdowns, pipeline funnels, and actionable suggestions
+- **Cost tracking**: Monitor Claude API costs with budgets, estimates, and history
 - **Comprehensive logging**: Human-readable logs + structured JSON for analysis
 
 ## Quick Start
@@ -159,6 +163,16 @@ python -m src.main [OPTIONS]
 - `--chunk-size N` - Auto-chunk: process N domains at a time (see Chunking below)
 - `--chunk N/M` - Manual chunk: run only chunk N of M total
 - `--chunk-delay SEC` - Seconds to pause between chunks (default: 30)
+
+**Utility Commands:**
+- `help` - Show formatted help menu with examples for all commands
+- `report` - Generate detailed run report with per-domain breakdown
+- `add-domain --url URL` - Auto-generate domain YAML from a URL
+- `list-groups` - Show available domain groups and regions
+- `list-runs` - Show available run logs
+- `last-run` - Show summary of most recent run
+- `cost-history` - Show Claude API cost history
+- `estimate-cost` - Estimate cost before running a scan
 
 **Keyword Tuning Options** (override config for this run):
 - `--min-keyword-score N` - Minimum keyword score to pass to LLM (default: from keywords.yaml)
@@ -731,6 +745,45 @@ These are useful for experimentation:
 - If a scan finds **zero policies**, try lowering `--min-keyword-score` or disabling `--require-combinations`
 - If a scan finds **too many false positives**, try raising `--min-keyword-score` or enabling stricter density checks
 
+### Adding Domains from URLs
+
+The `add-domain` command generates domain YAML configuration automatically from a URL. It fetches the page, detects the site name, language, and region, and outputs a ready-to-use YAML entry.
+
+```bash
+# Preview what would be generated (dry run)
+python -m src.main add-domain --url https://lis.virginia.gov --dry-run
+
+# Generate and write to auto-detected file
+python -m src.main add-domain --url https://energy.gov/programs
+
+# Write to a specific file
+python -m src.main add-domain --url https://example.gov --file germany.yaml
+
+# Multiple URLs on the same site (merged into one entry)
+python -m src.main add-domain --url https://example.gov/page1 --url https://example.gov/page2
+
+# Override auto-detected name and ID
+python -m src.main add-domain --url https://example.gov --name "Custom Name" --id my_domain_id
+```
+
+The generated YAML includes all standard fields (`name`, `id`, `region`, `base_url`, `start_paths`, `language`, `max_depth`, etc.) and matches the formatting style of hand-written domain files.
+
+### Run Reports
+
+Generate a detailed report from any completed scan:
+
+```bash
+# Report for most recent run
+python -m src.main report
+
+# Report for a specific run
+python -m src.main report --log 2              # 2nd most recent
+python -m src.main report --log 20260203       # Run from date
+python -m src.main report --log run_20260203_164401  # Specific run ID
+```
+
+Reports include a result summary, visual pipeline funnel, per-domain breakdown with blocked/error details, filter analysis, and actionable suggestions for improving scan results.
+
 ### Cost Monitoring
 
 The tool tracks Claude API costs across all runs, helping you monitor usage and stay within budget.
@@ -1013,12 +1066,13 @@ This could indicate:
 
 ```
 config/
-├── settings.yaml          # Runtime settings (crawl speed, thresholds)
-├── keywords.yaml          # Search terms in 8 languages
-├── groups.yaml            # Domain groups (you can edit this!)
-├── notifications.yaml     # Email & alert configuration
-├── url_filters.yaml       # URL pre-filtering & crawl-time blocked patterns
-├── domains/               # Domain definitions (supports subdirectories)
+├── settings.yaml              # Runtime settings (crawl speed, thresholds)
+├── keywords.yaml              # Search terms in 8 languages
+├── groups.yaml                # Domain groups (you can edit this!)
+├── notifications.yaml         # Email & alert configuration
+├── url_filters.yaml           # URL pre-filtering & crawl-time blocked patterns
+├── credentials.yaml.example   # Template for site authentication (copy to credentials.yaml)
+├── domains/                   # Domain definitions (supports subdirectories)
 │   ├── _template.yaml     # Template for adding new domains
 │   ├── eu.yaml            # European Union
 │   ├── nordic.yaml        # Nordic countries
@@ -1216,6 +1270,54 @@ analysis:
   llm_model: "claude-sonnet-4-20250514"
 ```
 
+### Site Credentials (`config/credentials.yaml`)
+
+If you need to crawl sites behind logins, paywalls, or API keys, configure credentials in `config/credentials.yaml`. This file is gitignored — only the example template ships with the repo.
+
+**Setup:**
+```bash
+# Copy the example template
+cp config/credentials.yaml.example config/credentials.yaml
+
+# Edit with your credentials
+```
+
+**Four authentication types are supported:**
+
+```yaml
+credentials:
+  # Form login (Playwright fills and submits a login form)
+  - domain: "example.com"
+    auth_type: "form"
+    login_url: "https://example.com/login"
+    username: "your_username"
+    password: "your_password"
+    username_field: "#username"        # CSS selector
+    password_field: "#password"        # CSS selector
+    submit_button: "button[type=submit]"
+
+  # HTTP Basic Auth
+  - domain: "internal.example.com"
+    auth_type: "basic"
+    username: "user"
+    password: "pass"
+
+  # Cookie injection
+  - domain: "portal.example.com"
+    auth_type: "cookie"
+    cookies:
+      - name: "session_id"
+        value: "abc123"
+
+  # Custom headers (e.g., API keys)
+  - domain: "api.example.com"
+    auth_type: "header"
+    headers:
+      X-API-Key: "your_api_key"
+```
+
+Credentials are applied automatically during crawling — form logins use Playwright, while basic auth, cookies, and custom headers work with both HTTP and Playwright fetchers. Passwords are stored securely using Pydantic's `SecretStr` and are never logged.
+
 ## Environment Variables
 
 Create `.env` file (see `config/example.env`):
@@ -1259,22 +1361,26 @@ Runs on every push/PR:
 ```
 OCP-Heat-Reuse-Policy-Searcher/
 ├── src/
-│   ├── config/          # Configuration loading
+│   ├── config/          # Configuration loading (settings, credentials, domains)
 │   ├── models/          # Data models (Policy, CrawlResult)
 │   ├── crawler/         # Web crawling
 │   │   ├── fetchers/    # HTTP & Playwright
 │   │   ├── extractors/  # HTML extraction
-│   │   └── detection/   # Paywall/CAPTCHA detection
+│   │   ├── detection/   # Paywall/CAPTCHA detection
+│   │   └── auth.py      # Site authentication (4 auth types)
 │   ├── analysis/        # Keyword matching & LLM
 │   ├── output/          # Google Sheets integration
+│   ├── reporting/       # Run report generation
+│   ├── tools/           # Domain auto-generation utilities
 │   ├── logging/         # Run logging
-│   └── main.py          # Entry point
+│   └── main.py          # Entry point & CLI commands
 ├── config/
 │   ├── domains/         # Domain files by region (supports subdirectories)
 │   ├── rejected_sites/  # Rejected sites (supports subdirectories)
 │   ├── groups.yaml      # Domain groups (user-editable)
 │   ├── settings.yaml    # Runtime configuration
-│   └── keywords.yaml    # Search terms
+│   ├── keywords.yaml    # Search terms
+│   └── credentials.yaml.example  # Site credential template
 ├── tests/               # Unit & integration tests
 ├── logs/                # Run logs
 └── snapshots/           # Page snapshots
@@ -1310,7 +1416,7 @@ Each run produces:
 
 ### Running Tests
 
-The project includes comprehensive unit tests covering configuration loading and keyword matching.
+The project includes 774 unit tests covering all modules.
 
 ```bash
 # Run all tests
@@ -1331,97 +1437,34 @@ pytest tests/unit/test_config_loader.py::TestGetEnabledDomains -v
 
 ### Test Structure
 
+The project has 774 unit tests across 21 test files:
+
 ```
 tests/
 ├── unit/
-│   ├── test_alerts.py           # 38 tests - Error alerting
-│   ├── test_chunking.py         # 31 tests - Domain chunking
-│   ├── test_config_loader.py    # 20 tests - Configuration loading
-│   ├── test_costs.py            # 26 tests - Cost tracking
-│   ├── test_domain_filtering.py # 46 tests - Category/tag filtering
-│   ├── test_keywords.py         # 16 tests - Keyword matching
-│   ├── test_last_run.py         # 46 tests - Last run summary/config/costs
-│   ├── test_notifications.py    # 24 tests - Email notifications
-│   └── test_url_cache.py        # 29 tests - URL result caching
-└── integration/                  # (future integration tests)
+│   ├── test_alerts.py             # Error alerting
+│   ├── test_auth.py               # Site authentication (Authenticator)
+│   ├── test_chunking.py           # Domain chunking
+│   ├── test_config_loader.py      # Configuration loading
+│   ├── test_content_extraction.py # HTML content extraction
+│   ├── test_costs.py              # Cost tracking
+│   ├── test_credentials.py        # Credential models & loading
+│   ├── test_denial_diagnosis.py   # Access denied diagnosis
+│   ├── test_domain_filtering.py   # Category/tag filtering
+│   ├── test_domain_generator.py   # add-domain YAML generation
+│   ├── test_help_command.py       # help command smoke tests
+│   ├── test_keywords.py           # Keyword matching & URL bonuses
+│   ├── test_last_run.py           # Last run summary/config/costs
+│   ├── test_link_extractor.py     # Link extraction & path filtering
+│   ├── test_llm_client.py         # LLM client
+│   ├── test_notifications.py      # Email notifications
+│   ├── test_playwright_fetcher.py # Playwright DOM stabilization
+│   ├── test_rejected_sites.py     # Rejected site management
+│   ├── test_run_report.py         # Run report generation
+│   ├── test_url_cache.py          # URL result caching
+│   └── test_url_filter.py         # URL pre-filtering
+└── integration/                   # (future integration tests)
 ```
-
-### Test Coverage
-
-**Chunking Tests** (`test_chunking.py`):
-- `TestParseChunkSpec` — Parsing "N/M" format, error handling
-- `TestSplitIntoChunks` — Even/uneven splits, edge cases
-- `TestGetChunkBySpec` — Domain distribution, order preservation
-- `TestCalculateChunks` — Auto vs manual chunking logic
-- `TestChunkInfo` — Dataclass properties and formatting
-
-**Configuration Loader Tests** (`test_config_loader.py`):
-- `TestLoadYaml` — Loading YAML files, handling missing/empty files
-- `TestLoadDomainsDirectory` — Merging multiple domain files, skipping templates
-- `TestGetEnabledDomains` — Filtering by group, handling disabled domains
-- `TestListGroups` — Group listing with descriptions
-- `TestListDomains` — Domain listing with enabled status
-- `TestLoadSettingsIntegration` — Full integration with actual config files
-
-**Keyword Matcher Tests** (`test_keywords.py`):
-- `TestKeywordMatcher` — Pattern compilation, single/multiple matches, case insensitivity
-- `TestKeywordMatchResult` — Result dataclass behavior
-- `TestIsRelevant` — Threshold checking for score and match count
-- `TestIntegrationWithActualConfig` — Integration with real keywords.yaml
-
-**Cost Tracking Tests** (`test_costs.py`):
-- `TestModelPricing` — Pricing constants for different Claude models
-- `TestCostBreakdown` — Cost calculation, formatting, unknown model fallback
-- `TestCostHistory` — Run aggregation, date filtering, summary generation
-- `TestCostTracker` — Persistence, budget warnings, file loading
-- `TestEstimateRunCost` — Cost estimation with different parameters
-- `TestIntegration` — Full workflow with multiple runs
-
-**Alert Tests** (`test_alerts.py`):
-- `TestAlertType` — Alert type enumeration and all expected types
-- `TestAlertSeverity` — Severity levels from INFO to CRITICAL
-- `TestAlert` — Alert creation, JSON serialization/deserialization
-- `TestAlertThresholds` — Threshold configuration and custom values
-- `TestRunHealthMetrics` — Health tracking, success/error recording, error rates
-- `TestAlertManager` — Error rate checks, budget checks, cost spikes, stuck processes
-- `TestAlertManagerCustomThresholds` — Custom threshold configuration
-- `TestAlertPersistence` — Alert loading/saving to files
-
-**Notification Tests** (`test_notifications.py`):
-- `TestNotificationType` — Notification type enumeration
-- `TestNotificationPriority` — Priority level comparison
-- `TestNotificationConfig` — Configuration loading, defaults, validation
-- `TestNotification` — Notification creation and formatting
-- `TestEmailNotifier` — SMTP connection, email formatting, TLS support
-- `TestNotificationManager` — Priority filtering, notification dispatch
-
-**Domain Filtering Tests** (`test_domain_filtering.py`):
-- `TestValidConstants` — Valid categories, tags, and policy types
-- `TestFilterDomainsByCategory` — Category filtering, disabled domain exclusion
-- `TestFilterDomainsByTag` — Tag filtering with single and multiple tags
-- `TestFilterDomainsByPolicyType` — Policy type filtering
-- `TestFilterDomains` — Combined filtering with category + tags + policy types
-- `TestListFunctions` — list_categories, list_tags, list_policy_types
-- `TestGetDomainStats` — Statistics generation by category/tag/policy type
-- `TestIntegrationWithActualConfig` — Integration with actual config files
-
-**Last Run Tests** (`test_last_run.py`):
-- `TestGetLastRunLog` — Finding most recent log file, handling edge cases
-- `TestLoadRunLog` — Loading and parsing run log JSON files
-- `TestFormatLastRunSummary` — Summary formatting with stats and LLM costs
-- `TestFormatLastRunConfig` — Configuration formatting with all settings
-- `TestRunConfigDataclass` — RunConfig defaults and format_verbose method
-- `TestIntegration` — Full workflow of saving and loading run data
-- `TestFindRunLog` — Finding logs by index, date, or run ID pattern
-- `TestListRunLogs` — Listing available runs with summary info
-
-**URL Cache Tests** (`test_url_cache.py`):
-- `TestCacheEntry` — Expiry checks, content hash matching
-- `TestCacheStats` — Hit rate calculation, session reset
-- `TestURLCache` — Set/get/remove operations, expired entry handling
-- `TestComputeContentHash` — Content hashing and truncation
-- `TestLoadSaveCache` — Cache persistence and error handling
-- `TestCacheIntegration` — Typical usage workflows
 
 ### Running Tests Before Commits
 
@@ -1437,6 +1480,14 @@ ruff check src/ && pytest -v
 
 ### Adding a New Domain
 
+**Quick way** — auto-generate from a URL:
+```bash
+python -m src.main add-domain --url https://example.gov/energy --dry-run
+```
+
+This fetches the page, detects the site name/language/region, and generates a complete YAML entry. See [Adding Domains from URLs](#adding-domains-from-urls) for details.
+
+**Manual way:**
 1. Open the appropriate regional file in `config/domains/` (e.g., `config/domains/us/texas.yaml`)
 2. Copy the template from `config/domains/_template.yaml`
 3. Fill in the domain details
