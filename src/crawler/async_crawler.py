@@ -24,6 +24,10 @@ from .detection.js_required import detect_js_required
 
 _DEFAULT_SKIP_EXTENSIONS = [".pdf", ".doc", ".docx", ".zip", ".jpg", ".png"]
 
+# Navigation tags to remove before link extraction.
+# These contain global nav links that cause crawl explosion on SPAs.
+_NAV_TAGS_FOR_LINK_EXTRACTION = ["nav", "header", "footer"]
+
 
 class AsyncCrawler:
     def __init__(
@@ -149,6 +153,15 @@ class AsyncCrawler:
 
     def _extract_links(self, html: str, base_url: str, domain: dict) -> list[str]:
         soup = BeautifulSoup(html, "lxml")
+
+        # Strip navigation elements before extracting links.
+        # This prevents following global nav bar links that cause crawl explosion.
+        for tag_name in _NAV_TAGS_FOR_LINK_EXTRACTION:
+            for el in soup.find_all(tag_name):
+                el.decompose()
+        for el in soup.find_all(attrs={"role": "navigation"}):
+            el.decompose()
+
         links = []
         base_domain = urlparse(domain["base_url"]).netloc
 

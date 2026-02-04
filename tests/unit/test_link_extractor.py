@@ -420,3 +420,102 @@ class TestGlobalBlockedPatterns:
         """Crawler without crawl_blocked_patterns defaults to empty list."""
         crawler = _make_crawler()
         assert crawler.crawl_blocked_patterns == []
+
+
+class TestContentAreaLinkExtraction:
+    """Test that nav/header/footer links are excluded from extraction."""
+
+    def test_nav_links_excluded(self):
+        """Links inside <nav> are not extracted."""
+        html = """<html><body>
+            <nav><a href="/developers">Developers</a><a href="/login">Login</a></nav>
+            <main><a href="/bill-details/123">HB323</a></main>
+        </body></html>"""
+        crawler = _make_crawler()
+        domain = {"base_url": "https://lis.virginia.gov"}
+        links = crawler._extract_links(html, "https://lis.virginia.gov/", domain)
+        assert len(links) == 1
+        assert "/bill-details/123" in links[0]
+
+    def test_header_links_excluded(self):
+        """Links inside <header> are not extracted."""
+        html = """<html><body>
+            <header>
+                <a href="/home">Home</a>
+                <a href="/about">About</a>
+            </header>
+            <article><a href="/policy/energy">Energy Policy</a></article>
+        </body></html>"""
+        crawler = _make_crawler()
+        domain = {"base_url": "https://example.gov"}
+        links = crawler._extract_links(html, "https://example.gov/", domain)
+        assert len(links) == 1
+        assert "/policy/energy" in links[0]
+
+    def test_footer_links_excluded(self):
+        """Links inside <footer> are not extracted."""
+        html = """<html><body>
+            <main><a href="/legislation/hb323">HB323</a></main>
+            <footer>
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/contact">Contact</a>
+            </footer>
+        </body></html>"""
+        crawler = _make_crawler()
+        domain = {"base_url": "https://example.gov"}
+        links = crawler._extract_links(html, "https://example.gov/", domain)
+        assert len(links) == 1
+        assert "/legislation/hb323" in links[0]
+
+    def test_role_navigation_excluded(self):
+        """Links inside role='navigation' elements are excluded."""
+        html = """<html><body>
+            <div role="navigation">
+                <a href="/session-details/20261">Sessions</a>
+                <a href="/members">Members</a>
+            </div>
+            <section><a href="/bill-text/20261/HB323">Bill Text</a></section>
+        </body></html>"""
+        crawler = _make_crawler()
+        domain = {"base_url": "https://lis.virginia.gov"}
+        links = crawler._extract_links(html, "https://lis.virginia.gov/", domain)
+        assert len(links) == 1
+        assert "/bill-text/20261/HB323" in links[0]
+
+    def test_main_content_links_preserved(self):
+        """Links inside <main>, <article>, <section> are preserved."""
+        html = """<html><body>
+            <nav><a href="/nav-link">Nav</a></nav>
+            <main><a href="/main-link">Main</a></main>
+            <article><a href="/article-link">Article</a></article>
+            <section><a href="/section-link">Section</a></section>
+            <footer><a href="/footer-link">Footer</a></footer>
+        </body></html>"""
+        crawler = _make_crawler()
+        domain = {"base_url": "https://example.gov"}
+        links = crawler._extract_links(html, "https://example.gov/", domain)
+        paths = [l.split("example.gov")[1] for l in links]
+        assert "/main-link" in paths
+        assert "/article-link" in paths
+        assert "/section-link" in paths
+        assert "/nav-link" not in paths
+        assert "/footer-link" not in paths
+
+    def test_aside_links_preserved(self):
+        """Links inside <aside> are NOT stripped (may contain related bill links)."""
+        html = """<html><body>
+            <main><a href="/bill/123">Main Bill</a></main>
+            <aside>
+                <a href="/bill/456">Related Bill</a>
+                <a href="/bill/789">Another Bill</a>
+            </aside>
+        </body></html>"""
+        crawler = _make_crawler()
+        domain = {"base_url": "https://example.gov"}
+        links = crawler._extract_links(html, "https://example.gov/", domain)
+        assert len(links) == 3
+        paths = [l.split("example.gov")[1] for l in links]
+        assert "/bill/123" in paths
+        assert "/bill/456" in paths
+        assert "/bill/789" in paths

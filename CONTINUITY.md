@@ -2,9 +2,28 @@
 
 ## Current State
 
-### Version: 0.3.2
+### Version: 0.3.3
 
-### Just Completed: Global Crawl-Time Blocked Patterns (DRY improvement to Backlog Item 1)
+### Just Completed: Content-Area Link Extraction (Backlog Item 2)
+
+**What was done:**
+- Modified `_extract_links()` in `async_crawler.py` to strip `<nav>`, `<header>`, `<footer>` tags and `role="navigation"` elements before extracting links
+- This prevents global navigation menus (common on SPAs) from adding dozens of irrelevant links to the crawl queue
+- Added `_NAV_TAGS_FOR_LINK_EXTRACTION` module-level constant
+- Only structural nav tags are removed -- `<aside>`, `<section>`, `<article>`, `<main>` are preserved (sidebars may contain related bill links)
+- Operates on BeautifulSoup's parsed tree (a copy), so it doesn't affect content extraction which uses `result.content`
+- 6 new unit tests in `TestContentAreaLinkExtraction` class
+- 603 tests pass
+
+**Files changed:**
+1. `src/crawler/async_crawler.py` - Added nav stripping in `_extract_links()`, `_NAV_TAGS_FOR_LINK_EXTRACTION` constant
+2. `tests/unit/test_link_extractor.py` - 6 new tests in `TestContentAreaLinkExtraction`
+3. `CHANGELOG.md` - Documented feature
+4. `CONTINUITY.md` - This file
+
+**Backlog status:** Items 1-2 DONE. See `docs/Backlog_20260204.md` for remaining items (3-9).
+
+### Previously Completed: Global Crawl-Time Blocked Patterns (DRY improvement to Backlog Item 1)
 
 **What was done:**
 - Added `crawl_blocked_patterns` section to `config/url_filters.yaml` with ~30 common junk path patterns (auth flows, developer docs, admin areas, search/feeds, social/sharing, careers, media galleries)
