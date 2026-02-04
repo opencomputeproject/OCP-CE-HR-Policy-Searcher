@@ -1,6 +1,6 @@
 [project]
 name = "ocp-heat-reuse-policy-searcher"
-version = "0.3.9"
+version = "0.3.10"
 description = "Automated discovery of global data center heat reuse policies"
 readme = "README.md"
 license = {text = "MIT"}

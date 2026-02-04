@@ -230,6 +230,30 @@ Examples:
 
     subparsers.add_parser("help", help="Show detailed help with examples")
 
+    add_domain_parser = subparsers.add_parser(
+        "add-domain",
+        help="Generate domain YAML from URL(s)",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python -m src.main add-domain --url https://lis.virginia.gov --dry-run
+  python -m src.main add-domain --url https://energy.gov/programs --dry-run
+  python -m src.main add-domain --url URL1 --url URL2 --file germany.yaml
+"""
+    )
+    add_domain_parser.add_argument(
+        "--url", action="append", required=True,
+        help="URL(s) to generate domain config from (can use multiple times)"
+    )
+    add_domain_parser.add_argument(
+        "--file", default=None,
+        help="Target YAML file under config/domains/ (default: auto-detect from URL)"
+    )
+    add_domain_parser.add_argument(
+        "--dry-run", action="store_true",
+        help="Print generated YAML without writing to file"
+    )
+
     # Main scan arguments (default command)
     parser.add_argument("--config", default="config/settings.yaml")
     parser.add_argument("--domains", default="all", help="Domain group, region, file name, or domain ID to scan (use 'list-groups' to see options)")
@@ -941,6 +965,105 @@ def cmd_list_runs(args) -> int:
     return 0
 
 
+async def cmd_add_domain(args) -> int:
+    """Generate domain YAML from URL(s)."""
+    from pathlib import Path
+    from .tools.domain_generator import (
+        generate_domain_id, detect_region, suggest_output_file,
+        build_domain_entry, format_domain_yaml,
+    )
+    from .crawler.fetchers.http_fetcher import HttpFetcher
+    from .crawler.extractors.html_extractor import HtmlExtractor, load_extraction_config
+
+    settings, _, _ = load_settings()
+    http_fetcher = HttpFetcher(settings.crawl)
+    await http_fetcher.initialize()
+    extractor = HtmlExtractor(load_extraction_config())
+
+    try:
+        for url in args.url:
+            parsed = urlparse(url)
+            hostname = parsed.netloc
+            path = parsed.path or "/"
+
+            # Fetch the page
+            result = await http_fetcher.fetch(url)
+            needs_playwright = False
+            title = hostname
+            language = "en"
+
+            if result.is_success:
+                extracted = extractor.extract(result.content, url)
+                title = extracted.title or hostname
+                language = extracted.language or "en"
+                try:
+                    from .crawler.detection.js_required import detect_js_required
+                    needs_js, _ = detect_js_required(result.content, extracted.text)
+                    if needs_js:
+                        needs_playwright = True
+                except Exception:
+                    pass
+            else:
+                # HTTP failed — likely needs Playwright
+                needs_playwright = True
+                try:
+                    from .crawler.fetchers.playwright_fetcher import PlaywrightFetcher
+                    pw = PlaywrightFetcher(settings.crawl)
+                    await pw.initialize()
+                    pw_result = await pw.fetch(url)
+                    await pw.close()
+                    if pw_result.is_success:
+                        extracted = extractor.extract(pw_result.content, url)
+                        title = extracted.title or hostname
+                        language = extracted.language or "en"
+                except Exception as e:
+                    print(f"Warning: Could not fetch {url}: {e}")
+
+            domain_id = generate_domain_id(hostname)
+            region = detect_region(hostname)
+            suggested_file = suggest_output_file(hostname)
+
+            entry = build_domain_entry(
+                name=title,
+                domain_id=domain_id,
+                base_url=f"{parsed.scheme}://{hostname}",
+                start_paths=[path],
+                language=language,
+                requires_playwright=needs_playwright,
+                region=region,
+            )
+
+            yaml_output = format_domain_yaml(entry, standalone=True)
+
+            if getattr(args, "dry_run", False):
+                print(f"\n# Generated for: {url}")
+                print(f"# Suggested file: config/domains/{suggested_file}")
+                print(yaml_output)
+            else:
+                target = args.file or suggested_file
+                target_path = Path(f"config/domains/{target}")
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+
+                if target_path.exists():
+                    # Append the entry to existing file
+                    append_yaml = format_domain_yaml(entry, standalone=False)
+                    with open(target_path, "a", encoding="utf-8") as f:
+                        f.write(f"\n  # Auto-generated from {url}\n")
+                        # Indent list item to align under domains: key
+                        for line in append_yaml.splitlines():
+                            f.write(f"  {line}\n")
+                else:
+                    with open(target_path, "w", encoding="utf-8") as f:
+                        f.write(yaml_output)
+
+                print(f"Added domain '{domain_id}' to {target_path}")
+
+    finally:
+        await http_fetcher.close()
+
+    return 0
+
+
 def cmd_help(args) -> int:
     """Show formatted help menu with examples for all commands."""
     print("""
@@ -990,6 +1113,12 @@ def cmd_help(args) -> int:
   python -m src.main list-categories           List available categories
   python -m src.main list-tags                 List available tags
   python -m src.main list-policy-types         List policy types
+
+  DOMAIN GENERATION
+  -----------------
+  python -m src.main add-domain --url URL --dry-run  Generate domain YAML
+  python -m src.main add-domain --url URL            Write to auto-detected file
+  python -m src.main add-domain --url URL --file us/virginia.yaml
 
   SITE MANAGEMENT
   ---------------
@@ -1939,6 +2068,9 @@ def main():
         sys.exit(cmd_report(args))
     elif args.command == "help":
         sys.exit(cmd_help(args))
+    elif args.command == "add-domain":
+        code = asyncio.run(cmd_add_domain(args))
+        sys.exit(code)
     else:
         # Default: run scan
         code = asyncio.run(run(args))

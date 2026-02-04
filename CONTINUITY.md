@@ -2,9 +2,42 @@
 
 ## Current State
 
-### Version: 0.3.9
+### Version: 0.3.10
 
-### Just Completed: Pretty Help Command (Backlog Item 7)
+### Just Completed: Auto-Generate Domain YAML from URL(s) (Backlog Item 8)
+
+**What was done:**
+- Created `src/tools/domain_generator.py` with pure functions (no I/O, fully testable):
+  - `generate_domain_id(hostname)` — generates domain IDs from hostname (US state `.gov` → `{abbrev}_{agency}`, federal `.gov` → `us_{name}`, `.gov.uk` → `uk_{name}`, international TLDs, generic hostnames). Truncates to 30 chars
+  - `detect_region(hostname)` — detects geographic region(s) from TLD using `TLD_REGION_MAP` (12 international government TLDs). Longest-suffix-first matching (`.gov.uk` before `.gov`)
+  - `suggest_output_file(hostname)` — suggests target `config/domains/` file based on TLD (US state → `us/{state}.yaml`, federal → `us/us_federal.yaml`, international → matched file)
+  - `build_domain_entry(...)` — builds complete domain entry dict with sensible defaults
+  - `format_domain_yaml(entry, standalone=True)` — formats as YAML, optionally wrapped in `domains:` key
+  - `US_STATE_ABBREVS` — all 50 states + DC
+  - `TLD_REGION_MAP` — 12 international government TLDs with regions and suggested files
+- Added `add-domain` subcommand to `src/main.py`:
+  - `--url` (multiple), `--file`, `--dry-run` arguments
+  - Handler fetches URL (HTTP first, Playwright fallback), extracts title/language, detects JS requirements, generates domain YAML
+  - Dry-run prints YAML with suggested file comment; otherwise appends/creates file
+- Updated `cmd_help()` with DOMAIN GENERATION section
+- 45 new unit tests in `tests/unit/test_domain_generator.py` (5 test classes: TestGenerateDomainId, TestDetectRegion, TestSuggestOutputFile, TestBuildDomainEntry, TestFormatDomainYaml)
+- Fixed TLD matching for bare hostnames (`gov.uk`, `riksdagen.se`, `retsinformation.dk`) — `_match_tld()` now checks both `endswith` and exact match
+- Fixed `.gov.uk` ID generation for bare `gov.uk` hostname
+- 698 tests pass
+
+**Files changed:**
+1. `src/tools/__init__.py` - New empty package
+2. `src/tools/domain_generator.py` - New file with pure generation functions (~235 lines)
+3. `src/main.py` - Added `add-domain` subparser, `cmd_add_domain()` async handler, dispatch entry, updated `cmd_help()`
+4. `tests/unit/test_domain_generator.py` - New file with 45 tests
+5. `CHANGELOG.md` - Documented feature
+6. `CONTINUITY.md` - This file
+7. `pyproject.toml` - Version bump 0.3.9 → 0.3.10
+8. `docs/Backlog_20260204.md` - Item 8: DONE
+
+**Backlog status:** Items 1-8 DONE. See `docs/Backlog_20260204.md` for remaining item (9).
+
+### Previously Completed: Pretty Help Command (Backlog Item 7)
 
 **What was done:**
 - Added `help` subcommand to `src/main.py` that prints a formatted, visually organized help menu
