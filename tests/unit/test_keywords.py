@@ -866,3 +866,121 @@ class TestGetFailureReason(TestStricterConfig):
         result = matcher.match(text)
         reason = matcher.get_failure_reason(result, len(text))
         assert reason == ""
+
+
+class TestURLBonus:
+    """Test URL-based scoring bonuses."""
+
+    @pytest.fixture
+    def matcher(self):
+        """Matcher with basic config for URL bonus tests."""
+        return KeywordMatcher({
+            "keywords": {
+                "subject": {
+                    "weight": 2.0,
+                    "terms": {"en": ["waste heat", "heat reuse"]},
+                },
+                "context": {
+                    "weight": 1.0,
+                    "terms": {"en": ["data center", "energy"]},
+                },
+            },
+            "thresholds": {
+                "minimum_keyword_score": 5.0,
+                "minimum_matches": 2,
+            },
+        })
+
+    def test_gov_tld_bonus(self, matcher):
+        """URLs on .gov domains get a bonus."""
+        bonus = matcher.url_bonus("https://lis.virginia.gov/bill-details/123")
+        assert bonus >= 1.0
+
+    def test_gov_uk_tld_bonus(self, matcher):
+        """URLs on .gov.uk domains get a bonus."""
+        bonus = matcher.url_bonus("https://www.legislation.gov.uk/acts/2023")
+        assert bonus >= 1.0
+
+    def test_bill_path_bonus(self, matcher):
+        """URLs with bill-related paths get a bonus."""
+        bonus = matcher.url_bonus("https://example.com/bills/HB323")
+        assert bonus >= 1.5
+
+    def test_legislation_path_bonus(self, matcher):
+        """URLs with /legislation/ path get a bonus."""
+        bonus = matcher.url_bonus("https://example.com/legislation/2026")
+        assert bonus >= 1.5
+
+    def test_bill_number_bonus(self, matcher):
+        """URLs with bill numbers (HB323, SB192) get a bonus."""
+        bonus = matcher.url_bonus("https://example.com/detail?bill=HB323")
+        assert bonus >= 1.0
+
+    def test_sb_bill_number_bonus(self, matcher):
+        """Senate bill numbers also get a bonus."""
+        bonus = matcher.url_bonus("https://example.com/detail?val=SB192")
+        assert bonus >= 1.0
+
+    def test_no_bonus_for_generic_url(self, matcher):
+        """Generic URLs without .gov or bill patterns get no bonus."""
+        bonus = matcher.url_bonus("https://example.com/about")
+        assert bonus == 0.0
+
+    def test_combined_bonuses_stack(self, matcher):
+        """All three bonuses stack: .gov + bill path + bill number."""
+        bonus = matcher.url_bonus("https://lis.virginia.gov/bill-details/20261/HB323")
+        assert bonus >= 3.0  # .gov (1.0) + /bill-/ (1.5) + HB323 (1.0) = 3.5
+
+    def test_virginia_cgi_path_bonus(self, matcher):
+        """Virginia CGI script paths get bill path bonus."""
+        bonus = matcher.url_bonus("https://lis.virginia.gov/cgi-bin/legp604.exe?val=hb116")
+        assert bonus >= 2.5  # .gov (1.0) + legp*.exe (1.5)
+
+    def test_url_bonus_applied_in_is_relevant(self, matcher):
+        """URL bonus is included in is_relevant() score check."""
+        # Text with a score around 4.0 (below threshold of 5.0)
+        text = "This data center uses waste heat for energy efficiency."
+        result = matcher.match(text)
+        # Without URL bonus: should fail
+        assert not matcher.is_relevant(result, len(text))
+        # With .gov + bill path bonus: should pass
+        assert matcher.is_relevant(
+            result, len(text),
+            url="https://lis.virginia.gov/bill-details/20261/HB323",
+        )
+
+    def test_url_bonus_in_failure_reason(self, matcher):
+        """Failure reason includes url_bonus when URL is provided."""
+        text = "minimal content"
+        result = matcher.match(text)
+        reason = matcher.get_failure_reason(
+            result, len(text),
+            url="https://lis.virginia.gov/page",
+        )
+        assert "url_bonus=+1.0" in reason
+
+    def test_url_bonus_in_filter_stats(self, matcher):
+        """get_filter_stats includes url_bonus and effective_score."""
+        text = "waste heat data center"
+        result = matcher.match(text)
+        stats = matcher.get_filter_stats(result, len(text),
+                                         url="https://example.gov/bills/123")
+        assert "url_bonus" in stats
+        assert stats["url_bonus"] >= 2.5  # .gov + /bills/
+        assert "effective_score" in stats
+        assert stats["effective_score"] == stats["final_score"] + stats["url_bonus"]
+
+    def test_empty_url_no_bonus(self, matcher):
+        """Empty URL string gives no bonus."""
+        assert matcher.url_bonus("") == 0.0
+
+    def test_is_relevant_no_url_backward_compatible(self, matcher):
+        """is_relevant without url param still works (backward compat)."""
+        text = (
+            "This data center uses waste heat recovery and heat reuse "
+            "for energy efficiency regulation requirements."
+        ) * 3
+        result = matcher.match(text)
+        # Should work without url parameter
+        relevant = matcher.is_relevant(result, len(text))
+        assert isinstance(relevant, bool)

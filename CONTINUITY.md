@@ -2,9 +2,31 @@
 
 ## Current State
 
-### Version: 0.3.3
+### Version: 0.3.4
 
-### Just Completed: Content-Area Link Extraction (Backlog Item 2)
+### Just Completed: Multi-Signal Scoring with URL Bonuses (Backlog Item 3)
+
+**What was done:**
+- Added `url_bonus()` method to `KeywordMatcher` in `keywords.py` that calculates bonus score from URL patterns
+- Bonus rules: `.gov`/`.gov.uk` TLD (+1.0), bill/legislation paths (+1.5), bill numbers in URL (+1.0)
+- Modified `is_relevant()`, `get_failure_reason()`, and `get_filter_stats()` to accept optional `url` parameter
+- Updated `main.py` to pass `url=result.url` to keyword checks
+- Updated near-miss detection to use effective score (including URL bonus)
+- Failure reason now shows URL bonus when applicable: "Below min score (5.0) (url_bonus=+1.0)"
+- `get_filter_stats()` now includes `url_bonus` and `effective_score` fields
+- 14 new unit tests in `TestURLBonus` class covering all bonus types, stacking, integration with is_relevant/get_failure_reason/get_filter_stats, backward compatibility
+- 617 tests pass
+
+**Files changed:**
+1. `src/analysis/keywords.py` - Added URL bonus constants, `url_bonus()` method, updated `is_relevant()`, `get_failure_reason()`, `get_filter_stats()` with `url` param
+2. `src/main.py` - Pass `url=result.url` to keyword checks, use effective score for near-miss detection
+3. `tests/unit/test_keywords.py` - 14 new tests in `TestURLBonus`
+4. `CHANGELOG.md` - Documented feature
+5. `CONTINUITY.md` - This file
+
+**Backlog status:** Items 1-3 DONE. See `docs/Backlog_20260204.md` for remaining items (4-9).
+
+### Previously Completed: Content-Area Link Extraction (Backlog Item 2)
 
 **What was done:**
 - Modified `_extract_links()` in `async_crawler.py` to strip `<nav>`, `<header>`, `<footer>` tags and `role="navigation"` elements before extracting links

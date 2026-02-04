@@ -25,11 +25,28 @@ Usage:
 from dataclasses import dataclass, field
 import re
 from typing import Optional
+from urllib.parse import urlparse
 
 # Languages that use compound words where keywords may appear as substrings
 # of larger words. For these languages, patterns skip \b word boundaries so
 # that e.g. "Abwärme" matches inside "Rechenzentrumsabwärme".
 COMPOUND_LANGUAGES: set[str] = {"de", "nl", "sv", "da"}
+
+# URL-based scoring bonuses
+_GOV_TLD_BONUS = 1.0
+_BILL_PATH_BONUS = 1.5
+_BILL_NUMBER_BONUS = 1.0
+
+# Patterns for URL bonus scoring
+_BILL_PATH_PATTERNS = [
+    r"/bill[s]?[-/]", r"/legislation/", r"/act[s]?/",
+    r"/statute[s]?/", r"/measure[s]?/", r"/resolution[s]?/",
+    r"/legp\d+\.exe",  # Virginia CGI
+]
+_BILL_NUMBER_PATTERN = re.compile(
+    r"[/=](H\.?B\.?|S\.?B\.?|H\.?R\.?|S\.?R\.?|H\.?J\.?R\.?|S\.?J\.?R\.?)\s*\d+",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -153,6 +170,37 @@ class KeywordMatcher:
             for term in penalty_config.get("terms", []):
                 pattern = re.compile(r"\b" + re.escape(term) + r"\b", re.IGNORECASE)
                 self._penalty_patterns.append((term, pattern))
+
+    def url_bonus(self, url: str) -> float:
+        """Calculate bonus score from URL patterns.
+
+        Args:
+            url: The page URL
+
+        Returns:
+            Bonus points to add to keyword score
+        """
+        bonus = 0.0
+        parsed = urlparse(url)
+        hostname = parsed.netloc.lower()
+        path = parsed.path.lower()
+        full = f"{path}?{parsed.query}" if parsed.query else path
+
+        # .gov TLD bonus
+        if hostname.endswith(".gov") or hostname.endswith(".gov.uk"):
+            bonus += _GOV_TLD_BONUS
+
+        # Bill/legislation path patterns
+        for pattern in _BILL_PATH_PATTERNS:
+            if re.search(pattern, full, re.IGNORECASE):
+                bonus += _BILL_PATH_BONUS
+                break  # Only count once
+
+        # Bill number in URL (HB323, SB192, etc.)
+        if _BILL_NUMBER_PATTERN.search(full):
+            bonus += _BILL_NUMBER_BONUS
+
+        return bonus
 
     @property
     def total_keywords(self) -> int:
@@ -328,13 +376,15 @@ class KeywordMatcher:
         return StricterCheckResult(passed=True)
 
     def is_relevant(
-        self, result: KeywordMatchResult, content_length: int = 0
+        self, result: KeywordMatchResult, content_length: int = 0,
+        url: str = "",
     ) -> bool:
         """Check if a match result indicates relevant content.
 
         Args:
             result: KeywordMatchResult from match()
             content_length: Length of content for density calculation
+            url: Page URL for URL-based bonus scoring
 
         Returns:
             True if content should be analyzed by LLM
@@ -343,8 +393,12 @@ class KeywordMatcher:
         min_score = self.thresholds.get("minimum_keyword_score", 5.0)
         min_matches = self.thresholds.get("minimum_matches", 2)
 
-        # Use final_score which includes boost/penalty
-        if result.final_score < min_score:
+        # Apply URL bonus to final score
+        effective_score = result.final_score
+        if url:
+            effective_score += self.url_bonus(url)
+
+        if effective_score < min_score:
             return False
 
         if result.unique_matches < min_matches:
@@ -358,7 +412,8 @@ class KeywordMatcher:
         return True
 
     def get_failure_reason(
-        self, result: KeywordMatchResult, content_length: int = 0
+        self, result: KeywordMatchResult, content_length: int = 0,
+        url: str = "",
     ) -> str:
         """Return the first reason a match result would fail is_relevant().
 
@@ -368,6 +423,7 @@ class KeywordMatcher:
         Args:
             result: KeywordMatchResult from match()
             content_length: Length of content for density calculation
+            url: Page URL for URL-based bonus scoring
 
         Returns:
             Reason string (e.g. "Below min score (5.0)"), or "" if it passes
@@ -375,8 +431,13 @@ class KeywordMatcher:
         min_score = self.thresholds.get("minimum_keyword_score", 5.0)
         min_matches = self.thresholds.get("minimum_matches", 2)
 
-        if result.final_score < min_score:
-            return f"Below min score ({min_score})"
+        effective_score = result.final_score
+        if url:
+            effective_score += self.url_bonus(url)
+
+        if effective_score < min_score:
+            url_bonus_str = f" (url_bonus=+{self.url_bonus(url):.1f})" if url else ""
+            return f"Below min score ({min_score}){url_bonus_str}"
 
         if result.unique_matches < min_matches:
             return f"Below min matches ({min_matches})"
@@ -388,7 +449,8 @@ class KeywordMatcher:
         return ""
 
     def get_filter_stats(
-        self, result: KeywordMatchResult, content_length: int
+        self, result: KeywordMatchResult, content_length: int,
+        url: str = "",
     ) -> dict:
         """Get detailed statistics about filtering decision.
 
@@ -397,6 +459,7 @@ class KeywordMatcher:
         Args:
             result: KeywordMatchResult from match()
             content_length: Length of content
+            url: Page URL for URL-based bonus scoring
 
         Returns:
             Dict with detailed filtering statistics
@@ -420,12 +483,16 @@ class KeywordMatcher:
                 match_count = sum(m.count for m in result.matches)
             density = (match_count / content_length) * 1000
 
+        url_bonus_val = self.url_bonus(url) if url else 0.0
+
         return {
-            "passed": self.is_relevant(result, content_length),
+            "passed": self.is_relevant(result, content_length, url=url),
             "base_score": result.score,
             "boost_applied": result.boost_applied,
             "penalty_applied": result.penalty_applied,
             "final_score": result.final_score,
+            "url_bonus": url_bonus_val,
+            "effective_score": result.final_score + url_bonus_val,
             "score_threshold": min_score,
             "unique_matches": result.unique_matches,
             "matches_threshold": min_matches,

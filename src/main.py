@@ -1071,12 +1071,13 @@ async def run_batch(
         # Keyword check (with stricter requirements)
         content = result.content or ""
         kw_result = keyword_matcher.match(content)
-        if not keyword_matcher.is_relevant(kw_result, len(content)):
+        if not keyword_matcher.is_relevant(kw_result, len(content), url=result.url):
             if verbose:
-                reason = keyword_matcher.get_failure_reason(kw_result, len(content))
+                reason = keyword_matcher.get_failure_reason(kw_result, len(content), url=result.url)
                 kw_failed_reasons[reason] = kw_failed_reasons.get(reason, 0) + 1
-                # Track near-misses: pages with score >= 60% of threshold
-                if kw_result.final_score >= near_miss_threshold and len(kw_near_misses) < 15:
+                # Track near-misses: pages with effective score >= 60% of threshold
+                effective_score = kw_result.final_score + keyword_matcher.url_bonus(result.url)
+                if effective_score >= near_miss_threshold and len(kw_near_misses) < 15:
                     kw_near_misses.append((result.url, kw_result, reason))
             continue
 
