@@ -32,20 +32,18 @@ from urllib.parse import urlparse
 # that e.g. "Abwärme" matches inside "Rechenzentrumsabwärme".
 COMPOUND_LANGUAGES: set[str] = {"de", "nl", "sv", "da"}
 
-# URL-based scoring bonuses
-_GOV_TLD_BONUS = 1.0
-_BILL_PATH_BONUS = 1.5
-_BILL_NUMBER_BONUS = 1.0
-
-# Patterns for URL bonus scoring
-_BILL_PATH_PATTERNS = [
+# Default URL bonus values (used when url_bonuses section is missing from config)
+_DEFAULT_GOV_TLD_BONUS = 1.0
+_DEFAULT_BILL_PATH_BONUS = 1.5
+_DEFAULT_BILL_NUMBER_BONUS = 1.0
+_DEFAULT_GOV_TLD_PATTERNS = [".gov", ".gov.uk"]
+_DEFAULT_BILL_PATH_PATTERNS = [
     r"/bill[s]?[-/]", r"/legislation/", r"/act[s]?/",
     r"/statute[s]?/", r"/measure[s]?/", r"/resolution[s]?/",
-    r"/legp\d+\.exe",  # Virginia CGI
+    r"/legp\d+\.exe",
 ]
-_BILL_NUMBER_PATTERN = re.compile(
-    r"[/=](H\.?B\.?|S\.?B\.?|H\.?R\.?|S\.?R\.?|H\.?J\.?R\.?|S\.?J\.?R\.?)\s*\d+",
-    re.IGNORECASE,
+_DEFAULT_BILL_NUMBER_PATTERN = (
+    r"[/=](H\.?B\.?|S\.?B\.?|H\.?R\.?|S\.?R\.?|H\.?J\.?R\.?|S\.?J\.?R\.?)\s*\d+"
 )
 
 
@@ -126,6 +124,16 @@ class KeywordMatcher:
         self.exclusions = keywords_config.get("exclusions", [])
         self.stricter = keywords_config.get("stricter_requirements", {})
 
+        # URL bonus config (loaded from keywords.yaml url_bonuses section)
+        url_cfg = keywords_config.get("url_bonuses", {})
+        self._gov_tld_bonus = url_cfg.get("gov_tld_bonus", _DEFAULT_GOV_TLD_BONUS)
+        self._gov_tld_patterns = url_cfg.get("gov_tld_patterns", _DEFAULT_GOV_TLD_PATTERNS)
+        self._bill_path_bonus = url_cfg.get("bill_path_bonus", _DEFAULT_BILL_PATH_BONUS)
+        self._bill_path_patterns = url_cfg.get("bill_path_patterns", _DEFAULT_BILL_PATH_PATTERNS)
+        self._bill_number_bonus = url_cfg.get("bill_number_bonus", _DEFAULT_BILL_NUMBER_BONUS)
+        bill_number_pat = url_cfg.get("bill_number_pattern", _DEFAULT_BILL_NUMBER_PATTERN)
+        self._bill_number_pattern = re.compile(bill_number_pat, re.IGNORECASE)
+
         self._patterns: dict[str, re.Pattern] = {}
         self._boost_patterns: list[tuple[str, re.Pattern]] = []
         self._penalty_patterns: list[tuple[str, re.Pattern]] = []
@@ -174,6 +182,9 @@ class KeywordMatcher:
     def url_bonus(self, url: str) -> float:
         """Calculate bonus score from URL patterns.
 
+        Uses gov_tld_patterns, bill_path_patterns, and bill_number_pattern
+        from the url_bonuses section of keywords.yaml config.
+
         Args:
             url: The page URL
 
@@ -186,19 +197,21 @@ class KeywordMatcher:
         path = parsed.path.lower()
         full = f"{path}?{parsed.query}" if parsed.query else path
 
-        # .gov TLD bonus
-        if hostname.endswith(".gov") or hostname.endswith(".gov.uk"):
-            bonus += _GOV_TLD_BONUS
+        # Government TLD bonus
+        for suffix in self._gov_tld_patterns:
+            if hostname.endswith(suffix.lower()):
+                bonus += self._gov_tld_bonus
+                break  # Only count once
 
         # Bill/legislation path patterns
-        for pattern in _BILL_PATH_PATTERNS:
+        for pattern in self._bill_path_patterns:
             if re.search(pattern, full, re.IGNORECASE):
-                bonus += _BILL_PATH_BONUS
+                bonus += self._bill_path_bonus
                 break  # Only count once
 
         # Bill number in URL (HB323, SB192, etc.)
-        if _BILL_NUMBER_PATTERN.search(full):
-            bonus += _BILL_NUMBER_BONUS
+        if self._bill_number_pattern.search(full):
+            bonus += self._bill_number_bonus
 
         return bonus
 

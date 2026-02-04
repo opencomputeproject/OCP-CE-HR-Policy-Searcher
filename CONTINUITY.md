@@ -2,9 +2,32 @@
 
 ## Current State
 
-### Version: 0.3.5
+### Version: 0.3.6
 
-### Just Completed: Per-Domain Config Overrides (Backlog Item 4)
+### Just Completed: Configurable URL Bonus Patterns (DRY improvement to Backlog Item 3)
+
+**What was done:**
+- Moved URL bonus configuration from hardcoded Python constants to `config/keywords.yaml` `url_bonuses` section
+- Previously only `.gov` and `.gov.uk` got the government TLD bonus (79% of domains). Now 12 international government domain suffixes are configured: `.gouv.fr`, `.gv.at`, `.admin.ch`, `.europa.eu`, `.riksdagen.se`, `.retsinformation.dk`, `.go.jp`, `.go.kr`, `.gov.sg`, `.gov.au`
+- Added international legislation path patterns: `/gesetze/`, `/verordnung/`, `/regelung/` (German), `/lois/`, `/decrets/` (French), `/legal-content/`, `/celex/` (EU)
+- `KeywordMatcher.__init__()` now loads `url_bonuses` from config dict with backward-compatible defaults
+- `url_bonus()` method now uses instance config (`self._gov_tld_patterns`, etc.) instead of module-level constants
+- Bonus values (`gov_tld_bonus`, `bill_path_bonus`, `bill_number_bonus`) are configurable
+- Bill number regex pattern is configurable
+- 15 new unit tests in `TestConfigurableURLBonuses` class covering all international TLDs, path patterns, custom values, and stacking
+- 640 tests pass
+
+**Files changed:**
+1. `config/keywords.yaml` - Added `url_bonuses` section with gov TLD patterns, bill path patterns, bill number pattern, and bonus values
+2. `src/analysis/keywords.py` - Refactored URL bonus from hardcoded constants to config-driven instance attributes
+3. `tests/unit/test_keywords.py` - 15 new tests in `TestConfigurableURLBonuses`
+4. `README.md` - Documented URL bonus configuration in keywords section
+5. `CHANGELOG.md` - Documented feature
+6. `CONTINUITY.md` - This file
+
+**Backlog status:** Items 1-4 DONE. See `docs/Backlog_20260204.md` for remaining items (5-9).
+
+### Previously Completed: Per-Domain Config Overrides (Backlog Item 4)
 
 **What was done:**
 - Added `domain_id: Optional[str] = None` field to `CrawlResult` model in `crawl.py`

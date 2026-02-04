@@ -1173,6 +1173,33 @@ keywords:
       en: ["regulation", "law", "directive"]
 ```
 
+URL-based scoring bonuses are also configurable in `keywords.yaml`:
+
+```yaml
+url_bonuses:
+  gov_tld_bonus: 1.0
+  gov_tld_patterns:          # Government domain suffixes
+    - ".gov"
+    - ".gov.uk"
+    - ".gouv.fr"
+    - ".gv.at"
+    - ".admin.ch"
+    - ".go.jp"
+    - ".gov.sg"
+    - ".europa.eu"
+  bill_path_bonus: 1.5
+  bill_path_patterns:        # Legislation URL path patterns (regex)
+    - "/bill[s]?[-/]"
+    - "/legislation/"
+    - "/gesetze/"
+    - "/lois/"
+    - "/legal-content/"
+  bill_number_bonus: 1.0
+  bill_number_pattern: "[/=](H\\.?B\\.?|S\\.?B\\.?)\\s*\\d+"
+```
+
+These bonuses stack: a page on `lis.virginia.gov/bill-details/20261/HB323` gets +1.0 (gov TLD) + 1.5 (bill path) + 1.0 (bill number) = +3.5 added to its keyword score.
+
 ### Settings (`config/settings.yaml`)
 
 Runtime configuration:

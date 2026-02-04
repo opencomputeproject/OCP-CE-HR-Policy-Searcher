@@ -554,6 +554,78 @@ thresholds:
   minimum_llm_relevance: 5
 
 # =============================================================================
+# URL-BASED SCORING BONUSES
+# =============================================================================
+# Bonus points added to a page's keyword score based on URL patterns.
+# Helps surface legislative and government content that may have terse text.
+#
+# Three bonus types (stackable):
+#   1. Government TLD bonus: URL hostname matches a government domain suffix
+#   2. Legislation path bonus: URL path matches a legislative path pattern
+#   3. Bill number bonus: URL contains a bill/act number (e.g., HB323, SB192)
+# =============================================================================
+
+url_bonuses:
+  # -------------------------------------------------------------------------
+  # Government TLD patterns
+  # -------------------------------------------------------------------------
+  # Bonus applied when hostname ends with one of these suffixes.
+  # Covers US (.gov), UK (.gov.uk), and international government domains.
+  gov_tld_bonus: 1.0
+  gov_tld_patterns:
+    # US / UK
+    - ".gov"
+    - ".gov.uk"
+    # Europe
+    - ".gouv.fr"          # France
+    - ".gv.at"            # Austria
+    - ".admin.ch"         # Switzerland federal
+    - ".europa.eu"        # EU institutions
+    # Nordic
+    - ".riksdagen.se"     # Swedish parliament
+    - ".retsinformation.dk"  # Danish law database
+    # Asia-Pacific
+    - ".go.jp"            # Japan
+    - ".go.kr"            # South Korea
+    - ".gov.sg"           # Singapore
+    - ".gov.au"           # Australia
+
+  # -------------------------------------------------------------------------
+  # Legislation path patterns (regex)
+  # -------------------------------------------------------------------------
+  # Bonus applied when URL path matches any of these patterns.
+  # Only counted once even if multiple patterns match.
+  bill_path_bonus: 1.5
+  bill_path_patterns:
+    # English
+    - "/bill[s]?[-/]"
+    - "/legislation/"
+    - "/act[s]?/"
+    - "/statute[s]?/"
+    - "/measure[s]?/"
+    - "/resolution[s]?/"
+    # German
+    - "/gesetze/"
+    - "/verordnung/"
+    - "/regelung/"
+    # French
+    - "/lois/"
+    - "/decrets/"
+    # EU
+    - "/legal-content/"
+    - "/celex/"
+    # US state-specific CGI
+    - "/legp\\d+\\.exe"
+
+  # -------------------------------------------------------------------------
+  # Bill number pattern (regex)
+  # -------------------------------------------------------------------------
+  # Bonus applied when URL contains a legislative bill identifier.
+  # Pattern matches bill prefixes followed by numbers in path or query string.
+  bill_number_bonus: 1.0
+  bill_number_pattern: "[/=](H\\.?B\\.?|S\\.?B\\.?|H\\.?R\\.?|S\\.?R\\.?|H\\.?J\\.?R\\.?|S\\.?J\\.?R\\.?)\\s*\\d+"
+
+# =============================================================================
 # NEGATIVE KEYWORDS (EXCLUSIONS)
 # =============================================================================
 # Pages containing these are likely not relevant

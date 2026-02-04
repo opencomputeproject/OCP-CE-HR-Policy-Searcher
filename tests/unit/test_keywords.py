@@ -1067,3 +1067,159 @@ class TestMinScoreOverride:
         result = matcher.match(text)
         reason = matcher.get_failure_reason(result, len(text))
         assert "5.0" in reason
+
+
+class TestConfigurableURLBonuses:
+    """Test that URL bonus config is loaded from keywords.yaml url_bonuses section."""
+
+    def _base_config(self, url_bonuses=None):
+        """Build a matcher config with optional url_bonuses override."""
+        config = {
+            "keywords": {
+                "subject": {
+                    "weight": 2.0,
+                    "terms": {"en": ["waste heat", "heat reuse"]},
+                },
+                "context": {
+                    "weight": 1.0,
+                    "terms": {"en": ["data center", "energy"]},
+                },
+            },
+            "thresholds": {
+                "minimum_keyword_score": 5.0,
+                "minimum_matches": 2,
+            },
+        }
+        if url_bonuses is not None:
+            config["url_bonuses"] = url_bonuses
+        return config
+
+    def test_default_gov_tld_patterns_without_config(self):
+        """Without url_bonuses in config, defaults to .gov and .gov.uk."""
+        matcher = KeywordMatcher(self._base_config())
+        assert matcher.url_bonus("https://example.gov/page") >= 1.0
+        assert matcher.url_bonus("https://example.gov.uk/page") >= 1.0
+        # Non-default TLDs get no bonus without config
+        assert matcher.url_bonus("https://ecologie.gouv.fr/page") == 0.0
+
+    def test_french_gov_tld_from_config(self):
+        """French .gouv.fr domains get bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".gov", ".gov.uk", ".gouv.fr"],
+        }))
+        assert matcher.url_bonus("https://ecologie.gouv.fr/page") >= 1.0
+
+    def test_austrian_gov_tld_from_config(self):
+        """Austrian .gv.at domains get bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".gv.at"],
+        }))
+        assert matcher.url_bonus("https://bmk.gv.at/energie") >= 1.0
+
+    def test_swiss_admin_tld_from_config(self):
+        """Swiss .admin.ch domains get bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".admin.ch"],
+        }))
+        assert matcher.url_bonus("https://bfe.admin.ch/energy") >= 1.0
+
+    def test_japanese_gov_tld_from_config(self):
+        """Japanese .go.jp domains get bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".go.jp"],
+        }))
+        assert matcher.url_bonus("https://meti.go.jp/english") >= 1.0
+
+    def test_singapore_gov_tld_from_config(self):
+        """Singapore .gov.sg domains get bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".gov.sg"],
+        }))
+        assert matcher.url_bonus("https://imda.gov.sg/regulations") >= 1.0
+
+    def test_eu_europa_tld_from_config(self):
+        """EU .europa.eu domains get bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".europa.eu"],
+        }))
+        assert matcher.url_bonus("https://eur-lex.europa.eu/legal-content") >= 1.0
+
+    def test_custom_gov_tld_bonus_value(self):
+        """Custom bonus value is respected."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 2.5,
+            "gov_tld_patterns": [".gov"],
+        }))
+        assert matcher.url_bonus("https://example.gov/page") == 2.5
+
+    def test_german_legislation_path_from_config(self):
+        """German /gesetze/ path gets bill path bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "bill_path_bonus": 1.5,
+            "bill_path_patterns": ["/gesetze/"],
+        }))
+        assert matcher.url_bonus("https://gesetze-im-internet.de/gesetze/edl-g") >= 1.5
+
+    def test_french_legislation_path_from_config(self):
+        """French /lois/ path gets bill path bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "bill_path_bonus": 1.5,
+            "bill_path_patterns": ["/lois/", "/decrets/"],
+        }))
+        assert matcher.url_bonus("https://legifrance.gouv.fr/lois/2023-175") >= 1.5
+
+    def test_eu_celex_path_from_config(self):
+        """EU /celex/ path gets bill path bonus when configured."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "bill_path_bonus": 1.5,
+            "bill_path_patterns": ["/celex/", "/legal-content/"],
+        }))
+        assert matcher.url_bonus("https://eur-lex.europa.eu/legal-content/EN") >= 1.5
+        assert matcher.url_bonus("https://eur-lex.europa.eu/celex/32023L1791") >= 1.5
+
+    def test_custom_bill_number_pattern(self):
+        """Custom bill number pattern is compiled and used."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "bill_number_bonus": 1.0,
+            "bill_number_pattern": r"BGBl\.\s*\d+",
+        }))
+        assert matcher.url_bonus("https://example.de/BGBl. 2023") >= 1.0
+
+    def test_only_configured_tlds_get_bonus(self):
+        """TLDs not in the config list get no bonus."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".gouv.fr"],  # Only French
+        }))
+        # .gov should NOT get bonus since it's not in the list
+        assert matcher.url_bonus("https://example.gov/page") == 0.0
+        assert matcher.url_bonus("https://ecologie.gouv.fr/page") >= 1.0
+
+    def test_full_config_stacks_all_bonuses(self):
+        """All three bonus types stack with full config."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".gov"],
+            "bill_path_bonus": 1.5,
+            "bill_path_patterns": ["/bill[s]?[-/]"],
+            "bill_number_bonus": 1.0,
+            "bill_number_pattern": r"[/=](H\.?B\.?|S\.?B\.?)\s*\d+",
+        }))
+        bonus = matcher.url_bonus("https://lis.virginia.gov/bill-details/20261/HB323")
+        assert bonus >= 3.0  # .gov (1.0) + /bill- (1.5) + HB323 (1.0)
+
+    def test_tld_bonus_only_counts_once(self):
+        """Even if hostname matches multiple TLD patterns, bonus is applied once."""
+        matcher = KeywordMatcher(self._base_config(url_bonuses={
+            "gov_tld_bonus": 1.0,
+            "gov_tld_patterns": [".gov", ".gov.uk"],  # .gov.uk also endswith .gov
+        }))
+        # .gov.uk matches .gov.uk first (break after first match)
+        bonus = matcher.url_bonus("https://www.legislation.gov.uk/acts")
+        assert bonus == 1.0  # Not 2.0
