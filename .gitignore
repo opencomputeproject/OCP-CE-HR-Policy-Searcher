@@ -6,6 +6,7 @@
 *.pem
 credentials.json
 service-account*.json
+config/credentials.yaml
 
 # Python
 __pycache__/

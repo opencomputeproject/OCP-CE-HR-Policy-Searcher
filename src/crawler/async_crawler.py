@@ -17,6 +17,7 @@ from ..logging.run_logger import RunLogger
 from .fetchers.http_fetcher import HttpFetcher
 from .fetchers.playwright_fetcher import PlaywrightFetcher
 from .extractors.html_extractor import HtmlExtractor, load_extraction_config
+from .auth import Authenticator
 from .detection.paywall import detect_paywall
 from .detection.captcha import detect_captcha
 from .detection.js_required import detect_js_required
@@ -38,6 +39,7 @@ class AsyncCrawler:
         logger: RunLogger,
         skip_extensions: Optional[list[str]] = None,
         crawl_blocked_patterns: Optional[list[str]] = None,
+        authenticator: Optional[Authenticator] = None,
     ):
         self.settings = settings
         self.domains = domains
@@ -47,6 +49,7 @@ class AsyncCrawler:
             ext.lower() for ext in (skip_extensions or _DEFAULT_SKIP_EXTENSIONS)
         ]
         self.crawl_blocked_patterns = crawl_blocked_patterns or []
+        self.authenticator = authenticator
 
         self.http_fetcher = HttpFetcher(settings)
         self.playwright_fetcher: Optional[PlaywrightFetcher] = None
@@ -62,6 +65,10 @@ class AsyncCrawler:
 
         try:
             await self.http_fetcher.initialize()
+
+            # Authenticate before crawling
+            if self.authenticator:
+                await self._apply_credentials()
 
             for domain in self.domains:
                 if not domain.get("enabled", True):
@@ -80,6 +87,52 @@ class AsyncCrawler:
                 await self.playwright_fetcher.close()
 
         return results
+
+    async def _apply_credentials(self) -> None:
+        """Apply stored credentials before crawling begins.
+
+        * Form auth: initialise Playwright and log in (cookies persist).
+        * Cookie auth: inject cookies into Playwright context.
+        * Basic/header auth: set extra headers on Playwright context.
+
+        HTTP-level auth (basic, header, cookie) for ``HttpFetcher`` is
+        applied per-request inside ``_fetch_page()``.
+        """
+        from .auth import AuthenticationError
+
+        # Form-based logins require a Playwright browser context
+        if self.authenticator.has_form_credentials:
+            if not self.playwright_fetcher:
+                self.playwright_fetcher = PlaywrightFetcher(self.settings)
+                await self.playwright_fetcher.initialize()
+
+            for cred in self.authenticator.form_credentials:
+                try:
+                    await self.authenticator.authenticate_form(
+                        cred, self.playwright_fetcher._context
+                    )
+                    self.logger.info(f"Authenticated: {cred.domain}")
+                except AuthenticationError:
+                    self.logger.warning(f"Auth failed: {cred.domain}")
+
+        # Cookie injection into Playwright context (if initialised)
+        for domain_name in self.authenticator.domains:
+            cred = self.authenticator.get_credential(f"https://{domain_name}")
+            if not cred:
+                continue
+
+            if cred.auth_type == "cookie" and self.playwright_fetcher:
+                cookies = self.authenticator.get_cookies(f"https://{domain_name}")
+                if cookies:
+                    await self.playwright_fetcher.add_cookies(cookies)
+                    self.logger.info(f"Cookies set: {domain_name}")
+
+            elif cred.auth_type in ("basic", "header") and self.playwright_fetcher:
+                headers = self.authenticator.get_http_auth_headers(
+                    f"https://{domain_name}"
+                )
+                if headers:
+                    await self.playwright_fetcher.set_extra_headers(headers)
 
     async def crawl_domain(self, domain: dict) -> list[CrawlResult]:
         results = []
@@ -120,8 +173,22 @@ class AsyncCrawler:
     async def _fetch_page(self, url: str, domain: dict) -> CrawlResult:
         use_playwright = self.settings.force_playwright or domain.get("requires_playwright", False)
 
+        # Determine per-request auth for HTTP fetcher
+        extra_headers: dict[str, str] | None = None
+        http_cookies: dict[str, str] | None = None
+        if self.authenticator:
+            extra_headers = self.authenticator.get_http_auth_headers(url) or None
+            cookie_list = self.authenticator.get_cookies(url)
+            if cookie_list:
+                http_cookies = {c["name"]: c["value"] for c in cookie_list}
+            # Form auth requires Playwright (cookies are in browser context)
+            if self.authenticator.needs_playwright(url):
+                use_playwright = True
+
         if not use_playwright:
-            result = await self.http_fetcher.fetch(url)
+            result = await self.http_fetcher.fetch(
+                url, extra_headers=extra_headers, cookies=http_cookies
+            )
 
             if result.is_success:
                 extracted = self.html_extractor.extract(result.content, url)

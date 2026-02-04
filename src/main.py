@@ -1248,6 +1248,7 @@ async def run_batch(
     args,
     url_filter: URLFilter = None,
     url_cache: URLCache = None,
+    authenticator=None,
 ) -> tuple[list, list]:
     """
     Run a single batch of domains.
@@ -1263,7 +1264,10 @@ async def run_batch(
     # Crawl
     skip_exts = url_filter.config.skip_extensions if url_filter else None
     crawl_blocked = url_filter.config.crawl_blocked_patterns if url_filter else None
-    crawler = AsyncCrawler(settings.crawl, domains, keyword_matcher, logger, skip_exts, crawl_blocked)
+    crawler = AsyncCrawler(
+        settings.crawl, domains, keyword_matcher, logger,
+        skip_exts, crawl_blocked, authenticator,
+    )
     crawl_results = await crawler.crawl_all()
     logger.info(f"Crawled {len(crawl_results)} pages")
 
@@ -1735,6 +1739,16 @@ async def run(args) -> int:
                 if url_cache.stats.total_entries > 0:
                     logger.info(f"Cache: {url_cache.stats.total_entries} entries loaded")
 
+        # Load site credentials (for paywalled / login-gated sites)
+        from .config.credentials import load_credentials
+        from .crawler.auth import Authenticator
+
+        credentials = load_credentials()
+        authenticator = None
+        if credentials:
+            authenticator = Authenticator(credentials)
+            logger.info(f"Credentials: {len(credentials)} site(s) loaded")
+
         if settings.analysis.enable_llm_analysis and settings.anthropic_api_key:
             claude_client = ClaudeClient(settings.anthropic_api_key, settings.analysis.llm_model)
             if settings.analysis.enable_two_stage:
@@ -1782,6 +1796,7 @@ async def run(args) -> int:
                 args,
                 url_filter,
                 url_cache,
+                authenticator,
             )
 
             all_crawl_results.extend(crawl_results)

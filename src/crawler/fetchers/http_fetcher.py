@@ -87,7 +87,12 @@ class HttpFetcher:
         self._last_request[domain] = asyncio.get_event_loop().time()
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=2, max=30))
-    async def fetch(self, url: str) -> CrawlResult:
+    async def fetch(
+        self,
+        url: str,
+        extra_headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
+    ) -> CrawlResult:
         if not self.client:
             await self.initialize()
 
@@ -96,7 +101,12 @@ class HttpFetcher:
         start = datetime.utcnow()
 
         try:
-            response = await self.client.get(url)
+            kwargs: dict = {}
+            if extra_headers:
+                kwargs["headers"] = extra_headers
+            if cookies:
+                kwargs["cookies"] = cookies
+            response = await self.client.get(url, **kwargs)
             elapsed = int((datetime.utcnow() - start).total_seconds() * 1000)
 
             status_map = {

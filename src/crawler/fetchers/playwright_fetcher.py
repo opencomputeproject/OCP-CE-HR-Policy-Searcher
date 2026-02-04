@@ -27,6 +27,26 @@ class PlaywrightFetcher:
             user_agent=self.settings.user_agent
         )
 
+    async def add_cookies(self, cookies: list[dict]) -> None:
+        """Add cookies to the browser context.
+
+        Args:
+            cookies: List of cookie dicts with name, value, domain, path, etc.
+                Compatible with Playwright's ``BrowserContext.add_cookies()``.
+        """
+        if not self._context:
+            await self.initialize()
+        await self._context.add_cookies(cookies)
+
+    async def set_extra_headers(self, headers: dict[str, str]) -> None:
+        """Set extra HTTP headers on the browser context.
+
+        These headers are sent with every request made by this context.
+        """
+        if not self._context:
+            await self.initialize()
+        await self._context.set_extra_http_headers(headers)
+
     async def _rate_limit(self, domain: str) -> None:
         now = asyncio.get_event_loop().time()
         if domain in self._last_request:

@@ -2,34 +2,50 @@
 
 ## Current State
 
-### Version: 0.3.11
+### Version: 0.3.12
 
-### Just Completed: Improve `add-domain` YAML Output & Usability
+### Just Completed: Paywalled Site Credential Support (Backlog Item 9)
 
 **What was done:**
-- Replaced `yaml.dump()` with custom YAML formatter matching hand-crafted file style:
-  - Canonical field order: name, id, enabled, region, base_url, start_paths, max_depth, language, requires_playwright, rate_limit_seconds, category, tags, policy_types, verified_by, verified_date, notes
-  - Quoted strings for name, id, base_url, verified_by, verified_date, category
-  - Quoted list items for region, start_paths, tags, policy_types
-  - Empty lists and empty strings omitted entirely (no `tags: []` or `category: ""`)
-  - Multi-line notes use `|` literal block style; single-line notes stay inline
-  - Lowercase booleans (`true`/`false`), one-decimal floats (`2.0`)
-- Added `--name` and `--id` CLI flags to override auto-detected values
-- Multiple URLs on the same hostname are automatically merged into a single entry with combined start_paths
-- Query strings in URLs are now preserved in start_paths (previously stripped)
-- Fixed append-to-existing-file logic (was fragile indentation hack, now uses properly formatted output)
-- 18 new tests (63 total in test_domain_generator.py): TestFormatDomainYamlStyle (15), TestQueryStringPreservation (3)
-- 716 tests pass
+- Four authentication types for accessing login-gated policy sites:
+  - **form**: Playwright fills login forms, session cookies persist in browser context
+  - **basic**: HTTP Basic Auth (`Authorization` header per request)
+  - **cookie**: Injects cookies into Playwright context and HTTP client
+  - **header**: Custom HTTP headers per request (API keys, bearer tokens)
+- `config/credentials.yaml.example` documents all 4 auth types with inline comments
+- `config/credentials.yaml` added to `.gitignore` (credentials never committed)
+- Pydantic `SiteCredential` model with `@model_validator` for per-type field validation
+- Passwords use `SecretStr` to prevent accidental logging; `__repr__` shows domain+type only
+- `Authenticator` class coordinates credential application across fetchers with O(1) hostname lookup
+- `HttpFetcher.fetch()` accepts optional `extra_headers`/`cookies` for per-request auth
+- `PlaywrightFetcher` gains `add_cookies()` and `set_extra_headers()` methods
+- `AsyncCrawler` accepts optional `Authenticator`, runs form auth before crawling, applies cookies/headers
+- 58 new tests (774 total): test_credentials.py (26), test_auth.py (32)
 
 **Files changed:**
-1. `src/tools/domain_generator.py` - Custom YAML formatter (`_format_entry_yaml`, `_yaml_scalar`, `_FIELD_ORDER`, `_QUOTED_FIELDS`), removed `yaml` import
-2. `src/main.py` - URL grouping by hostname, `--name`/`--id` args, query string preservation, fixed append logic, updated `cmd_help()`
-3. `tests/unit/test_domain_generator.py` - Updated `test_appending_valid_yaml`, added TestFormatDomainYamlStyle (15 tests), TestQueryStringPreservation (3 tests)
-4. `CHANGELOG.md` - Updated add-domain entry
-5. `CONTINUITY.md` - This file
-6. `pyproject.toml` - Version bump 0.3.10 → 0.3.11
+1. `config/credentials.yaml.example` - New: example credential file
+2. `src/config/credentials.py` - New: `CookieEntry`, `SiteCredential` models, `load_credentials()`
+3. `src/crawler/auth.py` - New: `Authenticator`, `AuthenticationError`
+4. `src/crawler/fetchers/http_fetcher.py` - Added `extra_headers`/`cookies` params to `fetch()`
+5. `src/crawler/fetchers/playwright_fetcher.py` - Added `add_cookies()`, `set_extra_headers()`
+6. `src/crawler/async_crawler.py` - Accept `Authenticator`, `_apply_credentials()`, auth in `_fetch_page()`
+7. `src/main.py` - Load credentials, create `Authenticator`, pass to `run_batch()`
+8. `tests/unit/test_credentials.py` - New: 26 tests for credential model and loading
+9. `tests/unit/test_auth.py` - New: 32 tests for Authenticator class
+10. `.gitignore` - Added `config/credentials.yaml`
+11. `CHANGELOG.md` - Documented feature
+12. `CONTINUITY.md` - This file
+13. `pyproject.toml` - Version bump 0.3.11 → 0.3.12
+14. `docs/Backlog_20260204.md` - Item 9: DONE
 
-**Backlog status:** Items 1-8 DONE. See `docs/Backlog_20260204.md` for remaining item (9).
+**Backlog status:** All items (1-9) DONE. Full backlog complete.
+
+### Previously Completed: Improve `add-domain` YAML Output & Usability
+
+**What was done:**
+- Custom YAML formatter matching hand-crafted file style
+- `--name`/`--id` CLI overrides, URL grouping by hostname, query string preservation
+- 716 tests pass, version 0.3.11
 
 ### Previously Completed: Auto-Generate Domain YAML from URL(s) (Backlog Item 8)
 
