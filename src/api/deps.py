@@ -2,7 +2,6 @@
 
 import os
 from functools import lru_cache
-from typing import Optional
 
 from ..core.config import ConfigLoader
 from ..orchestration.events import EventBroadcaster

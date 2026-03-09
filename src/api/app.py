@@ -1,6 +1,5 @@
 """FastAPI application — REST API + WebSocket for OCP Policy Hub."""
 
-import os
 import logging
 from contextlib import asynccontextmanager
 
@@ -8,9 +7,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-load_dotenv()
-
 from .routes import domains, scans, policies, analysis, agent
+
+load_dotenv()
 
 
 logging.basicConfig(

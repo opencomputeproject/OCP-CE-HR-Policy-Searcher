@@ -9,14 +9,13 @@ import logging
 from typing import Optional, Callable, Awaitable
 
 from .cache import URLCache, compute_content_hash
-from .config import ConfigLoader
 from .crawler import AsyncCrawler
 from .extractor import HtmlExtractor
 from .keywords import KeywordMatcher
 from .llm import ClaudeClient
 from .models import (
-    CrawlResult, Policy, PageStatus, DomainProgress, DomainScanStatus,
-    ScanEvent, KeywordResult,
+    CrawlResult, Policy, DomainProgress, DomainScanStatus,
+    ScanEvent,
 )
 from .verifier import Verifier
 

@@ -7,7 +7,6 @@ discovering new government websites.
 
 import json
 import logging
-import os
 from typing import Any, Callable, Optional
 
 import anthropic

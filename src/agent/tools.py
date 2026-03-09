@@ -6,7 +6,6 @@ Defines 13 tools in Anthropic API format:
 - 1 add_domain tool (creates new domain YAML configs)
 """
 
-import json
 import os
 from pathlib import Path
 from typing import Any
@@ -502,7 +501,6 @@ async def _execute_add_domain(
 
     if output_path.exists():
         # Append to existing file
-        existing_content = output_path.read_text(encoding="utf-8")
         append_content = format_domain_yaml(entry, standalone=False)
         with open(output_path, "a", encoding="utf-8") as f:
             f.write("\n" + append_content)

@@ -3,7 +3,6 @@
 import asyncio
 import json
 import os
-import sys
 from typing import Any
 
 from mcp.server import Server
@@ -15,7 +14,6 @@ from ..core.crawler import AsyncCrawler
 from ..core.extractor import HtmlExtractor
 from ..core.keywords import KeywordMatcher
 from ..core.llm import ClaudeClient, LLMError
-from ..core.cache import URLCache
 from ..core.verifier import Verifier
 from ..orchestration.events import EventBroadcaster
 from ..orchestration.scan_manager import ScanManager

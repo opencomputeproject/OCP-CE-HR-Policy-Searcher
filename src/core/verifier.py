@@ -4,7 +4,6 @@ Catches hallucinations, duplicates, jurisdiction mismatches, and other
 quality issues without any LLM calls.
 """
 
-import re
 from datetime import date, timedelta
 from typing import Optional
 from urllib.parse import urlparse

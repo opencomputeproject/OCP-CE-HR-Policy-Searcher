@@ -7,7 +7,6 @@ fully testable without network access.
 
 import re
 from datetime import date
-from urllib.parse import urlparse
 
 # ---------------------------------------------------------------------------
 # US state name -> two-letter abbreviation

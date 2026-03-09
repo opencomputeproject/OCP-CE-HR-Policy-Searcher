@@ -3,7 +3,6 @@
 import re
 import warnings
 from pathlib import Path
-from typing import Optional
 
 import yaml
 from bs4 import BeautifulSoup, Tag, XMLParsedAsHTMLWarning

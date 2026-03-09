@@ -1,6 +1,5 @@
 """Scan endpoints — start/stop/status + WebSocket progress."""
 
-from typing import Optional
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Query
 

@@ -1,6 +1,5 @@
 """Agent endpoints — REST and WebSocket for the standalone policy agent."""
 
-import json
 import os
 import logging
 from typing import Optional
