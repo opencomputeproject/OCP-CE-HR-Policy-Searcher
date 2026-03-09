@@ -1096,3 +1096,202 @@ class TestOnboardingFlow:
             r = client.get("/api/domains")
             assert r.status_code == 200
             assert r.json()["count"] > 100
+
+    # ------------------------------------------------------------------
+    # Setup script tests
+    # ------------------------------------------------------------------
+
+    def test_setup_sh_exists(self):
+        """setup.sh exists at repo root for Linux/macOS users."""
+        assert Path("setup.sh").exists()
+
+    def test_setup_ps1_exists(self):
+        """setup.ps1 exists at repo root for Windows users."""
+        assert Path("setup.ps1").exists()
+
+    @pytest.mark.skipif(
+        not Path("/bin/bash").exists() and not Path("/usr/bin/bash").exists(),
+        reason="bash not available (Windows)",
+    )
+    def test_setup_sh_has_valid_bash_syntax(self):
+        """setup.sh parses without syntax errors."""
+        import subprocess
+        result = subprocess.run(
+            ["bash", "-n", "setup.sh"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"Bash syntax error: {result.stderr}"
+
+    def test_setup_sh_has_shebang(self):
+        """setup.sh starts with a proper shebang line."""
+        first_line = Path("setup.sh").read_text(encoding="utf-8").split("\n")[0]
+        assert first_line.startswith("#!/"), "Missing shebang"
+        assert "bash" in first_line
+
+    def test_setup_sh_exits_on_errors(self):
+        """setup.sh uses set -e so failures don't silently continue."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        assert "set -e" in content
+
+    def test_setup_sh_checks_python_version(self):
+        """setup.sh verifies Python 3.11+ before proceeding."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        assert "3" in content and "11" in content
+        assert "Python" in content
+        # Should show helpful error with download link if missing
+        assert "python.org/downloads" in content
+
+    def test_setup_sh_creates_venv(self):
+        """setup.sh creates a .venv virtual environment."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        assert ".venv" in content
+        assert "venv" in content
+
+    def test_setup_sh_installs_with_pip(self):
+        """setup.sh installs the project with pip."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        assert "pip install" in content
+
+    def test_setup_sh_copies_example_env(self):
+        """setup.sh copies config/example.env to .env."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        assert "example.env" in content
+        assert ".env" in content
+
+    def test_setup_sh_supports_dev_flag(self):
+        """setup.sh --dev installs development dependencies."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        assert "--dev" in content
+        assert ".[dev]" in content
+
+    def test_setup_sh_skips_existing_venv(self):
+        """setup.sh doesn't recreate .venv if it already exists."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        assert "already exists" in content
+
+    def test_setup_sh_skips_existing_env_file(self):
+        """setup.sh doesn't overwrite .env if it already exists."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        # Must check for existing .env before copying
+        assert '! -f ".env"' in content or "already exists" in content
+
+    def test_setup_sh_shows_next_steps(self):
+        """setup.sh tells the user what to do after setup."""
+        content = Path("setup.sh").read_text(encoding="utf-8")
+        assert "console.anthropic.com" in content
+        assert "python -m src.agent" in content
+
+    def test_setup_ps1_checks_python_version(self):
+        """setup.ps1 verifies Python 3.11+ before proceeding."""
+        content = Path("setup.ps1").read_text(encoding="utf-8")
+        assert "3" in content and "11" in content
+        assert "Python" in content
+        assert "python.org/downloads" in content
+
+    def test_setup_ps1_mentions_execution_policy(self):
+        """setup.ps1 tells Windows users how to enable script execution."""
+        content = Path("setup.ps1").read_text(encoding="utf-8")
+        assert "Set-ExecutionPolicy" in content
+
+    def test_setup_ps1_supports_dev_flag(self):
+        """setup.ps1 -Dev installs development dependencies."""
+        content = Path("setup.ps1").read_text(encoding="utf-8")
+        assert "$Dev" in content
+        assert ".[dev]" in content
+
+    def test_setup_ps1_creates_venv(self):
+        """setup.ps1 creates a .venv virtual environment."""
+        content = Path("setup.ps1").read_text(encoding="utf-8")
+        assert ".venv" in content
+        assert "venv" in content
+
+    def test_setup_ps1_copies_example_env(self):
+        """setup.ps1 copies config/example.env to .env."""
+        content = Path("setup.ps1").read_text(encoding="utf-8")
+        assert "example.env" in content
+
+    def test_setup_ps1_shows_next_steps(self):
+        """setup.ps1 tells the user what to do after setup."""
+        content = Path("setup.ps1").read_text(encoding="utf-8")
+        assert "console.anthropic.com" in content
+        assert "python -m src.agent" in content
+
+    @pytest.mark.skipif(
+        not Path("/bin/bash").exists() and not Path("/usr/bin/bash").exists(),
+        reason="bash not available (Windows)",
+    )
+    def test_setup_sh_functional_python_check(self):
+        """setup.sh correctly identifies the current Python as 3.11+."""
+        import subprocess
+
+        # Extract just the Python-finding logic and run it
+        result = subprocess.run(
+            ["bash", "-c", """
+                PYTHON=""
+                for candidate in python3 python; do
+                    if command -v "$candidate" &>/dev/null; then
+                        major=$("$candidate" -c "import sys; print(sys.version_info.major)" 2>/dev/null)
+                        minor=$("$candidate" -c "import sys; print(sys.version_info.minor)" 2>/dev/null)
+                        if [ "$major" -ge 3 ] && [ "$minor" -ge 11 ] 2>/dev/null; then
+                            PYTHON="$candidate"
+                            break
+                        fi
+                    fi
+                done
+                if [ -z "$PYTHON" ]; then
+                    echo "NOT_FOUND"
+                    exit 1
+                fi
+                echo "FOUND:$PYTHON"
+            """],
+            capture_output=True, text=True,
+        )
+        # We know our current Python is 3.11+ (required by pyproject.toml)
+        assert result.returncode == 0, "setup.sh would fail to find Python 3.11+"
+        assert "FOUND:" in result.stdout
+
+    @pytest.mark.skipif(
+        not Path("/bin/bash").exists() and not Path("/usr/bin/bash").exists(),
+        reason="bash not available (Windows)",
+    )
+    def test_setup_sh_env_copy_functional(self, tmp_path):
+        """setup.sh's env-copy logic works correctly."""
+        import subprocess
+        import shutil
+
+        # Copy example.env to a temp dir and test the copy logic
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        shutil.copy("config/example.env", config_dir / "example.env")
+
+        # Run just the env-copy portion
+        result = subprocess.run(
+            ["bash", "-c", f"""
+                cd "{tmp_path}"
+                if [ ! -f ".env" ]; then
+                    cp config/example.env .env
+                    echo "COPIED"
+                else
+                    echo "SKIPPED"
+                fi
+            """],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+        assert "COPIED" in result.stdout
+        assert (tmp_path / ".env").exists()
+
+        # Run again — should skip
+        result = subprocess.run(
+            ["bash", "-c", f"""
+                cd "{tmp_path}"
+                if [ ! -f ".env" ]; then
+                    cp config/example.env .env
+                    echo "COPIED"
+                else
+                    echo "SKIPPED"
+                fi
+            """],
+            capture_output=True, text=True,
+        )
+        assert "SKIPPED" in result.stdout

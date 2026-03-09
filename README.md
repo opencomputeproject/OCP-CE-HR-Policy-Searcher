@@ -11,9 +11,8 @@ Built for the [Open Compute Project](https://www.opencompute.org/) to track glob
 ```bash
 git clone https://github.com/ahliana/ocp-policy-hub.git
 cd ocp-policy-hub
-python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e .
-cp config/example.env .env        # then edit .env and add your API key
+./setup.sh              # Windows: .\setup.ps1
+# edit .env and add your API key
 python -m src.agent
 ```
 
@@ -139,10 +138,10 @@ The **AI agent** is the primary entry point. It uses the Anthropic API's tool us
 ```bash
 git clone https://github.com/ahliana/ocp-policy-hub.git
 cd ocp-policy-hub
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -e .
+./setup.sh              # Windows: .\setup.ps1
 ```
+
+The setup script automatically creates a virtual environment, installs all dependencies, and copies the example `.env` file. On Windows, if you get a script execution error, run `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` first.
 
 ### Configure
 
@@ -815,6 +814,8 @@ curl -X POST http://localhost:8000/api/scans \
 ```
 ocp-policy-hub/
 ├── pyproject.toml              # Dependencies & build config
+├── setup.sh                    # One-command setup (Linux/macOS)
+├── setup.ps1                   # One-command setup (Windows PowerShell)
 ├── config/
 │   ├── domains/                # 63 YAML files defining 275+ domains
 │   │   ├── eu.yaml
@@ -861,7 +862,7 @@ ocp-policy-hub/
 │   │   └── server.py           # MCP server (11 tools, advanced)
 │   └── storage/
 │       └── store.py            # JSON persistence
-├── tests/                      # 295 tests (250 unit + 45 integration)
+├── tests/                      # 327 tests (244 unit + 83 integration)
 │   ├── unit/
 │   │   ├── test_agent.py       # Agent tool + dispatch tests
 │   │   ├── test_api.py         # FastAPI endpoint tests
@@ -892,9 +893,7 @@ ocp-policy-hub/
 ```bash
 git clone https://github.com/ahliana/ocp-policy-hub.git
 cd ocp-policy-hub
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+./setup.sh --dev        # Windows: .\setup.ps1 -Dev
 ```
 
 ### Linting
@@ -907,9 +906,9 @@ ruff format src/
 ### Testing
 
 ```bash
-pytest                    # Run all 295 tests
-pytest tests/unit/        # Unit tests only (248)
-pytest tests/integration/ # Integration tests only (45)
+pytest                    # Run all 327 tests
+pytest tests/unit/        # Unit tests only (244)
+pytest tests/integration/ # Integration tests only (83)
 pytest --cov=src          # With coverage report
 ```
 
