@@ -9,8 +9,10 @@ Built for the [Open Compute Project](https://www.opencompute.org/) to track glob
 ### Try it now
 
 ```bash
+git clone https://github.com/ahliana/ocp-policy-hub.git
+cd ocp-policy-hub
 pip install -e .
-export ANTHROPIC_API_KEY=sk-ant-...
+cp config/example.env .env        # then edit .env and add your API key
 python -m src.agent
 ```
 
@@ -856,7 +858,7 @@ ocp-policy-hub/
 │   │   └── server.py           # MCP server (11 tools, advanced)
 │   └── storage/
 │       └── store.py            # JSON persistence
-├── tests/                      # 293 tests (248 unit + 45 integration)
+├── tests/                      # 295 tests (250 unit + 45 integration)
 │   ├── unit/
 │   │   ├── test_agent.py       # Agent tool + dispatch tests
 │   │   ├── test_api.py         # FastAPI endpoint tests
@@ -900,7 +902,7 @@ ruff format src/
 ### Testing
 
 ```bash
-pytest                    # Run all 293 tests
+pytest                    # Run all 295 tests
 pytest tests/unit/        # Unit tests only (248)
 pytest tests/integration/ # Integration tests only (45)
 pytest --cov=src          # With coverage report
