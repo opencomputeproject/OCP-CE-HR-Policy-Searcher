@@ -167,6 +167,21 @@ class PolicyAgent:
                     tools=self.tools,
                     messages=messages,
                 )
+            except anthropic.AuthenticationError:
+                error_msg = (
+                    "Authentication failed — your API key is invalid.\n"
+                    "\n"
+                    "Quick fix:\n"
+                    "  1. Open your .env file\n"
+                    "  2. Replace the ANTHROPIC_API_KEY value with a real key\n"
+                    "     (it should be ~100+ characters starting with sk-ant-)\n"
+                    "  3. Get a key at: https://console.anthropic.com/\n"
+                    "  4. Restart the agent"
+                )
+                logger.error("Anthropic API authentication failed")
+                if on_text:
+                    on_text(error_msg)
+                return error_msg
             except anthropic.APIError as e:
                 error_msg = f"API error: {e}"
                 logger.error(error_msg)

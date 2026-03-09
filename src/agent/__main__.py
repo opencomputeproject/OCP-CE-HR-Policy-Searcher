@@ -14,7 +14,7 @@ import sys
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)  # .env wins over stale system env vars
 
 
 def _print_banner():
@@ -31,6 +31,7 @@ def _print_banner():
     print('  "How much would it cost to scan all EU domains?"')
     print()
     print("Type 'quit' or 'exit' to stop.")
+    print("Press Ctrl+C to interrupt a running operation.")
     print()
 
 
@@ -61,9 +62,48 @@ def _on_tool_call(name: str, input_data: dict):
 
 
 def _on_tool_result(name: str, result: dict):
-    """Optionally show brief result summaries."""
-    # Keep it minimal — Claude will summarize results
-    pass
+    """Show brief result summaries for key tools."""
+    if not isinstance(result, dict):
+        return
+
+    # Show a one-line summary for tools where the user might be waiting
+    if name == "list_domains" and "count" in result:
+        print(f"  → Found {result['count']} domains")
+    elif name == "start_scan" and "scan_id" in result:
+        print(f"  → Scan {result['scan_id']} started ({result.get('domain_count', '?')} domains)")
+    elif name == "get_scan_status" and "status" in result:
+        progress = result.get("progress", {})
+        done = progress.get("completed", "?")
+        total = progress.get("total", "?")
+        policies = result.get("policy_count", 0)
+        print(f"  → {result['status']}: {done}/{total} domains, {policies} policies found")
+    elif name == "estimate_cost" and "estimated_cost_usd" in result:
+        print(f"  → Estimated cost: ${result['estimated_cost_usd']:.2f} "
+              f"({result.get('domain_count', '?')} domains)")
+    elif name == "search_policies" and "count" in result:
+        print(f"  → {result['count']} policies match")
+    elif name == "match_keywords" and "score" in result:
+        matches = len(result.get("matches", []))
+        print(f"  → Score: {result['score']}, {matches} keyword matches")
+    elif name == "analyze_url":
+        if "error" in result and len(result) == 1:
+            print(f"  → Error: {result['error']}")
+        elif "policy" in result:
+            policy = result["policy"]
+            print(f"  → Found: {policy.get('policy_name', 'policy')} "
+                  f"(relevance: {policy.get('relevance_score', '?')}/10)")
+        elif "keyword_score" in result:
+            print(f"  → Keyword score: {result['keyword_score']} "
+                  f"(threshold not met)" if result["keyword_score"] == 0
+                  else f"  → Keyword score: {result['keyword_score']}")
+    elif name == "web_search":
+        print("  → Search results received")
+    elif name == "add_domain":
+        if result.get("success"):
+            print(f"  → Added domain '{result.get('domain_id', '?')}' "
+                  f"(region: {', '.join(result.get('region', []))})")
+        elif result.get("already_exists"):
+            print(f"  → Domain '{result.get('domain_id', '?')}' already in database")
 
 
 async def _run_interactive(agent):
@@ -83,7 +123,7 @@ async def _run_interactive(agent):
             print("Goodbye!")
             break
 
-        print()
+        print("\n  Thinking...\n")
         try:
             await agent.run(
                 user_input,
@@ -91,6 +131,8 @@ async def _run_interactive(agent):
                 on_tool_call=_on_tool_call,
                 on_tool_result=_on_tool_result,
             )
+        except KeyboardInterrupt:
+            print("\n\n  [Interrupted — ready for next question]\n")
         except Exception as e:
             print(f"\nError: {e}")
         print()
@@ -98,6 +140,7 @@ async def _run_interactive(agent):
 
 async def _run_single(agent, message: str):
     """Run a single command and exit."""
+    print("  Thinking...\n")
     try:
         await agent.run(
             message,
@@ -105,6 +148,9 @@ async def _run_single(agent, message: str):
             on_tool_call=_on_tool_call,
             on_tool_result=_on_tool_result,
         )
+    except KeyboardInterrupt:
+        print("\n\nInterrupted.")
+        sys.exit(130)  # Standard exit code for Ctrl+C
     except Exception as e:
         print(f"\nError: {e}", file=sys.stderr)
         sys.exit(1)
@@ -123,6 +169,16 @@ def main():
         print("Or set it directly in your shell:")
         print("  Linux/macOS:  export ANTHROPIC_API_KEY=sk-ant-...")
         print("  PowerShell:   $env:ANTHROPIC_API_KEY='sk-ant-...'")
+        print()
+        print("Get your key at: https://console.anthropic.com/")
+        sys.exit(1)
+
+    # Catch the common mistake of running with the placeholder key
+    if "your-key-here" in api_key or len(api_key) < 40:
+        print("Error: ANTHROPIC_API_KEY looks like the placeholder value.")
+        print()
+        print("Open .env and replace the key with your real API key.")
+        print("Real keys are 100+ characters starting with 'sk-ant-'.")
         print()
         print("Get your key at: https://console.anthropic.com/")
         sys.exit(1)

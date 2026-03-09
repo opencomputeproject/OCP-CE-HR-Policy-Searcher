@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import domains, scans, policies, analysis, agent
 
-load_dotenv()
+load_dotenv(override=True)  # .env wins over stale system env vars
 
 
 logging.basicConfig(

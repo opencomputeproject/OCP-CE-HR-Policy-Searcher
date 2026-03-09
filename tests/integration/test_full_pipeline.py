@@ -6,6 +6,8 @@ External services (HTTP, Anthropic API, Google Sheets) are mocked, but
 all internal wiring uses real code and real config files.
 """
 
+import asyncio
+import io
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -1096,6 +1098,221 @@ class TestOnboardingFlow:
             r = client.get("/api/domains")
             assert r.status_code == 200
             assert r.json()["count"] > 100
+
+    # ------------------------------------------------------------------
+    # CLI feedback and interrupt handling
+    # ------------------------------------------------------------------
+
+    def test_banner_mentions_ctrl_c(self, capsys):
+        """Banner tells users how to interrupt a running operation."""
+        from src.agent.__main__ import _print_banner
+        _print_banner()
+        output = capsys.readouterr().out
+        assert "Ctrl+C" in output
+
+    def test_banner_mentions_quit(self, capsys):
+        """Banner tells users how to exit the session."""
+        from src.agent.__main__ import _print_banner
+        _print_banner()
+        output = capsys.readouterr().out
+        assert "quit" in output or "exit" in output
+
+    def test_on_tool_call_shows_status(self, capsys):
+        """Tool calls print a status line so the user knows what's happening."""
+        from src.agent.__main__ import _on_tool_call
+        _on_tool_call("list_domains", {"group": "eu"})
+        output = capsys.readouterr().out
+        assert "Browsing available domains" in output
+
+    def test_on_tool_call_shows_scan_details(self, capsys):
+        """start_scan status includes which domains are being scanned."""
+        from src.agent.__main__ import _on_tool_call
+        _on_tool_call("start_scan", {"domains": "nordic"})
+        output = capsys.readouterr().out
+        assert "nordic" in output
+
+    def test_on_tool_call_shows_url(self, capsys):
+        """analyze_url status includes the URL being analyzed."""
+        from src.agent.__main__ import _on_tool_call
+        _on_tool_call("analyze_url", {"url": "https://example.gov/policy"})
+        output = capsys.readouterr().out
+        assert "example.gov" in output
+
+    def test_on_tool_call_unknown_tool(self, capsys):
+        """Unknown tools get a generic status line instead of crashing."""
+        from src.agent.__main__ import _on_tool_call
+        _on_tool_call("some_future_tool", {})
+        output = capsys.readouterr().out
+        assert "some_future_tool" in output
+
+    def test_on_tool_result_list_domains(self, capsys):
+        """list_domains result shows domain count."""
+        from src.agent.__main__ import _on_tool_result
+        _on_tool_result("list_domains", {"count": 42, "domains": []})
+        output = capsys.readouterr().out
+        assert "42" in output
+
+    def test_on_tool_result_start_scan(self, capsys):
+        """start_scan result shows scan ID and domain count."""
+        from src.agent.__main__ import _on_tool_result
+        _on_tool_result("start_scan", {
+            "scan_id": "abc123", "domain_count": 5, "status": "running",
+        })
+        output = capsys.readouterr().out
+        assert "abc123" in output
+        assert "5" in output
+
+    def test_on_tool_result_scan_status(self, capsys):
+        """get_scan_status result shows progress."""
+        from src.agent.__main__ import _on_tool_result
+        _on_tool_result("get_scan_status", {
+            "status": "running",
+            "policy_count": 3,
+            "progress": {"completed": 7, "total": 10},
+        })
+        output = capsys.readouterr().out
+        assert "7/10" in output
+        assert "3 policies" in output
+
+    def test_on_tool_result_estimate_cost(self, capsys):
+        """estimate_cost result shows dollar amount."""
+        from src.agent.__main__ import _on_tool_result
+        _on_tool_result("estimate_cost", {
+            "estimated_cost_usd": 1.23, "domain_count": 10,
+        })
+        output = capsys.readouterr().out
+        assert "$1.23" in output
+
+    def test_on_tool_result_search_policies(self, capsys):
+        """search_policies result shows match count."""
+        from src.agent.__main__ import _on_tool_result
+        _on_tool_result("search_policies", {"count": 5, "policies": []})
+        output = capsys.readouterr().out
+        assert "5" in output
+
+    def test_on_tool_result_analyze_url_with_policy(self, capsys):
+        """analyze_url result shows policy name and relevance."""
+        from src.agent.__main__ import _on_tool_result
+        _on_tool_result("analyze_url", {
+            "url": "https://test.gov/p",
+            "keyword_score": 12,
+            "policy": {"policy_name": "Heat Act", "relevance_score": 9},
+        })
+        output = capsys.readouterr().out
+        assert "Heat Act" in output
+        assert "9" in output
+
+    def test_on_tool_result_no_crash_on_empty(self, capsys):
+        """_on_tool_result handles empty/unexpected results without crashing."""
+        from src.agent.__main__ import _on_tool_result
+        _on_tool_result("list_domains", {})
+        _on_tool_result("unknown_tool", {"random": "data"})
+        _on_tool_result("estimate_cost", "not a dict")
+        # Should not raise — just produce no output
+
+    def test_interactive_ctrl_c_recovers(self):
+        """Ctrl+C during agent.run() prints friendly message, doesn't crash."""
+        from src.agent.__main__ import _run_interactive
+        from unittest.mock import AsyncMock, MagicMock, patch
+        import io
+
+        mock_agent = MagicMock()
+        # First call: user types "test", agent.run raises KeyboardInterrupt
+        # Second call: user types "quit"
+        mock_agent.run = AsyncMock(side_effect=KeyboardInterrupt)
+
+        with patch("builtins.input", side_effect=["test", "quit"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                asyncio.run(_run_interactive(mock_agent))
+                output = mock_stdout.getvalue()
+
+        assert "Interrupted" in output
+        assert "ready for next question" in output
+        # Should NOT contain a traceback
+        assert "Traceback" not in output
+
+    def test_single_mode_ctrl_c_exits_130(self):
+        """Ctrl+C in single-command mode exits with code 130 (standard)."""
+        from src.agent.__main__ import _run_single
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_agent = MagicMock()
+        mock_agent.run = AsyncMock(side_effect=KeyboardInterrupt)
+
+        with pytest.raises(SystemExit) as exc_info:
+            asyncio.run(_run_single(mock_agent, "test query"))
+        assert exc_info.value.code == 130
+
+    def test_thinking_message_shown(self):
+        """User sees 'Thinking...' immediately after submitting a query."""
+        from src.agent.__main__ import _run_interactive
+        from unittest.mock import AsyncMock, MagicMock, patch
+        import io
+
+        mock_agent = MagicMock()
+        mock_agent.run = AsyncMock(return_value="Done")
+
+        with patch("builtins.input", side_effect=["test", "quit"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                asyncio.run(_run_interactive(mock_agent))
+                output = mock_stdout.getvalue()
+
+        assert "Thinking..." in output
+
+    def test_placeholder_key_detected(self):
+        """Agent exits with helpful message if .env still has the placeholder key."""
+        from src.agent.__main__ import main
+
+        with patch.dict(
+            "os.environ",
+            {"ANTHROPIC_API_KEY": "sk-ant-api03-your-key-here"},
+        ):
+            with pytest.raises(SystemExit) as exc_info:
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                    main()
+            assert exc_info.value.code == 1
+            output = mock_stdout.getvalue()
+            assert "placeholder" in output.lower()
+            assert "console.anthropic.com" in output
+
+    def test_short_key_detected(self):
+        """Agent exits with helpful message if API key is suspiciously short."""
+        from src.agent.__main__ import main
+
+        with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "sk-ant-short"}):
+            with pytest.raises(SystemExit) as exc_info:
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                    main()
+            assert exc_info.value.code == 1
+            output = mock_stdout.getvalue()
+            assert "placeholder" in output.lower()
+
+    def test_auth_error_gives_helpful_message(self):
+        """401 from Anthropic shows user-friendly setup instructions, not raw error."""
+        import anthropic
+        from src.agent.orchestrator import PolicyAgent
+
+        agent = PolicyAgent.__new__(PolicyAgent)
+        agent.client = MagicMock()
+        agent.client.messages = MagicMock()
+        agent.client.messages.create = AsyncMock(
+            side_effect=anthropic.AuthenticationError(
+                message="invalid x-api-key",
+                response=MagicMock(status_code=401),
+                body={"error": {"message": "invalid x-api-key"}},
+            )
+        )
+        agent.model = "claude-sonnet-4-20250514"
+        agent.system_prompt = "test"
+        agent.tools = []
+
+        text_output = []
+        result = asyncio.run(
+            agent.run("hello", on_text=lambda t: text_output.append(t))
+        )
+        assert "Authentication failed" in result
+        assert "console.anthropic.com" in result
+        assert "invalid x-api-key" not in result  # No raw error dump
 
     # ------------------------------------------------------------------
     # Setup script tests
