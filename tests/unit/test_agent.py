@@ -1,9 +1,15 @@
 """Tests for the agent tools and orchestrator."""
 
+from unittest.mock import AsyncMock, MagicMock
+
+import anthropic
 import pytest
 
 from src.agent.tools import get_all_tools, execute_tool, POLICY_TOOLS, WEB_SEARCH_TOOL
-from src.agent.orchestrator import _build_system_prompt
+from src.agent.orchestrator import (
+    PolicyAgent, _build_system_prompt, _get_retry_delay,
+    MAX_API_RETRIES, BASE_RETRY_DELAY, MAX_RETRY_DELAY,
+)
 from src.core.config import ConfigLoader
 from src.orchestration.events import EventBroadcaster
 from src.orchestration.scan_manager import ScanManager
@@ -133,3 +139,170 @@ class TestSystemPrompt:
         prompt = _build_system_prompt(config)
         assert "not programmers" in prompt
         assert "plain" in prompt
+
+    def test_polling_guidance_in_prompt(self, config):
+        """System prompt should discourage aggressive polling."""
+        prompt = _build_system_prompt(config)
+        assert "recommended_wait_seconds" in prompt
+        assert "30 seconds" in prompt
+
+
+# --- _get_retry_delay ---
+
+class TestGetRetryDelay:
+    """Test retry delay extraction and exponential backoff."""
+
+    def test_extracts_retry_after_header(self):
+        """Should use retry-after header when present."""
+        error = MagicMock(spec=anthropic.RateLimitError)
+        error.response = MagicMock()
+        error.response.headers = {"retry-after": "15"}
+        delay = _get_retry_delay(error, attempt=1)
+        assert delay == 15.0
+
+    def test_caps_retry_after_at_max(self):
+        """Extremely long retry-after should be capped."""
+        error = MagicMock(spec=anthropic.RateLimitError)
+        error.response = MagicMock()
+        error.response.headers = {"retry-after": "9999"}
+        delay = _get_retry_delay(error, attempt=1)
+        assert delay == MAX_RETRY_DELAY
+
+    def test_backoff_when_no_header(self):
+        """Should use exponential backoff when no retry-after header."""
+        error = MagicMock(spec=anthropic.RateLimitError)
+        error.response = None
+        delay1 = _get_retry_delay(error, attempt=1)
+        delay2 = _get_retry_delay(error, attempt=2)
+        delay3 = _get_retry_delay(error, attempt=3)
+        assert delay1 == BASE_RETRY_DELAY           # 10s
+        assert delay2 == BASE_RETRY_DELAY * 4        # 40s
+        assert delay3 == min(BASE_RETRY_DELAY * 16, MAX_RETRY_DELAY)  # capped
+
+    def test_backoff_with_invalid_header(self):
+        """Should fall back to backoff when header is garbage."""
+        error = MagicMock(spec=anthropic.RateLimitError)
+        error.response = MagicMock()
+        error.response.headers = {"retry-after": "not-a-number"}
+        delay = _get_retry_delay(error, attempt=1)
+        assert delay == BASE_RETRY_DELAY
+
+
+# --- Agent Rate Limit Retry ---
+
+def _make_text_response(text: str):
+    """Create a mock API response with text content and end_turn."""
+    block = MagicMock()
+    block.type = "text"
+    block.text = text
+    response = MagicMock()
+    response.content = [block]
+    response.stop_reason = "end_turn"
+    return response
+
+
+class TestAgentRateLimitRetry:
+    """Test that the agent loop retries on rate limit errors."""
+
+    def _build_agent(self):
+        """Create a PolicyAgent without real API key (for testing)."""
+        agent = PolicyAgent.__new__(PolicyAgent)
+        agent.config = ConfigLoader(config_dir="config")
+        agent.config.load()
+        agent.broadcaster = EventBroadcaster()
+        agent.scan_manager = ScanManager(
+            config=agent.config, broadcaster=agent.broadcaster, data_dir="data",
+        )
+        agent.tools = get_all_tools()
+        agent.system_prompt = "test"
+        agent.model = "test-model"
+        return agent
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_retry_succeeds(self):
+        """Agent should retry on 429 and succeed on second attempt."""
+        agent = self._build_agent()
+
+        rate_error = anthropic.RateLimitError.__new__(anthropic.RateLimitError)
+        rate_error.response = None
+
+        success_response = _make_text_response("Here are the results.")
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(
+            side_effect=[rate_error, success_response]
+        )
+        agent.client = mock_client
+
+        text_output = []
+        result = await agent.run(
+            "test message",
+            on_text=lambda t: text_output.append(t),
+        )
+
+        assert "results" in result
+        assert mock_client.messages.create.call_count == 2
+        # Check that user was notified about the retry
+        assert any("Rate limited" in t or "waiting" in t for t in text_output)
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_retry_exhausted(self):
+        """Agent should return friendly error after exhausting retries."""
+        agent = self._build_agent()
+
+        rate_error = anthropic.RateLimitError.__new__(anthropic.RateLimitError)
+        rate_error.response = None
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(
+            side_effect=[rate_error] * MAX_API_RETRIES
+        )
+        agent.client = mock_client
+
+        result = await agent.run("test message")
+
+        assert "Rate limit exceeded" in result
+        assert "saved" in result.lower() or "search_policies" in result
+        assert mock_client.messages.create.call_count == MAX_API_RETRIES
+
+    @pytest.mark.asyncio
+    async def test_overload_error_retries(self):
+        """Agent should retry on 529 overloaded errors."""
+        agent = self._build_agent()
+
+        # Simulate 529 overload
+        overload_error = anthropic.APIStatusError.__new__(anthropic.APIStatusError)
+        overload_error.status_code = 529
+        overload_error.response = None
+
+        success_response = _make_text_response("Done.")
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(
+            side_effect=[overload_error, success_response]
+        )
+        agent.client = mock_client
+
+        result = await agent.run("test message")
+
+        assert "Done" in result
+        assert mock_client.messages.create.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_auth_error_no_retry(self):
+        """Authentication errors should fail immediately — no retry."""
+        agent = self._build_agent()
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(
+            side_effect=anthropic.AuthenticationError.__new__(
+                anthropic.AuthenticationError
+            )
+        )
+        agent.client = mock_client
+
+        result = await agent.run("test message")
+
+        assert "Authentication failed" in result
+        # Should NOT retry — only 1 call
+        assert mock_client.messages.create.call_count == 1

@@ -298,19 +298,42 @@ async def execute_tool(
             if not job:
                 return {"error": f"Scan '{scan_id}' not found"}
             policies = scan_manager.get_policies(scan_id)
-            return {
+
+            completed = job.progress.completed_domains
+            total = job.progress.total_domains
+
+            result = {
                 "scan_id": job.scan_id,
                 "status": job.status.value,
                 "domain_count": job.domain_count,
                 "policy_count": job.policy_count,
                 "progress": {
-                    "total": job.progress.total_domains,
-                    "completed": job.progress.completed_domains,
+                    "total": total,
+                    "completed": completed,
                     "domains": [dp.model_dump() for dp in job.progress.domains],
                 },
                 "cost": job.cost.model_dump() if job.cost else None,
                 "policies": [p.model_dump(mode="json") for p in policies[:20]],
             }
+
+            # Add smart polling guidance so the agent doesn't burn API calls.
+            # Scans take minutes per domain — frequent polling wastes tokens
+            # and can trigger rate limits.
+            if job.status.value == "running":
+                progress_pct = (completed / total * 100) if total else 100
+                if progress_pct < 25:
+                    wait = 30
+                elif progress_pct < 75:
+                    wait = 45
+                else:
+                    wait = 20  # Close to done, check sooner
+                result["recommended_wait_seconds"] = wait
+                result["hint"] = (
+                    f"Scan is {progress_pct:.0f}% complete. "
+                    f"Wait at least {wait}s before checking again."
+                )
+
+            return result
 
         elif name == "stop_scan":
             success = await scan_manager.stop_scan(arguments["scan_id"])

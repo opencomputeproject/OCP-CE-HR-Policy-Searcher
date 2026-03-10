@@ -19,7 +19,7 @@ This installs all dependencies including dev tools (pytest, ruff).
 3. **Make your changes**
 4. **Run tests and lint**:
    ```bash
-   pytest                    # All 399 tests must pass
+   pytest                    # All 426 tests must pass
    ruff check src/ tests/    # No lint errors
    ```
 5. **Commit** with a clear message (e.g., `feat: add Bulgarian keyword support`)

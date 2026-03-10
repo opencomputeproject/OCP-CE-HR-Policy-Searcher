@@ -5,6 +5,7 @@ hub tools as the MCP server, plus web search and add_domain for
 discovering new government websites.
 """
 
+import asyncio
 import json
 import logging
 from typing import Any, Callable, Optional
@@ -20,6 +21,42 @@ logger = logging.getLogger(__name__)
 
 # Default model for the agent
 DEFAULT_MODEL = "claude-sonnet-4-20250514"
+
+# Rate limit retry configuration for the agent conversation loop.
+# These are separate from the scanner's LLM retry settings (in ClaudeClient)
+# because the agent loop makes different API calls (messages.create with tools)
+# and needs its own backoff strategy.
+MAX_API_RETRIES = 3
+BASE_RETRY_DELAY = 10.0   # seconds — generous because 429 needs real wait time
+MAX_RETRY_DELAY = 120.0   # cap at 2 minutes
+
+
+def _get_retry_delay(error: anthropic.RateLimitError, attempt: int) -> float:
+    """Extract retry-after from API response headers, or use exponential backoff.
+
+    The Anthropic API returns a 'retry-after' header on 429 responses indicating
+    how long to wait. If that header is missing or unparseable, we fall back to
+    exponential backoff: 10s → 40s → 120s (capped).
+
+    Args:
+        error: The RateLimitError from the Anthropic SDK.
+        attempt: Current retry attempt (1-indexed). Used for backoff calculation.
+
+    Returns:
+        Number of seconds to wait before retrying.
+    """
+    # Try to extract retry-after from response headers
+    try:
+        if hasattr(error, "response") and error.response:
+            retry_after = error.response.headers.get("retry-after")
+            if retry_after:
+                return min(float(retry_after), MAX_RETRY_DELAY)
+    except (ValueError, AttributeError):
+        pass
+
+    # Exponential backoff: 10s * (4^(attempt-1)) → 10s, 40s, 120s (capped)
+    delay = BASE_RETRY_DELAY * (4 ** (attempt - 1))
+    return min(delay, MAX_RETRY_DELAY)
 
 
 def _build_system_prompt(config: ConfigLoader) -> str:
@@ -90,8 +127,12 @@ Present results organized by country. Highlight the most important findings \
 first. Explain what each policy means in practical terms. Flag anything that \
 may need manual verification.
 
-When a scan is running, poll get_scan_status every few seconds until it completes. \
-Show the user brief progress updates.
+When a scan is running, use get_scan_status to check progress. The response \
+includes a recommended_wait_seconds field — ALWAYS wait at least that long \
+between checks. Do NOT poll more than once per 30 seconds. Between checks, \
+give the user a brief progress summary. When all domains are complete, show \
+the final results. Results are saved automatically per-domain, so nothing is \
+lost even if the session ends early.
 
 ## DISCOVER New Coverage
 
@@ -118,6 +159,10 @@ Available domain groups: {group_list}
 
 class PolicyAgent:
     """Standalone agent that orchestrates policy scanning via Anthropic API tool use.
+
+    The agent loop handles rate limiting automatically with exponential backoff,
+    retrying up to MAX_API_RETRIES times before giving up. Background scans
+    continue running even if the conversation hits rate limits.
 
     Usage:
         agent = PolicyAgent(api_key="sk-ant-...")
@@ -160,6 +205,10 @@ class PolicyAgent:
     ) -> str:
         """Run the agent loop with a user message.
 
+        Handles rate limiting with automatic retry and exponential backoff.
+        Each API call is retried up to MAX_API_RETRIES times on 429/529
+        errors before returning a friendly error message.
+
         Args:
             user_message: Natural language instruction from the user.
             on_text: Callback for Claude's text output (streaming to CLI/WebSocket).
@@ -178,35 +227,96 @@ class PolicyAgent:
         tools_called: list[str] = []
 
         for iteration in range(max_iterations):
-            try:
-                response = await self.client.messages.create(
-                    model=self.model,
-                    max_tokens=4096,
-                    system=self.system_prompt,
-                    tools=self.tools,
-                    messages=messages,
-                )
-            except anthropic.AuthenticationError:
-                error_msg = (
-                    "Authentication failed — your API key is invalid.\n"
-                    "\n"
-                    "Quick fix:\n"
-                    "  1. Open your .env file\n"
-                    "  2. Replace the ANTHROPIC_API_KEY value with a real key\n"
-                    "     (it should be ~100+ characters starting with sk-ant-)\n"
-                    "  3. Get a key at: https://console.anthropic.com/\n"
-                    "  4. Restart the agent"
-                )
-                logger.error("Anthropic API authentication failed")
-                if on_text:
-                    on_text(error_msg)
-                return error_msg
-            except anthropic.APIError as e:
-                error_msg = f"API error: {e}"
-                logger.error(error_msg)
-                if on_text:
-                    on_text(error_msg)
-                return error_msg
+            # Retry loop for rate limits on this single API call
+            response = None
+            for api_attempt in range(1, MAX_API_RETRIES + 1):
+                try:
+                    response = await self.client.messages.create(
+                        model=self.model,
+                        max_tokens=4096,
+                        system=self.system_prompt,
+                        tools=self.tools,
+                        messages=messages,
+                    )
+                    break  # Success — exit retry loop
+
+                except anthropic.AuthenticationError:
+                    error_msg = (
+                        "Authentication failed — your API key is invalid.\n"
+                        "\n"
+                        "Quick fix:\n"
+                        "  1. Open your .env file\n"
+                        "  2. Replace the ANTHROPIC_API_KEY value with a real key\n"
+                        "     (it should be ~100+ characters starting with sk-ant-)\n"
+                        "  3. Get a key at: https://console.anthropic.com/\n"
+                        "  4. Restart the agent"
+                    )
+                    logger.error("Anthropic API authentication failed")
+                    if on_text:
+                        on_text(error_msg)
+                    return error_msg
+
+                except anthropic.RateLimitError as e:
+                    delay = _get_retry_delay(e, api_attempt)
+                    if api_attempt < MAX_API_RETRIES:
+                        logger.warning(
+                            f"Agent rate limited, retry {api_attempt}/{MAX_API_RETRIES} "
+                            f"in {delay:.0f}s"
+                        )
+                        if on_text:
+                            on_text(
+                                f"\n  ⏳ Rate limited — waiting {delay:.0f}s "
+                                f"before retry ({api_attempt}/{MAX_API_RETRIES})...\n"
+                            )
+                        await asyncio.sleep(delay)
+                    else:
+                        # Exhausted retries — tell user their scan data is safe
+                        error_msg = (
+                            "Rate limit exceeded after retries. "
+                            "Any running scans will continue in the background "
+                            "and results are saved automatically.\n"
+                            "Wait a minute and try again, or check results with: "
+                            "search_policies"
+                        )
+                        logger.error(f"Agent rate limit exhausted after {MAX_API_RETRIES} retries")
+                        if on_text:
+                            on_text(error_msg)
+                        return error_msg
+
+                except anthropic.APIStatusError as e:
+                    # 529 overloaded — retry like rate limit
+                    if e.status_code == 529 and api_attempt < MAX_API_RETRIES:
+                        delay = _get_retry_delay(
+                            anthropic.RateLimitError.__new__(anthropic.RateLimitError),
+                            api_attempt,
+                        )
+                        logger.warning(
+                            f"API overloaded (529), retry {api_attempt}/{MAX_API_RETRIES} "
+                            f"in {delay:.0f}s"
+                        )
+                        if on_text:
+                            on_text(
+                                f"\n  ⏳ API overloaded — waiting {delay:.0f}s "
+                                f"before retry...\n"
+                            )
+                        await asyncio.sleep(delay)
+                    else:
+                        error_msg = f"API error: {e}"
+                        logger.error(error_msg)
+                        if on_text:
+                            on_text(error_msg)
+                        return error_msg
+
+                except anthropic.APIError as e:
+                    error_msg = f"API error: {e}"
+                    logger.error(error_msg)
+                    if on_text:
+                        on_text(error_msg)
+                    return error_msg
+
+            if response is None:
+                # Should not happen, but defensive
+                return "Failed to get API response after retries."
 
             # Process response content blocks
             text_parts: list[str] = []

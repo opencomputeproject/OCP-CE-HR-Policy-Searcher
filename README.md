@@ -45,10 +45,12 @@ Found 3 policies:
 - [Key Features](#key-features)
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
+- [CLI Reference](#cli-reference) — every mode and flag
+- [AI Agent](#ai-agent)
+- [Data Persistence](#data-persistence) — where results are stored, crash recovery
 - [**⚙️ Configuration**](#configuration) — all the knobs you can tweak
 - [Domain Groups](#domain-groups)
 - [Keyword System](#keyword-system)
-- [AI Agent](#ai-agent)
 - [Running the Server](#running-the-server)
 - [API Reference](#api-reference)
 - [WebSocket Events](#websocket-events)
@@ -93,6 +95,7 @@ Found 3 policies:
 | PolicyAgent      |             | FastAPI Server    |
 | (Anthropic API   |             | /api/...          |
 |  tool use loop)  |             |                   |
+| Rate limit retry |             |                   |
 +---------|--------+             +--------|----------+
           |                               |
           +----------- SHARED -----------+
@@ -113,15 +116,18 @@ Found 3 policies:
        Per-domain pipeline (deterministic):
        crawl -> extract -> url_filter -> keywords
        -> cache_check -> haiku_screen -> sonnet_analyze
-       -> verify
+       -> verify -> PolicyStore.save()  ← per-domain persistence
                     |
                     v
              +------|------+
              |  POST-SCAN  |
              | Verifier    |  (deterministic)
              | Auditor     |  (1 LLM call)
-             | Store       |  (JSON persistence)
+             | Sheets      |  (Google Sheets export)
              +-------------+
+                    |
+                    v
+           data/policies.json     (crash-resilient)
 ```
 
 The **AI agent** is the primary entry point. It uses the Anthropic API's tool use feature to orchestrate 13 tools (11 policy tools + web search + add domain) in a conversation loop. Users ask questions in natural language and the agent handles everything — including discovering new government websites via web search.
@@ -185,6 +191,40 @@ Open [http://localhost:8000/docs](http://localhost:8000/docs) for the interactiv
 
 ---
 
+## CLI Reference
+
+All agent modes and flags at a glance:
+
+| Command | Description |
+|---------|-------------|
+| `python -m src.agent` | Interactive mode — chat with the agent |
+| `python -m src.agent "message"` | Single command — run one query and exit |
+| `python -m src.agent --discover Poland` | Discover mode — find government websites for a country |
+| `python -m src.agent --deep` | Deep scanning mode — wider/deeper crawling (combine with any mode) |
+| `python -m src.agent --deep --discover Japan` | Deep discovery — combine flags |
+
+### Deep Scanning Mode
+
+The `--deep` flag overrides default settings for more thorough scanning at higher cost (~3-4x):
+
+| Setting | Default | With `--deep` | Effect |
+|---------|---------|--------------|--------|
+| `max_depth` | 3 | 5 | Follow links 5 levels deep instead of 3 |
+| `max_pages_per_domain` | 200 | 500 | Crawl up to 500 pages per site |
+| `min_keyword_score` | 3.0 | 2.0 | Lower threshold catches more marginal pages |
+
+Use `--deep` when you want to cast a wider net for policies that might be buried deeper in government websites. The tradeoff is higher API costs and longer scan times.
+
+```bash
+# Deep scan of Nordic countries
+python -m src.agent --deep "Scan Nordic countries for new policies"
+
+# Deep discovery of a new country
+python -m src.agent --deep --discover "Czech Republic"
+```
+
+---
+
 ## AI Agent
 
 The AI agent is the primary way to interact with OCP Policy Hub. It uses natural language — no need to learn API endpoints or write code.
@@ -206,7 +246,7 @@ Try asking:
   "Scan Nordic countries for new policies"
   "How much would it cost to scan all EU domains?"
 
-Type 'quit' to exit.
+Type 'quit' to exit. Press Ctrl+C to interrupt a running operation.
 
 You: _
 ```
@@ -319,6 +359,48 @@ ws.onmessage = (event) => {
 | `estimate_cost` | Predict API costs before scanning |
 | `web_search` | Search the web for new government websites |
 | `add_domain` | Add a discovered website to the database permanently |
+
+---
+
+## Data Persistence
+
+Results are saved automatically and survive crashes, network errors, and rate limit interruptions.
+
+### Where Results Are Stored
+
+| Location | Contents | Written When |
+|----------|----------|-------------|
+| `data/policies.json` | All discovered policies (deduplicated by URL) | After each domain completes scanning |
+| `data/url_cache.json` | Cached URLs with 30-day TTL | Periodically during scan + at scan end |
+| Google Sheets (if configured) | Policies exported to staging sheet | At scan completion |
+
+### Crash Recovery
+
+Policies are saved to `data/policies.json` **per-domain** as each domain finishes scanning — not at the end of the full scan. This means:
+
+- If the process crashes at 9/12 domains, the first 9 domains' policies are safe on disk
+- If a rate limit error interrupts the agent conversation, background scans continue running
+- You can always check what was found with `search_policies` or by reading `data/policies.json`
+- Google Sheets export runs at scan completion as a second layer of persistence
+
+### Rate Limit Handling
+
+The agent automatically retries on Anthropic API rate limits (429) and overload errors (529):
+
+- Up to 3 retries with exponential backoff (10s → 40s → 120s)
+- Uses the `retry-after` header from the API when available
+- Shows a friendly "waiting..." message during retries
+- If all retries are exhausted, returns a helpful error message reminding you that scan data is saved
+
+### Smart Polling
+
+During scans, the agent uses adaptive polling intervals to avoid burning API calls:
+
+| Scan Progress | Wait Between Checks |
+|--------------|-------------------|
+| < 25% complete | 30 seconds |
+| 25-75% complete | 45 seconds |
+| > 75% complete | 20 seconds |
 
 ---
 
@@ -616,6 +698,31 @@ Controls which URLs are crawled and analyzed:
 - **`skip_extensions`** — File types never fetched: `.pdf`, `.jpg`, `.css`, `.js`, `.zip`, etc.
 - **`domain_overrides`** — Per-domain skip rules
 
+### Tuning for Deeper Scanning
+
+If the default settings miss policies buried deep in government websites, you can adjust three key knobs. Here's what each does and the cost tradeoff:
+
+| Setting | Default | Wider Net | Effect | Cost Impact |
+|---------|---------|-----------|--------|------------|
+| `crawl.max_depth` | 3 | 5 | Follow links deeper into sites | ~2x more pages |
+| `crawl.max_pages_per_domain` | 200 | 500 | Crawl more pages per domain | ~2.5x more pages |
+| `analysis.min_keyword_score` | 3.0 | 2.0 | Lower relevance threshold | ~2x more LLM calls |
+
+**Quick way:** Use `python -m src.agent --deep` to temporarily apply all three overrides for a single session.
+
+**Permanent change:** Edit `config/settings.yaml` directly:
+
+```yaml
+crawl:
+  max_depth: 5              # was 3
+  max_pages_per_domain: 500  # was 200
+
+analysis:
+  min_keyword_score: 2.0    # was 3.0
+```
+
+**Cost estimate:** A full scan of all 300+ domains at default settings costs ~$3.50. With `--deep`, expect ~$10-15. Use `estimate_cost` before scanning to check.
+
 ### Domain Configuration (config/domains/*.yaml)
 
 Each domain YAML defines crawl targets:
@@ -857,7 +964,7 @@ ocp-policy-hub/
 ├── src/
 │   ├── agent/                  # AI agent (primary entry point)
 │   │   ├── __main__.py         # CLI: python -m src.agent
-│   │   ├── orchestrator.py     # Agent loop (Anthropic API tool use)
+│   │   ├── orchestrator.py     # Agent loop (Anthropic API tool use + rate limit retry)
 │   │   ├── tools.py            # 13 tool definitions + dispatch
 │   │   └── domain_generator.py # Auto-generate domain YAML from URLs
 │   ├── core/                   # Shared business logic
@@ -871,7 +978,7 @@ ocp-policy-hub/
 │   │   ├── scanner.py          # Single-domain pipeline
 │   │   └── verifier.py         # Deterministic validation
 │   ├── orchestration/          # Parallel scan management
-│   │   ├── scan_manager.py     # Job dispatch & progress tracking
+│   │   ├── scan_manager.py     # Job dispatch, progress tracking, per-domain persistence
 │   │   ├── auditor.py          # Post-scan LLM advisory
 │   │   └── events.py           # WebSocket broadcasting
 │   ├── api/                    # FastAPI REST API
@@ -889,7 +996,7 @@ ocp-policy-hub/
 │   │   └── server.py           # MCP server (11 tools, advanced)
 │   └── storage/
 │       └── store.py            # JSON persistence
-├── tests/                      # 399 tests (290 unit + 109 integration)
+├── tests/                      # 426 tests (296 unit + 130 integration)
 │   ├── unit/
 │   │   ├── test_agent.py       # Agent tool + dispatch tests
 │   │   ├── test_api.py         # FastAPI endpoint tests
@@ -934,9 +1041,9 @@ ruff format src/
 ### Testing
 
 ```bash
-pytest                    # Run all 399 tests
-pytest tests/unit/        # Unit tests only (280)
-pytest tests/integration/ # Integration tests only (109)
+pytest                    # Run all 426 tests
+pytest tests/unit/        # Unit tests only (296)
+pytest tests/integration/ # Integration tests only (130)
 pytest --cov=src          # With coverage report
 ```
 
@@ -1064,7 +1171,7 @@ Contributions are welcome! See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the fu
 
 - Step-by-step instructions for adding a new country or region
 - Code style expectations (ruff, type hints, Pydantic models)
-- How to run the 399-test suite and lint checks
+- How to run the 426-test suite and lint checks
 - Domain YAML format template
 - PR checklist
 
@@ -1074,7 +1181,7 @@ Contributions are welcome! See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the fu
 git clone https://github.com/ahliana/ocp-policy-hub.git
 cd ocp-policy-hub
 .\setup.ps1 -Dev        # Linux/macOS: ./setup.sh --dev
-pytest                   # All 399 tests must pass
+pytest                   # All 426 tests must pass
 ruff check src/ tests/   # No lint errors
 ```
 

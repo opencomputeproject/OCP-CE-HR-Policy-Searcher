@@ -1,9 +1,15 @@
-"""Parallel scan manager — dispatches domain workers, tracks progress, broadcasts events."""
+"""Parallel scan manager — dispatches domain workers, tracks progress, broadcasts events.
+
+Policies are persisted to data/policies.json as each domain completes, so
+results survive crashes even if the full scan hasn't finished. Google Sheets
+export and auditor still run at scan completion as a second layer.
+"""
 
 import asyncio
 import logging
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 from ..core.cache import URLCache
@@ -18,6 +24,7 @@ from ..core.models import (
 )
 from ..core.scanner import DomainScanner
 from ..core.verifier import Verifier
+from ..storage.store import PolicyStore
 from .auditor import Auditor
 from .events import EventBroadcaster
 
@@ -144,11 +151,16 @@ class ScanManager:
         # Shared resources
         settings = self.config.settings
         cache = URLCache.load(
-            cache_path=__import__("pathlib").Path(self.data_dir) / "url_cache.json"
+            cache_path=Path(self.data_dir) / "url_cache.json"
         )
         extractor = HtmlExtractor(settings.config_dir)
         keyword_matcher = KeywordMatcher(self.config.keywords_config)
         verifier = Verifier()
+
+        # Per-domain persistence — saves policies to data/policies.json as each
+        # domain completes, so results survive crashes. Uses atomic writes and
+        # deduplication by URL.
+        store = PolicyStore(data_dir=self.data_dir)
 
         llm_client = None
         if not skip_llm and self.api_key:
@@ -205,6 +217,22 @@ class ScanManager:
                             break
 
                     job.progress.completed_domains += 1
+
+                    # Persist policies immediately so they survive crashes.
+                    # PolicyStore.add_policies deduplicates by URL and saves
+                    # atomically to data/policies.json.
+                    if policies:
+                        try:
+                            store.add_policies(policies)
+                        except Exception as persist_err:
+                            logger.error(
+                                f"Failed to persist {len(policies)} policies "
+                                f"from {domain['id']}: {persist_err}"
+                            )
+                        # Update in-memory list and job count incrementally
+                        self._policies[scan_id].extend(policies)
+                        job.policy_count += len(policies)
+
                     return policies
 
                 except Exception as e:
@@ -221,16 +249,16 @@ class ScanManager:
                     await crawler.close()
 
         try:
-            # Run all domains in parallel (bounded by semaphore)
+            # Run all domains in parallel (bounded by semaphore).
+            # Policies are saved per-domain inside scan_domain() so they
+            # survive crashes. We still await all tasks to completion.
             tasks = [scan_domain(d) for d in domains]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+            await asyncio.gather(*tasks, return_exceptions=True)
 
-            all_policies = []
-            for result in results:
-                if isinstance(result, list):
-                    all_policies.extend(result)
+            # All policies were collected in self._policies[scan_id] above
+            all_policies = self._policies.get(scan_id, [])
 
-            self._policies[scan_id] = all_policies
+            # Reconcile policy_count in case any race condition
             job.policy_count = len(all_policies)
 
             # Update LLM cost

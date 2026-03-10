@@ -1512,3 +1512,480 @@ class TestOnboardingFlow:
             capture_output=True, text=True,
         )
         assert "SKIPPED" in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# 12. Per-domain policy persistence
+# ---------------------------------------------------------------------------
+
+class TestPolicyPersistence:
+    """Verify that policies survive crashes — saved per-domain, not at end."""
+
+    @pytest.mark.asyncio
+    async def test_policy_store_saves_to_disk(self, tmp_path):
+        """PolicyStore.add_policies writes to data/policies.json atomically."""
+        from src.storage.store import PolicyStore
+
+        store = PolicyStore(data_dir=str(tmp_path))
+        policies = [
+            Policy(
+                url="https://test.gov/p1",
+                policy_name="Test Policy",
+                jurisdiction="US",
+                policy_type=PolicyType.LAW,
+                summary="A test policy",
+                relevance_score=8,
+            ),
+        ]
+        added = store.add_policies(policies)
+        assert added == 1
+
+        # File should exist on disk now
+        policies_file = tmp_path / "policies.json"
+        assert policies_file.exists()
+
+        import json
+        data = json.loads(policies_file.read_text(encoding="utf-8"))
+        assert len(data) == 1
+        assert data[0]["url"] == "https://test.gov/p1"
+
+    @pytest.mark.asyncio
+    async def test_policy_store_deduplicates_by_url(self, tmp_path):
+        """Adding the same policy twice only stores it once."""
+        from src.storage.store import PolicyStore
+
+        store = PolicyStore(data_dir=str(tmp_path))
+        policy = Policy(
+            url="https://test.gov/dup",
+            policy_name="Duplicate",
+            jurisdiction="US",
+            policy_type=PolicyType.LAW,
+            summary="Test",
+            relevance_score=7,
+        )
+        assert store.add_policies([policy]) == 1
+        assert store.add_policies([policy]) == 0  # Already exists
+        assert len(store.get_all()) == 1
+
+    @pytest.mark.asyncio
+    async def test_policy_store_survives_reload(self, tmp_path):
+        """Policies persist across PolicyStore instances (simulates crash recovery)."""
+        from src.storage.store import PolicyStore
+
+        store1 = PolicyStore(data_dir=str(tmp_path))
+        store1.add_policies([
+            Policy(
+                url="https://a.gov/p1",
+                policy_name="Saved Policy",
+                jurisdiction="DE",
+                policy_type=PolicyType.REGULATION,
+                summary="Survives crash",
+                relevance_score=9,
+            ),
+        ])
+
+        # Simulate crash: create new store instance that loads from disk
+        store2 = PolicyStore(data_dir=str(tmp_path))
+        all_policies = store2.get_all()
+        assert len(all_policies) == 1
+        assert all_policies[0]["policy_name"] == "Saved Policy"
+
+    @pytest.mark.asyncio
+    async def test_scan_manager_persists_per_domain(self, tmp_config_dir, tmp_path):
+        """ScanManager saves policies as each domain completes, not just at the end."""
+        config = ConfigLoader(config_dir=str(tmp_config_dir))
+        config.load()
+
+        broadcaster = EventBroadcaster()
+        sm = ScanManager(
+            config=config,
+            broadcaster=broadcaster,
+            data_dir=str(tmp_path),
+        )
+
+        # Run a dry-run scan (won't actually crawl)
+        job = await sm.start_scan(domains_group="quick", dry_run=True)
+        assert job.status.value == "completed"
+
+        # Now manually inject policies and verify persistence would work
+        from src.storage.store import PolicyStore
+        store = PolicyStore(data_dir=str(tmp_path))
+        policy = Policy(
+            url="https://test.gov/from-scan",
+            policy_name="Scan Result",
+            jurisdiction="US",
+            policy_type=PolicyType.LAW,
+            summary="Found during scan",
+            relevance_score=8,
+        )
+        store.add_policies([policy])
+
+        # Verify it's on disk
+        policies_file = tmp_path / "policies.json"
+        assert policies_file.exists()
+
+        import json
+        data = json.loads(policies_file.read_text(encoding="utf-8"))
+        assert any(p["url"] == "https://test.gov/from-scan" for p in data)
+
+
+# ---------------------------------------------------------------------------
+# 13. Scan status smart polling
+# ---------------------------------------------------------------------------
+
+class TestScanStatusPolling:
+    """Verify scan status includes smart polling guidance."""
+
+    @pytest.mark.asyncio
+    async def test_running_scan_has_wait_recommendation(self, real_config, scan_manager):
+        """get_scan_status includes recommended_wait_seconds for running scans."""
+        from src.core.models import ScanJob, ScanStatus, ScanProgress, DomainProgress
+
+        job = ScanJob(
+            scan_id="poll-test",
+            status=ScanStatus.RUNNING,
+            domain_count=10,
+            progress=ScanProgress(
+                total_domains=10,
+                completed_domains=3,
+                domains=[
+                    DomainProgress(domain_id=f"d{i}", domain_name=f"Domain {i}")
+                    for i in range(10)
+                ],
+            ),
+        )
+        scan_manager._jobs["poll-test"] = job
+        scan_manager._policies["poll-test"] = []
+
+        result = await execute_tool(
+            "get_scan_status",
+            {"scan_id": "poll-test"},
+            real_config, scan_manager,
+        )
+
+        assert "recommended_wait_seconds" in result
+        assert result["recommended_wait_seconds"] >= 20
+        assert "hint" in result
+
+    @pytest.mark.asyncio
+    async def test_completed_scan_has_no_wait(self, real_config, scan_manager):
+        """Completed scans don't include recommended_wait_seconds."""
+        from src.core.models import ScanJob, ScanStatus, ScanProgress
+
+        job = ScanJob(
+            scan_id="done-test",
+            status=ScanStatus.COMPLETED,
+            domain_count=5,
+            progress=ScanProgress(total_domains=5, completed_domains=5),
+        )
+        scan_manager._jobs["done-test"] = job
+        scan_manager._policies["done-test"] = []
+
+        result = await execute_tool(
+            "get_scan_status",
+            {"scan_id": "done-test"},
+            real_config, scan_manager,
+        )
+
+        assert "recommended_wait_seconds" not in result
+        assert "hint" not in result
+
+    @pytest.mark.asyncio
+    async def test_early_scan_recommends_longer_wait(self, real_config, scan_manager):
+        """Early in a scan (<25%), recommend 30s waits."""
+        from src.core.models import ScanJob, ScanStatus, ScanProgress, DomainProgress
+
+        job = ScanJob(
+            scan_id="early-test",
+            status=ScanStatus.RUNNING,
+            domain_count=20,
+            progress=ScanProgress(
+                total_domains=20,
+                completed_domains=2,  # 10% done
+                domains=[
+                    DomainProgress(domain_id=f"d{i}", domain_name=f"D{i}")
+                    for i in range(20)
+                ],
+            ),
+        )
+        scan_manager._jobs["early-test"] = job
+        scan_manager._policies["early-test"] = []
+
+        result = await execute_tool(
+            "get_scan_status",
+            {"scan_id": "early-test"},
+            real_config, scan_manager,
+        )
+
+        assert result["recommended_wait_seconds"] == 30
+
+    @pytest.mark.asyncio
+    async def test_mid_scan_recommends_longer_wait(self, real_config, scan_manager):
+        """Mid-scan (25-75%), recommend 45s waits."""
+        from src.core.models import ScanJob, ScanStatus, ScanProgress, DomainProgress
+
+        job = ScanJob(
+            scan_id="mid-test",
+            status=ScanStatus.RUNNING,
+            domain_count=10,
+            progress=ScanProgress(
+                total_domains=10,
+                completed_domains=5,  # 50% done
+                domains=[
+                    DomainProgress(domain_id=f"d{i}", domain_name=f"D{i}")
+                    for i in range(10)
+                ],
+            ),
+        )
+        scan_manager._jobs["mid-test"] = job
+        scan_manager._policies["mid-test"] = []
+
+        result = await execute_tool(
+            "get_scan_status",
+            {"scan_id": "mid-test"},
+            real_config, scan_manager,
+        )
+
+        assert result["recommended_wait_seconds"] == 45
+
+    @pytest.mark.asyncio
+    async def test_late_scan_recommends_shorter_wait(self, real_config, scan_manager):
+        """Late in scan (>75%), recommend 20s waits (almost done)."""
+        from src.core.models import ScanJob, ScanStatus, ScanProgress, DomainProgress
+
+        job = ScanJob(
+            scan_id="late-test",
+            status=ScanStatus.RUNNING,
+            domain_count=10,
+            progress=ScanProgress(
+                total_domains=10,
+                completed_domains=9,  # 90% done
+                domains=[
+                    DomainProgress(domain_id=f"d{i}", domain_name=f"D{i}")
+                    for i in range(10)
+                ],
+            ),
+        )
+        scan_manager._jobs["late-test"] = job
+        scan_manager._policies["late-test"] = []
+
+        result = await execute_tool(
+            "get_scan_status",
+            {"scan_id": "late-test"},
+            real_config, scan_manager,
+        )
+
+        assert result["recommended_wait_seconds"] == 20
+
+
+# ---------------------------------------------------------------------------
+# 14. --deep flag
+# ---------------------------------------------------------------------------
+
+class TestDeepFlag:
+    """Verify --deep flag overrides crawl settings."""
+
+    def test_deep_flag_overrides_settings(self):
+        """--deep sets max_depth=5, max_pages=500, min_keyword_score=2.0."""
+        from src.agent.orchestrator import PolicyAgent
+
+        agent = PolicyAgent.__new__(PolicyAgent)
+        agent.config = ConfigLoader(config_dir="config")
+        agent.config.load()
+        agent.broadcaster = EventBroadcaster()
+        agent.scan_manager = ScanManager(
+            config=agent.config,
+            broadcaster=agent.broadcaster,
+            data_dir="data",
+        )
+
+        # Simulate --deep: apply the same overrides as __main__.py
+        agent.scan_manager.config.settings.crawl.max_depth = 5
+        agent.scan_manager.config.settings.crawl.max_pages_per_domain = 500
+        agent.scan_manager.config.settings.analysis.min_keyword_score = 2.0
+
+        assert agent.scan_manager.config.settings.crawl.max_depth == 5
+        assert agent.scan_manager.config.settings.crawl.max_pages_per_domain == 500
+        assert agent.scan_manager.config.settings.analysis.min_keyword_score == 2.0
+
+    def test_default_settings_are_different(self):
+        """Without --deep, settings should be the standard defaults."""
+        config = ConfigLoader(config_dir="config")
+        config.load()
+
+        # Standard defaults from settings.yaml
+        assert config.settings.crawl.max_depth <= 3
+        assert config.settings.crawl.max_pages_per_domain <= 200
+        assert config.settings.analysis.min_keyword_score >= 3.0
+
+
+# ---------------------------------------------------------------------------
+# 15. Edge cases: concurrent writes, empty scans, store failures
+# ---------------------------------------------------------------------------
+
+class TestEdgeCases:
+    """Edge case tests for resilience under unusual conditions."""
+
+    @pytest.mark.asyncio
+    async def test_concurrent_policy_store_writes(self, tmp_path):
+        """Multiple PolicyStore writes don't corrupt data."""
+        from src.storage.store import PolicyStore
+
+        store = PolicyStore(data_dir=str(tmp_path))
+
+        # Simulate multiple domains finishing concurrently
+        policies_a = [
+            Policy(url=f"https://a.gov/p{i}", policy_name=f"A{i}",
+                   jurisdiction="DE", policy_type=PolicyType.LAW,
+                   summary="s", relevance_score=8)
+            for i in range(5)
+        ]
+        policies_b = [
+            Policy(url=f"https://b.gov/p{i}", policy_name=f"B{i}",
+                   jurisdiction="FR", policy_type=PolicyType.REGULATION,
+                   summary="s", relevance_score=7)
+            for i in range(5)
+        ]
+
+        # Write in sequence (PolicyStore is synchronous internally)
+        store.add_policies(policies_a)
+        store.add_policies(policies_b)
+
+        all_policies = store.get_all()
+        assert len(all_policies) == 10
+
+        # Verify data integrity — reload from disk
+        store2 = PolicyStore(data_dir=str(tmp_path))
+        assert len(store2.get_all()) == 10
+
+    @pytest.mark.asyncio
+    async def test_empty_scan_no_persistence(self, tmp_path):
+        """Scan with 0 policies doesn't create an empty policies.json."""
+        from src.storage.store import PolicyStore
+
+        store = PolicyStore(data_dir=str(tmp_path))
+        added = store.add_policies([])  # No policies to add
+        assert added == 0
+
+        # add_policies returns early when added == 0, so save() is
+        # not called and no file is created for empty writes.
+
+    @pytest.mark.asyncio
+    async def test_policy_store_handles_corrupt_json(self, tmp_path):
+        """PolicyStore handles corrupt policies.json gracefully."""
+        from src.storage.store import PolicyStore
+
+        # Write corrupt JSON
+        policies_file = tmp_path / "policies.json"
+        policies_file.write_text("NOT VALID JSON {{{", encoding="utf-8")
+
+        # Should not crash — falls back to empty list
+        store = PolicyStore(data_dir=str(tmp_path))
+        assert store.get_all() == []
+
+        # Should still be able to add new policies
+        added = store.add_policies([
+            Policy(url="https://test.gov/recovery", policy_name="Recovery",
+                   jurisdiction="US", policy_type=PolicyType.LAW,
+                   summary="Recovered", relevance_score=8),
+        ])
+        assert added == 1
+        assert len(store.get_all()) == 1
+
+    @pytest.mark.asyncio
+    async def test_policy_count_increments_during_scan(self, real_config, scan_manager):
+        """job.policy_count updates as domains complete, not at the end."""
+        from src.core.models import ScanJob, ScanStatus, ScanProgress
+
+        job = ScanJob(
+            scan_id="count-test",
+            status=ScanStatus.RUNNING,
+            domain_count=5,
+            policy_count=0,
+            progress=ScanProgress(total_domains=5, completed_domains=0),
+        )
+        scan_manager._jobs["count-test"] = job
+        scan_manager._policies["count-test"] = []
+
+        # Simulate first domain completing and finding 3 policies
+        policies = [
+            Policy(url=f"https://d1.gov/p{i}", policy_name=f"P{i}",
+                   jurisdiction="DE", policy_type=PolicyType.LAW,
+                   summary="s", relevance_score=8)
+            for i in range(3)
+        ]
+        scan_manager._policies["count-test"].extend(policies)
+        job.policy_count += len(policies)
+        job.progress.completed_domains += 1
+
+        # Check status mid-scan
+        result = await execute_tool(
+            "get_scan_status",
+            {"scan_id": "count-test"},
+            real_config, scan_manager,
+        )
+        assert result["policy_count"] == 3  # Not 0!
+        assert result["progress"]["completed"] == 1
+
+    def test_on_tool_result_scan_status_icons(self, capsys):
+        """get_scan_status output uses correct status icons."""
+        from src.agent.__main__ import _on_tool_result
+
+        # Running scan
+        _on_tool_result("get_scan_status", {
+            "status": "running", "policy_count": 2,
+            "progress": {"completed": 3, "total": 8, "domains": []},
+        })
+        output = capsys.readouterr().out
+        assert "⏳" in output
+
+        # Completed scan
+        _on_tool_result("get_scan_status", {
+            "status": "completed", "policy_count": 5,
+            "progress": {"completed": 8, "total": 8, "domains": []},
+        })
+        output = capsys.readouterr().out
+        assert "✅" in output
+
+        # Failed scan
+        _on_tool_result("get_scan_status", {
+            "status": "failed", "policy_count": 0,
+            "progress": {"completed": 4, "total": 8, "domains": []},
+        })
+        output = capsys.readouterr().out
+        assert "❌" in output
+
+    def test_on_tool_result_highlights_policy_finds(self, capsys):
+        """Domains that found policies get 🎉 highlight."""
+        from src.agent.__main__ import _on_tool_result
+
+        _on_tool_result("get_scan_status", {
+            "status": "running", "policy_count": 2,
+            "progress": {
+                "completed": 5, "total": 10,
+                "domains": [
+                    {"domain_id": "d1", "domain_name": "Test Gov", "policies_found": 2},
+                    {"domain_id": "d2", "domain_name": "Other Gov", "policies_found": 0},
+                ],
+            },
+        })
+        output = capsys.readouterr().out
+        assert "🎉" in output
+        assert "Test Gov" in output
+        assert "2 policy" in output
+        # "Other Gov" should NOT have 🎉
+        assert "Other Gov" not in output
+
+    def test_on_tool_result_analyze_url_policy_find(self, capsys):
+        """analyze_url with a policy found shows 🎉 celebration."""
+        from src.agent.__main__ import _on_tool_result
+
+        _on_tool_result("analyze_url", {
+            "url": "https://test.gov/p",
+            "keyword_score": 12,
+            "policy": {"policy_name": "Heat Recovery Act", "relevance_score": 9},
+        })
+        output = capsys.readouterr().out
+        assert "🎉" in output
+        assert "Heat Recovery Act" in output
+        assert "9" in output

@@ -6,6 +6,12 @@ Usage:
 
     # Single command
     python -m src.agent "Find heat reuse policies in Germany"
+
+    # Discover new coverage for a country
+    python -m src.agent --discover Poland
+
+    # Deep scanning mode (more pages, wider keyword match)
+    python -m src.agent --deep
 """
 
 import asyncio
@@ -18,6 +24,7 @@ load_dotenv(override=True)  # .env wins over stale system env vars
 
 
 def _print_banner():
+    """Print the welcome banner for interactive mode."""
     print()
     print("OCP Policy Hub Agent")
     print("=" * 40)
@@ -61,49 +68,87 @@ def _on_tool_call(name: str, input_data: dict):
     print(f"\n  [{status}]\n")
 
 
-def _on_tool_result(name: str, result: dict):
-    """Show brief result summaries for key tools."""
+def _on_tool_result(name: str, result):
+    """Show brief result summaries for key tools.
+
+    Uses emoji icons to make important events (policy finds, scan progress)
+    visually distinct from routine status updates.
+    """
     if not isinstance(result, dict):
         return
 
     # Show a one-line summary for tools where the user might be waiting
     if name == "list_domains" and "count" in result:
         print(f"  → Found {result['count']} domains")
+
     elif name == "start_scan" and "scan_id" in result:
-        print(f"  → Scan {result['scan_id']} started ({result.get('domain_count', '?')} domains)")
+        print(f"  → Scan {result['scan_id']} started "
+              f"({result.get('domain_count', '?')} domains)")
+
     elif name == "get_scan_status" and "status" in result:
         progress = result.get("progress", {})
         done = progress.get("completed", "?")
         total = progress.get("total", "?")
         policies = result.get("policy_count", 0)
-        print(f"  → {result['status']}: {done}/{total} domains, {policies} policies found")
+
+        # Status icon: running vs completed
+        if result["status"] == "running":
+            icon = "⏳"
+        elif result["status"] == "completed":
+            icon = "✅"
+        elif result["status"] == "failed":
+            icon = "❌"
+        else:
+            icon = "→"
+
+        print(f"  {icon} {result['status']}: {done}/{total} domains, "
+              f"{policies} policies found")
+
+        # Highlight individual domains that found policies — these are
+        # rare and important, so make them visually prominent
+        for dp in progress.get("domains", []):
+            found = dp.get("policies_found", 0)
+            if found > 0:
+                name_str = dp.get("domain_name", dp.get("domain_id", "?"))
+                print(f"  🎉 ★ {name_str}: {found} policy(ies) found! ★")
+
     elif name == "estimate_cost" and "estimated_cost_usd" in result:
         print(f"  → Estimated cost: ${result['estimated_cost_usd']:.2f} "
               f"({result.get('domain_count', '?')} domains)")
+
     elif name == "search_policies" and "count" in result:
         print(f"  → {result['count']} policies match")
+
     elif name == "match_keywords" and "score" in result:
         matches = len(result.get("matches", []))
         print(f"  → Score: {result['score']}, {matches} keyword matches")
+
     elif name == "analyze_url":
         if "error" in result and len(result) == 1:
             print(f"  → Error: {result['error']}")
         elif "policy" in result:
             policy = result["policy"]
-            print(f"  → Found: {policy.get('policy_name', 'policy')} "
-                  f"(relevance: {policy.get('relevance_score', '?')}/10)")
+            pname = policy.get("policy_name", "policy")
+            score = policy.get("relevance_score", "?")
+            print(f"  🎉 ★ Found: {pname} (relevance: {score}/10) ★")
         elif "keyword_score" in result:
-            print(f"  → Keyword score: {result['keyword_score']} "
-                  f"(threshold not met)" if result["keyword_score"] == 0
-                  else f"  → Keyword score: {result['keyword_score']}")
+            ks = result["keyword_score"]
+            if ks == 0:
+                print(f"  → Keyword score: {ks} (threshold not met)")
+            else:
+                print(f"  → Keyword score: {ks}")
+
     elif name == "web_search":
         print("  → Search results received")
+
     elif name == "add_domain":
         if result.get("success"):
+            regions = ", ".join(result.get("region", []))
             print(f"  → Added domain '{result.get('domain_id', '?')}' "
-                  f"(region: {', '.join(result.get('region', []))})")
+                  f"(region: {regions})")
         elif result.get("already_exists"):
-            print(f"  → Domain '{result.get('domain_id', '?')}' already in database")
+            print(f"  → Domain '{result.get('domain_id', '?')}' "
+                  f"already in database")
 
 
 async def _run_interactive(agent):
@@ -157,6 +202,7 @@ async def _run_single(agent, message: str):
 
 
 def main():
+    """Entry point for ``python -m src.agent``."""
     # Check for API key
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -195,8 +241,21 @@ def main():
         data_dir=data_dir,
     )
 
-    # Parse --discover flag
+    # Parse CLI flags
     args = sys.argv[1:]
+
+    # --deep: override settings for wider/deeper crawling.
+    # Increases max_depth (3→5), max_pages (200→500), lowers keyword
+    # threshold (3.0→2.0) to cast a wider net. Costs ~3-4x more.
+    if args and args[0] == "--deep":
+        agent.scan_manager.config.settings.crawl.max_depth = 5
+        agent.scan_manager.config.settings.crawl.max_pages_per_domain = 500
+        agent.scan_manager.config.settings.analysis.min_keyword_score = 2.0
+        print("  [Deep scanning mode: max_depth=5, max_pages=500, "
+              "min_keyword_score=2.0]")
+        print()
+        args = args[1:]  # consume --deep, continue with remaining args
+
     if args and args[0] == "--discover":
         country = " ".join(args[1:]) if len(args) > 1 else ""
         if not country:
