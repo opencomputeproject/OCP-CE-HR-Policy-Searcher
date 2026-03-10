@@ -13,7 +13,7 @@ class TestPolicySheetHeaders:
 
     def test_header_count(self):
         headers = Policy.sheet_headers()
-        assert len(headers) == 17
+        assert len(headers) == 19
 
     def test_header_order(self):
         headers = Policy.sheet_headers()
@@ -23,6 +23,8 @@ class TestPolicySheetHeaders:
         assert headers[14] == "Scan ID"
         assert headers[15] == "Domain ID"
         assert headers[16] == "Verification Flags"
+        assert headers[17] == "Referenced Policies"
+        assert headers[18] == "Referenced URLs"
 
     def test_headers_are_strings(self):
         for h in Policy.sheet_headers():
@@ -54,7 +56,7 @@ class TestPolicyToSheetRow:
         )
         row = policy.to_sheet_row()
 
-        assert len(row) == 17
+        assert len(row) == 19
         assert row[0] == "https://example.gov/policy"
         assert row[1] == "Test Act"
         assert row[2] == "Germany"
@@ -72,6 +74,8 @@ class TestPolicyToSheetRow:
         assert row[14] == "scan_123"
         assert row[15] == "bmwk_de"
         assert row[16] == "generic_name"
+        assert row[17] == ""  # referenced_policies (empty)
+        assert row[18] == ""  # referenced_urls (empty)
 
     def test_empty_optionals(self):
         policy = Policy(
@@ -84,7 +88,7 @@ class TestPolicyToSheetRow:
         )
         row = policy.to_sheet_row()
 
-        assert len(row) == 17
+        assert len(row) == 19
         assert row[7] == ""   # effective_date
         assert row[8] == ""   # bill_number
         assert row[9] == ""   # key_requirements
@@ -92,6 +96,8 @@ class TestPolicyToSheetRow:
         assert row[14] == ""  # scan_id
         assert row[15] == ""  # domain_id
         assert row[16] == ""  # verification_flags
+        assert row[17] == ""  # referenced_policies
+        assert row[18] == ""  # referenced_urls
 
     def test_multiple_verification_flags(self):
         policy = Policy(

@@ -18,6 +18,8 @@ from ..core.keywords import KeywordMatcher
 from ..core.llm import ClaudeClient, LLMError
 from ..core.verifier import Verifier
 from ..orchestration.scan_manager import ScanManager
+import yaml
+
 from .domain_generator import (
     generate_domain_id,
     detect_region,
@@ -25,6 +27,39 @@ from .domain_generator import (
     build_domain_entry,
     format_domain_yaml,
 )
+
+# ---------------------------------------------------------------------------
+# Region -> groups mapping for auto-assignment when adding domains
+# ---------------------------------------------------------------------------
+REGION_TO_GROUPS: dict[str, list[str]] = {
+    "us_states": ["us_states", "us"],
+    "eu": ["eu"],
+    "nordic": ["nordic"],
+    "eu_central": ["eu_central", "eu"],
+    "eu_west": ["eu_west", "eu"],
+    "eu_south": ["eu_south", "eu"],
+    "eu_east": ["eu_east", "eu"],
+    "apac": ["apac"],
+    "spain": ["eu_south", "eu"],
+    "italy": ["eu_south", "eu"],
+    "portugal": ["eu_south", "eu"],
+    "greece": ["eu_south", "eu"],
+    "poland": ["eu_east", "eu"],
+    "czech_republic": ["eu_east", "eu"],
+    "hungary": ["eu_east", "eu"],
+    "romania": ["eu_east", "eu"],
+    "germany": ["eu_central", "eu"],
+    "france": ["eu_central", "eu"],
+    "netherlands": ["eu_west", "eu"],
+    "ireland": ["eu_west", "eu"],
+    "switzerland": ["eu_central"],
+    "uk": ["eu"],
+    "denmark": ["nordic", "eu"],
+    "sweden": ["nordic", "eu"],
+    "norway": ["nordic", "eu"],
+    "singapore": ["apac"],
+    "japan": ["apac"],
+}
 
 # ---------------------------------------------------------------------------
 # Tool definitions — Anthropic API format
@@ -507,6 +542,9 @@ async def _execute_add_domain(
     else:
         output_path.write_text(yaml_content, encoding="utf-8")
 
+    # Auto-assign to matching groups in groups.yaml
+    groups_updated = _auto_assign_groups(domain_id, region, config.config_dir)
+
     # Reload config to pick up the new domain
     config.load()
 
@@ -518,5 +556,56 @@ async def _execute_add_domain(
         "region": region,
         "language": language,
         "config_file": str(output_path),
+        "groups_updated": groups_updated,
         "message": f"Added '{name}' ({domain_id}) to the database. It can now be scanned.",
     }
+
+
+def _auto_assign_groups(
+    domain_id: str,
+    regions: list[str],
+    config_dir: Path,
+) -> list[str]:
+    """Add domain_id to matching groups in groups.yaml based on its regions.
+
+    Returns list of group names that were updated.
+    """
+    groups_file = config_dir / "groups.yaml"
+    if not groups_file.exists():
+        return []
+
+    with open(groups_file, encoding="utf-8") as f:
+        groups_data = yaml.safe_load(f) or {}
+
+    groups = groups_data.get("groups", {})
+    if not groups:
+        return []
+
+    # Collect all target groups from region mapping
+    target_groups: set[str] = set()
+    for r in regions:
+        target_groups.update(REGION_TO_GROUPS.get(r, []))
+
+    # Add domain_id to matching groups (skip 'all' — it's auto-populated)
+    updated: list[str] = []
+    for group_name in target_groups:
+        if group_name not in groups:
+            continue
+        if group_name == "all":
+            continue
+        group = groups[group_name]
+        if not isinstance(group, dict):
+            continue
+        domain_list = group.get("domains", [])
+        if domain_list is None:
+            domain_list = []
+            group["domains"] = domain_list
+        if domain_id not in domain_list:
+            domain_list.append(domain_id)
+            updated.append(group_name)
+
+    if updated:
+        with open(groups_file, "w", encoding="utf-8") as f:
+            yaml.dump(groups_data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+    return updated

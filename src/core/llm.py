@@ -74,6 +74,10 @@ TASK:
    - 7-8: Relevant
    - 9-10: Highly relevant (specifically about data center heat reuse)
 
+4. Extract referenced legislation:
+   - List any bill numbers, law names, directive references, or related policies mentioned
+   - List any URLs linking to other relevant policy documents
+
 RESPOND WITH JSON ONLY:
 {{
     "is_relevant": true/false,
@@ -85,7 +89,9 @@ RESPOND WITH JSON ONLY:
     "summary": "2-3 sentences or null",
     "effective_date": "YYYY-MM-DD or null",
     "key_requirements": "Key points or null",
-    "bill_number": "Number or null"
+    "bill_number": "Number or null",
+    "referenced_policies": ["Related law/directive names or empty list"],
+    "referenced_urls": ["URLs to related policy documents or empty list"]
 }}
 """
 
@@ -200,6 +206,16 @@ def _coerce_types(data: dict) -> dict:
     # policy_type default
     if not result.get("policy_type") or result["policy_type"] in _NULL_VALUES:
         result["policy_type"] = "not_relevant" if not result.get("is_relevant") else "unknown"
+
+    # Normalize list fields (referenced_policies, referenced_urls)
+    for list_key in ("referenced_policies", "referenced_urls"):
+        val = result.get(list_key)
+        if val is None or val in _NULL_VALUES:
+            result[list_key] = []
+        elif isinstance(val, str):
+            result[list_key] = [val] if val else []
+        elif isinstance(val, list):
+            result[list_key] = [item for item in val if item and item not in _NULL_VALUES]
 
     return result
 
@@ -412,6 +428,8 @@ class ClaudeClient:
             key_requirements=analysis.key_requirements,
             domain_id=domain_id,
             scan_id=scan_id,
+            referenced_policies=analysis.referenced_policies,
+            referenced_urls=analysis.referenced_urls,
         )
 
     def update_cost_estimate(self):

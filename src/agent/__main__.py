@@ -195,9 +195,27 @@ def main():
         data_dir=data_dir,
     )
 
-    # Single command or interactive mode
-    if len(sys.argv) > 1:
-        message = " ".join(sys.argv[1:])
+    # Parse --discover flag
+    args = sys.argv[1:]
+    if args and args[0] == "--discover":
+        country = " ".join(args[1:]) if len(args) > 1 else ""
+        if not country:
+            print("Usage: python -m src.agent --discover <country>")
+            print("Example: python -m src.agent --discover Poland")
+            sys.exit(1)
+        message = (
+            f"Discover new coverage for {country}. "
+            f"Search for government websites about data center waste heat, "
+            f"energy efficiency, district heating, and heat recovery regulation "
+            f"in {country}. Use the country's native language for search terms "
+            f"when appropriate. Add any relevant government websites you find. "
+            f"Then analyze the most promising pages for policy content. "
+            f"Summarize what you discovered."
+        )
+        asyncio.run(_run_single(agent, message))
+    elif args:
+        # Single command
+        message = " ".join(args)
         asyncio.run(_run_single(agent, message))
     else:
         asyncio.run(_run_interactive(agent))

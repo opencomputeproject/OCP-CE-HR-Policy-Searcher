@@ -1072,6 +1072,18 @@ url_bonuses:
     - ".gov.hu"           # Hungary
     - ".gov.ro"           # Romania
 
+    # External legislation databases
+    - ".boe.es"           # Spain - Official State Gazette
+    - ".normattiva.it"    # Italy - Consolidated legislation
+    - ".sejm.gov.pl"      # Poland - ISAP legislation database
+    - ".dre.pt"           # Portugal - Diário da República
+    - ".zakonyprolidi.cz" # Czech Republic - Laws for people
+    - ".et.gr"            # Greece - National Printing Office
+    - ".njt.hu"           # Hungary - National legislation
+    - ".monitoruloficial.ro" # Romania - Official Gazette
+    - ".kormany.hu"       # Hungary - Government portal
+    - ".iea.org"          # International Energy Agency
+
   # -------------------------------------------------------------------------
   # Legislation path patterns (regex)
   # -------------------------------------------------------------------------

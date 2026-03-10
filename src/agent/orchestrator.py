@@ -93,6 +93,25 @@ may need manual verification.
 When a scan is running, poll get_scan_status every few seconds until it completes. \
 Show the user brief progress updates.
 
+## DISCOVER New Coverage
+
+When asked to discover or expand coverage for a country or region:
+1. web_search "[country] energy ministry data center waste heat"
+2. web_search "[country] waste heat recovery regulation legislation"
+3. web_search "[country] district heating policy law"
+4. For each relevant government website found → add_domain to register it \
+(it will be auto-assigned to the correct regional group)
+5. analyze_url on the most promising pages to get immediate policy insights
+6. Summarize findings: what was discovered, what domains were added, and \
+what policies were found
+
+Search tips for better results:
+- Use the country's native language for search terms (e.g., "Abwärme" for \
+German, "chaleur résiduelle" for French, "spillvarme" for Norwegian)
+- Look for energy ministries, environmental agencies, and legislation databases
+- Government sites (.gov, .gouv.fr, .gov.uk, etc.) are highest priority
+- Official gazettes and law databases contain enacted legislation
+
 Available domain groups: {group_list}
 """
 

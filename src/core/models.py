@@ -158,6 +158,8 @@ class PolicyAnalysis(BaseModel):
     effective_date: Optional[str] = None
     source_language: str = "English"
     confidence: int = 5
+    referenced_policies: list[str] = Field(default_factory=list)
+    referenced_urls: list[str] = Field(default_factory=list)
 
 
 # --- Policy (final output) ---
@@ -180,6 +182,8 @@ class Policy(BaseModel):
     scan_id: Optional[str] = None
     domain_id: Optional[str] = None
     verification_flags: list[VerificationFlag] = Field(default_factory=list)
+    referenced_policies: list[str] = Field(default_factory=list)
+    referenced_urls: list[str] = Field(default_factory=list)
 
     @staticmethod
     def sheet_headers() -> list[str]:
@@ -189,6 +193,7 @@ class Policy(BaseModel):
             "Effective Date", "Bill Number", "Key Requirements",
             "Discovered At", "Crawl Status", "Error Details", "Review Status",
             "Scan ID", "Domain ID", "Verification Flags",
+            "Referenced Policies", "Referenced URLs",
         ]
 
     def to_sheet_row(self) -> list:
@@ -210,6 +215,8 @@ class Policy(BaseModel):
             self.scan_id or "",
             self.domain_id or "",
             ", ".join(f.value for f in self.verification_flags) if self.verification_flags else "",
+            "; ".join(self.referenced_policies) if self.referenced_policies else "",
+            "; ".join(self.referenced_urls) if self.referenced_urls else "",
         ]
 
 
