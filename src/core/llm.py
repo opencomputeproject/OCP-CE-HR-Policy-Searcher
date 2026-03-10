@@ -249,16 +249,27 @@ class ClaudeClient:
         prompt = SCREENING_PROMPT.format(url=url, content=screening_content)
 
         try:
+            import time
+            _t0 = time.monotonic()
             response = await self.client.messages.create(
                 model=self.screening_model,
                 max_tokens=50,
                 temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
             )
+            _latency_ms = int((time.monotonic() - _t0) * 1000)
             self.cost.screening_calls += 1
             if hasattr(response, "usage"):
                 self.cost.input_tokens += response.usage.input_tokens
                 self.cost.output_tokens += response.usage.output_tokens
+                logger.info(
+                    "llm_call: screening model=%s url=%s "
+                    "input_tokens=%d output_tokens=%d latency_ms=%d",
+                    self.screening_model, url,
+                    response.usage.input_tokens,
+                    response.usage.output_tokens,
+                    _latency_ms,
+                )
 
             raw = response.content[0].text
             try:
@@ -366,19 +377,31 @@ class ClaudeClient:
         self, content: str, url: str, language: Optional[str],
     ) -> PolicyAnalysis:
         """Make the actual analysis API call."""
+        import time
+
         prompt = ANALYSIS_PROMPT.format(
             url=url, language=language or "Unknown", content=content,
         )
+        _t0 = time.monotonic()
         response = await self.client.messages.create(
             model=self.analysis_model,
             max_tokens=1024,
             temperature=0.0,
             messages=[{"role": "user", "content": prompt}],
         )
+        _latency_ms = int((time.monotonic() - _t0) * 1000)
         self.cost.analysis_calls += 1
         if hasattr(response, "usage"):
             self.cost.input_tokens += response.usage.input_tokens
             self.cost.output_tokens += response.usage.output_tokens
+            logger.info(
+                "llm_call: analysis model=%s url=%s "
+                "input_tokens=%d output_tokens=%d latency_ms=%d",
+                self.analysis_model, url,
+                response.usage.input_tokens,
+                response.usage.output_tokens,
+                _latency_ms,
+            )
 
         raw = response.content[0].text
         try:

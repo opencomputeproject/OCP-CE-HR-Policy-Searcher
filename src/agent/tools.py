@@ -200,6 +200,18 @@ POLICY_TOOLS: list[dict[str, Any]] = [
             "required": ["domains"],
         },
     },
+    {
+        "name": "list_scans",
+        "description": (
+            "List all scans in this session — running, completed, and failed. "
+            "Shows scan IDs, status, domain groups, and policy counts. Use this "
+            "when you need to find a scan ID or check what scans have been done."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
 ]
 
 # add_domain tool
@@ -228,7 +240,7 @@ WEB_SEARCH_TOOL: dict[str, Any] = {
 
 
 def get_all_tools() -> list[dict[str, Any]]:
-    """Return all 13 tools for messages.create(tools=...)."""
+    """Return all 15 tools for messages.create(tools=...)."""
     return POLICY_TOOLS + [ADD_DOMAIN_TOOL, WEB_SEARCH_TOOL]
 
 
@@ -478,6 +490,28 @@ async def execute_tool(
             return {
                 "scan_id": scan_id,
                 "advisory": job.audit_advisory or "No advisory available (scan may still be running)",
+            }
+
+        elif name == "list_scans":
+            scans = []
+            for job in scan_manager.jobs.values():
+                scans.append({
+                    "scan_id": job.scan_id,
+                    "status": job.status.value,
+                    "domain_group": job.domain_group,
+                    "domain_count": job.domain_count,
+                    "policy_count": job.policy_count,
+                    "started_at": str(job.started_at) if job.started_at else None,
+                    "completed_at": str(job.completed_at) if job.completed_at else None,
+                    "progress": {
+                        "completed": job.progress.completed_domains,
+                        "total": job.progress.total_domains,
+                    },
+                })
+            return {
+                "scans": scans,
+                "count": len(scans),
+                "note": "Use get_scan_status with a scan_id to see full details.",
             }
 
         elif name == "estimate_cost":

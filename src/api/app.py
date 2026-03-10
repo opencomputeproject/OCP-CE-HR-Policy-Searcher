@@ -1,21 +1,22 @@
 """FastAPI application — REST API + WebSocket for OCP Policy Hub."""
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from ..core.log_setup import setup_logging
 from .routes import domains, scans, policies, analysis, agent
 
 load_dotenv(override=True)  # .env wins over stale system env vars
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
+# Structured logging: JSON to file, JSON to console (API/production mode).
+# Uses the same unified config as the CLI agent.
+data_dir = os.environ.get("OCP_DATA_DIR", "data")
+setup_logging(data_dir, json_console=True, console_level=logging.INFO)
 
 
 @asynccontextmanager

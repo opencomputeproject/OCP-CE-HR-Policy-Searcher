@@ -183,6 +183,7 @@ class TestAgentInit:
     def test_init_with_real_config(self, real_config):
         """Agent initializes with real config, mocked API client."""
         agent = PolicyAgent.__new__(PolicyAgent)
+        agent._messages = []
         agent.config = real_config
         agent.broadcaster = EventBroadcaster()
         agent.scan_manager = ScanManager(
@@ -195,7 +196,7 @@ class TestAgentInit:
         agent.model = "test-model"
         agent.client = AsyncMock()
 
-        assert len(agent.tools) == 13
+        assert len(agent.tools) == 14
         assert "heat reuse" in agent.system_prompt.lower() or "government" in agent.system_prompt.lower()
 
     def test_system_prompt_has_domain_count(self, real_config):
@@ -520,6 +521,7 @@ class TestOnToolResultCallback:
     async def test_callback_receives_result_on_success(self):
         """on_tool_result receives the actual tool result on success."""
         agent = PolicyAgent.__new__(PolicyAgent)
+        agent._messages = []
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
@@ -569,6 +571,7 @@ class TestOnToolResultCallback:
     async def test_callback_receives_error_on_failure(self):
         """on_tool_result receives error dict when tool raises an exception."""
         agent = PolicyAgent.__new__(PolicyAgent)
+        agent._messages = []
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
@@ -619,6 +622,7 @@ class TestOnToolResultCallback:
     async def test_callback_on_consecutive_tools(self):
         """on_tool_result receives correct result for each tool in sequence."""
         agent = PolicyAgent.__new__(PolicyAgent)
+        agent._messages = []
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
@@ -951,6 +955,7 @@ class TestAgentAPIErrors:
         import anthropic
 
         agent = PolicyAgent.__new__(PolicyAgent)
+        agent._messages = []
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
@@ -1078,7 +1083,7 @@ class TestOnboardingFlow:
             config_dir="config",
             data_dir="data",
         )
-        assert len(agent.tools) == 13
+        assert len(agent.tools) == 14
         assert agent.config is not None
 
     def test_rest_api_starts_without_api_key(self):
@@ -1103,17 +1108,19 @@ class TestOnboardingFlow:
     # CLI feedback and interrupt handling
     # ------------------------------------------------------------------
 
-    def test_banner_mentions_ctrl_c(self, capsys):
+    def test_banner_mentions_ctrl_c(self, capsys, tmp_path):
         """Banner tells users how to interrupt a running operation."""
         from src.agent.__main__ import _print_banner
-        _print_banner()
+        from pathlib import Path
+        _print_banner(Path(tmp_path / "agent.log"))
         output = capsys.readouterr().out
         assert "Ctrl+C" in output
 
-    def test_banner_mentions_quit(self, capsys):
+    def test_banner_mentions_quit(self, capsys, tmp_path):
         """Banner tells users how to exit the session."""
         from src.agent.__main__ import _print_banner
-        _print_banner()
+        from pathlib import Path
+        _print_banner(Path(tmp_path / "agent.log"))
         output = capsys.readouterr().out
         assert "quit" in output or "exit" in output
 
@@ -1210,10 +1217,11 @@ class TestOnboardingFlow:
         _on_tool_result("estimate_cost", "not a dict")
         # Should not raise — just produce no output
 
-    def test_interactive_ctrl_c_recovers(self):
+    def test_interactive_ctrl_c_recovers(self, tmp_path):
         """Ctrl+C during agent.run() prints friendly message, doesn't crash."""
         from src.agent.__main__ import _run_interactive
         from unittest.mock import AsyncMock, MagicMock, patch
+        from pathlib import Path
         import io
 
         mock_agent = MagicMock()
@@ -1223,7 +1231,7 @@ class TestOnboardingFlow:
 
         with patch("builtins.input", side_effect=["test", "quit"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-                asyncio.run(_run_interactive(mock_agent))
+                asyncio.run(_run_interactive(mock_agent, Path(tmp_path / "agent.log")))
                 output = mock_stdout.getvalue()
 
         assert "Interrupted" in output
@@ -1243,10 +1251,11 @@ class TestOnboardingFlow:
             asyncio.run(_run_single(mock_agent, "test query"))
         assert exc_info.value.code == 130
 
-    def test_thinking_message_shown(self):
+    def test_thinking_message_shown(self, tmp_path):
         """User sees 'Thinking...' immediately after submitting a query."""
         from src.agent.__main__ import _run_interactive
         from unittest.mock import AsyncMock, MagicMock, patch
+        from pathlib import Path
         import io
 
         mock_agent = MagicMock()
@@ -1254,7 +1263,7 @@ class TestOnboardingFlow:
 
         with patch("builtins.input", side_effect=["test", "quit"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-                asyncio.run(_run_interactive(mock_agent))
+                asyncio.run(_run_interactive(mock_agent, Path(tmp_path / "agent.log")))
                 output = mock_stdout.getvalue()
 
         assert "Thinking..." in output
@@ -1293,6 +1302,7 @@ class TestOnboardingFlow:
         from src.agent.orchestrator import PolicyAgent
 
         agent = PolicyAgent.__new__(PolicyAgent)
+        agent._messages = []
         agent.client = MagicMock()
         agent.client.messages = MagicMock()
         agent.client.messages.create = AsyncMock(
@@ -1860,6 +1870,7 @@ class TestDeepFlag:
         from src.agent.orchestrator import PolicyAgent
 
         agent = PolicyAgent.__new__(PolicyAgent)
+        agent._messages = []
         agent.config = ConfigLoader(config_dir="config")
         agent.config.load()
         agent.broadcaster = EventBroadcaster()

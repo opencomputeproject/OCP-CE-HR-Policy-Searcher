@@ -3,6 +3,10 @@
 No MCP required — just an API key. The agent uses the same 11 policy
 hub tools as the MCP server, plus web search and add_domain for
 discovering new government websites.
+
+Conversation history is maintained across turns in interactive mode,
+so the agent remembers scan IDs, previous results, and context from
+earlier in the session.
 """
 
 import asyncio
@@ -11,6 +15,7 @@ import logging
 from typing import Any, Callable, Optional
 
 import anthropic
+import structlog
 
 from ..core.config import ConfigLoader
 from ..orchestration.events import EventBroadcaster
@@ -29,6 +34,11 @@ DEFAULT_MODEL = "claude-sonnet-4-20250514"
 MAX_API_RETRIES = 3
 BASE_RETRY_DELAY = 10.0   # seconds — generous because 429 needs real wait time
 MAX_RETRY_DELAY = 120.0   # cap at 2 minutes
+
+# Conversation memory limits. The Anthropic API has a context window; we
+# trim old turns to stay well within it. Each "turn" is a user message +
+# assistant response pair. We keep the most recent turns and drop the oldest.
+MAX_CONVERSATION_TURNS = 40
 
 
 def _get_retry_delay(error: anthropic.RateLimitError, attempt: int) -> float:
@@ -105,6 +115,7 @@ SCAN known government websites:
 - Use estimate_cost to check scanning costs before starting
 - Use start_scan to crawl websites and discover policies automatically
 - Use get_scan_status to monitor progress (scans run in the background)
+- Use list_scans to see all running and completed scans in this session
 
 EXPLORE results:
 - Use search_policies to find policies by country, type, or keywords
@@ -149,6 +160,11 @@ will complete. But warn the user: both scans share the same API key, so rate \
 limits may cause retries and slower progress. The system handles this \
 automatically (retries with backoff), but scans will take longer.
 
+CONVERSATION MEMORY: You maintain conversation history across turns. When a \
+user asks about a scan you started earlier, you should remember the scan_id \
+and context. If somehow you're unsure, use list_scans to see all active and \
+completed scans in this session.
+
 ## DISCOVER New Coverage
 
 When asked to discover or expand coverage for a country or region:
@@ -172,8 +188,43 @@ Available domain groups: {group_list}
 """
 
 
+def _trim_conversation(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Trim conversation history to stay within context limits.
+
+    Keeps the most recent MAX_CONVERSATION_TURNS turns. A "turn" is typically
+    a user message followed by an assistant response (and possibly tool results).
+    We count user messages as turn boundaries and keep the last N turns.
+
+    Args:
+        messages: Full conversation history.
+
+    Returns:
+        Trimmed conversation history with the most recent turns.
+    """
+    if len(messages) <= MAX_CONVERSATION_TURNS * 3:
+        return messages  # plenty of room, no trimming needed
+
+    # Find the indices of user messages (turn boundaries)
+    user_indices = [i for i, m in enumerate(messages) if m.get("role") == "user"]
+
+    if len(user_indices) <= MAX_CONVERSATION_TURNS:
+        return messages  # within turn limit
+
+    # Keep only the last MAX_CONVERSATION_TURNS turns
+    keep_from = user_indices[-MAX_CONVERSATION_TURNS]
+    trimmed = messages[keep_from:]
+    logger.info(
+        f"Trimmed conversation from {len(messages)} to {len(trimmed)} messages "
+        f"(kept last {MAX_CONVERSATION_TURNS} turns)"
+    )
+    return trimmed
+
+
 class PolicyAgent:
     """Standalone agent that orchestrates policy scanning via Anthropic API tool use.
+
+    Maintains conversation history across turns so the agent remembers
+    scan IDs, previous results, and context from earlier in the session.
 
     The agent loop handles rate limiting automatically with exponential backoff,
     retrying up to MAX_API_RETRIES times before giving up. Background scans
@@ -181,8 +232,14 @@ class PolicyAgent:
 
     Usage:
         agent = PolicyAgent(api_key="sk-ant-...")
-        result = await agent.run("Find heat reuse policies in Germany")
-        print(result)
+
+        # Interactive mode — conversation persists across calls:
+        await agent.run("Scan Nordic countries")
+        # ... later ...
+        await agent.run("What's the status?")  # remembers the scan_id
+
+        # Start fresh:
+        agent.reset_conversation()
     """
 
     def __init__(
@@ -210,6 +267,19 @@ class PolicyAgent:
         self.tools = get_all_tools()
         self.system_prompt = _build_system_prompt(self.config)
 
+        # Conversation history persists across run() calls in interactive mode.
+        # This lets the agent remember scan IDs, previous tool results, etc.
+        self._messages: list[dict[str, Any]] = []
+
+    def reset_conversation(self) -> None:
+        """Clear conversation history to start a fresh session.
+
+        Call this when you want the agent to forget all previous context
+        (e.g., starting a completely new task with no relation to prior work).
+        """
+        self._messages.clear()
+        logger.info("Conversation history cleared")
+
     async def run(
         self,
         user_message: str,
@@ -219,6 +289,10 @@ class PolicyAgent:
         max_iterations: int = 50,
     ) -> str:
         """Run the agent loop with a user message.
+
+        Appends the user message to the persistent conversation history,
+        so the agent maintains context across multiple run() calls in
+        interactive mode.
 
         Handles rate limiting with automatic retry and exponential backoff.
         Each API call is retried up to MAX_API_RETRIES times on 429/529
@@ -234,14 +308,19 @@ class PolicyAgent:
         Returns:
             Claude's final text response.
         """
-        messages: list[dict[str, Any]] = [
-            {"role": "user", "content": user_message},
-        ]
+        # Append new user message to persistent conversation history
+        self._messages.append({"role": "user", "content": user_message})
+
+        # Trim old turns to stay within context window limits
+        self._messages = _trim_conversation(self._messages)
 
         all_text_parts: list[str] = []
         tools_called: list[str] = []
 
         for iteration in range(max_iterations):
+            # Bind turn number for log correlation
+            structlog.contextvars.bind_contextvars(agent_turn=iteration)
+
             # Retry loop for rate limits on this single API call
             response = None
             for api_attempt in range(1, MAX_API_RETRIES + 1):
@@ -251,7 +330,7 @@ class PolicyAgent:
                         max_tokens=4096,
                         system=self.system_prompt,
                         tools=self.tools,
-                        messages=messages,
+                        messages=self._messages,
                     )
                     break  # Success — exit retry loop
 
@@ -351,10 +430,12 @@ class PolicyAgent:
 
             # If no tool calls or stop_reason is end_turn, we're done
             if response.stop_reason == "end_turn" or not tool_uses:
+                # Save assistant's final response to conversation history
+                self._messages.append({"role": "assistant", "content": response.content})
                 break
 
-            # Add assistant response to message history
-            messages.append({"role": "assistant", "content": response.content})
+            # Add assistant response to message history (has tool_use blocks)
+            self._messages.append({"role": "assistant", "content": response.content})
 
             # Execute each tool and collect results
             tool_results: list[dict[str, Any]] = []
@@ -404,8 +485,8 @@ class PolicyAgent:
                 if on_tool_result:
                     on_tool_result(tool_name, result)
 
-            # Send tool results back to Claude
-            messages.append({"role": "user", "content": tool_results})
+            # Send tool results back to Claude (persisted in conversation)
+            self._messages.append({"role": "user", "content": tool_results})
         else:
             # Hit max_iterations
             limit_msg = f"(Reached {max_iterations} iteration limit)"

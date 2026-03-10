@@ -15,15 +15,17 @@ Usage:
 """
 
 import asyncio
+import logging
 import os
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 load_dotenv(override=True)  # .env wins over stale system env vars
 
 
-def _print_banner():
+def _print_banner(log_file: Path):
     """Print the welcome banner for interactive mode."""
     print()
     print("OCP Policy Hub Agent")
@@ -36,6 +38,8 @@ def _print_banner():
     print('  "Find heat reuse policies in Germany"')
     print('  "Scan Nordic countries for new policies"')
     print('  "How much would it cost to scan all EU domains?"')
+    print()
+    print(f"  Logs: {log_file}")
     print()
     print("Type 'quit' or 'exit' to stop.")
     print("Press Ctrl+C to interrupt a running operation.")
@@ -54,6 +58,7 @@ def _on_tool_call(name: str, input_data: dict):
         "get_domain_config": f"Looking up domain '{input_data.get('domain_id', '')}'...",
         "start_scan": f"Starting scan of '{input_data.get('domains', 'quick')}' domains...",
         "get_scan_status": "Checking scan progress...",
+        "list_scans": "Checking all scans...",
         "stop_scan": "Cancelling scan...",
         "analyze_url": f"Analyzing {input_data.get('url', 'URL')}...",
         "match_keywords": "Testing keywords...",
@@ -124,6 +129,18 @@ def _on_tool_result(name: str, result):
                 name_str = dp.get("domain_name", domain_key)
                 print(f"  🎉 NEW: {name_str} — {found} policy(ies) found!")
 
+    elif name == "list_scans" and "scans" in result:
+        scans = result["scans"]
+        if not scans:
+            print("  → No scans in this session")
+        else:
+            for s in scans:
+                icon = {"running": "⏳", "completed": "✅", "failed": "❌"}.get(
+                    s["status"], "→"
+                )
+                print(f"  {icon} {s['scan_id']}: {s['status']} "
+                      f"({s['domain_group']}, {s['policy_count']} policies)")
+
     elif name == "estimate_cost" and "estimated_cost_usd" in result:
         print(f"  → Estimated cost: ${result['estimated_cost_usd']:.2f} "
               f"({result.get('domain_count', '?')} domains)")
@@ -163,9 +180,9 @@ def _on_tool_result(name: str, result):
                   f"already in database")
 
 
-async def _run_interactive(agent):
+async def _run_interactive(agent, log_file: Path):
     """Run the agent in interactive chat mode."""
-    _print_banner()
+    _print_banner(log_file)
 
     while True:
         try:
@@ -242,10 +259,16 @@ def main():
         sys.exit(1)
 
     # Import here to avoid import errors when just checking --help
+    from ..core.log_setup import setup_logging
     from .orchestrator import PolicyAgent
 
     config_dir = os.environ.get("OCP_CONFIG_DIR", "config")
     data_dir = os.environ.get("OCP_DATA_DIR", "data")
+
+    # Set up structured logging (JSON to file, human-readable to console)
+    log_file = setup_logging(data_dir)
+    logger = logging.getLogger(__name__)
+    logger.info("OCP Policy Hub Agent starting")
 
     agent = PolicyAgent(
         api_key=api_key,
@@ -289,7 +312,7 @@ def main():
         message = " ".join(args)
         asyncio.run(_run_single(agent, message))
     else:
-        asyncio.run(_run_interactive(agent))
+        asyncio.run(_run_interactive(agent, log_file))
 
 
 if __name__ == "__main__":

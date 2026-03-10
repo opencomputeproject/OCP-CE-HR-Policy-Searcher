@@ -235,6 +235,7 @@ class TestDiscoverWorkflow:
     def _build_agent(self):
         """Create a PolicyAgent with real config but mocked API client."""
         agent = PolicyAgent.__new__(PolicyAgent)
+        agent._messages = []
         agent.config = ConfigLoader(config_dir="config")
         agent.config.load()
         agent.broadcaster = EventBroadcaster()

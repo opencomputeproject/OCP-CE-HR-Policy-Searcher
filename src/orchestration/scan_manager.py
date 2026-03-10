@@ -12,8 +12,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import structlog
+
 from ..core.cache import URLCache
 from ..core.config import ConfigLoader
+from ..core.log_setup import log_audit_event
 from ..core.crawler import AsyncCrawler
 from ..core.extractor import HtmlExtractor
 from ..core.keywords import KeywordMatcher
@@ -140,7 +143,19 @@ class ScanManager:
         skip_llm: bool,
     ) -> None:
         """Run the parallel scan (background task)."""
+        # Bind scan context so every log message from this task (and its
+        # sub-tasks) includes the scan_id automatically.
+        structlog.contextvars.bind_contextvars(scan_id=scan_id)
+
         job = self._jobs[scan_id]
+
+        log_audit_event(
+            data_dir=self.data_dir,
+            event="scan_started",
+            scan_id=scan_id,
+            domain_count=len(domains),
+            domain_group=job.domain_group,
+        )
 
         await self.broadcaster.broadcast(ScanEvent(
             scan_id=scan_id,
@@ -174,6 +189,11 @@ class ScanManager:
 
         async def scan_domain(domain: dict) -> list[Policy]:
             async with semaphore:
+                # Bind domain context for log correlation
+                structlog.contextvars.bind_contextvars(
+                    domain_id=domain["id"],
+                )
+
                 crawler = AsyncCrawler(
                     max_depth=domain.get("max_depth", settings.crawl.max_depth),
                     max_pages=domain.get("max_pages", settings.crawl.max_pages_per_domain),
@@ -232,6 +252,18 @@ class ScanManager:
                         # Update in-memory list and job count incrementally
                         self._policies[scan_id].extend(policies)
                         job.policy_count += len(policies)
+
+                        # Audit: record each policy discovery
+                        for p in policies:
+                            log_audit_event(
+                                data_dir=self.data_dir,
+                                event="policy_found",
+                                scan_id=scan_id,
+                                domain_id=domain["id"],
+                                policy_name=p.policy_name,
+                                url=p.url,
+                                relevance=p.relevance_score,
+                            )
 
                     return policies
 
@@ -333,6 +365,20 @@ class ScanManager:
 
             job.status = ScanStatus.COMPLETED
             job.completed_at = datetime.utcnow()
+
+            log_audit_event(
+                data_dir=self.data_dir,
+                event="scan_completed",
+                scan_id=scan_id,
+                domain_group=job.domain_group,
+                domains_scanned=len(domains),
+                policies_found=len(all_policies),
+                cost_usd=job.cost.total_usd if job.cost else 0,
+                duration_s=(
+                    (job.completed_at - job.started_at).total_seconds()
+                    if job.started_at else None
+                ),
+            )
 
             await self.broadcaster.broadcast(ScanEvent(
                 scan_id=scan_id,

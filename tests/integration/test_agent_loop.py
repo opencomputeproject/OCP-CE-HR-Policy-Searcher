@@ -42,6 +42,7 @@ class TestAgentLoop:
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
+        agent._messages = []
 
         mock_client = AsyncMock()
         mock_client.messages.create = AsyncMock(
@@ -68,6 +69,7 @@ class TestAgentLoop:
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
+        agent._messages = []
 
         from src.core.config import ConfigLoader
         from src.orchestration.events import EventBroadcaster
@@ -100,6 +102,7 @@ class TestAgentLoop:
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
+        agent._messages = []
 
         from src.core.config import ConfigLoader
         from src.orchestration.events import EventBroadcaster
@@ -126,6 +129,7 @@ class TestAgentLoop:
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
+        agent._messages = []
 
         from src.core.config import ConfigLoader
         from src.orchestration.events import EventBroadcaster
@@ -154,6 +158,7 @@ class TestAgentLoop:
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
+        agent._messages = []
 
         from src.core.config import ConfigLoader
         from src.orchestration.events import EventBroadcaster
@@ -187,6 +192,7 @@ class TestAgentLoop:
         agent.tools = []
         agent.system_prompt = "test"
         agent.model = "test-model"
+        agent._messages = []
 
         from src.core.config import ConfigLoader
         from src.orchestration.events import EventBroadcaster

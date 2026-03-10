@@ -1,5 +1,7 @@
 """Tests for the agent tools and orchestrator."""
 
+import logging
+import logging.handlers
 from unittest.mock import AsyncMock, MagicMock
 
 import anthropic
@@ -7,8 +9,8 @@ import pytest
 
 from src.agent.tools import get_all_tools, execute_tool, POLICY_TOOLS, WEB_SEARCH_TOOL
 from src.agent.orchestrator import (
-    PolicyAgent, _build_system_prompt, _get_retry_delay,
-    MAX_API_RETRIES, BASE_RETRY_DELAY, MAX_RETRY_DELAY,
+    PolicyAgent, _build_system_prompt, _get_retry_delay, _trim_conversation,
+    MAX_API_RETRIES, BASE_RETRY_DELAY, MAX_RETRY_DELAY, MAX_CONVERSATION_TURNS,
 )
 from src.core.config import ConfigLoader
 from src.orchestration.events import EventBroadcaster
@@ -33,7 +35,8 @@ class TestToolDefinitions:
 
     def test_total_tool_count(self):
         tools = get_all_tools()
-        assert len(tools) == 13
+        # 12 policy tools + add_domain + web_search = 14
+        assert len(tools) == 14
 
     def test_policy_tools_have_required_fields(self):
         for tool in POLICY_TOOLS:
@@ -216,6 +219,7 @@ class TestAgentRateLimitRetry:
         agent.tools = get_all_tools()
         agent.system_prompt = "test"
         agent.model = "test-model"
+        agent._messages = []  # conversation memory
         return agent
 
     @pytest.mark.asyncio
@@ -306,3 +310,322 @@ class TestAgentRateLimitRetry:
         assert "Authentication failed" in result
         # Should NOT retry — only 1 call
         assert mock_client.messages.create.call_count == 1
+
+
+# --- Conversation Memory ---
+
+class TestConversationMemory:
+    """Test that conversation history persists across run() calls."""
+
+    def _build_agent(self):
+        """Create a PolicyAgent with mock client for memory tests."""
+        agent = PolicyAgent.__new__(PolicyAgent)
+        agent.config = ConfigLoader(config_dir="config")
+        agent.config.load()
+        agent.broadcaster = EventBroadcaster()
+        agent.scan_manager = ScanManager(
+            config=agent.config, broadcaster=agent.broadcaster, data_dir="data",
+        )
+        agent.tools = get_all_tools()
+        agent.system_prompt = "test"
+        agent.model = "test-model"
+        agent._messages = []
+        return agent
+
+    @pytest.mark.asyncio
+    async def test_messages_persist_across_runs(self):
+        """Conversation history should grow with each run() call."""
+        agent = self._build_agent()
+
+        # First turn
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(
+            return_value=_make_text_response("Scan started with ID abc123.")
+        )
+        agent.client = mock_client
+
+        await agent.run("Start a Nordic scan")
+        # After first run: user message + assistant response = 2 messages
+        assert len(agent._messages) == 2
+        assert agent._messages[0]["role"] == "user"
+        assert agent._messages[0]["content"] == "Start a Nordic scan"
+        assert agent._messages[1]["role"] == "assistant"
+
+        # Second turn
+        mock_client.messages.create = AsyncMock(
+            return_value=_make_text_response("The scan is 50% complete.")
+        )
+
+        await agent.run("What's the scan status?")
+        # After second run: 4 messages (2 per turn)
+        assert len(agent._messages) == 4
+        assert agent._messages[2]["role"] == "user"
+        assert agent._messages[2]["content"] == "What's the scan status?"
+        assert agent._messages[3]["role"] == "assistant"
+
+    @pytest.mark.asyncio
+    async def test_reset_conversation_clears_history(self):
+        """reset_conversation() should empty the message history."""
+        agent = self._build_agent()
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(
+            return_value=_make_text_response("Hello!")
+        )
+        agent.client = mock_client
+
+        await agent.run("Hi")
+        assert len(agent._messages) > 0
+
+        agent.reset_conversation()
+        assert len(agent._messages) == 0
+
+    @pytest.mark.asyncio
+    async def test_messages_sent_to_api_include_history(self):
+        """The API call should receive the full conversation history."""
+        agent = self._build_agent()
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(
+            return_value=_make_text_response("Got it.")
+        )
+        agent.client = mock_client
+
+        await agent.run("First message")
+        await agent.run("Second message")
+
+        # After both runs, _messages should contain full conversation:
+        # user1, assistant1, user2, assistant2
+        assert len(agent._messages) == 4
+        assert agent._messages[0]["content"] == "First message"
+        assert agent._messages[0]["role"] == "user"
+        assert agent._messages[1]["role"] == "assistant"
+        assert agent._messages[2]["content"] == "Second message"
+        assert agent._messages[2]["role"] == "user"
+        assert agent._messages[3]["role"] == "assistant"
+
+        # Verify both API calls were made (2 run() calls)
+        assert mock_client.messages.create.call_count == 2
+
+
+# --- Conversation Trimming ---
+
+class TestConversationTrimming:
+    """Test that conversation history is trimmed to stay within limits."""
+
+    def test_no_trim_when_under_limit(self):
+        """Short conversations should not be trimmed."""
+        messages = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": [MagicMock(type="text", text="Hi")]},
+            {"role": "user", "content": "Bye"},
+            {"role": "assistant", "content": [MagicMock(type="text", text="Bye")]},
+        ]
+        result = _trim_conversation(messages)
+        assert len(result) == len(messages)
+
+    def test_trim_when_over_limit(self):
+        """Long conversations should be trimmed to MAX_CONVERSATION_TURNS."""
+        # Need enough messages to exceed BOTH the size threshold (turns*3)
+        # and the user-count threshold (>MAX_CONVERSATION_TURNS user messages).
+        # Create 2x the limit to ensure trimming kicks in.
+        count = MAX_CONVERSATION_TURNS * 2
+        messages = []
+        for i in range(count):
+            messages.append({"role": "user", "content": f"Message {i}"})
+            messages.append({"role": "assistant", "content": f"Reply {i}"})
+
+        result = _trim_conversation(messages)
+
+        # Should be trimmed
+        assert len(result) < len(messages)
+        # Last message should still be present
+        assert result[-1]["content"] == f"Reply {count - 1}"
+
+    def test_trim_preserves_recent_turns(self):
+        """Trimming should keep the most recent turns, not the oldest."""
+        count = MAX_CONVERSATION_TURNS * 2
+        messages = []
+        for i in range(count):
+            messages.append({"role": "user", "content": f"Turn {i}"})
+            messages.append({"role": "assistant", "content": f"Response {i}"})
+
+        result = _trim_conversation(messages)
+
+        # The newest turn should be present
+        newest_idx = count - 1
+        assert any(f"Turn {newest_idx}" in str(m.get("content", "")) for m in result)
+        # The oldest turn should be gone
+        assert not any("Turn 0" in str(m.get("content", "")) for m in result)
+
+
+# --- list_scans tool ---
+
+class TestListScansTool:
+    """Test the list_scans tool."""
+
+    def test_list_scans_tool_exists(self):
+        """list_scans should be in the tool list."""
+        tools = get_all_tools()
+        names = [t.get("name") for t in tools]
+        assert "list_scans" in names
+
+    @pytest.mark.asyncio
+    async def test_list_scans_empty(self, config, scan_manager):
+        """list_scans with no scans returns empty list."""
+        result = await execute_tool("list_scans", {}, config, scan_manager)
+        assert result["count"] == 0
+        assert result["scans"] == []
+
+    @pytest.mark.asyncio
+    async def test_list_scans_shows_running(self, config, scan_manager):
+        """list_scans shows running scans."""
+        from src.core.models import ScanJob, ScanStatus, ScanProgress
+
+        job = ScanJob(
+            scan_id="test-scan",
+            status=ScanStatus.RUNNING,
+            domain_count=10,
+            domain_group="nordic",
+            policy_count=3,
+            progress=ScanProgress(total_domains=10, completed_domains=5),
+        )
+        scan_manager._jobs["test-scan"] = job
+
+        result = await execute_tool("list_scans", {}, config, scan_manager)
+
+        assert result["count"] == 1
+        scan = result["scans"][0]
+        assert scan["scan_id"] == "test-scan"
+        assert scan["status"] == "running"
+        assert scan["domain_group"] == "nordic"
+        assert scan["policy_count"] == 3
+        assert scan["progress"]["completed"] == 5
+        assert scan["progress"]["total"] == 10
+
+
+# --- Logging setup ---
+
+def _cleanup_handlers():
+    """Remove all handlers from root logger to avoid test interference."""
+    root = logging.getLogger()
+    for handler in root.handlers[:]:
+        try:
+            handler.close()
+        except Exception:
+            pass
+        root.removeHandler(handler)
+
+
+class TestLoggingSetup:
+    """Test that structured logging (via log_setup) is properly configured."""
+
+    def test_setup_logging_creates_log_file(self, tmp_path):
+        """setup_logging should create the log directory and return path."""
+        from src.core.log_setup import setup_logging
+
+        log_file = setup_logging(str(tmp_path))
+        assert log_file.parent.exists()
+        assert log_file.name == "agent.log"
+
+        # Write a test message to verify the handler works
+        test_logger = logging.getLogger("test_setup_logging")
+        test_logger.info("Test log message")
+
+        _cleanup_handlers()
+
+    def test_setup_logging_creates_directory(self, tmp_path):
+        """setup_logging should create the logs/ subdirectory."""
+        from src.core.log_setup import setup_logging
+
+        log_dir = tmp_path / "nested" / "path"
+        setup_logging(str(log_dir))
+        assert (log_dir / "logs").exists()
+
+        _cleanup_handlers()
+
+    def test_setup_logging_json_file_output(self, tmp_path):
+        """Log file should contain JSON-formatted output."""
+        import json as _json
+        from src.core.log_setup import setup_logging
+
+        log_file = setup_logging(str(tmp_path))
+
+        test_logger = logging.getLogger("test_json_output")
+        test_logger.warning("Test JSON log entry")
+
+        # Read the log file and verify it's JSON
+        content = log_file.read_text(encoding="utf-8").strip()
+        if content:
+            # Each line should be valid JSON
+            for line in content.splitlines():
+                parsed = _json.loads(line)
+                assert "event" in parsed
+                assert "level" in parsed
+
+        _cleanup_handlers()
+
+    def test_sensitive_data_redacted(self, tmp_path):
+        """API keys should be redacted from log output."""
+        from src.core.log_setup import setup_logging
+
+        log_file = setup_logging(str(tmp_path))
+
+        test_logger = logging.getLogger("test_redaction")
+        test_logger.warning("Key is sk-ant-abc123xyz-very-long-key-value")
+
+        content = log_file.read_text(encoding="utf-8")
+        assert "sk-ant-abc123xyz" not in content
+        assert "[REDACTED]" in content
+
+        _cleanup_handlers()
+
+
+class TestAuditLog:
+    """Test the crash-safe audit log."""
+
+    def test_audit_event_creates_file(self, tmp_path):
+        """log_audit_event should create audit.jsonl."""
+        from src.core.log_setup import log_audit_event
+
+        log_audit_event(
+            data_dir=str(tmp_path),
+            event="test_event",
+            scan_id="abc123",
+        )
+
+        audit_file = tmp_path / "logs" / "audit.jsonl"
+        assert audit_file.exists()
+
+        import json as _json
+        content = audit_file.read_text(encoding="utf-8").strip()
+        data = _json.loads(content)
+        assert data["event"] == "test_event"
+        assert data["scan_id"] == "abc123"
+        assert "timestamp" in data
+
+    def test_audit_event_appends(self, tmp_path):
+        """Multiple audit events should append to the same file."""
+        from src.core.log_setup import log_audit_event
+
+        log_audit_event(data_dir=str(tmp_path), event="first")
+        log_audit_event(data_dir=str(tmp_path), event="second")
+
+        audit_file = tmp_path / "logs" / "audit.jsonl"
+        lines = audit_file.read_text(encoding="utf-8").strip().splitlines()
+        assert len(lines) == 2
+
+    def test_audit_event_redacts_keys(self, tmp_path):
+        """API keys in audit events should be redacted."""
+        from src.core.log_setup import log_audit_event
+
+        log_audit_event(
+            data_dir=str(tmp_path),
+            event="test",
+            api_key="sk-ant-secret-key-value-here",
+        )
+
+        audit_file = tmp_path / "logs" / "audit.jsonl"
+        content = audit_file.read_text(encoding="utf-8")
+        assert "sk-ant-secret" not in content
+        assert "[REDACTED]" in content
