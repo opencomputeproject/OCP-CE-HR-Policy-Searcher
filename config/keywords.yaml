@@ -105,7 +105,7 @@ keywords:
         - "varmeudnyttelse"
         - "fjernvarme"
 
-      no:
+      "no":
         - "spillvarme"
         - "overskuddsvarme"
         - "varmegjenvinning"
@@ -274,7 +274,7 @@ keywords:
         - "lov"
         - "bekendtgørelse"
 
-      no:
+      "no":
         - "forskrift"
         - "lov"
         - "direktiv"
@@ -435,7 +435,7 @@ keywords:
         - "skattefradrag"
         - "finansiering"
 
-      no:
+      "no":
         - "tilskudd"
         - "støtte"
         - "skattefradrag"
@@ -583,7 +583,7 @@ keywords:
         - "handlingsplan"
         - "pilotprojekt"
 
-      no:
+      "no":
         - "plattform"
         - "strategi"
         - "handlingsplan"
@@ -719,7 +719,7 @@ keywords:
         - "svømmehal"
         - "drivhus"
 
-      no:
+      "no":
         - "varmekunde"
         - "varmebruker"
         - "fjernvarmekunde"
@@ -834,7 +834,7 @@ keywords:
         - "datacenter"
         - "serverrum"
 
-      no:
+      "no":
         - "datasenter"
         - "serverrom"
         - "samlokalisering"
@@ -936,7 +936,7 @@ keywords:
         - "energiforbrug"
         - "bæredygtighed"
 
-      no:
+      "no":
         - "energieffektivitet"
         - "energiforbruk"
         - "bærekraft"

@@ -1,6 +1,6 @@
 # OCP Policy Hub
 
-**Automated discovery of government data center heat reuse policies across 275+ domains in 23 regions.**
+**Automated discovery of government data center heat reuse policies across 300+ domains in 30+ regions.**
 
 OCP Policy Hub crawls government websites, extracts policy content, scores it with multi-language keyword matching, and uses Claude AI for structured policy analysis. Talk to it in natural language, and it handles everything — discovering websites, scanning pages, and delivering organized results.
 
@@ -65,9 +65,9 @@ Found 3 policies:
 
 - **Natural language AI agent** — ask questions in plain English, the agent handles scanning, discovery, and analysis
 - **Web search + auto-discovery** — finds new government websites via web search and permanently adds them to the database
-- **275+ government domains** across 23 regions (EU, US states, Nordic, APAC)
+- **300+ government domains** across 30+ regions (EU, US states, Nordic, APAC, Southern/Eastern Europe)
 - **Parallel scanning** — scan multiple domains concurrently with configurable workers
-- **Multi-language keyword matching** — 7 categories across 11 languages (EN, DE, FR, NL, SV, DA, IT, ES, NO, FI, IS) with compound word support for Germanic and Nordic languages
+- **Multi-language keyword matching** — 7 categories across 17 languages (EN, DE, FR, NL, SV, DA, IT, ES, NO, FI, IS, PL, PT, CS, EL, HU, RO) with compound word support for Germanic, Nordic, and Hungarian languages
 - **⚙️ Fully configurable** — crawl depth, keyword weights, scoring thresholds, AI models, and per-domain overrides via YAML files ([details](#configuration))
 - **Two-stage AI analysis** — cheap Haiku screening filters irrelevant pages before expensive Sonnet extraction
 - **Real-time progress** — WebSocket events stream scan progress to your frontend
@@ -216,6 +216,17 @@ You: _
 python -m src.agent "What countries have heat reuse mandates?"
 ```
 
+### Discover Mode
+
+Automatically search for and add government websites for a specific country:
+
+```bash
+python -m src.agent --discover Poland
+python -m src.agent --discover "Czech Republic"
+```
+
+The agent will search for energy ministries, legislation databases, and policy documents in the country's native language, add relevant domains to the database (auto-assigned to the correct regional groups), and analyze the most promising pages.
+
 ### What the Agent Can Do
 
 **Discover new websites** — The agent can search the web for government websites about heat reuse policies in any country, even ones not yet in the database. It permanently saves discovered sites for future scans.
@@ -228,7 +239,7 @@ I found 3 Japanese government websites with heat reuse content
 and added them to the database for future scanning.
 ```
 
-**Scan known websites** — The database has 275+ government websites. The agent can scan them to discover policies.
+**Scan known websites** — The database has 300+ government websites. The agent can scan them to discover policies.
 
 ```
 You: Scan Nordic countries for policies
@@ -672,7 +683,7 @@ You can also use **region names** (`germany`, `france`, `denmark`), **domain fil
 
 ## Keyword System
 
-The keyword matcher scores page content across 7 weighted categories in 11 languages.
+The keyword matcher scores page content across 7 weighted categories in 17 languages.
 
 ### Categories
 
@@ -830,12 +841,12 @@ ocp-policy-hub/
 ├── setup.sh                    # One-command setup (Linux/macOS)
 ├── setup.ps1                   # One-command setup (Windows PowerShell)
 ├── config/
-│   ├── domains/                # 63 YAML files defining 275+ domains
+│   ├── domains/                # 70+ YAML files defining 300+ domains
 │   │   ├── eu.yaml
 │   │   ├── us_states/          # 51 US state domain files
 │   │   └── ...
 │   ├── groups.yaml             # Domain group definitions
-│   ├── keywords.yaml           # 7 categories x 11 languages
+│   ├── keywords.yaml           # 7 categories x 17 languages
 │   ├── settings.yaml           # Runtime settings
 │   ├── url_filters.yaml        # URL skip/block rules
 │   ├── content_extraction.yaml # HTML boilerplate removal rules
@@ -875,7 +886,7 @@ ocp-policy-hub/
 │   │   └── server.py           # MCP server (11 tools, advanced)
 │   └── storage/
 │       └── store.py            # JSON persistence
-├── tests/                      # 360 tests (257 unit + 103 integration)
+├── tests/                      # 389 tests (276 unit + 113 integration)
 │   ├── unit/
 │   │   ├── test_agent.py       # Agent tool + dispatch tests
 │   │   ├── test_api.py         # FastAPI endpoint tests
@@ -919,7 +930,7 @@ ruff format src/
 ### Testing
 
 ```bash
-pytest                    # Run all 360 tests
+pytest                    # Run all 389 tests
 pytest tests/unit/        # Unit tests only (~257)
 pytest tests/integration/ # Integration tests only (~103)
 pytest --cov=src          # With coverage report
