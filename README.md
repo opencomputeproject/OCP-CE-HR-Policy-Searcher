@@ -6,6 +6,8 @@ OCP Policy Hub crawls government websites, extracts policy content, scores it wi
 
 Built for the [Open Compute Project](https://www.opencompute.org/) to track global policy developments around data center waste heat recovery, energy efficiency mandates, and district heating integration.
 
+> **⚙️ Everything is configurable.** Crawl depth, keyword weights, scoring thresholds, AI models, per-domain overrides — all controlled through simple YAML files in `config/`. No code changes needed. See [Configuration](#configuration) for the full list of knobs.
+
 ### Try it now
 
 ```powershell
@@ -43,13 +45,13 @@ Found 3 policies:
 - [Key Features](#key-features)
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
+- [**⚙️ Configuration**](#configuration) — all the knobs you can tweak
+- [Domain Groups](#domain-groups)
+- [Keyword System](#keyword-system)
 - [AI Agent](#ai-agent)
 - [Running the Server](#running-the-server)
 - [API Reference](#api-reference)
 - [WebSocket Events](#websocket-events)
-- [Configuration](#configuration)
-- [Domain Groups](#domain-groups)
-- [Keyword System](#keyword-system)
 - [Examples](#examples)
 - [Project Structure](#project-structure)
 - [Development](#development)
@@ -65,7 +67,8 @@ Found 3 policies:
 - **Web search + auto-discovery** — finds new government websites via web search and permanently adds them to the database
 - **275+ government domains** across 23 regions (EU, US states, Nordic, APAC)
 - **Parallel scanning** — scan multiple domains concurrently with configurable workers
-- **Multi-language keyword matching** — 7 categories across 8 languages (EN, DE, FR, NL, SV, DA, IT, ES) with compound word support for German, Dutch, Swedish, and Danish
+- **Multi-language keyword matching** — 7 categories across 11 languages (EN, DE, FR, NL, SV, DA, IT, ES, NO, FI, IS) with compound word support for Germanic and Nordic languages
+- **⚙️ Fully configurable** — crawl depth, keyword weights, scoring thresholds, AI models, and per-domain overrides via YAML files ([details](#configuration))
 - **Two-stage AI analysis** — cheap Haiku screening filters irrelevant pages before expensive Sonnet extraction
 - **Real-time progress** — WebSocket events stream scan progress to your frontend
 - **Deterministic verification** — catches jurisdiction mismatches, impossible dates, generic names, and duplicates without LLM calls
@@ -162,6 +165,14 @@ python -m src.agent
 ```
 
 This starts an interactive session where you can ask questions in plain English. See [AI Agent](#ai-agent) for details.
+
+> **⚙️ Want to tweak how it searches?** All scanning behavior is controlled by YAML files in `config/`:
+> - **`config/settings.yaml`** — crawl depth, AI models, scoring thresholds, cost controls
+> - **`config/keywords.yaml`** — keyword terms, weights, boost/penalty phrases, required category combos
+> - **`config/domains/*.yaml`** — per-domain crawl targets, path filters, score overrides
+> - **`config/url_filters.yaml`** — URL skip/block rules
+>
+> See [Configuration](#configuration) for the full reference.
 
 ### Run the REST API (for frontend development)
 
@@ -579,7 +590,7 @@ Late-connecting clients receive full event history on connect.
 | `min_keyword_matches` | `2` | Minimum distinct keyword matches |
 | `enable_llm_analysis` | `true` | Enable Claude analysis |
 | `analysis_model` | `claude-sonnet-4-20250514` | Model for full analysis |
-| `screening_model` | `claude-haiku-4-20250514` | Model for screening |
+| `screening_model` | `claude-haiku-4-5-20251001` | Model for screening |
 | `enable_two_stage` | `true` | Haiku screening before Sonnet |
 | `screening_min_confidence` | `5` | Minimum screening confidence (1-10) |
 
@@ -639,7 +650,7 @@ Use groups to scan related sets of domains. Pass the group name as the `domains`
 |-------|---------|-------------|
 | `all` | 275 | Every enabled domain |
 | `eu` | 10 | EU institutions + member states |
-| `nordic` | 7 | Sweden, Denmark, Finland, Norway, Iceland |
+| `nordic` | 12 | Sweden, Denmark, Finland, Norway, Iceland |
 | `eu_central` | ~15 | Germany, Switzerland, Austria, France |
 | `eu_west` | ~8 | Netherlands, Belgium, Ireland |
 | `us` | 11 | US federal + key states |
@@ -661,7 +672,7 @@ You can also use **region names** (`germany`, `france`, `denmark`), **domain fil
 
 ## Keyword System
 
-The keyword matcher scores page content across 7 weighted categories in 8 languages.
+The keyword matcher scores page content across 7 weighted categories in 11 languages.
 
 ### Categories
 
@@ -677,9 +688,9 @@ The keyword matcher scores page content across 7 weighted categories in 8 langua
 
 ### Languages
 
-English (en), German (de), French (fr), Dutch (nl), Swedish (sv), Danish (da), Italian (it), Spanish (es)
+English (en), German (de), French (fr), Dutch (nl), Swedish (sv), Danish (da), Italian (it), Spanish (es), Norwegian (no), Finnish (fi), Icelandic (is)
 
-German, Dutch, Swedish, and Danish use **substring matching** instead of word boundaries to handle compound words (e.g., "Rechenzentrumsabwärmenutzungsverordnung").
+German, Dutch, Swedish, Danish, Norwegian, Finnish, and Icelandic use **substring matching** instead of word boundaries to handle compound words (e.g., "Rechenzentrumsabwärmenutzungsverordnung", "spillvarmeprosjekt").
 
 ### Scoring
 
@@ -824,7 +835,7 @@ ocp-policy-hub/
 │   │   ├── us_states/          # 51 US state domain files
 │   │   └── ...
 │   ├── groups.yaml             # Domain group definitions
-│   ├── keywords.yaml           # 7 categories x 8 languages
+│   ├── keywords.yaml           # 7 categories x 11 languages
 │   ├── settings.yaml           # Runtime settings
 │   ├── url_filters.yaml        # URL skip/block rules
 │   ├── content_extraction.yaml # HTML boilerplate removal rules
@@ -864,7 +875,7 @@ ocp-policy-hub/
 │   │   └── server.py           # MCP server (11 tools, advanced)
 │   └── storage/
 │       └── store.py            # JSON persistence
-├── tests/                      # 346 tests (244 unit + 102 integration)
+├── tests/                      # 360 tests (257 unit + 103 integration)
 │   ├── unit/
 │   │   ├── test_agent.py       # Agent tool + dispatch tests
 │   │   ├── test_api.py         # FastAPI endpoint tests
@@ -908,9 +919,9 @@ ruff format src/
 ### Testing
 
 ```bash
-pytest                    # Run all 346 tests
-pytest tests/unit/        # Unit tests only (244)
-pytest tests/integration/ # Integration tests only (83)
+pytest                    # Run all 360 tests
+pytest tests/unit/        # Unit tests only (~257)
+pytest tests/integration/ # Integration tests only (~103)
 pytest --cov=src          # With coverage report
 ```
 
