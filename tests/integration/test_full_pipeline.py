@@ -1003,7 +1003,7 @@ class TestOnboardingFlow:
         """pyproject.toml has enough metadata for pip install."""
         content = Path("pyproject.toml").read_text(encoding="utf-8")
         assert "[project]" in content
-        assert 'name = "ocp-policy-hub"' in content
+        assert 'name = "OCP-CE-HR-Policy-Searcher"' in content
         assert "dependencies" in content
 
     def test_example_env_exists(self):

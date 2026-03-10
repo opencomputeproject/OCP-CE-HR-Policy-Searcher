@@ -1,4 +1,4 @@
-"""Unified logging configuration for OCP Policy Hub.
+"""Unified logging configuration for OCP CE HR Policy Searcher.
 
 Provides structured logging via ``structlog`` on top of Python's stdlib
 ``logging``.  All existing ``logging.getLogger(__name__)`` calls throughout
@@ -101,7 +101,7 @@ class FlushingRotatingFileHandler(logging.handlers.RotatingFileHandler):
     ``emit()`` to guarantee every log line reaches the OS buffer immediately.
 
     The performance cost (one extra syscall per log message) is negligible
-    for OCP Policy Hub's workload (~hundreds of messages per scan).
+    for OCP CE HR Policy Searcher's workload (~hundreds of messages per scan).
     """
 
     def emit(self, record: logging.LogRecord) -> None:

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# OCP Policy Hub — One-command setup
+# OCP CE HR Policy Searcher — One-command setup
 #
 # Usage:
 #   ./setup.sh          # Standard install
@@ -88,7 +88,7 @@ else
 fi
 
 pip install -q -e "$INSTALL_FLAG"
-info "Installed ocp-policy-hub"
+info "Installed OCP-CE-HR-Policy-Searcher"
 
 # --------------------------------------------------------------------------
 # 4. Copy example.env -> .env and prompt for API key

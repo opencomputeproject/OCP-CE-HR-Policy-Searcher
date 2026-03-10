@@ -18,7 +18,7 @@ from ..core.verifier import Verifier
 from ..orchestration.events import EventBroadcaster
 from ..orchestration.scan_manager import ScanManager
 
-server = Server("ocp-policy-hub")
+server = Server("OCP-CE-HR-Policy-Searcher")
 
 # Singletons
 _config: ConfigLoader | None = None

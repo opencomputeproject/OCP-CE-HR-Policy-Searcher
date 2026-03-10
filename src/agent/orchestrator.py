@@ -93,7 +93,7 @@ def _build_system_prompt(config: ConfigLoader) -> str:
     except Exception:
         group_list = "quick, eu, nordic, dach, north_america, asia_pacific, all"
 
-    return f"""You are the OCP Policy Hub assistant. You help people discover government \
+    return f"""You are the OCP CE HR Policy Searcher assistant. You help people discover government \
 policies related to data center waste heat reuse around the world.
 
 Your users are engineers, policy researchers, and OCP members who want to find \

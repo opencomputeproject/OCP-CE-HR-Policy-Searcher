@@ -85,7 +85,7 @@ class TestRootAndHealth:
         response = client.get("/")
         assert response.status_code == 200
         data = response.json()
-        assert data["service"] == "OCP Policy Hub"
+        assert data["service"] == "OCP CE HR Policy Searcher"
         assert "endpoints" in data
 
     def test_health(self, client):

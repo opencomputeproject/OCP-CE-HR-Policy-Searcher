@@ -1,4 +1,4 @@
-"""FastAPI application — REST API + WebSocket for OCP Policy Hub."""
+"""FastAPI application — REST API + WebSocket for OCP CE HR Policy Searcher."""
 
 import logging
 import os
@@ -22,13 +22,13 @@ setup_logging(data_dir, json_console=True, console_level=logging.INFO)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle."""
-    logging.getLogger("ocp").info("OCP Policy Hub starting")
+    logging.getLogger("ocp").info("OCP CE HR Policy Searcher starting")
     yield
-    logging.getLogger("ocp").info("OCP Policy Hub shutting down")
+    logging.getLogger("ocp").info("OCP CE HR Policy Searcher shutting down")
 
 
 app = FastAPI(
-    title="OCP Policy Hub",
+    title="OCP CE HR Policy Searcher",
     description=(
         "API for scanning government websites to discover data center "
         "heat reuse policies. Supports parallel domain scanning, "
@@ -64,7 +64,7 @@ app.include_router(logs.router)
 @app.get("/")
 def root():
     return {
-        "service": "OCP Policy Hub",
+        "service": "OCP CE HR Policy Searcher",
         "version": "1.0.0",
         "docs": "/docs",
         "endpoints": {

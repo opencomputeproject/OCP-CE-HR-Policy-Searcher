@@ -40,7 +40,7 @@ load_dotenv(override=True)  # .env wins over stale system env vars
 def _print_help():
     """Print CLI usage help and exit."""
     print("""
-OCP Policy Hub Agent — CLI Reference
+OCP CE HR Policy Searcher — CLI Reference
 =====================================
 
 Usage:
@@ -216,7 +216,7 @@ def _print_banner(log_file: Path):
     know that all activity is being recorded and can be reviewed later.
     """
     print()
-    print("OCP Policy Hub Agent")
+    print("OCP CE HR Policy Searcher")
     print("=" * 40)
     print("I help you find data center heat reuse")
     print("policies worldwide.")
@@ -512,7 +512,7 @@ def main():
     # Set up structured logging (JSON to file, human-readable to console)
     log_file = setup_logging(data_dir)
     logger = logging.getLogger(__name__)
-    logger.info("OCP Policy Hub Agent starting")
+    logger.info("OCP CE HR Policy Searcher starting")
 
     agent = PolicyAgent(
         api_key=api_key,

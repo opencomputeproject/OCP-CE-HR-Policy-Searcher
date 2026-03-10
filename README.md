@@ -1,8 +1,8 @@
-# OCP Policy Hub
+# OCP CE HR Policy Searcher
 
 **Automated discovery of government data center heat reuse policies across 300+ domains in 30+ regions.**
 
-OCP Policy Hub crawls government websites, extracts policy content, scores it with multi-language keyword matching, and uses Claude AI for structured policy analysis. Talk to it in natural language, and it handles everything — discovering websites, scanning pages, and delivering organized results.
+OCP CE HR Policy Searcher crawls government websites, extracts policy content, scores it with multi-language keyword matching, and uses Claude AI for structured policy analysis. Talk to it in natural language, and it handles everything — discovering websites, scanning pages, and delivering organized results.
 
 Built for the [Open Compute Project](https://www.opencompute.org/) to track global policy developments around data center waste heat recovery, energy efficiency mandates, and district heating integration.
 
@@ -11,8 +11,8 @@ Built for the [Open Compute Project](https://www.opencompute.org/) to track glob
 ### Try it now
 
 ```powershell
-git clone https://github.com/ahliana/ocp-policy-hub.git
-cd ocp-policy-hub
+git clone https://github.com/ahliana/OCP-CE-HR-Policy-Searcher.git
+cd OCP-CE-HR-Policy-Searcher
 .\setup.ps1             # Linux/macOS: ./setup.sh
 python -m src.agent
 ```
@@ -147,8 +147,8 @@ The **AI agent** is the primary entry point. It uses the Anthropic API's tool us
 ### Install
 
 ```powershell
-git clone https://github.com/ahliana/ocp-policy-hub.git
-cd ocp-policy-hub
+git clone https://github.com/ahliana/OCP-CE-HR-Policy-Searcher.git
+cd OCP-CE-HR-Policy-Searcher
 .\setup.ps1             # Linux/macOS: ./setup.sh
 ```
 
@@ -232,7 +232,7 @@ python -m src.agent --deep --discover "Czech Republic"
 
 ## AI Agent
 
-The AI agent is the primary way to interact with OCP Policy Hub. It uses natural language — no need to learn API endpoints or write code.
+The AI agent is the primary way to interact with OCP CE HR Policy Searcher. It uses natural language — no need to learn API endpoints or write code.
 
 ### Interactive Mode
 
@@ -241,7 +241,7 @@ python -m src.agent
 ```
 
 ```
-OCP Policy Hub Agent
+OCP CE HR Policy Searcher
 ====================
 I help you find data center heat reuse policies worldwide.
 
@@ -1051,7 +1051,7 @@ curl -X POST http://localhost:8000/api/scans \
 ## Project Structure
 
 ```
-ocp-policy-hub/
+OCP-CE-HR-Policy-Searcher/
 ├── pyproject.toml              # Dependencies & build config
 ├── setup.sh                    # One-command setup (Linux/macOS)
 ├── setup.ps1                   # One-command setup (Windows PowerShell)
@@ -1137,8 +1137,8 @@ ocp-policy-hub/
 ### Setup
 
 ```powershell
-git clone https://github.com/ahliana/ocp-policy-hub.git
-cd ocp-policy-hub
+git clone https://github.com/ahliana/OCP-CE-HR-Policy-Searcher.git
+cd OCP-CE-HR-Policy-Searcher
 .\setup.ps1 -Dev        # Linux/macOS: ./setup.sh --dev
 ```
 
@@ -1229,10 +1229,10 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
-    "ocp-policy-hub": {
+    "OCP-CE-HR-Policy-Searcher": {
       "command": "python",
       "args": ["-m", "src.mcp.server"],
-      "cwd": "/path/to/ocp-policy-hub",
+      "cwd": "/path/to/OCP-CE-HR-Policy-Searcher",
       "env": {
         "ANTHROPIC_API_KEY": "sk-ant-..."
       }
@@ -1289,8 +1289,8 @@ Contributions are welcome! See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the fu
 **Quick start:**
 
 ```bash
-git clone https://github.com/ahliana/ocp-policy-hub.git
-cd ocp-policy-hub
+git clone https://github.com/ahliana/OCP-CE-HR-Policy-Searcher.git
+cd OCP-CE-HR-Policy-Searcher
 .\setup.ps1 -Dev        # Linux/macOS: ./setup.sh --dev
 pytest                   # All tests must pass
 ruff check src/ tests/   # No lint errors

@@ -1,5 +1,5 @@
 # ============================================================================
-# OCP Policy Hub — One-command setup (Windows PowerShell)
+# OCP CE HR Policy Searcher — One-command setup (Windows PowerShell)
 #
 # Usage:
 #   .\setup.ps1          # Standard install
@@ -87,7 +87,7 @@ if ($Dev) {
     Write-Host "Installing..."
     pip install -q -e .
 }
-Write-Info "Installed ocp-policy-hub"
+Write-Info "Installed OCP-CE-HR-Policy-Searcher"
 
 # --------------------------------------------------------------------------
 # 4. Copy example.env -> .env and prompt for API key

@@ -1,4 +1,4 @@
-"""Data models for the OCP Policy Hub."""
+"""Data models for the OCP CE HR Policy Searcher."""
 
 from datetime import datetime, date
 from enum import Enum

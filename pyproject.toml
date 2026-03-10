@@ -1,5 +1,5 @@
 [project]
-name = "ocp-policy-hub"
+name = "OCP-CE-HR-Policy-Searcher"
 version = "0.1.0"
 description = "Agent-orchestrated policy discovery hub with REST API and MCP server"
 requires-python = ">=3.11"

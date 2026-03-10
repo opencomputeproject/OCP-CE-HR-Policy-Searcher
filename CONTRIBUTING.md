@@ -1,12 +1,12 @@
-# Contributing to OCP Policy Hub
+# Contributing to OCP CE HR Policy Searcher
 
 Thanks for your interest in contributing! This project helps the [Open Compute Project](https://www.opencompute.org/) track global data center heat reuse policies, and community contributions are welcome.
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/ahliana/ocp-policy-hub.git
-cd ocp-policy-hub
+git clone https://github.com/ahliana/OCP-CE-HR-Policy-Searcher.git
+cd OCP-CE-HR-Policy-Searcher
 .\setup.ps1 -Dev        # Linux/macOS: ./setup.sh --dev
 ```
 
