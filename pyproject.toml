@@ -21,6 +21,7 @@ dependencies = [
     "structlog>=24.1.0",
     "tenacity>=8.2.0",
     "langdetect>=1.0.9",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]

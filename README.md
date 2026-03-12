@@ -1320,20 +1320,41 @@ Credentials are applied automatically during crawling — form logins use Playwr
 
 ## Environment Variables
 
-Create `.env` file (see `config/example.env`):
+Create a `.env` file in the project root (see `config/example.env`). The `.env` file is loaded
+at startup using `python-dotenv` with `override=True`, so `.env` values always take precedence
+over system environment variables (this prevents issues when the app is launched from tools
+like Claude Code that may set empty placeholder env vars).
 
 ```bash
-# Required for LLM analysis
+# Required for LLM analysis (keyword-only mode works without this)
+# Get a key at: https://console.anthropic.com/
 ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
 
 # Required for Google Sheets output
+# 1. Create a service account in Google Cloud Console
+# 2. Enable the Google Sheets API
+# 3. Download the JSON key file
+# 4. Encode it: base64 -i credentials.json | tr -d '\n'  (Linux/Mac)
+#    or: [Convert]::ToBase64String([IO.File]::ReadAllBytes("credentials.json"))  (PowerShell)
+# 5. Paste the result here:
 GOOGLE_CREDENTIALS=base64-encoded-service-account-json
+
+# The spreadsheet ID from your Google Sheet URL:
+# https://docs.google.com/spreadsheets/d/THIS_PART/edit
 SPREADSHEET_ID=your-spreadsheet-id
 
-# Optional overrides
+# Optional overrides (any setting from config/settings.yaml)
 POLICYSEARCH__CRAWL__DELAY_SECONDS=5.0
 POLICYSEARCH__ANALYSIS__ENABLE_LLM_ANALYSIS=false
 ```
+
+**Troubleshooting credentials:**
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| "Falling back to keyword-only matching" | `ANTHROPIC_API_KEY` missing or empty | Add key to `.env` |
+| "policies will not be exported to Google Sheets" | `GOOGLE_CREDENTIALS` or `SPREADSHEET_ID` missing | Add both to `.env` |
+| "Keyword match - needs review" in spreadsheet | LLM analysis was skipped | Ensure `ANTHROPIC_API_KEY` is set |
 
 ## GitHub Actions
 

@@ -7,6 +7,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv(override=True)  # .env wins over stale system env vars
+
 import yaml
 
 from .config.loader import (
@@ -1749,18 +1752,37 @@ async def run(args) -> int:
             authenticator = Authenticator(credentials)
             logger.info(f"Credentials: {len(credentials)} site(s) loaded")
 
-        if settings.analysis.enable_llm_analysis and settings.anthropic_api_key:
-            claude_client = ClaudeClient(settings.anthropic_api_key, settings.analysis.llm_model)
-            if settings.analysis.enable_two_stage:
-                logger.info(f"LLM: {settings.analysis.screening_model} (screening) -> {settings.analysis.llm_model} (analysis)")
+        if settings.analysis.enable_llm_analysis:
+            if settings.anthropic_api_key:
+                claude_client = ClaudeClient(settings.anthropic_api_key, settings.analysis.llm_model)
+                if settings.analysis.enable_two_stage:
+                    logger.info(f"LLM: {settings.analysis.screening_model} (screening) -> {settings.analysis.llm_model} (analysis)")
+                else:
+                    logger.info(f"LLM: {settings.analysis.llm_model}")
             else:
-                logger.info(f"LLM: {settings.analysis.llm_model}")
+                logger.warning(
+                    "LLM analysis enabled but ANTHROPIC_API_KEY is not set. "
+                    "Falling back to keyword-only matching. "
+                    "Set ANTHROPIC_API_KEY in your .env file. "
+                    "Get a key at: https://console.anthropic.com/"
+                )
 
         sheets_client = None
-        if not args.dry_run and settings.spreadsheet_id and settings.google_credentials:
-            sheets_client = SheetsClient(settings.google_credentials, settings.spreadsheet_id)
-            sheets_client.connect()
-            logger.info("Sheets: Connected")
+        if not args.dry_run:
+            if settings.spreadsheet_id and settings.google_credentials:
+                sheets_client = SheetsClient(settings.google_credentials, settings.spreadsheet_id)
+                sheets_client.connect()
+                logger.info("Sheets: Connected")
+            elif not settings.google_credentials:
+                logger.warning(
+                    "GOOGLE_CREDENTIALS not set — policies will not be exported to Google Sheets. "
+                    "Set GOOGLE_CREDENTIALS in your .env file (base64-encoded service account JSON)."
+                )
+            elif not settings.spreadsheet_id:
+                logger.warning(
+                    "SPREADSHEET_ID not set — policies will not be exported to Google Sheets. "
+                    "Set SPREADSHEET_ID in your .env file (from your Google Sheet URL)."
+                )
 
         # Process batches
         all_crawl_results = []
