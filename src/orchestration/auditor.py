@@ -6,6 +6,8 @@ from typing import Optional
 
 import anthropic
 
+from ..core.models import DEFAULT_ANALYSIS_MODEL
+
 logger = logging.getLogger(__name__)
 
 AUDIT_PROMPT = """You are a policy research analyst reviewing scan results from an automated system that crawls government websites to find data center heat reuse policies.
@@ -36,7 +38,7 @@ class Auditor:
 
     MAX_OUTPUT_TOKENS = 2000
 
-    def __init__(self, api_key: str, model: str = "claude-sonnet-4-6"):
+    def __init__(self, api_key: str, model: str = DEFAULT_ANALYSIS_MODEL):
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
         self.model = model
 

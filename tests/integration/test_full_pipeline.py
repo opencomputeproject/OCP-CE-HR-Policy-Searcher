@@ -17,7 +17,7 @@ from src.agent.orchestrator import PolicyAgent, _build_system_prompt
 from src.agent.tools import execute_tool, get_all_tools
 from src.core.config import ConfigLoader, ConfigurationError
 from src.core.models import (
-    CrawlResult, PageStatus, Policy, PolicyType,
+    CrawlResult, PageStatus, Policy, PolicyType, DEFAULT_ANALYSIS_MODEL,
 )
 from src.orchestration.events import EventBroadcaster
 from src.orchestration.scan_manager import ScanManager
@@ -1450,7 +1450,7 @@ class TestOnboardingFlow:
                 body={"error": {"message": "invalid x-api-key"}},
             )
         )
-        agent.model = "claude-sonnet-4-6"
+        agent.model = DEFAULT_ANALYSIS_MODEL
         agent.system_prompt = "test"
         agent.tools = []
 

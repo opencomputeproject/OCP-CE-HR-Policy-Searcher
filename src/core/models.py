@@ -7,6 +7,18 @@ from typing import Optional, Any, Literal
 from pydantic import BaseModel, Field
 
 
+# ---------------------------------------------------------------------------
+# Model IDs — single source of truth for Claude model defaults.
+#
+# Users override via .env (SCREENING_MODEL, ANALYSIS_MODEL) or settings.yaml.
+# All other modules import these constants instead of hardcoding model strings.
+# Use undated aliases (e.g. "claude-sonnet-4-6") where available so that the
+# API automatically resolves to the latest patch version.
+# ---------------------------------------------------------------------------
+DEFAULT_ANALYSIS_MODEL = "claude-sonnet-4-6"
+DEFAULT_SCREENING_MODEL = "claude-haiku-4-5-20251001"
+
+
 # --- Enums ---
 
 class PolicyType(str, Enum):
@@ -352,8 +364,8 @@ class AnalysisSettings(BaseModel):
     min_relevance_score: int = Field(default=5, ge=1, le=10)
     min_keyword_matches: int = Field(default=2, ge=1)
     enable_llm_analysis: bool = True
-    analysis_model: str = "claude-sonnet-4-6"
-    screening_model: str = "claude-haiku-4-5-20251001"
+    analysis_model: str = DEFAULT_ANALYSIS_MODEL
+    screening_model: str = DEFAULT_SCREENING_MODEL
     max_content_length: int = Field(default=50000)
     enable_two_stage: bool = True
     screening_min_confidence: int = Field(default=5, ge=1, le=10)

@@ -10,7 +10,10 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-from .models import DomainConfig, CrawlSettings, AnalysisSettings, OutputSettings, AppSettings
+from .models import (
+    DomainConfig, CrawlSettings, AnalysisSettings, OutputSettings, AppSettings,
+    DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL,
+)
 
 
 class ConfigurationError(Exception):
@@ -274,13 +277,22 @@ class ConfigLoader:
             max_retries=crawl_data.get("max_retries", 3),
             force_playwright=crawl_data.get("force_playwright", False),
         )
+        # Model selection: env var > settings.yaml > constant in models.py
+        _analysis_model = os.environ.get(
+            "ANALYSIS_MODEL",
+            analysis_data.get("analysis_model", DEFAULT_ANALYSIS_MODEL),
+        )
+        _screening_model = os.environ.get(
+            "SCREENING_MODEL",
+            analysis_data.get("screening_model", DEFAULT_SCREENING_MODEL),
+        )
         analysis = AnalysisSettings(
             min_keyword_score=analysis_data.get("min_keyword_score", 3.0),
             min_relevance_score=analysis_data.get("min_relevance_score", 5),
             min_keyword_matches=analysis_data.get("min_keyword_matches", 2),
             enable_llm_analysis=analysis_data.get("enable_llm_analysis", True),
-            analysis_model=analysis_data.get("analysis_model", "claude-sonnet-4-6"),
-            screening_model=analysis_data.get("screening_model", "claude-haiku-4-5-20251001"),
+            analysis_model=_analysis_model,
+            screening_model=_screening_model,
             enable_two_stage=analysis_data.get("enable_two_stage", True),
             screening_min_confidence=analysis_data.get("screening_min_confidence", 5),
         )

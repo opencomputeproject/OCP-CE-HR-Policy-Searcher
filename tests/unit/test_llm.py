@@ -7,10 +7,13 @@ import anthropic
 import pytest
 
 from src.core.llm import (
-    _extract_json, _coerce_types, ClaudeClient,
+    _extract_json, _coerce_types, _resolve_model, ClaudeClient,
     SCREENING_PROMPT, ANALYSIS_PROMPT,
 )
-from src.core.models import PolicyAnalysis, PolicyType, CostInfo
+from src.core.models import (
+    PolicyAnalysis, PolicyType, CostInfo,
+    DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL,
+)
 
 
 # --- _extract_json ---
@@ -360,10 +363,11 @@ class TestScreeningRateLimitRetry:
     """Verify that screen_relevance retries on 429 instead of failing open."""
 
     def _build_client(self):
-        """Create a ClaudeClient with mocked async client."""
+        """Create a ClaudeClient with mocked async client (skips validation)."""
+        from src.core.models import DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL
         client = ClaudeClient.__new__(ClaudeClient)
-        client.screening_model = "claude-haiku-4-5-20251001"
-        client.analysis_model = "claude-sonnet-4-6"
+        client.screening_model = DEFAULT_SCREENING_MODEL
+        client.analysis_model = DEFAULT_ANALYSIS_MODEL
         client.cost = CostInfo()
         client.client = AsyncMock()
         return client
@@ -462,3 +466,83 @@ class TestScreeningRateLimitRetry:
         # Should fail open
         assert result.relevant is True
         assert result.confidence == 5
+
+
+# ---------------------------------------------------------------------------
+# Model validation (_resolve_model)
+# ---------------------------------------------------------------------------
+
+class TestResolveModel:
+    """_resolve_model() should validate and auto-fallback stale models."""
+
+    def _mock_client(self):
+        return MagicMock(spec=anthropic.Anthropic)
+
+    def test_valid_model_passes_through(self):
+        client = self._mock_client()
+        client.models.retrieve.return_value = MagicMock(id="claude-haiku-4-5-20251001")
+
+        result = _resolve_model(client, "claude-haiku-4-5-20251001", "screening", "haiku")
+        assert result == "claude-haiku-4-5-20251001"
+        client.models.retrieve.assert_called_once_with(model_id="claude-haiku-4-5-20251001")
+
+    def test_stale_model_auto_resolves(self):
+        client = self._mock_client()
+        client.models.retrieve.side_effect = anthropic.NotFoundError(
+            message="not found",
+            response=MagicMock(status_code=404),
+            body={"error": {"message": "not found"}},
+        )
+        # models.list returns newer haiku
+        newer_model = MagicMock(id="claude-haiku-5-20260101", created_at="2026-01-01T00:00:00Z")
+        client.models.list.return_value = [newer_model]
+
+        result = _resolve_model(client, "claude-haiku-4-5-20251001", "screening", "haiku")
+        assert result == "claude-haiku-5-20260101"
+
+    def test_stale_model_no_alternatives_returns_original(self):
+        client = self._mock_client()
+        client.models.retrieve.side_effect = anthropic.NotFoundError(
+            message="not found",
+            response=MagicMock(status_code=404),
+            body={"error": {"message": "not found"}},
+        )
+        # models.list returns only sonnet models (no haiku)
+        client.models.list.return_value = [
+            MagicMock(id="claude-sonnet-4-6", created_at="2025-06-01T00:00:00Z"),
+        ]
+
+        result = _resolve_model(client, "claude-haiku-4-5-20251001", "screening", "haiku")
+        assert result == "claude-haiku-4-5-20251001"  # returns original
+
+    def test_network_error_skips_validation(self):
+        client = self._mock_client()
+        client.models.retrieve.side_effect = ConnectionError("Network down")
+
+        result = _resolve_model(client, "claude-haiku-4-5-20251001", "screening", "haiku")
+        assert result == "claude-haiku-4-5-20251001"
+
+    def test_auth_error_skips_validation(self):
+        client = self._mock_client()
+        client.models.retrieve.side_effect = anthropic.AuthenticationError(
+            message="invalid key",
+            response=MagicMock(status_code=401),
+            body={"error": {"message": "invalid key"}},
+        )
+
+        result = _resolve_model(client, "claude-sonnet-4-6", "analysis", "sonnet")
+        assert result == "claude-sonnet-4-6"
+
+    def test_picks_newest_alternative(self):
+        client = self._mock_client()
+        client.models.retrieve.side_effect = anthropic.NotFoundError(
+            message="not found",
+            response=MagicMock(status_code=404),
+            body={"error": {"message": "not found"}},
+        )
+        old_model = MagicMock(id="claude-haiku-4-5-20251001", created_at="2025-10-01T00:00:00Z")
+        new_model = MagicMock(id="claude-haiku-5-20260301", created_at="2026-03-01T00:00:00Z")
+        client.models.list.return_value = [old_model, new_model]
+
+        result = _resolve_model(client, "claude-haiku-3-old", "screening", "haiku")
+        assert result == "claude-haiku-5-20260301"  # newest by created_at

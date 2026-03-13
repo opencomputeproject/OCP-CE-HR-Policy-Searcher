@@ -8,6 +8,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 from ...agent.orchestrator import PolicyAgent
+from ...core.models import DEFAULT_ANALYSIS_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ router = APIRouter(prefix="/api", tags=["agent"])
 
 class AgentRequest(BaseModel):
     message: str
-    model: str = "claude-sonnet-4-6"
+    model: str = DEFAULT_ANALYSIS_MODEL
 
 
 class AgentResponse(BaseModel):
@@ -95,7 +96,7 @@ async def agent_websocket(ws: WebSocket):
         while True:
             data = await ws.receive_json()
             message = data.get("message", "")
-            model = data.get("model", "claude-sonnet-4-6")
+            model = data.get("model", DEFAULT_ANALYSIS_MODEL)
 
             if not message:
                 await ws.send_json({"type": "error", "content": "No message provided"})

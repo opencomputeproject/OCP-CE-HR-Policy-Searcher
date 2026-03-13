@@ -18,14 +18,15 @@ import anthropic
 import structlog
 
 from ..core.config import ConfigLoader
+from ..core.models import DEFAULT_ANALYSIS_MODEL
 from ..orchestration.events import EventBroadcaster
 from ..orchestration.scan_manager import ScanManager
 from .tools import execute_tool, get_all_tools
 
 logger = logging.getLogger(__name__)
 
-# Default model for the agent
-DEFAULT_MODEL = "claude-sonnet-4-6"
+# Default model for the agent conversation loop
+DEFAULT_MODEL = DEFAULT_ANALYSIS_MODEL
 
 # Rate limit retry configuration for the agent conversation loop.
 # These are separate from the scanner's LLM retry settings (in ClaudeClient)

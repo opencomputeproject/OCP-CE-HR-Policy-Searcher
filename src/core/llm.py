@@ -11,6 +11,7 @@ from pydantic import ValidationError
 
 from .models import (
     Policy, PolicyType, PolicyAnalysis, ScreeningResult, CostInfo,
+    DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL,
 )
 
 logger = logging.getLogger(__name__)
@@ -226,6 +227,67 @@ def _coerce_types(data: dict) -> dict:
     return result
 
 
+# --- Model validation ---
+
+
+def _resolve_model(
+    client: anthropic.Anthropic,
+    model_id: str,
+    role: str,
+    family: str,
+) -> str:
+    """Validate a model exists; if not, find the newest alternative in the same family.
+
+    Args:
+        client: Sync Anthropic client (for the models API).
+        model_id: Configured model ID to validate.
+        role: Human-readable role ("screening" or "analysis") for log messages.
+        family: Model family substring to match (e.g. "haiku", "sonnet").
+
+    Returns:
+        The validated model ID, or a fallback if the original is unavailable.
+    """
+    try:
+        client.models.retrieve(model_id=model_id)
+        return model_id
+    except anthropic.NotFoundError:
+        logger.warning(
+            "%s model '%s' is no longer available -- searching for a "
+            "%s-family alternative...",
+            role.capitalize(), model_id, family,
+        )
+    except Exception:
+        # Network/auth errors — don't block startup, assume model is fine
+        return model_id
+
+    # Model not found — try to find the newest model in the same family
+    try:
+        available = list(client.models.list(limit=100))
+        candidates = [m for m in available if family in m.id]
+        if candidates:
+            # Newest model first (by created_at timestamp)
+            candidates.sort(
+                key=lambda m: getattr(m, "created_at", "") or "",
+                reverse=True,
+            )
+            replacement = candidates[0].id
+            logger.warning(
+                "Auto-resolved %s model: '%s' -> '%s'. "
+                "Update %s_MODEL in .env to make this permanent.",
+                role, model_id, replacement, role.upper(),
+            )
+            return replacement
+    except Exception as exc:
+        logger.warning("Could not list available models: %s", exc)
+
+    logger.error(
+        "No %s-family model found. Update %s_MODEL in your .env. "
+        "See: https://docs.anthropic.com/en/docs/about-claude/models",
+        family, role.upper(),
+    )
+    return model_id  # Return original — will fail at first actual use
+
+
 # --- Client ---
 
 class ClaudeClient:
@@ -245,13 +307,33 @@ class ClaudeClient:
     def __init__(
         self,
         api_key: str,
-        analysis_model: str = "claude-sonnet-4-6",
-        screening_model: str = "claude-haiku-4-5-20251001",
+        analysis_model: str = DEFAULT_ANALYSIS_MODEL,
+        screening_model: str = DEFAULT_SCREENING_MODEL,
     ):
+        self._api_key = api_key
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
         self.analysis_model = analysis_model
         self.screening_model = screening_model
         self.cost = CostInfo()
+        self._validate_models()
+
+    # ------------------------------------------------------------------
+    # Startup model validation
+    # ------------------------------------------------------------------
+
+    def _validate_models(self) -> None:
+        """Check that configured models exist, auto-resolving if stale."""
+        try:
+            sync_client = anthropic.Anthropic(api_key=self._api_key)
+        except Exception:
+            return  # Can't create sync client — skip validation
+
+        self.screening_model = _resolve_model(
+            sync_client, self.screening_model, "screening", "haiku",
+        )
+        self.analysis_model = _resolve_model(
+            sync_client, self.analysis_model, "analysis", "sonnet",
+        )
 
     async def screen_relevance(
         self, content: str, url: str, min_confidence: int = 5,
