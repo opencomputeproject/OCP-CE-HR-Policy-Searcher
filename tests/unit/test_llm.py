@@ -363,7 +363,7 @@ class TestScreeningRateLimitRetry:
         """Create a ClaudeClient with mocked async client."""
         client = ClaudeClient.__new__(ClaudeClient)
         client.screening_model = "claude-haiku-4-5-20251001"
-        client.analysis_model = "claude-sonnet-4-20250514"
+        client.analysis_model = "claude-sonnet-4-6"
         client.cost = CostInfo()
         client.client = AsyncMock()
         return client

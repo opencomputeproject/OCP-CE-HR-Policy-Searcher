@@ -1450,7 +1450,7 @@ class TestOnboardingFlow:
                 body={"error": {"message": "invalid x-api-key"}},
             )
         )
-        agent.model = "claude-sonnet-4-20250514"
+        agent.model = "claude-sonnet-4-6"
         agent.system_prompt = "test"
         agent.tools = []
 

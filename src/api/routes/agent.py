@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api", tags=["agent"])
 
 class AgentRequest(BaseModel):
     message: str
-    model: str = "claude-sonnet-4-20250514"
+    model: str = "claude-sonnet-4-6"
 
 
 class AgentResponse(BaseModel):
@@ -95,7 +95,7 @@ async def agent_websocket(ws: WebSocket):
         while True:
             data = await ws.receive_json()
             message = data.get("message", "")
-            model = data.get("model", "claude-sonnet-4-20250514")
+            model = data.get("model", "claude-sonnet-4-6")
 
             if not message:
                 await ws.send_json({"type": "error", "content": "No message provided"})

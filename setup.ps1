@@ -148,48 +148,69 @@ if ($envContent -notmatch "GOOGLE_CREDENTIALS_FILE=" -and $envContent -notmatch 
     Write-Host "--------------------------------------------------------------" -ForegroundColor Cyan
     Write-Host "  Google Sheets export (optional)" -ForegroundColor Cyan
     Write-Host "  Policies are always saved locally to data/policies.json." -ForegroundColor Cyan
-    Write-Host "  To also export to Google Sheets, provide a service account" -ForegroundColor Cyan
-    Write-Host "  JSON key file." -ForegroundColor Cyan
+    Write-Host "  To also export to Google Sheets, provide your service" -ForegroundColor Cyan
+    Write-Host "  account credentials." -ForegroundColor Cyan
     Write-Host "--------------------------------------------------------------" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  Enter the path to your Google service account JSON file"
+    Write-Host "  Enter ONE of:"
+    Write-Host "    - Path to your Google service account JSON key file"
+    Write-Host "    - Base64-encoded credentials string"
     Write-Host "  (or press Enter to skip and set up later):"
     Write-Host ""
-    $credsInput = Read-Host "  Path to JSON key file"
+    $credsInput = Read-Host "  Credentials"
     $credsInput = $credsInput.Trim().Trim('"').Trim("'")
 
-    if ($credsInput -and (Test-Path $credsInput)) {
-        # Write the file path to .env
-        $envContent = Get-Content ".env" -Raw
-        # Uncomment and set GOOGLE_CREDENTIALS_FILE
-        if ($envContent -match "# GOOGLE_CREDENTIALS_FILE=") {
-            $envContent = $envContent -replace "# GOOGLE_CREDENTIALS_FILE=.*", "GOOGLE_CREDENTIALS_FILE=$credsInput"
-        } else {
-            $envContent = $envContent + "`nGOOGLE_CREDENTIALS_FILE=$credsInput`n"
-        }
-        Set-Content ".env" $envContent -NoNewline
-        Write-Info "Google credentials file path saved to .env"
-
-        # Now ask for spreadsheet ID
-        Write-Host ""
-        Write-Host "  Enter your Google Spreadsheet ID"
-        Write-Host "  (the part between /d/ and /edit in the URL):"
-        Write-Host ""
-        $sheetId = Read-Host "  Spreadsheet ID"
-        $sheetId = $sheetId.Trim()
-        if ($sheetId -and $sheetId.Length -gt 10) {
+    $credsSaved = $false
+    if ($credsInput) {
+        if (Test-Path $credsInput) {
+            # Input is a file path
             $envContent = Get-Content ".env" -Raw
-            $envContent = $envContent -replace "# SPREADSHEET_ID=.*", "SPREADSHEET_ID=$sheetId"
+            if ($envContent -match "# GOOGLE_CREDENTIALS_FILE=") {
+                $envContent = $envContent -replace "# GOOGLE_CREDENTIALS_FILE=.*", "GOOGLE_CREDENTIALS_FILE=$credsInput"
+            } else {
+                $envContent = $envContent + "`nGOOGLE_CREDENTIALS_FILE=$credsInput`n"
+            }
             Set-Content ".env" $envContent -NoNewline
-            Write-Info "Spreadsheet ID saved to .env"
-        } elseif ($sheetId) {
-            Write-Warn "That ID looks too short. Edit .env and set SPREADSHEET_ID."
+            Write-Info "Google credentials file path saved to .env"
+            $credsSaved = $true
+        } elseif ($credsInput.Length -gt 50) {
+            # Input is a long string -- treat as base64 or raw JSON
+            # (the config loader auto-detects the format at runtime)
+            $envContent = Get-Content ".env" -Raw
+            if ($envContent -match "# GOOGLE_CREDENTIALS=") {
+                $envContent = $envContent -replace "# GOOGLE_CREDENTIALS=.*", "GOOGLE_CREDENTIALS=$credsInput"
+            } elseif ($envContent -match "^GOOGLE_CREDENTIALS=") {
+                $envContent = $envContent -replace "GOOGLE_CREDENTIALS=.*", "GOOGLE_CREDENTIALS=$credsInput"
+            } else {
+                $envContent = $envContent + "`nGOOGLE_CREDENTIALS=$credsInput`n"
+            }
+            Set-Content ".env" $envContent -NoNewline
+            Write-Info "Google credentials saved to .env"
+            $credsSaved = $true
         } else {
-            Write-Warn "Skipped. Edit .env and set SPREADSHEET_ID to enable Sheets export."
+            Write-Warn "Input too short for credentials and not a valid file path."
+            Write-Warn "Edit .env and set GOOGLE_CREDENTIALS_FILE or GOOGLE_CREDENTIALS."
         }
-    } elseif ($credsInput) {
-        Write-Warn "File not found: $credsInput"
-        Write-Warn "Edit .env and set GOOGLE_CREDENTIALS_FILE or GOOGLE_CREDENTIALS."
+
+        if ($credsSaved) {
+            # Ask for spreadsheet ID
+            Write-Host ""
+            Write-Host "  Enter your Google Spreadsheet ID"
+            Write-Host "  (the part between /d/ and /edit in the URL):"
+            Write-Host ""
+            $sheetId = Read-Host "  Spreadsheet ID"
+            $sheetId = $sheetId.Trim()
+            if ($sheetId -and $sheetId.Length -gt 10) {
+                $envContent = Get-Content ".env" -Raw
+                $envContent = $envContent -replace "# SPREADSHEET_ID=.*", "SPREADSHEET_ID=$sheetId"
+                Set-Content ".env" $envContent -NoNewline
+                Write-Info "Spreadsheet ID saved to .env"
+            } elseif ($sheetId) {
+                Write-Warn "That ID looks too short. Edit .env and set SPREADSHEET_ID."
+            } else {
+                Write-Warn "Skipped. Edit .env and set SPREADSHEET_ID to enable Sheets export."
+            }
+        }
     } else {
         Write-Info "Skipped Google Sheets setup. Policies will save to data/policies.json."
         Write-Host "  To enable later, edit .env and set GOOGLE_CREDENTIALS_FILE" -ForegroundColor Gray

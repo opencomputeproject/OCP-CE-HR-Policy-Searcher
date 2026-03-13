@@ -352,8 +352,8 @@ class AnalysisSettings(BaseModel):
     min_relevance_score: int = Field(default=5, ge=1, le=10)
     min_keyword_matches: int = Field(default=2, ge=1)
     enable_llm_analysis: bool = True
-    analysis_model: str = "claude-sonnet-4-20250514"
-    screening_model: str = "claude-haiku-4-20250514"
+    analysis_model: str = "claude-sonnet-4-6"
+    screening_model: str = "claude-haiku-4-5-20251001"
     max_content_length: int = Field(default=50000)
     enable_two_stage: bool = True
     screening_min_confidence: int = Field(default=5, ge=1, le=10)

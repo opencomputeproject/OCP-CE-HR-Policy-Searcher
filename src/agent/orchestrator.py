@@ -25,7 +25,7 @@ from .tools import execute_tool, get_all_tools
 logger = logging.getLogger(__name__)
 
 # Default model for the agent
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_MODEL = "claude-sonnet-4-6"
 
 # Rate limit retry configuration for the agent conversation loop.
 # These are separate from the scanner's LLM retry settings (in ClaudeClient)

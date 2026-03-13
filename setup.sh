@@ -147,56 +147,85 @@ if ! grep -q "^GOOGLE_CREDENTIALS_FILE=" .env 2>/dev/null && \
     echo -e "${CYAN}--------------------------------------------------------------${NC}"
     echo -e "${CYAN}  Google Sheets export (optional)${NC}"
     echo -e "${CYAN}  Policies are always saved locally to data/policies.json.${NC}"
-    echo -e "${CYAN}  To also export to Google Sheets, provide a service account${NC}"
-    echo -e "${CYAN}  JSON key file.${NC}"
+    echo -e "${CYAN}  To also export to Google Sheets, provide your service${NC}"
+    echo -e "${CYAN}  account credentials.${NC}"
     echo -e "${CYAN}--------------------------------------------------------------${NC}"
     echo ""
-    echo "  Enter the path to your Google service account JSON file"
+    echo "  Enter ONE of:"
+    echo "    - Path to your Google service account JSON key file"
+    echo "    - Base64-encoded credentials string"
     echo "  (or press Enter to skip and set up later):"
     echo ""
-    echo -n "  Path to JSON key file: "
+    echo -n "  Credentials: "
     read -r creds_input
 
     # Trim whitespace and quotes
     creds_input=$(echo "$creds_input" | xargs | tr -d "\"'")
 
-    if [ -n "$creds_input" ] && [ -f "$creds_input" ]; then
-        # Write the file path to .env
-        if grep -q "# GOOGLE_CREDENTIALS_FILE=" .env 2>/dev/null; then
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s|# GOOGLE_CREDENTIALS_FILE=.*|GOOGLE_CREDENTIALS_FILE=$creds_input|" .env
-            else
-                sed -i "s|# GOOGLE_CREDENTIALS_FILE=.*|GOOGLE_CREDENTIALS_FILE=$creds_input|" .env
-            fi
-        else
-            echo "GOOGLE_CREDENTIALS_FILE=$creds_input" >> .env
-        fi
-        info "Google credentials file path saved to .env"
+    if [ -n "$creds_input" ]; then
+        creds_saved=false
 
-        # Now ask for spreadsheet ID
-        echo ""
-        echo "  Enter your Google Spreadsheet ID"
-        echo "  (the part between /d/ and /edit in the URL):"
-        echo ""
-        echo -n "  Spreadsheet ID: "
-        read -r sheet_id
-        sheet_id=$(echo "$sheet_id" | xargs)
-
-        if [ -n "$sheet_id" ] && [ ${#sheet_id} -gt 10 ]; then
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s|# SPREADSHEET_ID=.*|SPREADSHEET_ID=$sheet_id|" .env
+        if [ -f "$creds_input" ]; then
+            # Input is a file path
+            if grep -q "# GOOGLE_CREDENTIALS_FILE=" .env 2>/dev/null; then
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' "s|# GOOGLE_CREDENTIALS_FILE=.*|GOOGLE_CREDENTIALS_FILE=$creds_input|" .env
+                else
+                    sed -i "s|# GOOGLE_CREDENTIALS_FILE=.*|GOOGLE_CREDENTIALS_FILE=$creds_input|" .env
+                fi
             else
-                sed -i "s|# SPREADSHEET_ID=.*|SPREADSHEET_ID=$sheet_id|" .env
+                echo "GOOGLE_CREDENTIALS_FILE=$creds_input" >> .env
             fi
-            info "Spreadsheet ID saved to .env"
-        elif [ -n "$sheet_id" ]; then
-            warn "That ID looks too short. Edit .env and set SPREADSHEET_ID."
+            info "Google credentials file path saved to .env"
+            creds_saved=true
+        elif [ ${#creds_input} -gt 50 ]; then
+            # Input is a long string -- treat as base64 or raw JSON
+            # (the config loader auto-detects the format at runtime)
+            if grep -q "# GOOGLE_CREDENTIALS=" .env 2>/dev/null; then
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' "s|# GOOGLE_CREDENTIALS=.*|GOOGLE_CREDENTIALS=$creds_input|" .env
+                else
+                    sed -i "s|# GOOGLE_CREDENTIALS=.*|GOOGLE_CREDENTIALS=$creds_input|" .env
+                fi
+            elif grep -q "^GOOGLE_CREDENTIALS=" .env 2>/dev/null; then
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' "s|GOOGLE_CREDENTIALS=.*|GOOGLE_CREDENTIALS=$creds_input|" .env
+                else
+                    sed -i "s|GOOGLE_CREDENTIALS=.*|GOOGLE_CREDENTIALS=$creds_input|" .env
+                fi
+            else
+                echo "GOOGLE_CREDENTIALS=$creds_input" >> .env
+            fi
+            info "Google credentials saved to .env"
+            creds_saved=true
         else
-            warn "Skipped. Edit .env and set SPREADSHEET_ID to enable Sheets export."
+            warn "Input too short for credentials and not a valid file path."
+            warn "Edit .env and set GOOGLE_CREDENTIALS_FILE or GOOGLE_CREDENTIALS."
         fi
-    elif [ -n "$creds_input" ]; then
-        warn "File not found: $creds_input"
-        warn "Edit .env and set GOOGLE_CREDENTIALS_FILE or GOOGLE_CREDENTIALS."
+
+        if [ "$creds_saved" = true ]; then
+            # Ask for spreadsheet ID
+            echo ""
+            echo "  Enter your Google Spreadsheet ID"
+            echo "  (the part between /d/ and /edit in the URL):"
+            echo ""
+            echo -n "  Spreadsheet ID: "
+            read -r sheet_id
+            sheet_id=$(echo "$sheet_id" | xargs)
+
+            if [ -n "$sheet_id" ] && [ ${#sheet_id} -gt 10 ]; then
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' "s|# SPREADSHEET_ID=.*|SPREADSHEET_ID=$sheet_id|" .env
+                else
+                    sed -i "s|# SPREADSHEET_ID=.*|SPREADSHEET_ID=$sheet_id|" .env
+                fi
+                info "Spreadsheet ID saved to .env"
+            elif [ -n "$sheet_id" ]; then
+                warn "That ID looks too short. Edit .env and set SPREADSHEET_ID."
+            else
+                warn "Skipped. Edit .env and set SPREADSHEET_ID to enable Sheets export."
+            fi
+        fi
     else
         info "Skipped Google Sheets setup. Policies will save to data/policies.json."
         echo "  To enable later, edit .env and set GOOGLE_CREDENTIALS_FILE"

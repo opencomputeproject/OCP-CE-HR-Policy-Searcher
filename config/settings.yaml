@@ -59,9 +59,11 @@ analysis:
   enable_llm_analysis: true
 
   # Which Claude model to use for full analysis
-  # Options: claude-sonnet-4-20250514, claude-haiku-4-5-20251001
-  # Sonnet is more accurate for detailed extraction
-  llm_model: "claude-sonnet-4-20250514"
+  # Options: claude-sonnet-4-6, claude-haiku-4-5-20251001
+  # Sonnet is more accurate for detailed extraction; Haiku is cheaper
+  # Use undated model IDs where available (e.g. claude-sonnet-4-6) to
+  # automatically get the latest version.
+  analysis_model: "claude-sonnet-4-6"
 
   # Maximum characters to send to LLM (truncate longer content)
   max_content_length: 50000

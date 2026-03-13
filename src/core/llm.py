@@ -245,7 +245,7 @@ class ClaudeClient:
     def __init__(
         self,
         api_key: str,
-        analysis_model: str = "claude-sonnet-4-20250514",
+        analysis_model: str = "claude-sonnet-4-6",
         screening_model: str = "claude-haiku-4-5-20251001",
     ):
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
