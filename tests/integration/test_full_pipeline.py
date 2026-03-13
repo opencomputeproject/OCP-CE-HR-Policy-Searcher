@@ -1389,7 +1389,7 @@ class TestOnboardingFlow:
         """setup.sh --dev installs development dependencies."""
         content = Path("setup.sh").read_text(encoding="utf-8")
         assert "--dev" in content
-        assert ".[dev]" in content
+        assert ".[dev," in content or ".[dev]" in content
 
     def test_setup_sh_skips_existing_venv(self):
         """setup.sh doesn't recreate .venv if it already exists."""
@@ -1424,7 +1424,7 @@ class TestOnboardingFlow:
         """setup.ps1 -Dev installs development dependencies."""
         content = Path("setup.ps1").read_text(encoding="utf-8")
         assert "$Dev" in content
-        assert ".[dev]" in content
+        assert ".[dev," in content or ".[dev]" in content
 
     def test_setup_ps1_creates_venv(self):
         """setup.ps1 creates a .venv virtual environment."""

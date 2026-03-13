@@ -24,7 +24,7 @@ git clone https://github.com/ahliana/OCP-CE-HR-Policy-Searcher.git && cd OCP-CE-
 python -m src.agent
 ```
 
-> **Browser engine (optional):** Some sites like Virginia's legislature use JavaScript rendering. If a scan reports "Playwright is required", run: `pip install ".[browser]" && playwright install chromium`
+> **Browser engine:** Setup automatically installs Playwright Chromium for JavaScript-rendered sites. If it fails, run manually: `playwright install chromium`
 
 ```
 You: Find heat reuse policies in Germany

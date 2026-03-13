@@ -82,12 +82,21 @@ Write-Info "Activated virtual environment"
 # --------------------------------------------------------------------------
 if ($Dev) {
     Write-Host "Installing with development dependencies..."
-    pip install -q -e ".[dev]"
+    pip install -q -e ".[dev,browser]"
 } else {
     Write-Host "Installing..."
-    pip install -q -e .
+    pip install -q -e ".[browser]"
 }
 Write-Info "Installed OCP-CE-HR-Policy-Searcher"
+
+# Install Playwright browser
+Write-Host "Installing Playwright Chromium browser..."
+playwright install chromium 2>$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Info "Playwright Chromium installed"
+} else {
+    Write-Warn "Playwright browser install failed — JS-rendered sites won't work. Run: playwright install chromium"
+}
 
 # --------------------------------------------------------------------------
 # 4. Copy example.env -> .env and prompt for API key
@@ -139,7 +148,4 @@ Write-Host ""
 Write-Host "  2. Run the agent:"
 Write-Host "     python -m src.agent"
 Write-Host ""
-Write-Host 'Optional: some sites (e.g. Virginia legislature) need a browser engine:' -ForegroundColor Yellow
-Write-Host '     pip install ".[browser]"' -ForegroundColor Yellow
-Write-Host '     playwright install chromium' -ForegroundColor Yellow
 Write-Host ""
