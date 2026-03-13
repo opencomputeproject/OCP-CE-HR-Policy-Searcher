@@ -83,6 +83,7 @@ class DomainScanner:
                 blocked_path_patterns=self.domain.get("blocked_path_patterns"),
                 max_depth_override=self.domain.get("max_depth"),
                 max_pages_override=self.domain.get("max_pages"),
+                requires_playwright=self.domain.get("requires_playwright", False),
             )
 
             self.progress.pages_crawled = len(crawl_results)

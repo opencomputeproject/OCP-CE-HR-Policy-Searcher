@@ -1,4 +1,13 @@
-"""Async web crawler with BFS traversal, rate limiting, and link extraction."""
+"""Async web crawler with BFS traversal, rate limiting, and link extraction.
+
+Supports two fetching backends:
+- **httpx** (default) — fast, lightweight HTTP client for static pages.
+- **Playwright** — headless Chromium for JavaScript-rendered SPAs.
+
+Set ``requires_playwright=True`` in :meth:`crawl_domain` (or in the domain
+YAML config) to enable Playwright rendering.  The browser is launched once
+per crawl and reused for every page in that domain.
+"""
 
 import asyncio
 import fnmatch
@@ -86,6 +95,8 @@ class AsyncCrawler:
         self.on_page_fetched = on_page_fetched
 
         self._client: Optional[httpx.AsyncClient] = None
+        self._playwright = None          # Playwright context manager
+        self._pw_browser = None           # Launched Chromium instance
         self._last_request_time: float = 0
         self._visited: set[str] = set()
 
@@ -98,6 +109,94 @@ class AsyncCrawler:
                 headers={"User-Agent": self.user_agent},
             )
         return self._client
+
+    async def _ensure_playwright(self):  # -> playwright Browser
+        """Launch headless Chromium (once) for JavaScript-rendered pages."""
+        if self._pw_browser:
+            return self._pw_browser
+        try:
+            from playwright.async_api import async_playwright
+        except ImportError:
+            raise RuntimeError(
+                "Playwright is required for JavaScript-rendered sites. "
+                "Install with: pip install 'playwright>=1.40' && playwright install chromium"
+            )
+        self._playwright = await async_playwright().start()
+        self._pw_browser = await self._playwright.chromium.launch(headless=True)
+        logger.info("Playwright Chromium launched for JS rendering")
+        return self._pw_browser
+
+    async def _fetch_playwright(self, url: str) -> CrawlResult:
+        """Fetch a URL using Playwright headless Chromium (for JavaScript SPAs)."""
+        await self._rate_limit()
+        start = datetime.utcnow()
+        browser = await self._ensure_playwright()
+
+        page = None
+        try:
+            page = await browser.new_page(user_agent=self.user_agent)
+            response = await page.goto(
+                url,
+                wait_until="networkidle",
+                timeout=self.timeout_seconds * 1000,
+            )
+
+            if response is None:
+                return CrawlResult(
+                    url=url,
+                    status=PageStatus.UNKNOWN_ERROR,
+                    error_message="Playwright: no response from page",
+                    response_time_ms=int((datetime.utcnow() - start).total_seconds() * 1000),
+                )
+
+            status_code = response.status
+            if status_code in (403, 404, 429):
+                status_map = {
+                    403: PageStatus.ACCESS_DENIED,
+                    404: PageStatus.NOT_FOUND,
+                    429: PageStatus.RATE_LIMITED,
+                }
+                return CrawlResult(
+                    url=url,
+                    status=status_map[status_code],
+                    response_time_ms=int((datetime.utcnow() - start).total_seconds() * 1000),
+                    error_message=f"HTTP {status_code} (Playwright)",
+                )
+            elif status_code >= 400:
+                return CrawlResult(
+                    url=url,
+                    status=PageStatus.UNKNOWN_ERROR,
+                    response_time_ms=int((datetime.utcnow() - start).total_seconds() * 1000),
+                    error_message=f"HTTP {status_code} (Playwright)",
+                )
+
+            content = await page.content()
+            elapsed = int((datetime.utcnow() - start).total_seconds() * 1000)
+
+            logger.debug("Playwright fetched %s (%d chars, %dms)", url, len(content), elapsed)
+
+            return CrawlResult(
+                url=url,
+                status=PageStatus.SUCCESS,
+                content=content,
+                content_type="text/html",
+                response_time_ms=elapsed,
+                content_length=len(content),
+                used_playwright=True,
+            )
+
+        except Exception as e:
+            error_msg = str(e)
+            is_timeout = "timeout" in error_msg.lower()
+            return CrawlResult(
+                url=url,
+                status=PageStatus.TIMEOUT if is_timeout else PageStatus.UNKNOWN_ERROR,
+                error_message=f"Playwright: {error_msg}",
+                response_time_ms=int((datetime.utcnow() - start).total_seconds() * 1000),
+            )
+        finally:
+            if page:
+                await page.close()
 
     async def _rate_limit(self) -> None:
         """Enforce per-domain delay between requests."""
@@ -116,11 +215,15 @@ class AsyncCrawler:
         blocked_path_patterns: Optional[list[str]] = None,
         max_depth_override: Optional[int] = None,
         max_pages_override: Optional[int] = None,
+        requires_playwright: bool = False,
     ) -> list[CrawlResult]:
         """BFS crawl a domain starting from given paths."""
         max_depth = max_depth_override or self.max_depth
         max_pages = max_pages_override or self.max_pages
         all_blocked = self.crawl_blocked_patterns + (blocked_path_patterns or [])
+
+        if requires_playwright:
+            logger.info("Domain %s requires Playwright (JavaScript rendering)", domain_id)
 
         self._visited.clear()
         results: list[CrawlResult] = []
@@ -128,7 +231,7 @@ class AsyncCrawler:
             (urljoin(base_url, p), 0) for p in start_paths
         ]
 
-        client = await self._ensure_client()
+        client = await self._ensure_client() if not requires_playwright else None
 
         while queue and len(results) < max_pages:
             url, depth = queue.pop(0)
@@ -141,7 +244,10 @@ class AsyncCrawler:
             if self._should_skip_url(url):
                 continue
 
-            result = await self._fetch_with_retry(client, url)
+            if requires_playwright:
+                result = await self._fetch_playwright(url)
+            else:
+                result = await self._fetch_with_retry(client, url)
             result.domain_id = domain_id
             results.append(result)
 
@@ -290,3 +396,9 @@ class AsyncCrawler:
         if self._client:
             await self._client.aclose()
             self._client = None
+        if self._pw_browser:
+            await self._pw_browser.close()
+            self._pw_browser = None
+        if self._playwright:
+            await self._playwright.stop()
+            self._playwright = None

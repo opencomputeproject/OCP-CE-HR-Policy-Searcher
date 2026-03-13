@@ -77,6 +77,7 @@ Found 3 policies:
 - **Real-time progress** — WebSocket events stream scan progress to your frontend
 - **Deterministic verification** — catches jurisdiction mismatches, impossible dates, generic names, and duplicates without LLM calls
 - **Post-scan auditor** — one bounded LLM call per scan generates strategic recommendations
+- **JavaScript SPA support** — Playwright headless Chromium renders JavaScript-heavy sites (e.g., Virginia LIS) that httpx can't handle
 - **URL caching** — 30-day TTL with content-hash change detection avoids redundant API calls
 - **Cost-aware** — full scan of all domains costs ~$3.50; cost estimation before you run
 - **Google Sheets export** — automatically writes discovered policies to a Google Spreadsheet after each scan
@@ -806,7 +807,7 @@ Late-connecting clients receive full event history on connect.
 | `user_agent` | `OCP-PolicyHub/1.0` | HTTP user agent |
 | `respect_robots_txt` | `true` | Honor robots.txt |
 | `max_retries` | `3` | Retry failed requests |
-| `force_playwright` | `false` | Use browser for all pages |
+| `force_playwright` | `false` | Use Playwright headless Chromium for all pages (normally per-domain via `requires_playwright`) |
 
 **Analysis:**
 
@@ -1316,6 +1317,17 @@ Paste the result as a single line in `.env` after `GOOGLE_CREDENTIALS=`.
 ### "GOOGLE_CREDENTIALS looks invalid (length=0)"
 
 The `.env` file exists but `GOOGLE_CREDENTIALS` is empty or missing. Add your base64-encoded service account JSON to `.env`. See [Google Sheets Setup](#google-sheets-setup).
+
+### JavaScript pages return empty content (keyword score 0.0)
+
+The site is a JavaScript SPA that requires browser rendering. Set `requires_playwright: true` in the domain YAML config. The crawler will use headless Chromium instead of httpx.
+
+If Playwright isn't installed:
+
+```bash
+pip install "playwright>=1.40"
+playwright install chromium
+```
 
 ### Script execution error on Windows
 

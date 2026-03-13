@@ -1,7 +1,7 @@
-"""Tests for AsyncCrawler — URL filtering, link extraction, and diagnosis."""
+"""Tests for AsyncCrawler — URL filtering, link extraction, diagnosis, and Playwright."""
 
 import re
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -236,3 +236,312 @@ class TestAsyncCrawlerFetch:
         mock_client.get = AsyncMock(return_value=_mock_response(500, "Server Error"))
         result = await crawler._fetch_with_retry(mock_client, "https://example.gov/error")
         assert result.status.value == "unknown_error"
+
+
+# ---------------------------------------------------------------------------
+# Playwright fetch (mocked — no real browser)
+# ---------------------------------------------------------------------------
+
+def _mock_pw_page(status_code=200, content="<html><body>rendered</body></html>"):
+    """Create a mock Playwright page with goto/content/close."""
+    mock_response = MagicMock()
+    mock_response.status = status_code
+
+    page = AsyncMock()
+    page.goto = AsyncMock(return_value=mock_response)
+    page.content = AsyncMock(return_value=content)
+    page.close = AsyncMock()
+    return page
+
+
+def _mock_pw_browser(page=None):
+    """Create a mock Playwright browser that returns a given page."""
+    browser = AsyncMock()
+    browser.new_page = AsyncMock(return_value=page or _mock_pw_page())
+    browser.close = AsyncMock()
+    return browser
+
+
+class TestPlaywrightFetch:
+    """Tests for _fetch_playwright with mocked Playwright."""
+
+    @pytest.mark.asyncio
+    async def test_playwright_success(self):
+        crawler = AsyncCrawler(delay_seconds=0)
+        page = _mock_pw_page(200, "<html><body>SPA content</body></html>")
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        result = await crawler._fetch_playwright("https://spa.gov/page")
+
+        assert result.status.value == "success"
+        assert result.used_playwright is True
+        assert "SPA content" in result.content
+        assert result.content_length > 0
+        page.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_playwright_404(self):
+        crawler = AsyncCrawler(delay_seconds=0)
+        page = _mock_pw_page(404)
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        result = await crawler._fetch_playwright("https://spa.gov/missing")
+
+        assert result.status.value == "not_found"
+        assert "404" in result.error_message
+
+    @pytest.mark.asyncio
+    async def test_playwright_403(self):
+        crawler = AsyncCrawler(delay_seconds=0)
+        page = _mock_pw_page(403)
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        result = await crawler._fetch_playwright("https://spa.gov/denied")
+
+        assert result.status.value == "access_denied"
+
+    @pytest.mark.asyncio
+    async def test_playwright_429(self):
+        crawler = AsyncCrawler(delay_seconds=0)
+        page = _mock_pw_page(429)
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        result = await crawler._fetch_playwright("https://spa.gov/limited")
+
+        assert result.status.value == "rate_limited"
+
+    @pytest.mark.asyncio
+    async def test_playwright_500(self):
+        crawler = AsyncCrawler(delay_seconds=0)
+        page = _mock_pw_page(500)
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        result = await crawler._fetch_playwright("https://spa.gov/error")
+
+        assert result.status.value == "unknown_error"
+        assert "500" in result.error_message
+
+    @pytest.mark.asyncio
+    async def test_playwright_no_response(self):
+        crawler = AsyncCrawler(delay_seconds=0)
+        page = AsyncMock()
+        page.goto = AsyncMock(return_value=None)
+        page.close = AsyncMock()
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        result = await crawler._fetch_playwright("https://spa.gov/empty")
+
+        assert result.status.value == "unknown_error"
+        assert "no response" in result.error_message
+
+    @pytest.mark.asyncio
+    async def test_playwright_timeout(self):
+        crawler = AsyncCrawler(delay_seconds=0, timeout_seconds=5)
+        page = AsyncMock()
+        page.goto = AsyncMock(side_effect=Exception("Timeout 5000ms exceeded"))
+        page.close = AsyncMock()
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        result = await crawler._fetch_playwright("https://spa.gov/slow")
+
+        assert result.status.value == "timeout"
+        assert "Playwright" in result.error_message
+
+    @pytest.mark.asyncio
+    async def test_playwright_generic_error(self):
+        crawler = AsyncCrawler(delay_seconds=0)
+        page = AsyncMock()
+        page.goto = AsyncMock(side_effect=Exception("net::ERR_CONNECTION_REFUSED"))
+        page.close = AsyncMock()
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        result = await crawler._fetch_playwright("https://spa.gov/down")
+
+        assert result.status.value == "unknown_error"
+        assert "ERR_CONNECTION_REFUSED" in result.error_message
+
+    @pytest.mark.asyncio
+    async def test_playwright_page_closed_on_error(self):
+        crawler = AsyncCrawler(delay_seconds=0)
+        page = AsyncMock()
+        page.goto = AsyncMock(side_effect=Exception("crash"))
+        page.close = AsyncMock()
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        await crawler._fetch_playwright("https://spa.gov/crash")
+
+        page.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_playwright_sets_user_agent(self):
+        crawler = AsyncCrawler(delay_seconds=0, user_agent="TestBot/1.0")
+        page = _mock_pw_page()
+        browser = _mock_pw_browser(page)
+        crawler._pw_browser = browser
+
+        await crawler._fetch_playwright("https://spa.gov/page")
+
+        browser.new_page.assert_awaited_once_with(user_agent="TestBot/1.0")
+
+
+class TestEnsurePlaywright:
+    """Tests for _ensure_playwright browser lifecycle."""
+
+    @pytest.mark.asyncio
+    async def test_reuses_existing_browser(self):
+        crawler = AsyncCrawler()
+        mock_browser = MagicMock()
+        crawler._pw_browser = mock_browser
+
+        result = await crawler._ensure_playwright()
+
+        assert result is mock_browser
+
+    @pytest.mark.asyncio
+    async def test_raises_on_missing_playwright(self):
+        crawler = AsyncCrawler()
+        with patch.dict("sys.modules", {"playwright": None, "playwright.async_api": None}):
+            with pytest.raises(RuntimeError, match="Playwright is required"):
+                # Force fresh import check
+                crawler._pw_browser = None
+                await crawler._ensure_playwright()
+
+
+class TestCrawlDomainPlaywright:
+    """Tests for crawl_domain with requires_playwright=True."""
+
+    @pytest.mark.asyncio
+    async def test_crawl_domain_uses_playwright_when_required(self):
+        crawler = AsyncCrawler(delay_seconds=0, max_depth=0, max_pages=1)
+        page = _mock_pw_page(200, "<html><body>JS content</body></html>")
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        results = await crawler.crawl_domain(
+            base_url="https://spa.gov",
+            start_paths=["/app"],
+            domain_id="test_spa",
+            requires_playwright=True,
+        )
+
+        assert len(results) == 1
+        assert results[0].used_playwright is True
+        assert results[0].status.value == "success"
+        assert results[0].domain_id == "test_spa"
+
+    @pytest.mark.asyncio
+    async def test_crawl_domain_uses_httpx_by_default(self):
+        crawler = AsyncCrawler(delay_seconds=0, max_depth=0, max_pages=1)
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=_mock_response(
+            200, "<html>static</html>", headers={"content-type": "text/html"},
+        ))
+        crawler._client = mock_client
+
+        results = await crawler.crawl_domain(
+            base_url="https://static.gov",
+            start_paths=["/page"],
+            requires_playwright=False,
+        )
+
+        assert len(results) == 1
+        assert results[0].used_playwright is False
+
+    @pytest.mark.asyncio
+    async def test_crawl_domain_does_not_create_httpx_client_for_playwright(self):
+        crawler = AsyncCrawler(delay_seconds=0, max_depth=0, max_pages=1)
+        page = _mock_pw_page(200, "<html>js</html>")
+        crawler._pw_browser = _mock_pw_browser(page)
+
+        await crawler.crawl_domain(
+            base_url="https://spa.gov",
+            start_paths=["/app"],
+            requires_playwright=True,
+        )
+
+        # httpx client should NOT have been created
+        assert crawler._client is None
+
+
+class TestClosePlaywright:
+    """Tests for close() cleaning up Playwright resources."""
+
+    @pytest.mark.asyncio
+    async def test_close_cleans_up_playwright(self):
+        crawler = AsyncCrawler()
+        mock_browser = AsyncMock()
+        mock_pw = AsyncMock()
+        crawler._pw_browser = mock_browser
+        crawler._playwright = mock_pw
+
+        await crawler.close()
+
+        mock_browser.close.assert_awaited_once()
+        mock_pw.stop.assert_awaited_once()
+        assert crawler._pw_browser is None
+        assert crawler._playwright is None
+
+    @pytest.mark.asyncio
+    async def test_close_handles_no_playwright(self):
+        crawler = AsyncCrawler()
+        # No Playwright resources — should not raise
+        await crawler.close()
+
+    @pytest.mark.asyncio
+    async def test_close_handles_both_httpx_and_playwright(self):
+        crawler = AsyncCrawler()
+        mock_client = AsyncMock()
+        mock_browser = AsyncMock()
+        mock_pw = AsyncMock()
+        crawler._client = mock_client
+        crawler._pw_browser = mock_browser
+        crawler._playwright = mock_pw
+
+        await crawler.close()
+
+        mock_client.aclose.assert_awaited_once()
+        mock_browser.close.assert_awaited_once()
+        mock_pw.stop.assert_awaited_once()
+
+
+class TestPlaywrightDomainConfig:
+    """Domain YAML config must correctly pass requires_playwright to scanner."""
+
+    def test_virginia_hb323_requires_playwright(self):
+        from src.core.config import ConfigLoader
+        config = ConfigLoader(config_dir="config")
+        config.load()
+        domains = config.get_enabled_domains("all")
+        hb323 = [d for d in domains if d["id"] == "us_va_hb323_2026"]
+        assert len(hb323) == 1
+        assert hb323[0]["requires_playwright"] is True
+
+    def test_virginia_hb906_requires_playwright(self):
+        from src.core.config import ConfigLoader
+        config = ConfigLoader(config_dir="config")
+        config.load()
+        domains = config.get_enabled_domains("all")
+        hb906 = [d for d in domains if d["id"] == "us_va_hb906_2026"]
+        assert len(hb906) == 1
+        assert hb906[0]["requires_playwright"] is True
+
+    def test_virginia_hb824_requires_playwright(self):
+        from src.core.config import ConfigLoader
+        config = ConfigLoader(config_dir="config")
+        config.load()
+        domains = config.get_enabled_domains("all")
+        hb824 = [d for d in domains if d["id"] == "us_va_hb824_2026"]
+        assert len(hb824) == 1
+        assert hb824[0]["requires_playwright"] is True
+
+    def test_virginia_yaml_has_five_domains(self):
+        import yaml
+        with open("config/domains/us/virginia.yaml") as f:
+            data = yaml.safe_load(f)
+        assert len(data["domains"]) == 5
+
+    def test_scanner_passes_requires_playwright(self):
+        """DomainScanner.scan() must pass requires_playwright from domain config."""
+        from pathlib import Path
+        source = (Path(__file__).resolve().parents[2] / "src" / "core" / "scanner.py")
+        text = source.read_text(encoding="utf-8")
+        assert "requires_playwright=self.domain.get(\"requires_playwright\"" in text
