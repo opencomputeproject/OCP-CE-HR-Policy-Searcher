@@ -143,7 +143,12 @@ if ($envContent -match "your-key-here" -or $envContent -match "your-real-key-her
 # 5. Google Sheets setup (optional)
 # --------------------------------------------------------------------------
 $envContent = Get-Content ".env" -Raw
-if ($envContent -notmatch "GOOGLE_CREDENTIALS_FILE=" -and $envContent -notmatch "^GOOGLE_CREDENTIALS=(?!your-)" ) {
+# Check for UNCOMMENTED credential lines (lines NOT starting with #).
+# The example.env has commented-out examples like "# GOOGLE_CREDENTIALS_FILE=..."
+# which must NOT count as "already configured".
+$hasCredsFile = ($envContent -split "`n" | Where-Object { $_ -match "^\s*GOOGLE_CREDENTIALS_FILE=" }).Count -gt 0
+$hasCredsValue = ($envContent -split "`n" | Where-Object { $_ -match "^\s*GOOGLE_CREDENTIALS=(?!your-)" }).Count -gt 0
+if (-not $hasCredsFile -and -not $hasCredsValue) {
     Write-Host ""
     Write-Host "--------------------------------------------------------------" -ForegroundColor Cyan
     Write-Host "  Google Sheets export (optional)" -ForegroundColor Cyan

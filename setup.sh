@@ -141,8 +141,12 @@ fi
 # --------------------------------------------------------------------------
 # 5. Google Sheets setup (optional)
 # --------------------------------------------------------------------------
-if ! grep -q "^GOOGLE_CREDENTIALS_FILE=" .env 2>/dev/null && \
-   ! grep -qP "^GOOGLE_CREDENTIALS=(?!your-)" .env 2>/dev/null; then
+# Check for UNCOMMENTED credential lines (lines NOT starting with #).
+# The example.env has commented-out examples like "# GOOGLE_CREDENTIALS_FILE=..."
+# which must NOT count as "already configured".
+has_creds_file=$(grep -c "^GOOGLE_CREDENTIALS_FILE=" .env 2>/dev/null || true)
+has_creds_value=$(grep "^GOOGLE_CREDENTIALS=" .env 2>/dev/null | grep -cv "^GOOGLE_CREDENTIALS=your-" 2>/dev/null || true)
+if [ "$has_creds_file" -eq 0 ] && [ "$has_creds_value" -eq 0 ]; then
     echo ""
     echo -e "${CYAN}--------------------------------------------------------------${NC}"
     echo -e "${CYAN}  Google Sheets export (optional)${NC}"
