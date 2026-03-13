@@ -262,6 +262,29 @@ class TestDomainScannerScan:
         assert len(policies) == 0
 
     @pytest.mark.asyncio
+    async def test_no_llm_client_logs_info(self, scanner_deps, caplog):
+        """When LLM is unavailable, keyword matches should be logged (not silent)."""
+        import logging
+        scanner_deps["llm_client"] = None
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        with caplog.at_level(logging.INFO, logger="src.core.scanner"):
+            await scanner.scan()
+        assert any("keyword match" in r.message.lower() and "unavailable" in r.message.lower()
+                    for r in caplog.records)
+
+    @pytest.mark.asyncio
+    async def test_skip_llm_logs_info(self, scanner_deps, caplog):
+        """When LLM is explicitly skipped, keyword matches should be logged."""
+        import logging
+        scanner = DomainScanner(
+            domain=_make_domain(), scan_id="s1", skip_llm=True, **scanner_deps,
+        )
+        with caplog.at_level(logging.INFO, logger="src.core.scanner"):
+            await scanner.scan()
+        assert any("keyword match" in r.message.lower() and "disabled" in r.message.lower()
+                    for r in caplog.records)
+
+    @pytest.mark.asyncio
     async def test_verifier_called_on_policies(self, scanner_deps):
         scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
         await scanner.scan()

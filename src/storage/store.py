@@ -23,10 +23,41 @@ class PolicyStore:
         if self.policies_file.exists():
             try:
                 with open(self.policies_file, "r", encoding="utf-8") as f:
-                    self._policies = json.load(f)
-            except (json.JSONDecodeError, Exception) as e:
-                logger.warning(f"Failed to load policies: {e}")
+                    data = json.load(f)
+                if not isinstance(data, list):
+                    logger.error(
+                        "policies.json contains %s instead of a list — "
+                        "backing up to policies.json.corrupt and starting fresh",
+                        type(data).__name__,
+                    )
+                    self._backup_corrupt_file()
+                    self._policies = []
+                else:
+                    self._policies = data
+            except json.JSONDecodeError as e:
+                logger.error(
+                    "policies.json is corrupted (JSON parse error: %s) — "
+                    "backing up to policies.json.corrupt so data is not lost",
+                    e,
+                )
+                self._backup_corrupt_file()
                 self._policies = []
+            except Exception as e:
+                logger.error(
+                    "Failed to read policies.json: %s — "
+                    "file preserved, starting with empty policy list",
+                    e,
+                )
+                self._policies = []
+
+    def _backup_corrupt_file(self) -> None:
+        """Move corrupt policies.json to .corrupt so the user can recover data."""
+        backup = self.policies_file.with_suffix(".json.corrupt")
+        try:
+            self.policies_file.rename(backup)
+            logger.warning("Corrupt file backed up to %s", backup)
+        except OSError as e:
+            logger.error("Failed to backup corrupt file: %s", e)
 
     def save(self) -> bool:
         """Save policies to disk with atomic write."""

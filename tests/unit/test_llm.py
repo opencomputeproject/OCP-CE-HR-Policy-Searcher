@@ -81,6 +81,18 @@ class TestCoerceTypes:
         result = _coerce_types({"relevance_score": -5})
         assert result["relevance_score"] == 0
 
+    def test_unparseable_score_defaults_to_zero(self):
+        """Completely unparseable score string should default to 0."""
+        result = _coerce_types({"relevance_score": "very high"})
+        assert result["relevance_score"] == 0
+
+    def test_unparseable_score_logs_warning(self, caplog):
+        """Unparseable score should produce a warning log."""
+        import logging
+        with caplog.at_level(logging.WARNING, logger="src.core.llm"):
+            _coerce_types({"relevance_score": "not a number"})
+        assert any("unparseable" in r.message.lower() for r in caplog.records)
+
     def test_null_values_normalized(self):
         result = _coerce_types({
             "policy_name": "null",

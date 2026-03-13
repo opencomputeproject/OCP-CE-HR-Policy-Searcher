@@ -175,12 +175,18 @@ def _coerce_types(data: dict) -> dict:
 
     # relevance_score → int 0-10
     if "relevance_score" in result:
-        val = result["relevance_score"]
+        raw_val = result["relevance_score"]
+        val = raw_val
         if isinstance(val, str):
             try:
                 val = val.split("/")[0].split(" ")[0].strip()
                 result["relevance_score"] = int(float(val))
             except (ValueError, IndexError):
+                logger.warning(
+                    "LLM returned unparseable relevance_score=%r — defaulting to 0. "
+                    "This may cause the policy to be ranked lower than expected.",
+                    raw_val,
+                )
                 result["relevance_score"] = 0
         elif isinstance(val, float):
             result["relevance_score"] = int(val)

@@ -180,8 +180,18 @@ class URLCache:
                 cache._entries[url] = CacheEntry(**entry_data)
             cache.stats.total_entries = len(cache._entries)
             return cache
-        except (json.JSONDecodeError, KeyError, TypeError, Exception) as e:
-            logger.warning(f"Failed to load cache, starting fresh: {e}")
+        except json.JSONDecodeError as e:
+            logger.error(
+                "Cache file %s is corrupted (JSON error: %s) — starting fresh. "
+                "Previous cache data is lost. This is a performance impact only, "
+                "no policy data is affected.",
+                path, e,
+            )
+            return cls(cache_path=path)
+        except Exception as e:
+            logger.error(
+                "Failed to load cache from %s: %s — starting fresh", path, e,
+            )
             return cls(cache_path=path)
 
 

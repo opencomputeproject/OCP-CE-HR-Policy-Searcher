@@ -833,16 +833,23 @@ async def _execute_add_domain(
 
     yaml_content = format_domain_yaml(entry, standalone=True)
 
-    if output_path.exists():
-        # Append to existing file
-        append_content = format_domain_yaml(entry, standalone=False)
-        with open(output_path, "a", encoding="utf-8") as f:
-            f.write("\n" + append_content)
-    else:
-        output_path.write_text(yaml_content, encoding="utf-8")
+    try:
+        if output_path.exists():
+            # Append to existing file
+            append_content = format_domain_yaml(entry, standalone=False)
+            with open(output_path, "a", encoding="utf-8") as f:
+                f.write("\n" + append_content)
+        else:
+            output_path.write_text(yaml_content, encoding="utf-8")
+    except OSError as e:
+        return {"error": f"Failed to write domain YAML to {output_path}: {e}"}
 
     # Auto-assign to matching groups in groups.yaml
-    groups_updated = _auto_assign_groups(domain_id, region, config.config_dir)
+    try:
+        groups_updated = _auto_assign_groups(domain_id, region, config.config_dir)
+    except Exception as e:
+        logger.error("Failed to update groups.yaml: %s", e, exc_info=True)
+        groups_updated = []
 
     # Reload config to pick up the new domain
     config.load()
@@ -904,7 +911,13 @@ def _auto_assign_groups(
             updated.append(group_name)
 
     if updated:
-        with open(groups_file, "w", encoding="utf-8") as f:
-            yaml.dump(groups_data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        try:
+            tmp = groups_file.with_suffix(".yaml.tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
+                yaml.dump(groups_data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+            tmp.replace(groups_file)
+        except OSError as e:
+            logger.error("Failed to write groups.yaml: %s", e)
+            return []
 
     return updated

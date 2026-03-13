@@ -187,6 +187,13 @@ class DomainScanner:
                 result.url, is_relevant=True,
                 relevance_score=0, content_hash=content_hash,
             )
+            self.progress.llm_skipped += 1
+            logger.info(
+                "Keyword match at %s but LLM analysis %s — "
+                "page cached for future re-scan with LLM enabled",
+                result.url,
+                "disabled" if self.skip_llm else "unavailable (no API key)",
+            )
             return None
 
         # Stage 5a: Haiku screening

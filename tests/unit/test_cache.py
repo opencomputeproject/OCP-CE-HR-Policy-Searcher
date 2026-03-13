@@ -154,6 +154,32 @@ class TestURLCache:
         cache = URLCache.load(bad_file)
         assert cache.stats.total_entries == 0
 
+    def test_load_corrupt_json_logs_error(self, tmp_path, caplog):
+        """Corrupt cache should log at ERROR level with context."""
+        import logging
+        bad_file = tmp_path / "bad.json"
+        bad_file.write_text("{INVALID", encoding="utf-8")
+        with caplog.at_level(logging.ERROR, logger="src.core.cache"):
+            URLCache.load(bad_file)
+        assert any("corrupted" in r.message.lower() for r in caplog.records)
+        assert any("performance impact" in r.message.lower() for r in caplog.records)
+
+    def test_load_generic_error_logs_at_error_level(self, tmp_path, caplog, monkeypatch):
+        """Non-JSON errors during cache load should log at ERROR level."""
+        import logging
+        cache_file = tmp_path / "cache.json"
+        cache_file.write_text('{"entries": {}}', encoding="utf-8")
+        # Make json.load raise a non-JSON error
+        import json as json_mod
+        original_load = json_mod.load
+        def broken_load(f):
+            raise PermissionError("Access denied")
+        monkeypatch.setattr(json_mod, "load", broken_load)
+        with caplog.at_level(logging.ERROR, logger="src.core.cache"):
+            cache = URLCache.load(cache_file)
+        assert cache.stats.total_entries == 0
+        assert any("failed to load cache" in r.message.lower() for r in caplog.records)
+
     def test_save_creates_parent_dir(self, tmp_path):
         cache_path = tmp_path / "sub" / "dir" / "cache.json"
         cache = URLCache(cache_path=cache_path)

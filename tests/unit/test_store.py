@@ -126,6 +126,60 @@ class TestGetStats:
         assert stats["by_score_range"]["1-3"] == 1
 
 
+class TestCorruptFileRecovery:
+    """Tests for corrupt file backup instead of silent data loss."""
+
+    def test_corrupt_json_creates_backup(self, tmp_path):
+        """Corrupt JSON should be renamed to .corrupt, not silently deleted."""
+        policies_file = tmp_path / "policies.json"
+        policies_file.write_text("{{CORRUPT DATA}}", encoding="utf-8")
+        store = PolicyStore(data_dir=str(tmp_path))
+        assert store.get_all() == []
+        backup = tmp_path / "policies.json.corrupt"
+        assert backup.exists()
+        assert backup.read_text(encoding="utf-8") == "{{CORRUPT DATA}}"
+
+    def test_wrong_type_creates_backup(self, tmp_path):
+        """A dict instead of list should be backed up and replaced."""
+        policies_file = tmp_path / "policies.json"
+        policies_file.write_text('{"not": "a list"}', encoding="utf-8")
+        store = PolicyStore(data_dir=str(tmp_path))
+        assert store.get_all() == []
+        backup = tmp_path / "policies.json.corrupt"
+        assert backup.exists()
+        assert '"not"' in backup.read_text(encoding="utf-8")
+
+    def test_backup_preserves_original_content(self, tmp_path):
+        """Backup file should contain the exact original corrupt content."""
+        policies_file = tmp_path / "policies.json"
+        original = '[{"url": "partial...  TRUNCATED'
+        policies_file.write_text(original, encoding="utf-8")
+        PolicyStore(data_dir=str(tmp_path))
+        backup = tmp_path / "policies.json.corrupt"
+        assert backup.exists()
+        assert backup.read_text(encoding="utf-8") == original
+
+    def test_store_functional_after_corrupt_recovery(self, tmp_path):
+        """After recovering from corruption, store should accept new policies."""
+        policies_file = tmp_path / "policies.json"
+        policies_file.write_text("NOT JSON", encoding="utf-8")
+        store = PolicyStore(data_dir=str(tmp_path))
+        added = store.add_policies([_make_policy("https://a.gov")])
+        assert added == 1
+        # Verify persisted to disk
+        store2 = PolicyStore(data_dir=str(tmp_path))
+        assert len(store2.get_all()) == 1
+
+    def test_corrupt_logs_error(self, tmp_path, caplog):
+        """Corrupt file should produce an error-level log message."""
+        policies_file = tmp_path / "policies.json"
+        policies_file.write_text("NOT JSON", encoding="utf-8")
+        import logging
+        with caplog.at_level(logging.ERROR, logger="src.storage.store"):
+            PolicyStore(data_dir=str(tmp_path))
+        assert any("corrupted" in r.message.lower() for r in caplog.records)
+
+
 class TestSave:
     def test_save_creates_directory(self, tmp_path):
         data_dir = tmp_path / "sub" / "dir"

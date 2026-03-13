@@ -251,6 +251,7 @@ class DomainProgress(BaseModel):
     pages_filtered: int = 0
     keywords_matched: int = 0
     policies_found: int = 0
+    llm_skipped: int = 0
     errors: int = 0
     error_message: Optional[str] = None
 
