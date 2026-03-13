@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "arizona"
     base_url: "https://azcc.gov"
     start_paths:
       - "/utilities"

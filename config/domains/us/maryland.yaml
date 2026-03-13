@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "maryland"
     base_url: "https://energy.maryland.gov"
     start_paths:
       - "/business/Pages/incentives.aspx"

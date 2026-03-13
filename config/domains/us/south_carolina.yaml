@@ -23,6 +23,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "energy_ministry"
@@ -63,6 +64,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "regulatory"
@@ -105,6 +107,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: true
     rate_limit_seconds: 2.5
     category: "legislative"
@@ -147,6 +150,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "legislative"
@@ -188,6 +192,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "economic_dev"
@@ -225,6 +230,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "regulatory"
@@ -261,6 +267,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: true
     rate_limit_seconds: 3.0
     category: "legislative"
@@ -287,6 +294,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "regulatory"
@@ -316,6 +324,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "university_thermal"
@@ -344,6 +353,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "university_thermal"
@@ -375,6 +385,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: true
     rate_limit_seconds: 3.0
     category: "utility"
@@ -407,6 +418,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: true
     rate_limit_seconds: 3.0
     category: "utility"
@@ -438,6 +450,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: true
     rate_limit_seconds: 3.0
     category: "utility"
@@ -469,6 +482,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "south_carolina"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "regulatory"

@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "new_york"
     base_url: "https://www.nyserda.ny.gov"
     start_paths:
       - "/All-Programs/Energy-Efficiency"

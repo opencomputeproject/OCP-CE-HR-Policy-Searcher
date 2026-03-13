@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "washington"
     base_url: "https://www.commerce.wa.gov"
     start_paths:
       - "/growing-the-economy/energy"

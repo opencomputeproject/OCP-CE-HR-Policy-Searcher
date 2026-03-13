@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "georgia"
     base_url: "https://epd.georgia.gov"
     start_paths:
       - "/air-protection"

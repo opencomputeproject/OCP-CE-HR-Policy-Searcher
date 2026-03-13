@@ -137,7 +137,8 @@ def detect_region(hostname: str) -> list[str]:
     if tld == ".gov":
         state = _us_state_from_hostname(clean)
         if state:
-            return ["us", "us_states"]
+            state_key = state.replace("-", "_")
+            return ["us", "us_states", state_key]
         return ["us"]
 
     entry = TLD_REGION_MAP.get(tld)

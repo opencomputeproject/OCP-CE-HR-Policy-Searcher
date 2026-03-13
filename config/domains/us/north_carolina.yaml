@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "north_carolina"
     base_url: "https://www.ncuc.gov"
     start_paths:
       - "/energy"
@@ -35,6 +36,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "north_carolina"
     base_url: "https://www.ncleg.gov"
     start_paths:
       - "/BillLookup/2025/H638"

@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "virginia"
     base_url: "https://www.energy.virginia.gov"
     start_paths:
       - "/energy-efficiency"
@@ -39,6 +40,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "virginia"
     base_url: "https://lis.virginia.gov"
     start_paths:
       - "/cgi-bin/legp604.exe?ses=251&typ=bil&val=hb116"

@@ -13,6 +13,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "florida"
     base_url: "https://www.psc.state.fl.us"
     start_paths:
       - "/ElectricNaturalGas"
@@ -37,6 +38,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "florida"
     base_url: "https://www.flsenate.gov"
     start_paths:
       - "/Session/Bill/"

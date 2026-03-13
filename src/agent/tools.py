@@ -53,13 +53,20 @@ REGION_TO_GROUPS: dict[str, list[str]] = {
     "netherlands": ["eu_west", "eu"],
     "ireland": ["eu_west", "eu"],
     "switzerland": ["eu_central"],
-    "uk": ["eu"],
+    "uk": ["uk", "eu"],
     "denmark": ["nordic", "eu"],
     "sweden": ["nordic", "eu"],
     "norway": ["nordic", "eu"],
     "singapore": ["apac"],
     "japan": ["apac"],
 }
+
+# Auto-add US state names so add_domain auto-assigns to us_states/us groups
+from .domain_generator import US_STATE_ABBREVS as _US_STATES
+REGION_TO_GROUPS.update({
+    state.replace("-", "_"): ["us_states", "us"]
+    for state in _US_STATES
+})
 
 # ---------------------------------------------------------------------------
 # Tool definitions — Anthropic API format
@@ -81,6 +88,24 @@ POLICY_TOOLS: list[dict[str, Any]] = [
                 "category": {"type": "string", "description": "Filter by category (e.g. 'energy_ministry')"},
                 "tags": {"type": "array", "items": {"type": "string"}, "description": "Filter by tags"},
                 "region": {"type": "string", "description": "Filter by region (e.g. 'eu', 'us', 'apac')"},
+            },
+        },
+    },
+    {
+        "name": "list_groups",
+        "description": (
+            "List all available scan targets: named groups (eu, nordic, us_states), "
+            "regions, and US states. Shows domain counts for each. Use this to help "
+            "users discover what they can scan."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "description": "Filter: 'groups' (named groups only), 'states' (US states only), or 'all' (everything)",
+                    "default": "all",
+                },
             },
         },
     },
@@ -284,6 +309,9 @@ async def execute_tool(
                 ],
                 "count": len(domains),
             }
+
+        elif name == "list_groups":
+            return _execute_list_groups(arguments, config)
 
         elif name == "get_domain_config":
             domain_id = arguments["domain_id"]
@@ -527,6 +555,60 @@ async def execute_tool(
         return {"error": f"Configuration error: {str(e)}"}
     except Exception as e:
         return {"error": str(e)}
+
+
+def _execute_list_groups(
+    arguments: dict[str, Any],
+    config: ConfigLoader,
+) -> dict:
+    """List all scannable targets: named groups, regions, US states."""
+    category = arguments.get("category", "all")
+    all_domains = [d for d in config.domains_config.get("domains", []) if d.get("enabled", True)]
+    groups = config.domains_config.get("groups", {})
+
+    # Named groups from groups.yaml
+    named_groups = {}
+    for name, gcfg in sorted(groups.items()):
+        if name == "all":
+            continue
+        domain_ids = gcfg.get("domains", [])
+        named_groups[name] = {
+            "description": gcfg.get("description", ""),
+            "domains": len(domain_ids) if domain_ids else 0,
+        }
+
+    # Regions and states from domain region fields
+    region_counts: dict[str, int] = {}
+    for d in all_domains:
+        for r in d.get("region", []):
+            region_counts[r] = region_counts.get(r, 0) + 1
+
+    # Separate US states from top-level regions
+    top_regions = {"us", "us_states", "eu", "nordic", "apac", "uk",
+                   "eu_central", "eu_west", "eu_south", "eu_east", "europe"}
+    states = {
+        k: {"domains": v}
+        for k, v in sorted(region_counts.items())
+        if k not in top_regions and k in _all_us_state_keys()
+    }
+
+    if category == "groups":
+        return {"groups": named_groups, "total_domains": len(all_domains)}
+    elif category == "states":
+        return {"us_states": states, "total_domains": len(all_domains)}
+    else:
+        return {
+            "groups": named_groups,
+            "us_states": states,
+            "total_domains": len(all_domains),
+            "tip": "Scan by group name (e.g. 'eu', 'us_states') or by state name (e.g. 'virginia', 'california').",
+        }
+
+
+def _all_us_state_keys() -> set[str]:
+    """Return all US state names as underscore-separated keys."""
+    from .domain_generator import US_STATE_ABBREVS
+    return {s.replace("-", "_") for s in US_STATE_ABBREVS}
 
 
 async def _execute_add_domain(

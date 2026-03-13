@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "texas"
     base_url: "https://www.seco.cpa.texas.gov"
     start_paths:
       - "/energy-efficiency"

@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "oregon"
     base_url: "https://www.oregon.gov/energy"
     start_paths:
       - "/energy-programs"

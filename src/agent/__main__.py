@@ -54,6 +54,20 @@ Usage:
   python -m src.agent --logs             View recent log entries
   python -m src.agent --help             Show this help
 
+Scanning Examples:
+  "Scan virginia"                        Scan all Virginia domains
+  "Scan us_states"                       Scan all US state domains
+  "Scan eu"                              Scan all EU domains
+  "Scan pending_legislation"             Scan active/pending bills
+  "Scan nordic"                          Scan Nordic countries
+  "What groups can I scan?"              List available scan targets
+
+Scan Targets:
+  Groups:  eu, nordic, us, us_states, us_federal, apac, uk,
+           leaders, emerging, pending_legislation
+  States:  virginia, california, texas, colorado, minnesota, ...
+  Regions: eu_central, eu_west, eu_south, eu_east
+
 Log Viewer:
   python -m src.agent --logs             Last 30 log entries
   python -m src.agent --logs audit       Last 30 audit events
@@ -73,7 +87,7 @@ Environment Variables:
   OCP_DATA_DIR        Data/logs directory (default: data)
 
 Log Files:
-  data/logs/agent.log    Structured JSON logs (rotated, 10 MB × 5)
+  data/logs/agent.log    Structured JSON logs (rotated, 10 MB x 5)
   data/logs/audit.jsonl  Critical events (scan start/complete, policies found)
 
 API (for React frontend):
@@ -247,6 +261,7 @@ def _on_tool_call(name: str, input_data: dict):
     """Show a brief status line when a tool is called."""
     descriptions = {
         "list_domains": "Browsing available domains...",
+        "list_groups": "Looking up available groups and regions...",
         "get_domain_config": f"Looking up domain '{input_data.get('domain_id', '')}'...",
         "start_scan": f"Starting scan of '{input_data.get('domains', 'quick')}' domains...",
         "get_scan_status": "Checking scan progress...",
@@ -282,6 +297,12 @@ def _on_tool_result(name: str, result):
     # Show a one-line summary for tools where the user might be waiting
     if name == "list_domains" and "count" in result:
         print(f"  → Found {result['count']} domains")
+
+    elif name == "list_groups":
+        groups_count = len(result.get("groups", {}))
+        states_count = len(result.get("us_states", {}))
+        total = result.get("total_domains", "?")
+        print(f"  → {groups_count} groups, {states_count} US states ({total} total domains)")
 
     elif name == "start_scan" and "scan_id" in result:
         msg = (f"  → Scan {result['scan_id']} started "

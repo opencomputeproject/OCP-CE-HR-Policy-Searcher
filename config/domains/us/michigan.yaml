@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "michigan"
     base_url: "https://www.michigan.gov/mpsc"
     start_paths:
       - "/electric"

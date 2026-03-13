@@ -196,7 +196,7 @@ class TestAgentInit:
         agent.model = "test-model"
         agent.client = AsyncMock()
 
-        assert len(agent.tools) == 14
+        assert len(agent.tools) == 15
         assert "heat reuse" in agent.system_prompt.lower() or "government" in agent.system_prompt.lower()
 
     def test_system_prompt_has_domain_count(self, real_config):
@@ -1083,7 +1083,7 @@ class TestOnboardingFlow:
             config_dir="config",
             data_dir="data",
         )
-        assert len(agent.tools) == 14
+        assert len(agent.tools) == 15
         assert agent.config is not None
 
     def test_rest_api_starts_without_api_key(self):

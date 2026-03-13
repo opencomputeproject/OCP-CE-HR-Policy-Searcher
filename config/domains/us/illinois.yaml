@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "illinois"
     base_url: "https://www.icc.illinois.gov"
     start_paths:
       - "/electricity"

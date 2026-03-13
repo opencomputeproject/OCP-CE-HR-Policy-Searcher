@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "ohio"
     base_url: "https://development.ohio.gov"
     start_paths:
       - "/energy"

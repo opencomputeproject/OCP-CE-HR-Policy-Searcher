@@ -52,7 +52,7 @@ class TestDetectRegion:
         assert detect_region("energy.gov") == ["us"]
 
     def test_us_state(self):
-        assert detect_region("lis.virginia.gov") == ["us", "us_states"]
+        assert detect_region("lis.virginia.gov") == ["us", "us_states", "virginia"]
 
     def test_uk(self):
         assert detect_region("legislation.gov.uk") == ["uk"]

@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "massachusetts"
     base_url: "https://www.mass.gov/orgs/department-of-energy-resources"
     start_paths:
       - "/energy-efficiency"

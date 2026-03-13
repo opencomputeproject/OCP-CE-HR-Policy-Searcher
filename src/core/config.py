@@ -1,11 +1,14 @@
 """Configuration loader for domains, groups, keywords, settings, and URL filters."""
 
+import logging
 import os
 import re
 from pathlib import Path
 from typing import Optional
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 from .models import DomainConfig, CrawlSettings, AnalysisSettings, OutputSettings, AppSettings
 
@@ -147,6 +150,10 @@ class ConfigLoader:
         self._load_domains()
         self._load_keywords()
         self._load_url_filters()
+
+        # Log validation warnings (non-blocking)
+        for warning in self.validate_config():
+            logger.warning("Config: %s", warning)
 
     def _load_settings(self) -> None:
         settings_file = self.config_dir / "settings.yaml"
@@ -409,3 +416,45 @@ class ConfigLoader:
         return self.url_filters.get("skip_extensions", [
             ".pdf", ".doc", ".docx", ".zip", ".jpg", ".png",
         ])
+
+    def validate_config(self) -> list[str]:
+        """Check for orphan domains and stale group references. Returns warnings."""
+        warnings = []
+        all_domains = {d["id"]: d for d in self.domains_config.get("domains", [])}
+        groups = self.domains_config.get("groups", {})
+
+        # Collect all explicitly grouped domain IDs
+        grouped_ids: set[str] = set()
+        for group_name, group_config in groups.items():
+            if group_name == "all":
+                continue
+            for did in (group_config.get("domains") or []):
+                grouped_ids.add(did)
+                if did not in all_domains:
+                    warnings.append(
+                        f"Group '{group_name}' references unknown domain: {did}"
+                    )
+
+        # Check for orphan domains (not in any explicit group)
+        orphan_ids = {
+            did for did in all_domains
+            if did not in grouped_ids and all_domains[did].get("enabled", True)
+        }
+        if orphan_ids:
+            sample = sorted(list(orphan_ids))[:10]
+            warnings.append(
+                f"{len(orphan_ids)} domains not in any explicit group "
+                f"(discoverable via region/state scan): {', '.join(sample)}"
+                + ("..." if len(orphan_ids) > 10 else "")
+            )
+
+        # Check for duplicate domain IDs across files
+        id_counts: dict[str, int] = {}
+        for d in self.domains_config.get("domains", []):
+            did = d["id"]
+            id_counts[did] = id_counts.get(did, 0) + 1
+        for did, count in id_counts.items():
+            if count > 1:
+                warnings.append(f"Duplicate domain ID: {did} (appears {count} times)")
+
+        return warnings

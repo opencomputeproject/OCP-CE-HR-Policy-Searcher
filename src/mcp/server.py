@@ -77,6 +77,16 @@ TOOLS = [
         },
     ),
     Tool(
+        name="list_groups",
+        description="List all scannable targets: named groups, regions, and US states with domain counts.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "Filter: 'groups', 'states', or 'all'", "default": "all"},
+            },
+        },
+    ),
+    Tool(
         name="get_domain_config",
         description="Get full configuration for a specific domain by ID.",
         inputSchema={
@@ -220,6 +230,10 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                 ],
                 "count": len(domains),
             })
+
+        elif name == "list_groups":
+            from ..agent.tools import _execute_list_groups
+            return _json_result(_execute_list_groups(arguments, config))
 
         elif name == "get_domain_config":
             domain_id = arguments["domain_id"]

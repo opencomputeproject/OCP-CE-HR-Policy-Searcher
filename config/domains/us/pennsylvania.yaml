@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "pennsylvania"
     base_url: "https://www.dep.pa.gov"
     start_paths:
       - "/Business/Energy"

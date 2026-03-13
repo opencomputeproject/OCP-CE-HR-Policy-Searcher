@@ -12,6 +12,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "new_jersey"
     base_url: "https://www.nj.gov/bpu"
     start_paths:
       - "/commercial/energy.html"

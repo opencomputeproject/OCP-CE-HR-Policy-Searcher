@@ -13,6 +13,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "colorado"
     base_url: "https://energyoffice.colorado.gov"
     start_paths:
       - "/clean-energy-programs"
@@ -40,6 +41,7 @@ domains:
     region:
       - "us"
       - "us_states"
+      - "colorado"
     base_url: "https://leg.colorado.gov"
     start_paths:
       - "/bills"

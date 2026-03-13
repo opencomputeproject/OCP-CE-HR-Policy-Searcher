@@ -133,6 +133,10 @@ groups:
       - ca_energy
       - nyserda
       - va_energy
+      - va_legislature
+      - us_va_hb323_2026
+      - us_va_hb906_2026
+      - us_va_hb824_2026
       - tx_seco
       - wa_commerce
       - co_energy
@@ -177,6 +181,9 @@ groups:
       - tx_legislature
       - va_energy
       - va_legislature
+      - us_va_hb323_2026
+      - us_va_hb906_2026
+      - us_va_hb824_2026
       - wa_commerce
       - co_energy
       - co_legislature
@@ -238,6 +245,68 @@ groups:
       - meti_jp              # Japan - GX transformation
       - motie_kr             # South Korea - PUE thresholds
       - energy_au            # Australia - APAC growth
+
+  pending_legislation:
+    description: "Active/pending bills and legislative tracking domains"
+    domains:
+      # Virginia data center bills (2026)
+      - us_va_hb323_2026
+      - us_va_hb906_2026
+      - us_va_hb824_2026
+      - va_legislature
+      # US state legislatures
+      - ca_leginfo
+      - ca_assembly_util
+      - ca_senate_seuc
+      - ca_sd18_sb57
+      - co_legislature
+      - ct_legislature
+      - fl_legislature
+      - mn_legislature
+      - nc_legislature
+      - tx_legislature
+      # EU legislative sources
+      - eur_lex
+      - eurlex_eed_2023
+      - eurlex_dc_regulation
+      - riksdagen_se_dc
+      - retsinformation_dk
+      - lovdata_no
+      - legifrance_dc
+      - isap_pl
+      - zakonyprolidi_cz
+      - normattiva_it
+      - dre_pt
+      - njt_hu
+      - monitoruloficial_ro
+      - boe_es
+      - et_gr
+      - gesetze_enefg
+      # UK parliament
+      - uk_legislation
+      - uk_parliament_bills
+      - uk_scotland_parliament
+      - uk_wales_senedd
+
+  uk:
+    description: "United Kingdom - England, Scotland, Wales, Northern Ireland"
+    domains:
+      - uk_desnz
+      - uk_ofgem
+      - uk_ccc
+      - uk_environment_agency
+      - uk_legislation
+      - uk_parliament_bills
+      - uk_parliament_hansard
+      - uk_parliament_si
+      - uk_gazette
+      - uk_scotland_energy
+      - uk_scotland_parliament
+      - uk_scotland_spice
+      - uk_wales_senedd
+      - uk_wales_senedd_research
+      - uk_ni_assembly
+      - uk_ni_assembly_archive
 
   # ---------------------------------------------------------------------------
   # TESTING GROUPS

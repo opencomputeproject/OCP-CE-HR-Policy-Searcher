@@ -111,7 +111,10 @@ country, even ones not in the database yet
 SCAN known government websites:
 - The database currently has {domain_count} government websites across \
 {region_count} regions ({region_list})
-- Use list_domains to see what's available by country or region
+- Use list_groups to see all available scan targets (groups, regions, US states)
+- Use list_domains to see specific websites by country or region
+- Scan by group: 'eu', 'nordic', 'us_states', 'pending_legislation', 'uk'
+- Scan by US state name: 'virginia', 'california', 'texas', etc.
 - Use estimate_cost to check scanning costs before starting
 - Use start_scan to crawl websites and discover policies automatically
 - Use get_scan_status to monitor progress (scans run in the background)

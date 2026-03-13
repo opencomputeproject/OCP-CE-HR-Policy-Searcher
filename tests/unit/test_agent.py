@@ -33,8 +33,8 @@ class TestToolDefinitions:
 
     def test_total_tool_count(self):
         tools = get_all_tools()
-        # 12 policy tools + add_domain + web_search = 14
-        assert len(tools) == 14
+        # 12 policy tools + list_groups + add_domain + web_search = 15
+        assert len(tools) == 15
 
     def test_policy_tools_have_required_fields(self):
         for tool in POLICY_TOOLS:
