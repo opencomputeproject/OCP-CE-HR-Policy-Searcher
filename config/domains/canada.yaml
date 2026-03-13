@@ -1,0 +1,407 @@
+# =============================================================================
+# CANADA - Federal and Provincial Energy/Data Center Policy
+# =============================================================================
+# Canada has growing data center industry with federal efficiency programs
+# and provincial energy regulation. Key provinces: Ontario, BC, Quebec, Alberta.
+# =============================================================================
+
+domains:
+  # ===========================================================================
+  # FEDERAL
+  # ===========================================================================
+
+  - name: "Natural Resources Canada - Energy Efficiency"
+    id: "nrcan_ca"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+    base_url: "https://natural-resources.canada.ca"
+    start_paths:
+      - "/energy-efficiency"
+      - "/energy/energy-sources-distribution"
+    allowed_path_patterns:
+      - "/energy-efficiency/*"
+      - "/energy/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "data_centers"
+    policy_types:
+      - "guidance"
+      - "standard"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Natural Resources Canada energy efficiency programs.
+      Includes data centre best practice guides and energy benchmarking.
+
+  - name: "Canada Energy Regulator"
+    id: "cer_ca"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+    base_url: "https://www.cer-rec.gc.ca"
+    start_paths:
+      - "/en/data-analysis/energy-markets/"
+      - "/en/about/acts-and-regulations/"
+    allowed_path_patterns:
+      - "/en/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "efficiency"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "report"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Canada Energy Regulator - national energy infrastructure regulation.
+      Energy market data and regulatory frameworks.
+
+  - name: "Environment and Climate Change Canada"
+    id: "eccc_ca"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+    base_url: "https://www.canada.ca"
+    start_paths:
+      - "/en/environment-climate-change.html"
+      - "/en/environment-climate-change/services/climate-change/greenhouse-gas-emissions.html"
+    allowed_path_patterns:
+      - "/en/environment-climate-change/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "environmental_agency"
+    tags:
+      - "carbon"
+      - "reporting"
+      - "net_zero"
+    policy_types:
+      - "regulation"
+      - "report"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Environment and Climate Change Canada.
+      GHG reporting requirements and climate policy frameworks.
+
+  - name: "NRCan Office of Energy Efficiency"
+    id: "nrcan_oee"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+    base_url: "https://oee.nrcan.gc.ca"
+    start_paths:
+      - "/publications/"
+      - "/commercial/"
+    allowed_path_patterns:
+      - "/publications/*"
+      - "/commercial/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "guidance"
+    policy_types:
+      - "guidance"
+      - "report"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Office of Energy Efficiency publications and guides.
+      Data centre energy efficiency best practices.
+
+  # ===========================================================================
+  # ONTARIO
+  # ===========================================================================
+
+  - name: "Ontario Ministry of Energy and Mines"
+    id: "ontario_energy"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "ontario"
+    base_url: "https://www.ontario.ca"
+    start_paths:
+      - "/page/ministry-energy-and-mines"
+      - "/page/ontarios-clean-energy-opportunity"
+    allowed_path_patterns:
+      - "/page/*energy*"
+      - "/page/*climate*"
+      - "/laws/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Ontario energy policy and planning.
+      Ontario is Canada's largest data center market (Toronto region).
+
+  - name: "Ontario Energy Board"
+    id: "oeb_ca"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "ontario"
+    base_url: "https://www.oeb.ca"
+    start_paths:
+      - "/regulatory-rules-and-documents/"
+      - "/industry/"
+    allowed_path_patterns:
+      - "/regulatory-rules-and-documents/*"
+      - "/industry/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "mandates"
+      - "reporting"
+    policy_types:
+      - "regulation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Ontario Energy Board - provincial energy regulator.
+      Rate regulation and electricity market rules.
+
+  - name: "IESO - Independent Electricity System Operator"
+    id: "ieso_ca"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "ontario"
+    base_url: "https://www.ieso.ca"
+    start_paths:
+      - "/en/Sector-Participants/Energy-Efficiency/"
+      - "/en/Corporate-IESO/Media/Year-End-Data/"
+    allowed_path_patterns:
+      - "/en/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "grid_operator"
+    tags:
+      - "efficiency"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "report"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Ontario's grid operator. Energy efficiency programs and market data.
+
+  # ===========================================================================
+  # BRITISH COLUMBIA
+  # ===========================================================================
+
+  - name: "BC Ministry of Energy and Climate Solutions"
+    id: "bc_energy"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "british_columbia"
+    base_url: "https://www2.gov.bc.ca"
+    start_paths:
+      - "/gov/content/industry/electricity-alternative-energy"
+      - "/gov/content/environment/climate-change"
+    allowed_path_patterns:
+      - "/gov/content/industry/electricity*"
+      - "/gov/content/environment/climate*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      BC energy and climate policy. BC has carbon tax since 2008.
+      CleanBC strategy drives efficiency requirements.
+
+  - name: "CleanBC"
+    id: "cleanbc"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "british_columbia"
+    base_url: "https://cleanbc.gov.bc.ca"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "program"
+    tags:
+      - "efficiency"
+      - "net_zero"
+    policy_types:
+      - "strategy"
+      - "program"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      BC's CleanBC climate strategy. Includes building energy codes
+      and industrial efficiency programs relevant to data centers.
+
+  # ===========================================================================
+  # QUEBEC
+  # ===========================================================================
+
+  - name: "Quebec Transition Energetique"
+    id: "quebec_energy"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "quebec"
+    base_url: "https://transitionenergetique.gouv.qc.ca"
+    start_paths:
+      - "/en/"
+    max_depth: 2
+    language: "fr"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "incentives"
+    policy_types:
+      - "program"
+      - "incentive"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Quebec energy transition programs.
+      Quebec has abundant hydroelectric power attracting data centers.
+
+  - name: "Hydro-Quebec Energy Efficiency"
+    id: "hydroquebec_ee"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "quebec"
+    base_url: "https://www.hydroquebec.com"
+    start_paths:
+      - "/business/energy-savings-business/"
+    allowed_path_patterns:
+      - "/business/energy-savings*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "grid_operator"
+    tags:
+      - "efficiency"
+      - "incentives"
+    policy_types:
+      - "program"
+      - "incentive"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Hydro-Quebec business energy efficiency programs.
+      Rate incentives for large industrial consumers including data centers.
+
+  # ===========================================================================
+  # ALBERTA
+  # ===========================================================================
+
+  - name: "Alberta Ministry of Energy and Minerals"
+    id: "alberta_energy"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "alberta"
+    base_url: "https://www.alberta.ca"
+    start_paths:
+      - "/energy-and-minerals.aspx"
+      - "/environment-and-protected-areas.aspx"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "carbon"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Alberta energy and environment policy.
+      TIER (Technology Innovation and Emissions Reduction) system.
+
+  - name: "Alberta Utilities Commission"
+    id: "auc_ca"
+    enabled: true
+    region:
+      - "north_america"
+      - "canada"
+      - "alberta"
+    base_url: "https://www.auc.ab.ca"
+    start_paths:
+      - "/regulatory_documents/"
+    allowed_path_patterns:
+      - "/regulatory_documents/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "regulatory"
+    tags:
+      - "mandates"
+      - "reporting"
+    policy_types:
+      - "regulation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Alberta Utilities Commission - provincial energy regulator.
+      Regulates electricity and natural gas markets.

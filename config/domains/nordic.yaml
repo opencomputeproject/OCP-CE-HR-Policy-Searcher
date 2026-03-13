@@ -13,6 +13,7 @@ domains:
     region:
       - "eu"
       - "nordic"
+      - "sweden"
     base_url: "https://www.energimyndigheten.se"
     start_paths:
       - "/en/sustainability/energy-efficiency/"
@@ -36,6 +37,7 @@ domains:
     region:
       - "eu"
       - "nordic"
+      - "denmark"
     base_url: "https://ens.dk"
     start_paths:
       - "/en/our-responsibilities/energy-efficiency"
@@ -58,6 +60,7 @@ domains:
     region:
       - "eu"
       - "nordic"
+      - "finland"
     base_url: "https://energiavirasto.fi"
     start_paths:
       - "/en/energy-efficiency"
@@ -81,6 +84,7 @@ domains:
     region:
       - "eu"
       - "nordic"
+      - "finland"
     base_url: "https://tem.fi"
     start_paths:
       - "/en/energy"
@@ -102,6 +106,7 @@ domains:
     enabled: true
     region:
       - "nordic"
+      - "norway"
     base_url: "https://www.regjeringen.no"
     start_paths:
       - "/en/dep/oed/topics/energy"
@@ -123,6 +128,7 @@ domains:
     enabled: true
     region:
       - "nordic"
+      - "norway"
     base_url: "https://www.enova.no"
     start_paths:
       - "/bedrift/energieffektivisering"
@@ -188,6 +194,7 @@ domains:
     enabled: true
     region:
       - "nordic"
+      - "iceland"
     base_url: "https://orkustofnun.is"
     start_paths:
       - "/en/energy-efficiency"

@@ -9,6 +9,7 @@ domains:
     region:
       - "eu"
       - "eu_west"
+      - "belgium"
     base_url: "https://energy.belgium.be"
     start_paths:
       - "/en"

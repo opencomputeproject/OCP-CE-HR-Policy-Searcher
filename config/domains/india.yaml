@@ -1,0 +1,307 @@
+# =============================================================================
+# INDIA - National and State Data Center / Energy Policy
+# =============================================================================
+# India has state-level DC policies (Telangana 2016, Tamil Nadu 2021,
+# Karnataka 2022). National draft DC policy by MeitY. Heat reuse less
+# relevant in tropical climate but energy efficiency and renewables are key.
+# =============================================================================
+
+domains:
+  # ===========================================================================
+  # NATIONAL
+  # ===========================================================================
+
+  - name: "Ministry of Power - India"
+    id: "mop_in"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+    base_url: "https://powermin.gov.in"
+    start_paths:
+      - "/en/content/acts-and-rules"
+      - "/en/content/policy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+      - "regulation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      India Ministry of Power. Electricity Act 2003, Energy Conservation Act.
+      National energy efficiency targets and reporting requirements.
+
+  - name: "Bureau of Energy Efficiency - India"
+    id: "bee_in"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+    base_url: "https://beeindia.gov.in"
+    start_paths:
+      - "/en/programmes"
+      - "/en/standards-and-labeling"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "regulatory_authority"
+    tags:
+      - "efficiency"
+      - "mandatory"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "standard"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Bureau of Energy Efficiency. PAT (Perform Achieve Trade) scheme.
+      Energy Conservation Building Code (ECBC).
+      Mandatory energy audits for designated consumers.
+
+  - name: "Central Electricity Authority - India"
+    id: "cea_in"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+    base_url: "https://cea.nic.in"
+    start_paths:
+      - "/regulations.html"
+      - "/installed-capacity.html"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "regulatory_authority"
+    tags:
+      - "reporting"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "report"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Central Electricity Authority. Grid codes and power sector planning.
+      Renewable energy integration standards.
+
+  - name: "MeitY - Ministry of Electronics and IT"
+    id: "meity_in"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+    base_url: "https://www.meity.gov.in"
+    start_paths:
+      - "/policies"
+      - "/data-centre"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "policy"
+    tags:
+      - "data_center_specific"
+      - "planning"
+    policy_types:
+      - "strategy"
+      - "guidance"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Ministry of Electronics and IT. Draft National Data Centre Policy.
+      Digital India programme. Data center park development guidelines.
+
+  # ===========================================================================
+  # KARNATAKA
+  # ===========================================================================
+
+  - name: "Karnataka IT/BT Policy"
+    id: "karnataka_dc_policy"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+      - "karnataka"
+    base_url: "https://itbtst.karnataka.gov.in"
+    start_paths:
+      - "/policies"
+      - "/data-centre-policy-2022"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "policy"
+    tags:
+      - "data_center_specific"
+      - "incentives"
+    policy_types:
+      - "incentive"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Karnataka Data Centre Policy 2022-2027.
+      Capital subsidy, stamp duty exemption, power tariff concessions.
+      Bengaluru is India's largest data center market.
+
+  - name: "Karnataka Renewable Energy Development"
+    id: "kredl_in"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+      - "karnataka"
+    base_url: "https://kredl.karnataka.gov.in"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "renewable_energy"
+      - "incentives"
+    policy_types:
+      - "incentive"
+      - "program"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Karnataka Renewable Energy Development Ltd.
+      Renewable energy procurement and incentives.
+
+  # ===========================================================================
+  # TAMIL NADU
+  # ===========================================================================
+
+  - name: "Tamil Nadu Data Centre Policy"
+    id: "tn_dc_policy"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+      - "tamil_nadu"
+    base_url: "https://it.tn.gov.in"
+    start_paths:
+      - "/policy"
+      - "/data-centre-policy"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "policy"
+    tags:
+      - "data_center_specific"
+      - "incentives"
+    policy_types:
+      - "incentive"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Tamil Nadu Data Centre Policy 2021.
+      Capital subsidy up to INR 200 crore, electricity duty exemption.
+      Chennai emerging as major DC hub.
+
+  # ===========================================================================
+  # TELANGANA
+  # ===========================================================================
+
+  - name: "Telangana Data Centre Investment"
+    id: "telangana_dc"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+      - "telangana"
+    base_url: "https://invest.telangana.gov.in"
+    start_paths:
+      - "/data-centres"
+      - "/sectors/data-centres"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "economic_dev"
+    tags:
+      - "data_center_specific"
+      - "incentives"
+    policy_types:
+      - "incentive"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Telangana - India's first state DC policy (2016).
+      Hyderabad is major DC market. Power tariff subsidies, land allocation,
+      stamp duty exemption, 15-year tax holiday.
+
+  - name: "Telangana Renewable Energy Development"
+    id: "tgredco_in"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+      - "telangana"
+    base_url: "https://tgredco.telangana.gov.in"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "renewable_energy"
+      - "incentives"
+    policy_types:
+      - "incentive"
+      - "program"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Telangana State Renewable Energy Development Corporation.
+      Solar and wind energy procurement.
+
+  # ===========================================================================
+  # MAHARASHTRA
+  # ===========================================================================
+
+  - name: "Maharashtra Energy Department"
+    id: "maharashtra_energy"
+    enabled: true
+    region:
+      - "apac"
+      - "india"
+      - "maharashtra"
+    base_url: "https://energy.maharashtra.gov.in"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Maharashtra state energy department.
+      Mumbai/Navi Mumbai is India's largest DC market by capacity.
+      Data Center Policy 2023 offers incentives.

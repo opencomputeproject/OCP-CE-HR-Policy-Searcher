@@ -8,6 +8,7 @@ domains:
     enabled: true
     region:
       - "eu_central"
+      - "switzerland"
     base_url: "https://www.bfe.admin.ch"
     start_paths:
       - "/bfe/en/home/efficiency/data-centres.html"
@@ -41,6 +42,7 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "legislation"
@@ -67,6 +69,7 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "legislation"
@@ -93,6 +96,7 @@ domains:
     language: "en"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "energy_ministry"
@@ -122,6 +126,7 @@ domains:
     language: "en"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "energy_ministry"
@@ -149,6 +154,7 @@ domains:
     language: "en"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "environment_ministry"
@@ -181,6 +187,7 @@ domains:
     region:
       - "europe"
       - "switzerland"
+      - "zurich"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "guidance"
@@ -219,6 +226,7 @@ domains:
     region:
       - "europe"
       - "switzerland"
+      - "zurich"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "legislation"
@@ -251,6 +259,8 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
+      - "zurich"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "legislation"
@@ -276,6 +286,8 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
+      - "zurich"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "legislation"
@@ -300,6 +312,8 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
+      - "zurich"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "cantonal_authority"
@@ -328,6 +342,7 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: "legislation"
@@ -354,6 +369,7 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "coordination_body"
@@ -387,6 +403,7 @@ domains:
     language: "en"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "standards"
@@ -421,6 +438,7 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "program"
@@ -451,6 +469,7 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "program"
@@ -480,6 +499,7 @@ domains:
     language: "de"
     region:
       - "eu_central"
+      - "switzerland"
     requires_playwright: true
     rate_limit_seconds: 2.0
     category: "program"

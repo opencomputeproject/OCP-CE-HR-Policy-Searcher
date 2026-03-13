@@ -1,7 +1,7 @@
 """Tool definitions and dispatch for the standalone agent loop.
 
-Defines 13 tools in Anthropic API format:
-- 11 policy hub tools (same as MCP server)
+Defines 15 tools in Anthropic API format:
+- 13 policy hub tools (same as MCP server)
 - 1 built-in web_search (server-side, no dispatch needed)
 - 1 add_domain tool (creates new domain YAML configs)
 """
@@ -32,6 +32,7 @@ from .domain_generator import (
 # Region -> groups mapping for auto-assignment when adding domains
 # ---------------------------------------------------------------------------
 REGION_TO_GROUPS: dict[str, list[str]] = {
+    # Broad groups
     "us_states": ["us_states", "us"],
     "eu": ["eu"],
     "nordic": ["nordic"],
@@ -40,6 +41,11 @@ REGION_TO_GROUPS: dict[str, list[str]] = {
     "eu_south": ["eu_south", "eu"],
     "eu_east": ["eu_east", "eu"],
     "apac": ["apac"],
+    "north_america": ["north_america"],
+    "south_america": ["south_america"],
+    "middle_east": ["middle_east"],
+    "africa": ["africa"],
+    # EU countries
     "spain": ["eu_south", "eu"],
     "italy": ["eu_south", "eu"],
     "portugal": ["eu_south", "eu"],
@@ -52,13 +58,58 @@ REGION_TO_GROUPS: dict[str, list[str]] = {
     "france": ["eu_central", "eu"],
     "netherlands": ["eu_west", "eu"],
     "ireland": ["eu_west", "eu"],
+    "belgium": ["eu_west", "eu"],
+    "austria": ["eu_central", "eu"],
     "switzerland": ["eu_central"],
-    "uk": ["uk", "eu"],
+    "finland": ["nordic", "eu"],
+    "iceland": ["nordic"],
+    # UK
+    "uk": ["uk"],
+    "scotland": ["uk"],
+    "wales": ["uk"],
+    "northern_ireland": ["uk"],
+    # Nordic
     "denmark": ["nordic", "eu"],
     "sweden": ["nordic", "eu"],
     "norway": ["nordic", "eu"],
+    # Swiss cantons
+    "zurich": ["eu_central", "switzerland"],
+    # German Länder
+    "hessen": ["eu_central", "germany", "eu"],
+    "bayern": ["eu_central", "germany", "eu"],
+    "nordrhein_westfalen": ["eu_central", "germany", "eu"],
+    "baden_wuerttemberg": ["eu_central", "germany", "eu"],
+    "berlin": ["eu_central", "germany", "eu"],
+    "hamburg": ["eu_central", "germany", "eu"],
+    "niedersachsen": ["eu_central", "germany", "eu"],
+    "sachsen": ["eu_central", "germany", "eu"],
+    # APAC
     "singapore": ["apac"],
     "japan": ["apac"],
+    "south_korea": ["apac"],
+    "australia": ["apac"],
+    "india": ["apac"],
+    "new_south_wales": ["australia", "apac"],
+    "south_australia": ["australia", "apac"],
+    "karnataka": ["india", "apac"],
+    "tamil_nadu": ["india", "apac"],
+    "telangana": ["india", "apac"],
+    "maharashtra": ["india", "apac"],
+    # Americas
+    "canada": ["north_america"],
+    "ontario": ["canada", "north_america"],
+    "british_columbia": ["canada", "north_america"],
+    "quebec": ["canada", "north_america"],
+    "alberta": ["canada", "north_america"],
+    "brazil": ["south_america"],
+    "mexico": ["north_america"],
+    # Middle East
+    "uae": ["middle_east"],
+    "abu_dhabi": ["middle_east", "uae"],
+    "dubai": ["middle_east", "uae"],
+    "saudi_arabia": ["middle_east"],
+    # Africa
+    "south_africa": ["africa"],
 }
 
 # Auto-add US state names so add_domain auto-assigns to us_states/us groups
@@ -561,7 +612,7 @@ def _execute_list_groups(
     arguments: dict[str, Any],
     config: ConfigLoader,
 ) -> dict:
-    """List all scannable targets: named groups, regions, US states."""
+    """List all scannable targets: named groups, regions, countries, states."""
     category = arguments.get("category", "all")
     all_domains = [d for d in config.domains_config.get("domains", []) if d.get("enabled", True)]
     groups = config.domains_config.get("groups", {})
@@ -583,32 +634,119 @@ def _execute_list_groups(
         for r in d.get("region", []):
             region_counts[r] = region_counts.get(r, 0) + 1
 
-    # Separate US states from top-level regions
-    top_regions = {"us", "us_states", "eu", "nordic", "apac", "uk",
-                   "eu_central", "eu_west", "eu_south", "eu_east", "europe"}
-    states = {
+    # Broad region groups (not scannable as country names)
+    broad_regions = {"us", "us_states", "eu", "nordic", "apac", "uk",
+                     "eu_central", "eu_west", "eu_south", "eu_east", "europe",
+                     "north_america", "south_america", "middle_east", "africa"}
+
+    us_state_keys = _all_us_state_keys()
+    de_laender_keys = _all_de_laender_keys()
+    uk_nation_keys = _all_uk_nation_keys()
+    ca_province_keys = _all_ca_province_keys()
+    in_state_keys = _all_in_state_keys()
+    au_state_keys = _all_au_state_keys()
+    ae_emirate_keys = _all_ae_emirate_keys()
+    ch_canton_keys = _all_ch_canton_keys()
+
+    sub_national = (us_state_keys | de_laender_keys | uk_nation_keys
+                    | ca_province_keys | in_state_keys | au_state_keys
+                    | ae_emirate_keys | ch_canton_keys)
+
+    # Countries: everything in region_counts that's not broad or sub-national
+    countries = {
         k: {"domains": v}
         for k, v in sorted(region_counts.items())
-        if k not in top_regions and k in _all_us_state_keys()
+        if k not in broad_regions and k not in sub_national
+    }
+
+    us_states = {
+        k: {"domains": v}
+        for k, v in sorted(region_counts.items())
+        if k in us_state_keys
+    }
+    de_laender = {
+        k: {"domains": v}
+        for k, v in sorted(region_counts.items())
+        if k in de_laender_keys
+    }
+    uk_nations = {
+        k: {"domains": v}
+        for k, v in sorted(region_counts.items())
+        if k in uk_nation_keys
+    }
+    ca_provinces = {
+        k: {"domains": v}
+        for k, v in sorted(region_counts.items())
+        if k in ca_province_keys
     }
 
     if category == "groups":
         return {"groups": named_groups, "total_domains": len(all_domains)}
     elif category == "states":
-        return {"us_states": states, "total_domains": len(all_domains)}
+        return {"us_states": us_states, "total_domains": len(all_domains)}
+    elif category == "countries":
+        return {"countries": countries, "total_domains": len(all_domains)}
     else:
-        return {
+        result = {
             "groups": named_groups,
-            "us_states": states,
+            "countries": countries,
+            "uk_nations": uk_nations,
+            "de_laender": de_laender,
+            "ca_provinces": ca_provinces,
+            "us_states": us_states,
             "total_domains": len(all_domains),
-            "tip": "Scan by group name (e.g. 'eu', 'us_states') or by state name (e.g. 'virginia', 'california').",
+            "tip": (
+                "Scan by group ('eu', 'canada'), country ('germany', 'india'), "
+                "state ('virginia', 'hessen'), or UK nation ('scotland'). "
+                "Not seeing your country? Use 'discover [country]' to search "
+                "for and add government websites."
+            ),
         }
+        return result
 
 
 def _all_us_state_keys() -> set[str]:
     """Return all US state names as underscore-separated keys."""
     from .domain_generator import US_STATE_ABBREVS
     return {s.replace("-", "_") for s in US_STATE_ABBREVS}
+
+
+def _all_de_laender_keys() -> set[str]:
+    """Return all German Länder names used as region keys."""
+    return {
+        "hessen", "bayern", "nordrhein_westfalen", "baden_wuerttemberg",
+        "berlin", "hamburg", "niedersachsen", "sachsen",
+    }
+
+
+def _all_uk_nation_keys() -> set[str]:
+    """Return UK devolved nation names used as region keys."""
+    return {"scotland", "wales", "northern_ireland"}
+
+
+def _all_ca_province_keys() -> set[str]:
+    """Return Canadian province names used as region keys."""
+    return {"ontario", "british_columbia", "quebec", "alberta"}
+
+
+def _all_in_state_keys() -> set[str]:
+    """Return Indian state names used as region keys."""
+    return {"karnataka", "tamil_nadu", "telangana", "maharashtra"}
+
+
+def _all_au_state_keys() -> set[str]:
+    """Return Australian state names used as region keys."""
+    return {"new_south_wales", "south_australia"}
+
+
+def _all_ae_emirate_keys() -> set[str]:
+    """Return UAE emirate names used as region keys."""
+    return {"abu_dhabi", "dubai"}
+
+
+def _all_ch_canton_keys() -> set[str]:
+    """Return Swiss canton names used as region keys."""
+    return {"zurich"}
 
 
 async def _execute_add_domain(

@@ -166,6 +166,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "scotland"
     requires_playwright: false
     category: devolved_government
     tags:
@@ -203,6 +204,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "wales"
     requires_playwright: false
     category: devolved_government
     tags:
@@ -239,6 +241,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "northern_ireland"
     requires_playwright: false
     category: devolved_government
     tags:
@@ -544,6 +547,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "scotland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: legislative
@@ -581,6 +585,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "scotland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: legislative
@@ -620,6 +625,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "wales"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: legislative
@@ -656,6 +662,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "wales"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: legislative
@@ -695,6 +702,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "northern_ireland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: legislative
@@ -730,6 +738,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "northern_ireland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: legislative
@@ -1087,6 +1096,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "scotland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: district_heating
@@ -1127,6 +1137,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "scotland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: district_heating
@@ -1161,6 +1172,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "scotland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: district_heating
@@ -1194,6 +1206,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "scotland"
     requires_playwright: true
     rate_limit_seconds: 3.0
     category: district_heating
@@ -1233,6 +1246,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "wales"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: district_heating
@@ -1270,6 +1284,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "wales"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: district_heating
@@ -1705,6 +1720,7 @@ domains:
     language: en
     region:
       - "uk"
+      - "scotland"
     requires_playwright: false
     rate_limit_seconds: 2.0
     category: grid_operator
@@ -1950,6 +1966,7 @@ domains:
     country: "Scotland"
     region:
       - "uk"
+      - "scotland"
     base_url: "https://www.gov.scot/policies/energy-efficiency/scottish-industrial-energy-transformation-fund"
     recommended_start_paths:
       - "/"
@@ -1976,6 +1993,7 @@ domains:
     country: "Scotland"
     region:
       - "uk"
+      - "scotland"
     base_url: "https://www.scottish-enterprise.com"
     recommended_start_paths:
       - "/how-we-can-help/funding-and-grants/business-grants-and-funding-calls"
@@ -2000,6 +2018,7 @@ domains:
     country: "Scotland"
     region:
       - "uk"
+      - "scotland"
     base_url: "https://www.hie.co.uk"
     recommended_start_paths:
       - "/support"
@@ -2022,6 +2041,7 @@ domains:
     country: "Scotland"
     region:
       - "uk"
+      - "scotland"
     base_url: "https://businessenergyscotland.org"
     recommended_start_paths:
       - "/smeloan"
@@ -2049,6 +2069,7 @@ domains:
     country: "Wales"
     region:
       - "uk"
+      - "wales"
     base_url: "https://businesswales.gov.wales"
     recommended_start_paths:
       - "/business-finance"
@@ -2072,6 +2093,7 @@ domains:
     country: "Wales"
     region:
       - "uk"
+      - "wales"
     base_url: "https://developmentbank.wales"
     recommended_start_paths:
       - "/business-loans"
@@ -2094,6 +2116,7 @@ domains:
     country: "Wales"
     region:
       - "uk"
+      - "wales"
     base_url: "https://www.gov.wales/welsh-government-energy-service"
     recommended_start_paths:
       - "/"
@@ -2115,6 +2138,7 @@ domains:
     country: "Wales"
     region:
       - "uk"
+      - "wales"
     base_url: "https://www.salixfinance.co.uk/wales"
     recommended_start_paths:
       - "/"
@@ -2137,6 +2161,7 @@ domains:
     country: "Wales"
     region:
       - "uk"
+      - "wales"
     base_url: "https://www.gov.wales/ynni-cymru"
     recommended_start_paths:
       - "/"
@@ -2162,6 +2187,7 @@ domains:
     country: "Northern Ireland"
     region:
       - "uk"
+      - "northern_ireland"
     base_url: "https://www.investni.com"
     recommended_start_paths:
       - "/support-for-business/reduce-waste-and-save-energy"
@@ -2188,6 +2214,7 @@ domains:
     country: "Northern Ireland"
     region:
       - "uk"
+      - "northern_ireland"
     base_url: "https://www.nibusinessinfo.co.uk"
     recommended_start_paths:
       - "/business-support"
@@ -2209,6 +2236,7 @@ domains:
     country: "Northern Ireland"
     region:
       - "uk"
+      - "northern_ireland"
     base_url: "https://www.uregni.gov.uk/nisep"
     recommended_start_paths:
       - "/"
@@ -2283,6 +2311,7 @@ domains:
     country: "Scotland"
     region:
       - "uk"
+      - "scotland"
     base_url: "https://www.gov.scot/policies/investment/green-freeports"
     recommended_start_paths:
       - "/"
@@ -2360,6 +2389,7 @@ domains:
     country: "Scotland"
     region:
       - "uk"
+      - "scotland"
     base_url: "https://www.gov.scot/policies/renewable-and-low-carbon-energy/low-carbon-infrastructure-transition-programme"
     recommended_start_paths:
       - "/"
@@ -2383,6 +2413,7 @@ domains:
     country: "Scotland"
     region:
       - "uk"
+      - "scotland"
     base_url: "https://energysavingtrust.org.uk/programme/district-heating-loan-fund"
     recommended_start_paths:
       - "/"

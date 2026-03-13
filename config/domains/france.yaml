@@ -9,6 +9,7 @@ domains:
     region:
       - "eu"
       - "eu_central"
+      - "france"
     base_url: "https://www.ecologie.gouv.fr"
     start_paths:
       - "/energie"
@@ -31,6 +32,7 @@ domains:
     region:
       - "eu"
       - "eu_central"
+      - "france"
     base_url: "https://www.ademe.fr"
     start_paths:
       - "/expertises/energies-renouvelables-enr-production-reseaux-stockage"

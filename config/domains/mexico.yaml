@@ -1,0 +1,62 @@
+# =============================================================================
+# MEXICO - Federal Energy Policy
+# =============================================================================
+# Growing DC market. CONUEE handles energy efficiency regulation.
+# =============================================================================
+
+domains:
+  - name: "Mexico Secretariat of Energy"
+    id: "sener_mx"
+    enabled: true
+    region:
+      - "north_america"
+      - "mexico"
+    base_url: "https://www.gob.mx"
+    start_paths:
+      - "/sener"
+    allowed_path_patterns:
+      - "/sener/*"
+    max_depth: 2
+    language: "es"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Mexican Secretariat of Energy (SENER).
+      National energy policy and transition strategy.
+
+  - name: "CONUEE - National Commission for Efficient Energy Use"
+    id: "conuee_mx"
+    enabled: true
+    region:
+      - "north_america"
+      - "mexico"
+    base_url: "https://www.conuee.gob.mx"
+    start_paths:
+      - "/transparencia/programas-sustantivos"
+    max_depth: 2
+    language: "es"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "regulatory_authority"
+    tags:
+      - "mandatory"
+      - "efficiency"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "standard"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      CONUEE - national energy efficiency agency.
+      Mandatory energy consumption reporting for large consumers.
+      Official Mexican Standards (NOMs) for energy efficiency.

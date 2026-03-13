@@ -79,6 +79,41 @@ groups:
       - lovdata_no
       - orkustofnun_is
 
+  germany:
+    description: "Germany - federal + 8 Länder"
+    domains:
+      - gesetze_enefg
+      - bmwk_rechenzentren
+      - bmwk_de
+      - bfee_dc_registry
+      - hessen_energy
+      - hessen_digital_dc
+      - hessen_recht
+      - bayern_energy
+      - bayern_building
+      - bayern_recht
+      - nrw_energy
+      - nrw_energy4climate
+      - nrw_recht
+      - bw_energy
+      - bw_recht
+      - berlin_energy
+      - berlin_recht
+      - hamburg_energy
+      - hamburg_recht
+      - niedersachsen_energy
+      - niedersachsen_recht
+      - sachsen_energy
+      - sachsen_recht
+
+  australia:
+    description: "Australia - national + state energy policy"
+    domains:
+      - energy_au
+      - nsw_energy
+      - nsw_ida_dc
+      - sa_energy_dc
+
   eu_central:
     description: "Germany, Switzerland, Austria, France"
     domains:
@@ -413,6 +448,184 @@ groups:
       - ct_deep
       - ct_pura
       - ct_legislature
+
+  # ---------------------------------------------------------------------------
+  # SUB-NATIONAL GROUPS
+  # ---------------------------------------------------------------------------
+
+  scotland:
+    description: "Scotland - devolved energy and heat policy"
+    domains:
+      - uk_scotland_energy
+      - uk_scotland_parliament
+      - uk_scotland_spice
+      - uk_scotland_heat_networks
+      - uk_scotland_shnf
+      - uk_scotland_hnsu
+      - uk_scotland_heat_map
+      - spen
+      - scottish_enterprise
+      - hie_scotland
+      - business_energy_scotland
+      - sietf_scotland
+      - green_freeports_scotland
+      - lcitp_scotland
+      - dh_loan_scotland
+
+  wales:
+    description: "Wales - devolved energy and climate policy"
+    domains:
+      - uk_wales_climate
+      - uk_wales_senedd
+      - uk_wales_senedd_research
+      - uk_wales_heat_strategy
+      - uk_wales_energy_service
+      - business_wales
+      - dev_bank_wales
+      - wges_wales
+      - salix_wales
+      - ynni_cymru_wales
+
+  northern_ireland:
+    description: "Northern Ireland - devolved energy policy"
+    domains:
+      - uk_ni_economy
+      - uk_ni_assembly
+      - uk_ni_assembly_archive
+      - invest_ni
+      - nibusinessinfo
+      - nisep_ni
+
+  switzerland:
+    description: "Switzerland - federal and cantonal policy"
+    domains:
+      - bfe_ch
+      - ch_eng_fedlex
+      - ch_admin_eng
+      - bfe_energy_policy
+      - bfe_district_heat
+      - bafu_buildings
+      - muken_2014
+      - endk_muken
+      - sdea_main
+      - energieschweiz_dc
+      - energieschweiz_abwaerme
+      - energieschweiz_fernwaerme
+      - zh_dc_guidance
+      - zh_energy_buildings
+      - zh_energiegesetz
+      - zh_bbv1
+      - zh_municipal_energy
+
+  germany_laender:
+    description: "German Länder (states) - energy and legislation"
+    domains:
+      - hessen_energy
+      - hessen_digital_dc
+      - hessen_recht
+      - bayern_energy
+      - bayern_building
+      - bayern_recht
+      - nrw_energy
+      - nrw_energy4climate
+      - nrw_recht
+      - bw_energy
+      - bw_recht
+      - berlin_energy
+      - berlin_recht
+      - hamburg_energy
+      - hamburg_recht
+      - niedersachsen_energy
+      - niedersachsen_recht
+      - sachsen_energy
+      - sachsen_recht
+
+  # ---------------------------------------------------------------------------
+  # NEW COUNTRY GROUPS
+  # ---------------------------------------------------------------------------
+
+  canada:
+    description: "Canada - federal and provincial energy policy"
+    domains:
+      - nrcan_ca
+      - cer_ca
+      - eccc_ca
+      - nrcan_oee
+      - ontario_energy
+      - oeb_ca
+      - ieso_ca
+      - bc_energy
+      - cleanbc
+      - quebec_energy
+      - hydroquebec_ee
+      - alberta_energy
+      - auc_ca
+
+  india:
+    description: "India - national and state DC/energy policy"
+    domains:
+      - mop_in
+      - bee_in
+      - cea_in
+      - meity_in
+      - karnataka_dc_policy
+      - kredl_in
+      - tn_dc_policy
+      - telangana_dc
+      - tgredco_in
+      - maharashtra_energy
+
+  brazil:
+    description: "Brazil - federal energy and efficiency policy"
+    domains:
+      - mme_br
+      - aneel_br
+      - epe_br
+      - procel_br
+
+  uae:
+    description: "UAE - federal and emirate energy/DC policy"
+    domains:
+      - moei_ae
+      - doe_abudhabi
+      - dewa_dubai
+
+  middle_east:
+    description: "Middle East - UAE and Saudi Arabia"
+    domains:
+      - moei_ae
+      - doe_abudhabi
+      - dewa_dubai
+      - moe_sa
+      - seec_sa
+
+  north_america:
+    description: "North America - US federal and Canada national"
+    domains:
+      - energy_gov
+      - energystar_gov
+      - ferc_gov
+      - eia_gov
+      - nrcan_ca
+      - cer_ca
+      - eccc_ca
+      - nrcan_oee
+      - sener_mx
+      - conuee_mx
+
+  south_america:
+    description: "South America - Brazil"
+    domains:
+      - mme_br
+      - aneel_br
+      - epe_br
+      - procel_br
+
+  africa:
+    description: "Africa - South Africa"
+    domains:
+      - dmre_za
+      - nersa_za
 
   # ---------------------------------------------------------------------------
   # CUSTOM GROUPS (add your own below)

@@ -1,0 +1,93 @@
+# =============================================================================
+# AUSTRALIA - State-level Energy and Data Center Policy
+# =============================================================================
+# National domain (energy_au) is in apac.yaml. NSW and South Australia
+# have the most DC-relevant policy content.
+# =============================================================================
+
+domains:
+  - name: "NSW Climate and Energy Action"
+    id: "nsw_energy"
+    enabled: true
+    region:
+      - "apac"
+      - "australia"
+      - "new_south_wales"
+    base_url: "https://www.energy.nsw.gov.au"
+    start_paths:
+      - "/"
+      - "/nsw-plans-and-progress"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+      - "renewable_energy"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      NSW Climate and Energy Action. Sydney is Australia's largest DC market.
+      A$72B+ in data center proposals as of 2025.
+      NSW Electricity Infrastructure Roadmap.
+
+  - name: "NSW Investment Delivery Authority"
+    id: "nsw_ida_dc"
+    enabled: true
+    region:
+      - "apac"
+      - "australia"
+      - "new_south_wales"
+    base_url: "https://www.nsw.gov.au"
+    start_paths:
+      - "/departments-and-agencies/investment-delivery-authority"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "economic_dev"
+    tags:
+      - "data_center_specific"
+      - "planning"
+    policy_types:
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      NSW Investment Delivery Authority handles major DC approvals.
+      Streamlined planning pathway for data centers.
+
+  - name: "South Australia Department for Energy and Mining"
+    id: "sa_energy_dc"
+    enabled: true
+    region:
+      - "apac"
+      - "australia"
+      - "south_australia"
+    base_url: "https://www.energymining.sa.gov.au"
+    start_paths:
+      - "/energy"
+      - "/energy/energy-supply"
+    allowed_path_patterns:
+      - "/energy/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "renewable_energy"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      SA Department for Energy and Mining.
+      High renewable energy penetration, dedicated DC landing page.

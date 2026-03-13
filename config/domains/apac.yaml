@@ -99,6 +99,7 @@ domains:
     enabled: true
     region:
       - "apac"
+      - "japan"
     base_url: "https://www.meti.go.jp"
     start_paths:
       - "/english/policy/energy_environment/green_growth"
@@ -154,6 +155,7 @@ domains:
     enabled: true
     region:
       - "apac"
+      - "south_korea"
     base_url: "https://www.motie.go.kr"
     start_paths:
       - "/www/main.do"
@@ -175,6 +177,7 @@ domains:
     enabled: true
     region:
       - "apac"
+      - "australia"
     base_url: "https://www.energy.gov.au"
     start_paths:
       - "/business/energy-management"

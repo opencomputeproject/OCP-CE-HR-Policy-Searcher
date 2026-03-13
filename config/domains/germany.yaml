@@ -12,6 +12,7 @@ domains:
     region:
       - "eu"
       - "eu_central"
+      - "germany"
     base_url: "https://www.gesetze-im-internet.de"
     start_paths:
       - "/enefg/"
@@ -63,6 +64,7 @@ domains:
     region:
       - "eu"
       - "eu_central"
+      - "germany"
     base_url: "https://www.bmwk.de"
     start_paths:
       - "/RZReg/Downloads/faq-anforderungen-rechenzentren-im-enefg.html"
@@ -90,6 +92,7 @@ domains:
     region:
       - "eu"
       - "eu_central"
+      - "germany"
     base_url: "https://www.bmwk.de"
     start_paths:
       - "/Redaktion/EN/Artikel/Energy/"
@@ -152,3 +155,583 @@ domains:
       Annual reporting by March 31.
       Operated by Bundesstelle fuer Energieeffizienz.
 
+  # ===========================================================================
+  # GERMAN LÄNDER (States)
+  # ===========================================================================
+  # Länder control building codes, heat planning, and state legislation.
+  # Hesse (Frankfurt = Europe's DC capital) is highest priority.
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # HESSE (hessen) — Frankfurt is Europe's largest DC market
+  # ---------------------------------------------------------------------------
+
+  - name: "Hesse Ministry for Economic Affairs - Energy"
+    id: "hessen_energy"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "hessen"
+    base_url: "https://wirtschaft.hessen.de"
+    start_paths:
+      - "/energie"
+      - "/energie/energiepolitik"
+    allowed_path_patterns:
+      - "/energie/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+      - "data_center_specific"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Hessisches Ministerium fuer Wirtschaft, Energie, Verkehr, Wohnen und
+      laendlichen Raum. Frankfurt region hosts largest DC cluster in Europe.
+      State-level energy and heat planning policy.
+
+  - name: "Hesse Digital Strategy - Data Centers"
+    id: "hessen_digital_dc"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "hessen"
+    base_url: "https://digitales.hessen.de"
+    start_paths:
+      - "/starke-netze/recheninfrastrukturen"
+    allowed_path_patterns:
+      - "/starke-netze/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "policy"
+    tags:
+      - "data_center_specific"
+      - "planning"
+    policy_types:
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Hesse digitalization ministry DC infrastructure strategy.
+      Data center siting, sustainability, and heat reuse initiatives.
+
+  - name: "Hessenrecht - State Legislation Database"
+    id: "hessen_recht"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "hessen"
+    base_url: "https://rv.hessenrecht.hessen.de"
+    start_paths:
+      - "/bshe/search"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Hessenrecht legislation database.
+      Hessisches Energiegesetz (HEG) and building energy codes.
+
+  # ---------------------------------------------------------------------------
+  # BAVARIA (bayern)
+  # ---------------------------------------------------------------------------
+
+  - name: "Bavaria Ministry of Economic Affairs - Energy"
+    id: "bayern_energy"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "bayern"
+    base_url: "https://www.stmwi.bayern.de"
+    start_paths:
+      - "/energie/"
+    allowed_path_patterns:
+      - "/energie/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Bavarian State Ministry for Economic Affairs.
+      Bayerisches Energieprogramm, energy efficiency policy.
+
+  - name: "Bavaria Building and Energy"
+    id: "bayern_building"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "bayern"
+    base_url: "https://www.stmb.bayern.de"
+    start_paths:
+      - "/buw/bauthemen/gebaeudeundenergie/"
+    allowed_path_patterns:
+      - "/buw/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "standards"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "standard"
+      - "regulation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Bavarian building ministry. Building energy codes (BayBO).
+      Gebaeudeenergiegesetz (GEG) implementation.
+
+  - name: "BAYERN.RECHT - Bavarian Legislation"
+    id: "bayern_recht"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "bayern"
+    base_url: "https://www.gesetze-bayern.de"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Bavarian legislation database. State building codes and energy law.
+
+  # ---------------------------------------------------------------------------
+  # NRW (nordrhein_westfalen) — Largest German state by population
+  # ---------------------------------------------------------------------------
+
+  - name: "NRW Ministry of Economic Affairs - Energy"
+    id: "nrw_energy"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "nordrhein_westfalen"
+    base_url: "https://www.wirtschaft.nrw"
+    start_paths:
+      - "/energie"
+    allowed_path_patterns:
+      - "/energie*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      NRW Ministry for Economic Affairs, Innovation, Digitalization and Energy.
+      NRW has significant DC cluster in Frankfurt-Ruhr corridor.
+
+  - name: "NRW.Energy4Climate - Heat Transition"
+    id: "nrw_energy4climate"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "nordrhein_westfalen"
+    base_url: "https://www.energy4climate.nrw"
+    start_paths:
+      - "/"
+      - "/themen/waerme/"
+    allowed_path_patterns:
+      - "/themen/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "program"
+    tags:
+      - "waste_heat"
+      - "district_heating"
+      - "efficiency"
+    policy_types:
+      - "program"
+      - "guidance"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      NRW.Energy4Climate - state energy and climate agency.
+      Heat transition programs, waste heat utilization guidance.
+      Kommunale Waermeplanung (municipal heat planning).
+
+  - name: "RECHT.NRW.DE - NRW Legislation"
+    id: "nrw_recht"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "nordrhein_westfalen"
+    base_url: "https://recht.nrw.de"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      NRW legislation database. State energy and building laws.
+
+  # ---------------------------------------------------------------------------
+  # BADEN-WÜRTTEMBERG (baden_wuerttemberg)
+  # ---------------------------------------------------------------------------
+
+  - name: "Baden-Wuerttemberg Ministry for Environment - Energy"
+    id: "bw_energy"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "baden_wuerttemberg"
+    base_url: "https://um.baden-wuerttemberg.de"
+    start_paths:
+      - "/de/klima/energiepolitik/"
+      - "/de/klima/waermewende/"
+    allowed_path_patterns:
+      - "/de/klima/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "waste_heat"
+      - "district_heating"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Baden-Wuerttemberg Environment Ministry.
+      Strong heat transition (Waermewende) and building energy policy.
+      Klimaschutzgesetz BW has mandatory heat planning.
+
+  - name: "Landesrecht Baden-Wuerttemberg"
+    id: "bw_recht"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "baden_wuerttemberg"
+    base_url: "https://www.landesrecht-bw.de"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Baden-Wuerttemberg state legislation database.
+
+  # ---------------------------------------------------------------------------
+  # BERLIN
+  # ---------------------------------------------------------------------------
+
+  - name: "Berlin Senate - Energy"
+    id: "berlin_energy"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "berlin"
+    base_url: "https://www.berlin.de"
+    start_paths:
+      - "/sen/energie/"
+      - "/sen/uvk/klimaschutz/"
+    allowed_path_patterns:
+      - "/sen/energie/*"
+      - "/sen/uvk/klimaschutz/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Berlin Senate administration for energy and climate.
+      Berliner Energiewendegesetz (EWG Bln).
+      Berlin is growing DC market.
+
+  - name: "Berlin Gesetze - State Legislation"
+    id: "berlin_recht"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "berlin"
+    base_url: "https://gesetze.berlin.de"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Berlin state legislation database.
+
+  # ---------------------------------------------------------------------------
+  # HAMBURG
+  # ---------------------------------------------------------------------------
+
+  - name: "Hamburg BUKEA - Environment and Energy"
+    id: "hamburg_energy"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "hamburg"
+    base_url: "https://www.hamburg.de"
+    start_paths:
+      - "/bukea/energie/"
+      - "/bukea/klimaschutz/"
+    allowed_path_patterns:
+      - "/bukea/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "district_heating"
+      - "waste_heat"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Hamburg environment and energy authority (BUKEA).
+      Hamburgisches Klimaschutzgesetz.
+      Hamburg has extensive district heating network.
+
+  - name: "Landesrecht Hamburg"
+    id: "hamburg_recht"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "hamburg"
+    base_url: "https://www.landesrecht-hamburg.de"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Hamburg state legislation database.
+
+  # ---------------------------------------------------------------------------
+  # LOWER SAXONY (niedersachsen)
+  # ---------------------------------------------------------------------------
+
+  - name: "Lower Saxony Environment Ministry - Energy"
+    id: "niedersachsen_energy"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "niedersachsen"
+    base_url: "https://www.umwelt.niedersachsen.de"
+    start_paths:
+      - "/startseite/energie/"
+    allowed_path_patterns:
+      - "/startseite/energie/*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Lower Saxony environment and energy ministry.
+      Niedersaechsisches Klimagesetz.
+
+  - name: "NI-VORIS - Lower Saxony Legislation"
+    id: "niedersachsen_recht"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "niedersachsen"
+    base_url: "https://voris.wolterskluwer-online.de"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Lower Saxony legislation database (VORIS).
+
+  # ---------------------------------------------------------------------------
+  # SAXONY (sachsen)
+  # ---------------------------------------------------------------------------
+
+  - name: "Saxony Energy Portal"
+    id: "sachsen_energy"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "sachsen"
+    base_url: "https://www.energie.sachsen.de"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "de"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Saxony state energy portal. SAENA (Saechsische Energieagentur).
+
+  - name: "REVOSax - Saxony Legislation"
+    id: "sachsen_recht"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "germany"
+      - "sachsen"
+    base_url: "https://www.revosax.sachsen.de"
+    start_paths:
+      - "/"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      REVOSax - Saxony legislation database.

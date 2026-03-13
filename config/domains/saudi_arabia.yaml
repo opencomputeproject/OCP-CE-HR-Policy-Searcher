@@ -1,0 +1,64 @@
+# =============================================================================
+# SAUDI ARABIA - Energy Efficiency and Data Center Policy
+# =============================================================================
+# SAR 2.4B in waste heat recovery incentives. Vision 2030 driving DC growth.
+# Saudi Energy Efficiency Center (SEEC) leads industrial efficiency.
+# =============================================================================
+
+domains:
+  - name: "Saudi Ministry of Energy"
+    id: "moe_sa"
+    enabled: true
+    region:
+      - "middle_east"
+      - "saudi_arabia"
+    base_url: "https://www.moenergy.gov.sa"
+    start_paths:
+      - "/en/about-the-ministry/strategies-and-initiatives"
+    allowed_path_patterns:
+      - "/en/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "strategy"
+    policy_types:
+      - "strategy"
+      - "regulation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Saudi Ministry of Energy.
+      Vision 2030 energy transformation, renewable energy targets.
+      SAR 2.4B in waste heat recovery incentives.
+
+  - name: "Saudi Energy Efficiency Center"
+    id: "seec_sa"
+    enabled: true
+    region:
+      - "middle_east"
+      - "saudi_arabia"
+    base_url: "https://www.seec.gov.sa"
+    start_paths:
+      - "/en/"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "regulatory_authority"
+    tags:
+      - "mandatory"
+      - "efficiency"
+      - "reporting"
+    policy_types:
+      - "regulation"
+      - "standard"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Saudi Energy Efficiency Center. SEEP mandatory efficiency standards.
+      Industrial energy efficiency audits and reporting.
+      Building insulation and cooling efficiency regulations.

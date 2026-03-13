@@ -63,10 +63,14 @@ Scanning Examples:
   "What groups can I scan?"              List available scan targets
 
 Scan Targets:
-  Groups:  eu, nordic, us, us_states, us_federal, apac, uk,
-           leaders, emerging, pending_legislation
-  States:  virginia, california, texas, colorado, minnesota, ...
-  Regions: eu_central, eu_west, eu_south, eu_east
+  Groups:     eu, nordic, us, us_states, apac, uk, canada, india,
+              brazil, uae, middle_east, africa, pending_legislation
+  Countries:  germany, canada, india, japan, australia, france, ...
+  DE States:  hessen, bayern, nordrhein_westfalen, berlin, hamburg, ...
+  UK Nations: scotland, wales, northern_ireland
+  US States:  virginia, california, texas, colorado, minnesota, ...
+  CA Provs:   ontario, quebec, british_columbia, alberta
+  Regions:    eu_central, eu_west, eu_south, eu_east, north_america
 
 Log Viewer:
   python -m src.agent --logs             Last 30 log entries

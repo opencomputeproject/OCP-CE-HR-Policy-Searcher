@@ -58,19 +58,58 @@ class TestDetectRegion:
         assert detect_region("legislation.gov.uk") == ["uk"]
 
     def test_france(self):
-        assert detect_region("legifrance.gouv.fr") == ["eu", "france"]
+        assert detect_region("legifrance.gouv.fr") == ["eu", "eu_central", "france"]
 
     def test_austria(self):
-        assert detect_region("www.bmk.gv.at") == ["eu", "eu_central"]
+        assert detect_region("www.bmk.gv.at") == ["eu", "eu_central", "austria"]
 
     def test_switzerland(self):
-        assert detect_region("www.bfe.admin.ch") == ["eu_central"]
+        assert detect_region("www.bfe.admin.ch") == ["eu_central", "switzerland"]
+
+    def test_canada(self):
+        assert detect_region("www.nrcan.gc.ca") == ["north_america", "canada"]
+
+    def test_india(self):
+        assert detect_region("powermin.gov.in") == ["apac", "india"]
+
+    def test_uae(self):
+        assert detect_region("www.moei.gov.ae") == ["middle_east", "uae"]
+
+    def test_brazil(self):
+        assert detect_region("www.gov.br") == ["south_america", "brazil"]
+
+    def test_japan(self):
+        assert detect_region("www.meti.go.jp") == ["apac", "japan"]
+
+    def test_south_korea(self):
+        assert detect_region("www.motie.go.kr") == ["apac", "south_korea"]
+
+    def test_australia(self):
+        assert detect_region("www.energy.gov.au") == ["apac", "australia"]
+
+    def test_singapore(self):
+        assert detect_region("www.imda.gov.sg") == ["apac", "singapore"]
+
+    def test_generic_de(self):
+        assert detect_region("www.example.de") == ["eu", "eu_central", "germany"]
+
+    def test_generic_se(self):
+        assert detect_region("www.example.se") == ["eu", "nordic", "sweden"]
 
     def test_eu(self):
         assert detect_region("ec.europa.eu") == ["eu"]
 
     def test_unknown_tld(self):
         assert detect_region("example.com") == []
+
+    def test_empty_string(self):
+        assert detect_region("") == []
+
+    def test_uppercase_tld(self):
+        assert detect_region("LEGISLATION.GOV.UK") == ["uk"]
+
+    def test_mixed_case(self):
+        assert detect_region("www.BMK.gv.AT") == ["eu", "eu_central", "austria"]
 
 
 class TestSuggestOutputFile:

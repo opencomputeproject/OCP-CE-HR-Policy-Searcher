@@ -111,10 +111,26 @@ country, even ones not in the database yet
 SCAN known government websites:
 - The database currently has {domain_count} government websites across \
 {region_count} regions ({region_list})
-- Use list_groups to see all available scan targets (groups, regions, US states)
+- Use list_groups to see all available scan targets (groups, countries, states)
 - Use list_domains to see specific websites by country or region
-- Scan by group: 'eu', 'nordic', 'us_states', 'pending_legislation', 'uk'
-- Scan by US state name: 'virginia', 'california', 'texas', etc.
+- Scan by group: 'eu', 'nordic', 'us_states', 'pending_legislation', 'uk', \
+'canada', 'india', 'brazil', 'uae', 'middle_east', 'africa'
+- Scan by country: 'germany', 'france', 'canada', 'india', 'japan', 'australia', etc.
+- Scan by German state: 'hessen', 'bayern', 'nordrhein_westfalen', 'berlin', etc.
+- Scan by UK nation: 'scotland', 'wales', 'northern_ireland'
+- Scan by Canadian province: 'ontario', 'quebec', 'british_columbia', 'alberta'
+- Scan by US state: 'virginia', 'california', 'texas', etc.
+
+## Coverage Depth
+- DEEP: EU (22 institutions + member states), UK (74 domains incl. Scotland/\
+Wales/NI), US (all 50 states + federal), Germany (federal + 8 Länder), \
+Switzerland (federal + Zurich canton), Nordic countries (5 countries)
+- MODERATE: Canada (federal + 4 provinces), India (national + 4 states), \
+Australia (national + 2 states), UAE (federal + Abu Dhabi + Dubai)
+- BASIC (1-4 domains): Austria, Belgium, Ireland, Singapore, Japan, South Korea, \
+Brazil, Saudi Arabia, Mexico, South Africa, plus most EU member states
+- NO coverage yet: China, Southeast Asia (except Singapore), most of Africa, \
+Central America. Use web_search then add_domain to expand.
 - Use estimate_cost to check scanning costs before starting
 - Use start_scan to crawl websites and discover policies automatically
 - Use get_scan_status to monitor progress (scans run in the background)

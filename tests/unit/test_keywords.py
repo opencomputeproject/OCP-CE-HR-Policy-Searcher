@@ -683,3 +683,95 @@ class TestUSSpecificKeywords:
         result = us_matcher.match(text)
         assert us_matcher.is_relevant(result)
         assert len(result.categories_matched) >= 3
+
+
+class TestCJKAndArabicKeywords:
+    """Tests for Japanese, Korean, and Arabic keyword matching."""
+
+    def test_compound_languages_includes_cjk(self):
+        assert "ja" in COMPOUND_LANGUAGES
+        assert "ko" in COMPOUND_LANGUAGES
+        assert "ar" in COMPOUND_LANGUAGES
+
+    @pytest.fixture
+    def ja_matcher(self):
+        return KeywordMatcher(_make_config(keywords={
+            "subject": {
+                "weight": 3.0,
+                "terms": {
+                    "ja": ["データセンター", "排熱", "排熱利用"],
+                },
+            },
+        }))
+
+    @pytest.fixture
+    def ko_matcher(self):
+        return KeywordMatcher(_make_config(keywords={
+            "subject": {
+                "weight": 3.0,
+                "terms": {
+                    "ko": ["데이터센터", "폐열", "폐열 회수"],
+                },
+            },
+        }))
+
+    @pytest.fixture
+    def ar_matcher(self):
+        return KeywordMatcher(_make_config(keywords={
+            "subject": {
+                "weight": 3.0,
+                "terms": {
+                    "ar": ["مركز البيانات", "كفاءة الطاقة"],
+                },
+            },
+        }))
+
+    def test_japanese_substring_matching(self, ja_matcher):
+        text = "このデータセンターの排熱利用は効率的です。"
+        result = ja_matcher.match(text)
+        assert result.score > 0
+        terms = {m.term for m in result.matches}
+        assert "データセンター" in terms
+
+    def test_korean_matching(self, ko_matcher):
+        text = "이 데이터센터에서 폐열 회수 시스템을 운영합니다."
+        result = ko_matcher.match(text)
+        assert result.score > 0
+        terms = {m.term for m in result.matches}
+        assert "데이터센터" in terms
+
+    def test_arabic_matching(self, ar_matcher):
+        text = "مركز البيانات يحقق كفاءة الطاقة المطلوبة."
+        result = ar_matcher.match(text)
+        assert result.score > 0
+        terms = {m.term for m in result.matches}
+        assert "مركز البيانات" in terms
+
+    def test_japanese_substring_within_longer_text(self, ja_matcher):
+        """CJK substring matching works inside compound sentences."""
+        text = "大規模データセンターの排熱を活用した地域暖房"
+        result = ja_matcher.match(text)
+        terms = {m.term for m in result.matches}
+        assert "データセンター" in terms
+        assert "排熱" in terms
+
+
+class TestEdgeCases:
+    """Edge case tests for empty, whitespace, and boundary inputs."""
+
+    def test_match_empty_string(self, matcher):
+        result = matcher.match("")
+        assert result.score == 0
+        assert len(result.matches) == 0
+
+    def test_match_whitespace_only(self, matcher):
+        result = matcher.match("   \n\t  ")
+        assert result.score == 0
+
+    def test_match_single_character(self, matcher):
+        result = matcher.match("x")
+        assert result.score == 0
+
+    def test_is_relevant_empty_string(self, matcher):
+        result = matcher.match("")
+        assert not matcher.is_relevant(result)

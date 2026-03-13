@@ -10,6 +10,7 @@ domains:
     region:
       - "eu"
       - "nordic"
+      - "denmark"
     base_url: "https://ens.dk"
     start_paths:
       - "/en/supply-and-consumption/heat"

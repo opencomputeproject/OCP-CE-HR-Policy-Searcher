@@ -9,6 +9,7 @@ domains:
     region:
       - "eu"
       - "eu_west"
+      - "ireland"
     base_url: "https://www.seai.ie"
     start_paths:
       - "/business-and-public-sector/large-industry-energy-network"

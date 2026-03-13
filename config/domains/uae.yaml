@@ -1,0 +1,100 @@
+# =============================================================================
+# UAE - Federal and Emirate Energy/Data Center Policy
+# =============================================================================
+# Most advanced DC energy policy in Middle East. Abu Dhabi has district
+# cooling regulations. MOEI signed MoU on DC energy efficiency.
+# =============================================================================
+
+domains:
+  - name: "UAE Ministry of Energy and Infrastructure"
+    id: "moei_ae"
+    enabled: true
+    region:
+      - "middle_east"
+      - "uae"
+    base_url: "https://www.moei.gov.ae"
+    start_paths:
+      - "/en/knowledge-hub/strategies-and-policies"
+      - "/en/knowledge-hub/regulations"
+    allowed_path_patterns:
+      - "/en/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "strategy"
+    policy_types:
+      - "strategy"
+      - "regulation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      UAE Ministry of Energy and Infrastructure.
+      UAE Energy Strategy 2050, UAE Net Zero 2050 Strategic Initiative.
+      MoU on data center energy efficiency standards.
+
+  - name: "Abu Dhabi Department of Energy"
+    id: "doe_abudhabi"
+    enabled: true
+    region:
+      - "middle_east"
+      - "uae"
+      - "abu_dhabi"
+    base_url: "https://www.doe.gov.ae"
+    start_paths:
+      - "/en/regulations"
+      - "/en/demand-side-management"
+    allowed_path_patterns:
+      - "/en/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "regulatory_authority"
+    tags:
+      - "mandatory"
+      - "efficiency"
+      - "district_heating"
+    policy_types:
+      - "regulation"
+      - "standard"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Abu Dhabi Department of Energy. Demand Side Management program.
+      District cooling regulations (first in MENA region).
+      Building energy efficiency codes applicable to data centers.
+
+  - name: "DEWA - Dubai Electricity and Water Authority"
+    id: "dewa_dubai"
+    enabled: true
+    region:
+      - "middle_east"
+      - "uae"
+      - "dubai"
+    base_url: "https://www.dewa.gov.ae"
+    start_paths:
+      - "/en/about-us/strategies-and-initiatives"
+      - "/en/consumer/solar-community"
+    allowed_path_patterns:
+      - "/en/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "grid_operator"
+    tags:
+      - "renewable_energy"
+      - "efficiency"
+    policy_types:
+      - "program"
+      - "standard"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Dubai Electricity and Water Authority.
+      Green Building Regulations, Shams Dubai solar initiative.
+      Solar-powered data center initiatives.

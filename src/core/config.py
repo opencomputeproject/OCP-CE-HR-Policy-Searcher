@@ -20,27 +20,67 @@ class ConfigurationError(Exception):
 
 # Valid regions, categories, tags, policy types for filtering/validation
 VALID_REGIONS = {
+    # Broad geographic groups
     "eu": "European Union institutions and member states",
     "europe": "European countries (including non-EU)",
     "nordic": "Nordic countries",
     "eu_central": "Germany, Switzerland, Austria, France",
     "eu_west": "Netherlands, Belgium, Ireland",
+    "eu_south": "Southern European countries",
+    "eu_east": "Eastern European countries",
     "uk": "United Kingdom",
     "us": "United States (federal and state)",
     "us_states": "US state governments",
     "apac": "Asia-Pacific region",
-    "eu_south": "Southern European countries",
-    "eu_east": "Eastern European countries",
+    "north_america": "North America (US, Canada, Mexico)",
+    "south_america": "South America",
+    "middle_east": "Middle East",
+    "africa": "Africa",
+    # European countries
     "germany": "Germany", "france": "France", "netherlands": "Netherlands",
     "denmark": "Denmark", "sweden": "Sweden", "norway": "Norway",
     "ireland": "Ireland", "switzerland": "Switzerland",
+    "austria": "Austria", "belgium": "Belgium",
     "spain": "Spain", "italy": "Italy", "poland": "Poland",
     "portugal": "Portugal", "czech_republic": "Czech Republic",
     "greece": "Greece", "hungary": "Hungary", "romania": "Romania",
-    "singapore": "Singapore", "japan": "Japan",
-    "oregon": "Oregon", "texas": "Texas", "california": "California",
-    "virginia": "Virginia",
+    "finland": "Finland", "iceland": "Iceland",
+    # UK devolved nations
+    "scotland": "Scotland", "wales": "Wales", "northern_ireland": "Northern Ireland",
+    # Swiss cantons
+    "zurich": "Zurich",
+    # German Länder
+    "hessen": "Hesse", "bayern": "Bavaria",
+    "nordrhein_westfalen": "North Rhine-Westphalia",
+    "baden_wuerttemberg": "Baden-Württemberg",
+    "berlin": "Berlin", "hamburg": "Hamburg",
+    "niedersachsen": "Lower Saxony", "sachsen": "Saxony",
+    # Asia-Pacific countries
+    "singapore": "Singapore", "japan": "Japan", "south_korea": "South Korea",
+    "australia": "Australia", "india": "India",
+    # Australian states
+    "new_south_wales": "New South Wales", "south_australia": "South Australia",
+    # Indian states
+    "karnataka": "Karnataka", "tamil_nadu": "Tamil Nadu",
+    "telangana": "Telangana", "maharashtra": "Maharashtra",
+    # Americas
+    "canada": "Canada", "brazil": "Brazil", "mexico": "Mexico",
+    # Canadian provinces
+    "ontario": "Ontario", "british_columbia": "British Columbia",
+    "quebec": "Quebec", "alberta": "Alberta",
+    # Middle East
+    "uae": "United Arab Emirates", "saudi_arabia": "Saudi Arabia",
+    "abu_dhabi": "Abu Dhabi", "dubai": "Dubai",
+    # Africa
+    "south_africa": "South Africa",
 }
+
+# Auto-add all 50 US states from domain_generator
+from src.agent.domain_generator import US_STATE_ABBREVS as _US_STATES_REG
+VALID_REGIONS.update({
+    s.replace("-", "_"): s.replace("-", " ").title()
+    for s in _US_STATES_REG
+})
 
 VALID_CATEGORIES = {
     "energy_ministry": "National/state energy departments",
@@ -456,5 +496,13 @@ class ConfigLoader:
         for did, count in id_counts.items():
             if count > 1:
                 warnings.append(f"Duplicate domain ID: {did} (appears {count} times)")
+
+        # Check for unrecognized region values
+        for d in all_domains.values():
+            for r in d.get("region", []):
+                if r not in VALID_REGIONS:
+                    warnings.append(
+                        f"Domain '{d['id']}' has unrecognized region: {r}"
+                    )
 
         return warnings

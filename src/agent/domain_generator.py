@@ -33,17 +33,19 @@ US_STATE_ABBREVS: dict[str, str] = {
 # Ordered longest-suffix-first so .gov.uk matches before .gov
 # ---------------------------------------------------------------------------
 TLD_REGION_MAP: dict[str, tuple[list[str], str] | None] = {
+    # Government TLDs (longest-suffix-first so multi-part matches win)
     ".gov.uk": (["uk"], "uk"),
-    ".gov.au": (["apac"], "australia"),
-    ".gov.sg": (["apac"], "apac"),
-    ".gouv.fr": (["eu", "france"], "france"),
-    ".gv.at": (["eu", "eu_central"], "austria"),
-    ".admin.ch": (["eu_central"], "switzerland"),
+    ".gov.au": (["apac", "australia"], "australia"),
+    ".gov.sg": (["apac", "singapore"], "singapore"),
+    ".gouv.fr": (["eu", "eu_central", "france"], "france"),
+    ".gouv.qc.ca": (["north_america", "canada", "quebec"], "canada"),
+    ".gv.at": (["eu", "eu_central", "austria"], "austria"),
+    ".admin.ch": (["eu_central", "switzerland"], "switzerland"),
     ".europa.eu": (["eu"], "eu"),
-    ".riksdagen.se": (["eu", "nordic"], "sweden"),
-    ".retsinformation.dk": (["eu", "nordic"], "denmark"),
-    ".go.jp": (["apac"], "apac"),
-    ".go.kr": (["apac"], "apac"),
+    ".riksdagen.se": (["eu", "nordic", "sweden"], "sweden"),
+    ".retsinformation.dk": (["eu", "nordic", "denmark"], "denmark"),
+    ".go.jp": (["apac", "japan"], "japan"),
+    ".go.kr": (["apac", "south_korea"], "south_korea"),
     ".gob.es": (["eu", "eu_south", "spain"], "spain"),
     ".gov.it": (["eu", "eu_south", "italy"], "italy"),
     ".gov.pl": (["eu", "eu_east", "poland"], "poland"),
@@ -54,7 +56,40 @@ TLD_REGION_MAP: dict[str, tuple[list[str], str] | None] = {
     ".gov.ro": (["eu", "eu_east", "romania"], "romania"),
     ".kormany.hu": (["eu", "eu_east", "hungary"], "hungary"),
     ".sejm.gov.pl": (["eu", "eu_east", "poland"], "poland"),
+    ".gov.in": (["apac", "india"], "india"),
+    ".nic.in": (["apac", "india"], "india"),
+    ".gov.br": (["south_america", "brazil"], "brazil"),
+    ".gov.ae": (["middle_east", "uae"], "uae"),
+    ".gov.sa": (["middle_east", "saudi_arabia"], "saudi_arabia"),
+    ".gob.mx": (["north_america", "mexico"], "mexico"),
+    ".gov.za": (["africa", "south_africa"], "south_africa"),
+    ".gc.ca": (["north_america", "canada"], "canada"),
+    ".gov.bc.ca": (["north_america", "canada", "british_columbia"], "canada"),
     ".gov": None,  # US — handled specially in each function
+    # Generic country-code TLDs
+    ".be": (["eu", "eu_west", "belgium"], "belgium"),
+    ".fi": (["eu", "nordic", "finland"], "finland"),
+    ".no": (["eu", "nordic", "norway"], "norway"),
+    ".is": (["nordic", "iceland"], "iceland"),
+    ".ie": (["eu", "eu_west", "ireland"], "ireland"),
+    ".nl": (["eu", "eu_west", "netherlands"], "netherlands"),
+    ".se": (["eu", "nordic", "sweden"], "sweden"),
+    ".dk": (["eu", "nordic", "denmark"], "denmark"),
+    ".de": (["eu", "eu_central", "germany"], "germany"),
+    ".fr": (["eu", "eu_central", "france"], "france"),
+    ".ch": (["eu_central", "switzerland"], "switzerland"),
+    ".at": (["eu", "eu_central", "austria"], "austria"),
+    ".au": (["apac", "australia"], "australia"),
+    ".jp": (["apac", "japan"], "japan"),
+    ".kr": (["apac", "south_korea"], "south_korea"),
+    ".sg": (["apac", "singapore"], "singapore"),
+    ".ca": (["north_america", "canada"], "canada"),
+    ".in": (["apac", "india"], "india"),
+    ".br": (["south_america", "brazil"], "brazil"),
+    ".ae": (["middle_east", "uae"], "uae"),
+    ".sa": (["middle_east", "saudi_arabia"], "saudi_arabia"),
+    ".mx": (["north_america", "mexico"], "mexico"),
+    ".za": (["africa", "south_africa"], "south_africa"),
 }
 
 # Sorted by suffix length descending so longest match wins
@@ -128,6 +163,8 @@ def generate_domain_id(hostname: str) -> str:
 
 def detect_region(hostname: str) -> list[str]:
     """Detect geographic region(s) from hostname TLD."""
+    if not hostname:
+        return []
     clean = _strip_www(hostname).lower()
     tld = _match_tld(clean)
 

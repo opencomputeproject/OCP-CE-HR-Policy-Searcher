@@ -1,0 +1,115 @@
+# =============================================================================
+# BRAZIL - Federal Energy and Efficiency Policy
+# =============================================================================
+# REDATA program (2025) offers DC tax incentives for 100% clean energy.
+# Strong renewable/efficiency focus. Growing DC market in Sao Paulo.
+# =============================================================================
+
+domains:
+  - name: "Ministry of Mines and Energy - Brazil"
+    id: "mme_br"
+    enabled: true
+    region:
+      - "south_america"
+      - "brazil"
+    base_url: "https://www.gov.br"
+    start_paths:
+      - "/mme/pt-br"
+    allowed_path_patterns:
+      - "/mme/*"
+    max_depth: 2
+    language: "pt"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "renewable_energy"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Brazil Ministry of Mines and Energy.
+      National energy policy, REDATA DC incentive program.
+
+  - name: "ANEEL - National Electric Energy Agency"
+    id: "aneel_br"
+    enabled: true
+    region:
+      - "south_america"
+      - "brazil"
+    base_url: "https://www.gov.br"
+    start_paths:
+      - "/aneel/pt-br"
+    allowed_path_patterns:
+      - "/aneel/*"
+    max_depth: 2
+    language: "pt"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "regulatory"
+    tags:
+      - "mandates"
+      - "reporting"
+    policy_types:
+      - "regulation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Brazilian electricity regulator. Tariff regulation and
+      distributed generation rules.
+
+  - name: "EPE - Energy Research Office"
+    id: "epe_br"
+    enabled: true
+    region:
+      - "south_america"
+      - "brazil"
+    base_url: "https://www.epe.gov.br"
+    start_paths:
+      - "/en"
+    max_depth: 2
+    language: "pt"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "research"
+      - "planning"
+    policy_types:
+      - "report"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Energy Research Office. National energy plans and demand forecasts.
+
+  - name: "PROCEL - Energy Efficiency Program"
+    id: "procel_br"
+    enabled: true
+    region:
+      - "south_america"
+      - "brazil"
+    base_url: "https://www.gov.br"
+    start_paths:
+      - "/mme/pt-br/assuntos/secretarias/sntep/procel"
+    allowed_path_patterns:
+      - "/mme/*/procel*"
+    max_depth: 2
+    language: "pt"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "program"
+    tags:
+      - "efficiency"
+      - "incentives"
+    policy_types:
+      - "program"
+      - "standard"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      PROCEL national energy efficiency program.
+      Building energy labeling and efficiency standards.

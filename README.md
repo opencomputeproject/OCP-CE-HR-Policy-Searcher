@@ -1,6 +1,6 @@
 # OCP CE HR Policy Searcher
 
-**Automated discovery of government data center heat reuse policies across 300+ domains in 30+ regions.**
+**Automated discovery of government data center heat reuse policies across 360+ domains in 40+ countries.**
 
 OCP CE HR Policy Searcher crawls government websites, extracts policy content, scores it with multi-language keyword matching, and uses Claude AI for structured policy analysis. Talk to it in natural language, and it handles everything — discovering websites, scanning pages, and delivering organized results.
 
@@ -43,6 +43,7 @@ Found 3 policies:
 ## Table of Contents
 
 - [Key Features](#key-features)
+- [Geographic Coverage](#geographic-coverage) — 40+ countries, coverage depth
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
 - [CLI Reference](#cli-reference) — every mode and flag
@@ -69,9 +70,9 @@ Found 3 policies:
 
 - **Natural language AI agent** — ask questions in plain English, the agent handles scanning, discovery, and analysis
 - **Web search + auto-discovery** — finds new government websites via web search and permanently adds them to the database
-- **300+ government domains** across 30+ regions (EU, US states, Nordic, APAC, Southern/Eastern Europe)
+- **360+ government domains** across 40+ countries (EU, US 50 states, UK devolved nations, German Länder, Nordic, Canada, India, APAC, Middle East, South America, Africa)
 - **Parallel scanning** — scan multiple domains concurrently with configurable workers
-- **Multi-language keyword matching** — 7 categories across 17 languages (EN, DE, FR, NL, SV, DA, IT, ES, NO, FI, IS, PL, PT, CS, EL, HU, RO) with compound word support for Germanic, Nordic, and Hungarian languages
+- **Multi-language keyword matching** — 7 categories across 20 languages (EN, DE, FR, NL, SV, DA, IT, ES, NO, FI, IS, PL, PT, CS, EL, HU, RO, JA, KO, AR) with compound word support for Germanic, Nordic, Hungarian, CJK, and Arabic languages
 - **⚙️ Fully configurable** — crawl depth, keyword weights, scoring thresholds, AI models, and per-domain overrides via YAML files ([details](#configuration))
 - **Two-stage AI analysis** — cheap Haiku screening filters irrelevant pages before expensive Sonnet extraction
 - **Real-time progress** — WebSocket events stream scan progress to your frontend
@@ -82,6 +83,20 @@ Found 3 policies:
 - **Cost-aware** — full scan of all domains costs ~$3.50; cost estimation before you run
 - **Google Sheets export** — automatically writes discovered policies to a Google Spreadsheet after each scan
 - **Three entry points** — interactive CLI, REST API for frontends, MCP server for Claude Desktop
+
+---
+
+## Geographic Coverage
+
+361 government domains across 40+ countries, organized by depth of coverage:
+
+| Coverage | Countries / Regions | Domains |
+|----------|-------------------|---------|
+| **Deep** | EU (22 institutions + member states), UK (incl. Scotland, Wales, NI), US (all 50 states + federal), Germany (federal + 8 Länder), Switzerland (federal + Zurich), Nordic (5 countries), Canada (federal + 4 provinces) | ~300 |
+| **Moderate** | India (national + 4 states), Australia (national + 2 states), UAE (federal + Abu Dhabi, Dubai), Brazil, Saudi Arabia | ~25 |
+| **Basic** | Austria, Belgium, Ireland, Singapore, Japan, South Korea, Mexico, South Africa, plus most individual EU member states | ~35 |
+
+**Not seeing your country?** Use the `discover` workflow — the agent will web-search for government websites, generate domain configs, and add them permanently. Keywords work in 20 languages.
 
 ---
 
@@ -314,7 +329,7 @@ I found 3 Japanese government websites with heat reuse content
 and added them to the database for future scanning.
 ```
 
-**Scan known websites** — The database has 300+ government websites. The agent can scan them to discover policies.
+**Scan known websites** — The database has 360+ government websites. The agent can scan them to discover policies.
 
 ```
 You: Scan Nordic countries for policies
@@ -855,7 +870,7 @@ analysis:
   min_keyword_score: 2.0    # was 3.0
 ```
 
-**Cost estimate:** A full scan of all 300+ domains at default settings costs ~$3.50. With `--deep`, expect ~$10-15. Use `estimate_cost` before scanning to check.
+**Cost estimate:** A full scan of all 360+ domains at default settings costs ~$3.50. With `--deep`, expect ~$10-15. Use `estimate_cost` before scanning to check.
 
 ### Domain Configuration (config/domains/*.yaml)
 
@@ -901,7 +916,7 @@ Use groups to scan related sets of domains. Pass the group name as the `domains`
 
 | Group | Domains | Description |
 |-------|---------|-------------|
-| `all` | 301 | Every enabled domain |
+| `all` | 361 | Every enabled domain |
 | `eu` | 46 | EU institutions + member states |
 | `nordic` | 12 | Sweden, Denmark, Finland, Norway, Iceland |
 | `eu_central` | 21 | Germany, Switzerland, Austria, France |
@@ -911,7 +926,13 @@ Use groups to scan related sets of domains. Pass the group name as the `domains`
 | `us` | 154 | US federal + all 50 states |
 | `us_federal` | 6 | Federal agencies only |
 | `us_states` | 148 | US state governments |
+| `uk` | 74 | UK — England, Scotland, Wales, Northern Ireland |
+| `germany` | 23 | Germany — federal + 8 Länder |
+| `canada` | 13 | Canada — federal + 4 provinces |
+| `india` | 10 | India — national + 4 states |
 | `apac` | 7 | Singapore, Japan, South Korea, Australia |
+| `middle_east` | 5 | UAE + Saudi Arabia |
+| `north_america` | 10 | US federal + Canada national |
 
 ### Thematic
 
@@ -920,14 +941,15 @@ Use groups to scan related sets of domains. Pass the group name as the `domains`
 | `federal` | 8 | National/EU-level only (no states/provinces) |
 | `leaders` | 9 | Countries with most advanced heat reuse policies |
 | `emerging` | 7 | Countries with emerging regulations |
+| `pending_legislation` | 24 | Active/pending bills and legislative tracking |
 
-You can also use **region names** (`germany`, `france`, `denmark`), **domain file names**, or **individual domain IDs** as the group parameter.
+You can also scan by **country name** (`germany`, `canada`, `india`, `brazil`), **sub-national region** (`scotland`, `hessen`, `ontario`), **region name** (`middle_east`, `north_america`), or **individual domain ID**.
 
 ---
 
 ## Keyword System
 
-The keyword matcher scores page content across 7 weighted categories in 17 languages.
+The keyword matcher scores page content across 7 weighted categories in 20 languages.
 
 ### Categories
 
@@ -941,11 +963,11 @@ The keyword matcher scores page content across 7 weighted categories in 17 langu
 | `context` | 1.0 | data center, server farm, hyperscale |
 | `energy` | 1.0 | PUE, energy efficiency, decarbonization |
 
-### Languages (17)
+### Languages (20)
 
-English (en), German (de), French (fr), Dutch (nl), Swedish (sv), Danish (da), Italian (it), Spanish (es), Norwegian (no), Finnish (fi), Icelandic (is), Polish (pl), Portuguese (pt), Czech (cs), Greek (el), Hungarian (hu), Romanian (ro)
+English (en), German (de), French (fr), Dutch (nl), Swedish (sv), Danish (da), Italian (it), Spanish (es), Norwegian (no), Finnish (fi), Icelandic (is), Polish (pl), Portuguese (pt), Czech (cs), Greek (el), Hungarian (hu), Romanian (ro), Japanese (ja), Korean (ko), Arabic (ar)
 
-German, Dutch, Swedish, Danish, Norwegian, Finnish, Icelandic, and Hungarian use **substring matching** instead of word boundaries to handle compound words (e.g., "Rechenzentrumsabwärmenutzungsverordnung", "spillvarmeprosjekt", "hulladékhőhasznosítás").
+German, Dutch, Swedish, Danish, Norwegian, Finnish, Icelandic, Hungarian, Japanese, Korean, and Arabic use **substring matching** instead of word boundaries to handle compound words and scripts without word separators (e.g., "Rechenzentrumsabwärmenutzungsverordnung", "データセンター排熱利用", "مركز البيانات").
 
 ### Scoring
 
@@ -1085,12 +1107,12 @@ OCP-CE-HR-Policy-Searcher/
 ├── setup.sh                    # One-command setup (Linux/macOS)
 ├── setup.ps1                   # One-command setup (Windows PowerShell)
 ├── config/
-│   ├── domains/                # 70+ YAML files defining 300+ domains
+│   ├── domains/                # 80+ YAML files defining 360+ domains
 │   │   ├── eu.yaml
 │   │   ├── us_states/          # 51 US state domain files
 │   │   └── ...
 │   ├── groups.yaml             # Domain group definitions
-│   ├── keywords.yaml           # 7 categories x 17 languages
+│   ├── keywords.yaml           # 7 categories x 20 languages
 │   ├── settings.yaml           # Runtime settings
 │   ├── url_filters.yaml        # URL skip/block rules
 │   ├── content_extraction.yaml # HTML boilerplate removal rules
@@ -1132,7 +1154,7 @@ OCP-CE-HR-Policy-Searcher/
 │   │   └── server.py           # MCP server (11 tools, advanced)
 │   └── storage/
 │       └── store.py            # JSON persistence
-├── tests/                      # 505+ tests
+├── tests/                      # 579+ tests
 │   ├── unit/
 │   │   ├── test_agent.py       # Agent tool + dispatch + rate limit tests
 │   │   ├── test_api.py         # FastAPI endpoint tests
@@ -1140,7 +1162,7 @@ OCP-CE-HR-Policy-Searcher/
 │   │   ├── test_crawler.py     # Web crawler tests
 │   │   ├── test_domain_generator.py  # Domain ID/region tests
 │   │   ├── test_extractor.py   # HTML extraction tests
-│   │   ├── test_keywords.py    # Keyword matcher tests (49 tests, 17 languages)
+│   │   ├── test_keywords.py    # Keyword matcher tests (53 tests, 20 languages)
 │   │   ├── test_llm.py         # Claude client tests
 │   │   ├── test_logging.py     # Logging, audit, redaction, API endpoints, CLI viewer
 │   │   ├── test_scanner.py     # Domain scanner tests
@@ -1181,7 +1203,7 @@ ruff format src/
 ### Testing
 
 ```bash
-pytest                    # Run all 514+ tests
+pytest                    # Run all 579+ tests
 pytest tests/unit/        # Unit tests only
 pytest tests/integration/ # Integration tests only
 pytest --cov=src          # With coverage report
@@ -1231,7 +1253,7 @@ keywords:
 
 ## Cost Estimation
 
-Approximate costs per full scan (all 301 domains):
+Approximate costs per full scan (all 361 domains):
 
 | Stage | Model | Est. Calls | Est. Cost |
 |-------|-------|-----------|-----------|
@@ -1345,7 +1367,7 @@ Contributions are welcome! See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the fu
 
 - Step-by-step instructions for adding a new country or region
 - Code style expectations (ruff, type hints, Pydantic models)
-- How to run the 505+-test suite and lint checks
+- How to run the 579+-test suite and lint checks
 - Domain YAML format template
 - PR checklist
 

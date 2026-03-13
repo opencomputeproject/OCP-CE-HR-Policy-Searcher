@@ -9,6 +9,7 @@ domains:
     region:
       - "eu"
       - "eu_central"
+      - "austria"
     base_url: "https://www.bmk.gv.at"
     start_paths:
       - "/en/topics/energy"

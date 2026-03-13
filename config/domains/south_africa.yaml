@@ -1,0 +1,61 @@
+# =============================================================================
+# SOUTH AFRICA - Energy Policy
+# =============================================================================
+# Growing DC hub in Africa. DMRE and NERSA regulate energy sector.
+# =============================================================================
+
+domains:
+  - name: "Department of Mineral Resources and Energy"
+    id: "dmre_za"
+    enabled: true
+    region:
+      - "africa"
+      - "south_africa"
+    base_url: "https://www.dmre.gov.za"
+    start_paths:
+      - "/energy/energy-efficiency"
+      - "/energy/electricity"
+    allowed_path_patterns:
+      - "/energy/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "energy_ministry"
+    tags:
+      - "efficiency"
+      - "planning"
+    policy_types:
+      - "regulation"
+      - "strategy"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      Department of Mineral Resources and Energy (DMRE).
+      National Energy Efficiency Strategy, IRP (Integrated Resource Plan).
+      Data center growth in Johannesburg and Cape Town.
+
+  - name: "NERSA - National Energy Regulator"
+    id: "nersa_za"
+    enabled: true
+    region:
+      - "africa"
+      - "south_africa"
+    base_url: "https://www.nersa.org.za"
+    start_paths:
+      - "/electricity-regulation"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 3.0
+    category: "regulatory"
+    tags:
+      - "mandates"
+      - "reporting"
+    policy_types:
+      - "regulation"
+    verified_by: "auto-generated"
+    verified_date: "2026-03-12"
+    notes: |
+      National Energy Regulator of South Africa.
+      Electricity tariff regulation and licensing.
