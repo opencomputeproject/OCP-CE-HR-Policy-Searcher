@@ -103,3 +103,84 @@ domains:
         Sullivan is key OCP ally - participated in OCP Heat Reuse webinar.
         Related bills: HB906 (load flexibility), HB824 (energy generation/storage).
         NOTE: lis.virginia.gov requires JavaScript/Playwright to render content.
+
+  - name: "Virginia HB906 - Data Center Load Flexibility"
+    id: "us_va_hb906_2026"
+    enabled: true
+    base_url: "https://lis.virginia.gov"
+    start_paths:
+      - "/bill-details/20261/HB906"
+    allowed_path_patterns:
+      - "/bill-details/*"
+      - "/bill-text/*"
+      - "/vote/*"
+    blocked_path_patterns:
+      - "/session-details/*"
+    max_depth: 2
+    max_pages: 20
+    min_keyword_score: 3.0
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+      - "virginia"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "pending"
+      - "demand_flexibility"
+      - "grid_reliability"
+      - "data_center_specific"
+    policy_types:
+      - "legislation"
+    verified_by: "Web Search - News Coverage"
+    verified_date: "2026-03-12"
+    sponsor: "Del. Rip Sullivan (D-Fairfax)"
+    session: "2026 Regular Session"
+    status: "Introduced"
+    notes: |
+      Directs SCC to form work group on energy load flexibility for
+      high-load users (data centers). Aims to ease grid demand.
+      Related to HB323 (waste heat) and HB824 (energy generation).
+
+  - name: "Virginia HB824 - Data Center Energy Generation & Storage"
+    id: "us_va_hb824_2026"
+    enabled: true
+    base_url: "https://lis.virginia.gov"
+    start_paths:
+      - "/bill-details/20261/HB824"
+    allowed_path_patterns:
+      - "/bill-details/*"
+      - "/bill-text/*"
+      - "/vote/*"
+    blocked_path_patterns:
+      - "/session-details/*"
+    max_depth: 2
+    max_pages: 20
+    min_keyword_score: 3.0
+    language: "en"
+    region:
+      - "us"
+      - "us_states"
+      - "virginia"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "pending"
+      - "energy_generation"
+      - "energy_storage"
+      - "data_center_specific"
+    policy_types:
+      - "legislation"
+    verified_by: "Web Search - LegiScan"
+    verified_date: "2026-03-12"
+    sponsor: "Del. Rip Sullivan (D-Fairfax)"
+    session: "2026 Regular Session"
+    status: "Introduced"
+    notes: |
+      Directs Department of Energy to study cost/feasibility of non-diesel
+      energy generation by data centers, on-site backup vs primary generation,
+      and energy storage. Report due September 1, 2026.
+      Related to HB323 (waste heat) and HB906 (load flexibility).
