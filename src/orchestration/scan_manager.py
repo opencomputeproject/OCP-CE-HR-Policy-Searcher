@@ -23,7 +23,7 @@ from ..core.keywords import KeywordMatcher
 from ..core.llm import ClaudeClient
 from ..core.models import (
     Policy, ScanJob, ScanStatus, ScanProgress, DomainProgress,
-    DomainScanStatus, ScanEvent,
+    DomainScanStatus, ScanEvent, SheetsExportStatus,
 )
 from ..core.scanner import DomainScanner
 from ..core.verifier import Verifier
@@ -184,7 +184,10 @@ class ScanManager:
         sheets_exported_urls: set[str] = set()
         output_cfg = self.config.settings.output
         sheet_name = output_cfg.staging_sheet_name
+        sheets_status = job.sheets_export  # mutable reference
+
         if output_cfg.spreadsheet_id and output_cfg.google_credentials_b64:
+            sheets_status.configured = True
             try:
                 from ..output.sheets import SheetsClient
                 sheets_client = SheetsClient(
@@ -193,11 +196,15 @@ class ScanManager:
                 )
                 sheets_client.connect()
                 sheets_exported_urls = sheets_client.get_existing_urls(sheet_name)
+                sheets_status.connected = True
+                sheets_status.status = "connected"
                 logger.info(
                     f"Google Sheets connected — {len(sheets_exported_urls)} "
                     f"existing policies in '{sheet_name}'"
                 )
             except Exception as e:
+                sheets_status.status = "failed"
+                sheets_status.error = str(e)
                 logger.warning(
                     "Google Sheets connection failed: %s. "
                     "Policies will be saved to data/policies.json only. "
@@ -205,6 +212,13 @@ class ScanManager:
                     e,
                 )
                 sheets_client = None
+        else:
+            sheets_status.status = "not_configured"
+            logger.info(
+                "Google Sheets export not configured. "
+                "Policies will be saved to data/policies.json. "
+                "To enable: set GOOGLE_CREDENTIALS and SPREADSHEET_ID in .env"
+            )
 
         llm_client = None
         if not skip_llm and self.api_key:
@@ -297,11 +311,14 @@ class ScanManager:
                                     )
                                     for p in new_for_sheets:
                                         sheets_exported_urls.add(p.url)
+                                    sheets_status.exported_count += count
                                     logger.info(
                                         f"Exported {count} policies from "
                                         f"{domain['id']} to Google Sheets"
                                     )
                                 except Exception as sheets_err:
+                                    sheets_status.failed_count += len(new_for_sheets)
+                                    sheets_status.error = str(sheets_err)
                                     logger.warning(
                                         f"Sheets export failed for {domain['id']}: "
                                         f"{sheets_err}"
@@ -411,11 +428,13 @@ class ScanManager:
                     ]
                     if missed:
                         count = sheets_client.append_policies(missed, sheet_name)
+                        sheets_status.exported_count += count
                         logger.info(
                             f"Final Sheets reconciliation: exported {count} "
                             f"missed policies"
                         )
                 except Exception as e:
+                    sheets_status.error = str(e)
                     logger.warning(f"Final Sheets export failed: {e}")
             elif not sheets_client and all_policies:
                 # Sheets wasn't configured or connection failed at start —
@@ -436,10 +455,14 @@ class ScanManager:
                             count = fallback.append_policies(
                                 new_policies, sheet_name,
                             )
+                            sheets_status.connected = True
+                            sheets_status.status = "connected"
+                            sheets_status.exported_count += count
                             logger.info(
                                 f"Fallback Sheets export: {count} policies"
                             )
                     except Exception as e:
+                        sheets_status.error = str(e)
                         logger.warning(
                             f"Fallback Sheets export failed: {e}"
                         )
@@ -467,6 +490,7 @@ class ScanManager:
                 data={
                     "total_policies": len(all_policies),
                     "cost_usd": job.cost.total_usd if job.cost else 0,
+                    "sheets_export": sheets_status.model_dump(),
                 },
             ))
 

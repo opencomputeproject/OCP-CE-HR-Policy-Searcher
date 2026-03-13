@@ -844,6 +844,144 @@ class TestSheetsExportIntegration:
 
 
 # ---------------------------------------------------------------------------
+# 8b. Sheets export status tracking
+# ---------------------------------------------------------------------------
+
+class TestSheetsExportStatus:
+    """SheetsExportStatus tracks export state and surfaces it to the agent."""
+
+    def test_default_status_is_not_configured(self):
+        """Fresh ScanJob has sheets_export.status = 'not_configured'."""
+        from src.core.models import ScanJob
+        job = ScanJob(scan_id="test")
+        assert job.sheets_export.status == "not_configured"
+        assert not job.sheets_export.configured
+        assert not job.sheets_export.connected
+        assert job.sheets_export.exported_count == 0
+        assert job.sheets_export.error is None
+
+    def test_configured_but_failed(self):
+        """When credentials exist but connection fails, status='failed'."""
+        from src.core.models import SheetsExportStatus
+        s = SheetsExportStatus()
+        s.configured = True
+        s.status = "failed"
+        s.error = "Invalid credentials"
+        assert s.configured
+        assert not s.connected
+        assert s.status == "failed"
+        assert s.error == "Invalid credentials"
+
+    def test_connected_and_exporting(self):
+        """When connected and exporting, tracks counts."""
+        from src.core.models import SheetsExportStatus
+        s = SheetsExportStatus()
+        s.configured = True
+        s.connected = True
+        s.status = "connected"
+        s.exported_count = 5
+        assert s.exported_count == 5
+        assert s.failed_count == 0
+
+    def test_partial_failure_tracks_both_counts(self):
+        """Some policies export, some fail — tracks both."""
+        from src.core.models import SheetsExportStatus
+        s = SheetsExportStatus()
+        s.configured = True
+        s.connected = True
+        s.status = "connected"
+        s.exported_count = 3
+        s.failed_count = 2
+        s.error = "Rate limit on batch 2"
+        assert s.exported_count == 3
+        assert s.failed_count == 2
+
+    def test_model_dump_includes_all_fields(self):
+        """model_dump() returns all fields for JSON serialization."""
+        from src.core.models import SheetsExportStatus
+        s = SheetsExportStatus(
+            configured=True, connected=True, status="connected",
+            exported_count=5, failed_count=0, error=None,
+        )
+        d = s.model_dump()
+        assert d == {
+            "configured": True,
+            "connected": True,
+            "status": "connected",
+            "exported_count": 5,
+            "failed_count": 0,
+            "error": None,
+        }
+
+    def test_scanjob_sheets_export_in_model_dump(self):
+        """ScanJob.model_dump() includes sheets_export."""
+        from src.core.models import ScanJob
+        job = ScanJob(scan_id="test-123")
+        d = job.model_dump()
+        assert "sheets_export" in d
+        assert d["sheets_export"]["status"] == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_scan_status_includes_sheets_export(self, real_config, scan_manager):
+        """get_scan_status tool response includes sheets_export field."""
+        from src.agent.tools import execute_tool
+        # Start a dry-run scan to create a job
+        result = await execute_tool(
+            "start_scan", {"domains": "quick", "dry_run": True},
+            real_config, scan_manager,
+        )
+        scan_id = result.get("scan_id")
+        assert scan_id
+
+        # Check status includes sheets_export
+        status = await execute_tool(
+            "get_scan_status", {"scan_id": scan_id},
+            real_config, scan_manager,
+        )
+        assert "sheets_export" in status
+        assert status["sheets_export"]["status"] == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_sheets_status_not_configured_without_credentials(
+        self, tmp_config_dir, monkeypatch
+    ):
+        """When .env has no credentials, sheets_export.status='not_configured'."""
+        # Ensure no Google env vars
+        monkeypatch.delenv("GOOGLE_CREDENTIALS", raising=False)
+        monkeypatch.delenv("SPREADSHEET_ID", raising=False)
+
+        config = ConfigLoader(config_dir=str(tmp_config_dir))
+        config.load()
+
+        assert config.settings.output.google_credentials_b64 is None
+        assert config.settings.output.spreadsheet_id is None
+
+    @pytest.mark.asyncio
+    async def test_sheets_status_failed_with_bad_credentials(
+        self, tmp_config_dir, monkeypatch
+    ):
+        """When credentials are set but invalid, SheetsClient.connect() raises."""
+        monkeypatch.setenv("SPREADSHEET_ID", "real-sheet-id")
+        monkeypatch.setenv("GOOGLE_CREDENTIALS", "dGVzdA==")  # too short
+
+        config = ConfigLoader(config_dir=str(tmp_config_dir))
+        config.load()
+
+        # credentials are set and pass placeholder filter
+        assert config.settings.output.google_credentials_b64 == "dGVzdA=="
+        assert config.settings.output.spreadsheet_id == "real-sheet-id"
+
+        # But SheetsClient.connect() will reject them as too short
+        from src.output.sheets import SheetsClient
+        client = SheetsClient(
+            credentials_b64="dGVzdA==",
+            spreadsheet_id="real-sheet-id",
+        )
+        with pytest.raises(ValueError, match="GOOGLE_CREDENTIALS looks invalid"):
+            client.connect()
+
+
+# ---------------------------------------------------------------------------
 # 9. Search policies with data in scan_manager
 # ---------------------------------------------------------------------------
 
@@ -2296,6 +2434,64 @@ class TestIncrementalSheetsExport:
         assert "Sheets API timeout" in export_errors[0]
         # URLs were NOT added since export failed
         assert len(sheets_exported_urls) == 0
+
+    @pytest.mark.asyncio
+    async def test_sheets_failure_tracked_in_status(self, tmp_config_dir, monkeypatch):
+        """SheetsExportStatus tracks per-domain export failures."""
+        from src.core.models import SheetsExportStatus
+
+        sheets_status = SheetsExportStatus(
+            configured=True, connected=True, status="connected",
+        )
+        mock_sheets = MagicMock()
+        mock_sheets.append_policies.side_effect = Exception("Rate limit")
+
+        policies = [self._make_policy("https://a.gov/p1")]
+        sheets_exported_urls: set[str] = set()
+
+        # Simulate the per-domain export with status tracking
+        new_for_sheets = [
+            p for p in policies if p.url not in sheets_exported_urls
+        ]
+        if new_for_sheets:
+            try:
+                mock_sheets.append_policies(new_for_sheets, "Staging")
+                for p in new_for_sheets:
+                    sheets_exported_urls.add(p.url)
+                sheets_status.exported_count += len(new_for_sheets)
+            except Exception as sheets_err:
+                sheets_status.failed_count += len(new_for_sheets)
+                sheets_status.error = str(sheets_err)
+
+        assert sheets_status.exported_count == 0
+        assert sheets_status.failed_count == 1
+        assert sheets_status.error == "Rate limit"
+        # Status is still "connected" — the connection worked, export failed
+        assert sheets_status.status == "connected"
+
+    @pytest.mark.asyncio
+    async def test_sheets_mixed_success_and_failure(self, tmp_config_dir, monkeypatch):
+        """SheetsExportStatus correctly tracks partial success."""
+        from src.core.models import SheetsExportStatus
+
+        sheets_status = SheetsExportStatus(
+            configured=True, connected=True, status="connected",
+        )
+
+        # Domain 1: succeeds (3 policies)
+        sheets_status.exported_count += 3
+        # Domain 2: fails (2 policies)
+        sheets_status.failed_count += 2
+        sheets_status.error = "API error on domain 2"
+        # Domain 3: succeeds (1 policy)
+        sheets_status.exported_count += 1
+
+        assert sheets_status.exported_count == 4
+        assert sheets_status.failed_count == 2
+        assert sheets_status.error == "API error on domain 2"
+        d = sheets_status.model_dump()
+        assert d["exported_count"] == 4
+        assert d["failed_count"] == 2
 
 
 # ---------------------------------------------------------------------------

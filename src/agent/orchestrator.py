@@ -174,6 +174,16 @@ on every poll.
 - When reporting progress, say "X policies found so far" or "running total: X" \
 to make it clear the number is cumulative, not per-check.
 
+GOOGLE SHEETS EXPORT: The get_scan_status response includes a sheets_export \
+field showing whether policies were exported to Google Sheets:
+- status="connected": Sheets is working — report how many were exported
+- status="not_configured": GOOGLE_CREDENTIALS or SPREADSHEET_ID not set in .env. \
+Tell the user: "Policies saved to data/policies.json. To enable Google Sheets \
+export, add GOOGLE_CREDENTIALS and SPREADSHEET_ID to your .env file."
+- status="failed": Connection or export error — report the error message
+ALWAYS mention the Sheets export status in the final scan summary so the user \
+knows where their policies went.
+
 CONCURRENT SCANS: You can start a new scan while another is running — both \
 will complete. But warn the user: both scans share the same API key, so rate \
 limits may cause retries and slower progress. The system handles this \

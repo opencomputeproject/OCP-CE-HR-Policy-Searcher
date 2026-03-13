@@ -425,6 +425,7 @@ async def execute_tool(
                     "domains": [dp.model_dump() for dp in job.progress.domains],
                 },
                 "cost": job.cost.model_dump() if job.cost else None,
+                "sheets_export": job.sheets_export.model_dump(),
                 "policies": [p.model_dump(mode="json") for p in policies[:20]],
             }
 

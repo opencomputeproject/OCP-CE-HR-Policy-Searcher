@@ -270,6 +270,16 @@ class CostInfo(BaseModel):
     total_usd: float = 0.0
 
 
+class SheetsExportStatus(BaseModel):
+    """Tracks Google Sheets export state throughout a scan."""
+    configured: bool = False           # Were credentials + spreadsheet_id provided?
+    connected: bool = False            # Did initial connection succeed?
+    exported_count: int = 0            # Policies successfully written to Sheets
+    failed_count: int = 0              # Policies that failed to export
+    error: Optional[str] = None        # Last error message (if any)
+    status: str = "not_configured"     # not_configured | connected | failed | skipped
+
+
 class ScanJob(BaseModel):
     scan_id: str
     status: ScanStatus = ScanStatus.PENDING
@@ -282,6 +292,7 @@ class ScanJob(BaseModel):
     cost: CostInfo = Field(default_factory=CostInfo)
     audit_advisory: Optional[str] = None
     options: dict[str, Any] = Field(default_factory=dict)
+    sheets_export: SheetsExportStatus = Field(default_factory=SheetsExportStatus)
 
 
 # --- API Request/Response Schemas ---
