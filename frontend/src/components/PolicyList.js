@@ -3,13 +3,13 @@ import React, { useEffect, useState } from 'react';
 function PolicyList() {
   const [policies, setPolicies] = useState([]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     fetch('/api/policies')
       .then((res) => res.json())
       .then(setPolicies)
       .catch(console.error);
   }, []);
-
+*/
   return (
     <div>
       <h2>Policies</h2>
