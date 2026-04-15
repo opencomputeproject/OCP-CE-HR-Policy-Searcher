@@ -1,7 +1,8 @@
 import './App.css';
-import PolicyList from './components/PolicyList';
+import Button from './components/Button';
+import MessageList from './components/MessageList';
+import Textarea from './components/Textarea';
 import TempLogoImage from './assets/templogo.png';
-import MyButton from './components/TempButton';
 import React, { useState, useEffect, useRef } from 'react';
 
 function App() {
@@ -69,56 +70,38 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>OCP Policy Searcher</h1>
-        <MyButton />
 
         <div className="app-panel">
           <div className="toolbar-row">
-            <button
+            <Button
               onClick={connectWebSocket}
               disabled={isConnected}
-              className="connect-button"
+              variant="primary"
             >
               {isConnected ? 'Connected' : 'Connect to CLI Agent'}
-            </button>
+            </Button>
             <span className="status-text">
               {isConnected ? 'Ready for CLI agent input.' : 'Click connect to start using the CLI agent.'}
             </span>
           </div>
 
-          <textarea
+          <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your command here (like you would in terminal)..."
-            className="cli-textarea"
             disabled={!isConnected || isLoading}
           />
 
-          <button
+          <Button
             onClick={sendMessage}
             disabled={!isConnected || isLoading || !message.trim()}
-            className="send-button"
+            variant="secondary"
           >
             {isLoading ? 'Running CLI Agent...' : 'Send to CLI Agent'}
-          </button>
+          </Button>
 
-          <div className="message-panel">
-            {messages.map((msg, index) => (
-              <div key={index} className={`message-item ${msg.type}`}>
-                <strong>
-                  {msg.type === 'user'
-                    ? 'You:'
-                    : msg.type === 'agent'
-                    ? 'CLI Agent:'
-                    : msg.type === 'error'
-                    ? 'Error:'
-                    : 'System:'}
-                </strong>{' '}
-                {msg.content}
-              </div>
-            ))}
-            <div ref={scrollRef} />
-          </div>
+          <MessageList messages={messages} scrollRef={scrollRef} />
         </div>
 
         <img src={TempLogoImage} alt="Temp Logo" className="logo-image" />
