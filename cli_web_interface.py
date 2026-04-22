@@ -54,6 +54,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Set environment to include the project root
                 env = os.environ.copy()
                 env["PYTHONPATH"] = str(project_root)
+                env["PYTHONIOENCODING"] = "utf-8"
 
                 # Run the command and capture output
                 process = await asyncio.create_subprocess_exec(
@@ -68,13 +69,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 # Send the output back to frontend
                 if process.returncode == 0:
-                    response = stdout.decode().strip()
+                    response = stdout.decode("utf-8", errors="replace").strip()
                     if response:
                         await websocket.send_text(response)
                     else:
                         await websocket.send_text("Agent completed successfully (no output)")
                 else:
-                    error_msg = stderr.decode().strip()
+                    error_msg = stderr.decode("utf-8", errors="replace").strip()
                     await websocket.send_text(f"Error: {error_msg}")
 
             except Exception as e:
