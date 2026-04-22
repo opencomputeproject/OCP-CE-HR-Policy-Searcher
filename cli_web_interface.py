@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -47,8 +48,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # Run the CLI agent as a subprocess
             try:
-                # Run: python -m src.agent "user_message"
-                cmd = [sys.executable, "-m", "src.agent", user_message]
+                # Run the message like terminal input, e.g. --discover EU.
+                cmd = [sys.executable, "-m", "src.agent", *shlex.split(user_message)]
 
                 # Set environment to include the project root
                 env = os.environ.copy()

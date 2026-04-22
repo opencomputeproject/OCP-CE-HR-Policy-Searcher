@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ConnectButton from './ConnectButton';
 import MessageList from './MessageList';
+import ModeSelector from './ModeSelector';
+import RegionDropdown from './RegionDropdown';
 import SendButton from './SendButton';
 import Textarea from './Textarea';
 
@@ -9,6 +11,8 @@ import Textarea from './Textarea';
 function AgentPanel() {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
+    const [region, setRegion] = useState('eu');
+    const [mode, setMode] = useState('discover');
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const wsRef = useRef(null);
@@ -17,6 +21,30 @@ function AgentPanel() {
     useEffect(() => {
         scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    const getScanCommand = () => {
+        const selectedRegion = region.toUpperCase();
+
+        if (mode === 'discover') {
+            return `--discover ${selectedRegion}`;
+        }
+
+        if (mode === 'deep') {
+            return `--deep Scan ${selectedRegion}`;
+        }
+
+        return `Scan ${selectedRegion}`;
+    };
+
+    const sendAgentMessage = (agentMessage) => {
+        const trimmedMessage = agentMessage.trim();
+        if (!wsRef.current || !trimmedMessage) return;
+
+        setMessages(prev => [...prev, { type: 'user', content: trimmedMessage }]);
+        setIsLoading(true);
+
+        wsRef.current.send(JSON.stringify({ message: trimmedMessage }));
+    };
 
     const connectWebSocket = () => {
         if (wsRef.current) return;
@@ -49,13 +77,12 @@ function AgentPanel() {
     };
 
     const sendMessage = () => {
-        if (!wsRef.current || !message.trim()) return;
-
-        setMessages(prev => [...prev, { type: 'user', content: message }]);
-        setIsLoading(true);
-
-        wsRef.current.send(JSON.stringify({ message }));
+        sendAgentMessage(message);
         setMessage('');
+    };
+
+    const scanSelectedRegion = () => {
+        sendAgentMessage(getScanCommand());
     };
 
     const handleKeyPress = (e) => {
@@ -67,32 +94,54 @@ function AgentPanel() {
 
     return (
         <div className="app-panel">
-            <div className="toolbar-row">
-                <ConnectButton
-                    connected={isConnected}
-                    onClick={connectWebSocket}
-                    disabled={isConnected}
+            <section className="settings-panel" aria-label="Search settings">
+                <h2 className="panel-heading">Search settings</h2>
+                <RegionDropdown
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
                 />
-                <span className="status-text">
-                    {isConnected ? 'Ready for CLI agent input.' : 'Click connect to start using the CLI agent.'}
-                </span>
-            </div>
+                <ModeSelector
+                    value={mode}
+                    onChange={setMode}
+                />
+                <button
+                    type="button"
+                    className="scan-button"
+                    onClick={scanSelectedRegion}
+                    disabled={!isConnected || isLoading || !region || !mode}
+                >
+                    Scan
+                </button>
+            </section>
 
-            <MessageList messages={messages} scrollRef={scrollRef} />
+            <section className="chat-panel" aria-label="Agent chat">
+                <div className="toolbar-row">
+                    <ConnectButton
+                        connected={isConnected}
+                        onClick={connectWebSocket}
+                        disabled={isConnected}
+                    />
+                    <span className="status-text">
+                        {isConnected ? 'Ready for CLI agent input.' : 'Click connect to start using the CLI agent.'}
+                    </span>
+                </div>
 
-            <Textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your command here (like you would in terminal)..."
-                disabled={!isConnected || isLoading}
-            />
+                <MessageList messages={messages} scrollRef={scrollRef} />
 
-            <SendButton
-                isLoading={isLoading}
-                onClick={sendMessage}
-                disabled={!isConnected || isLoading || !message.trim()}
-            />
+                <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type your command here (like you would in terminal)..."
+                    disabled={!isConnected || isLoading}
+                />
+
+                <SendButton
+                    isLoading={isLoading}
+                    onClick={sendMessage}
+                    disabled={!isConnected || isLoading || !message.trim()}
+                />
+            </section>
         </div>
     );
 }

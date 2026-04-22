@@ -15,10 +15,24 @@
 }
 
 .app-panel {
-  width: 80%;
-  max-width: 700px;
+  width: min(100%, 1100px);
   margin: 20px auto;
   text-align: left;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.settings-panel,
+.chat-panel {
+  min-width: 0;
+}
+
+.panel-heading {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 600;
 }
 
 .toolbar-row {
@@ -26,6 +40,75 @@
   gap: 10px;
   margin-bottom: 12px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.region-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.region-label {
+  font-size: 16px;
+}
+
+.region-select {
+  min-width: 90px;
+  padding: 9px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: white;
+  color: #111;
+  font-size: 16px;
+}
+
+.mode-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.mode-label {
+  font-size: 16px;
+}
+
+.mode-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mode-button {
+  padding: 10px 18px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: white;
+  color: #111;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.mode-button.selected {
+  border-color: #61dafb;
+  background-color: #dff7ff;
+}
+
+.scan-button {
+  margin-top: 20px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 6px;
+  background-color: #61dafb;
+  color: #111;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.scan-button:disabled {
+  background-color: #999;
+  cursor: not-allowed;
 }
 
 .button {
@@ -44,7 +127,7 @@
 
 .textarea {
   width: 100%;
-  min-height: 120px;
+  min-height: 10px;
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -89,4 +172,10 @@
 .logo-image {
   width: 200px;
   margin-top: 20px;
+}
+
+@media (max-width: 800px) {
+  .app-panel {
+    grid-template-columns: 1fr;
+  }
 }
