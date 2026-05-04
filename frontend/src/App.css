@@ -44,23 +44,9 @@
 }
 
 .region-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.region-label {
-  font-size: 16px;
-}
-
-.region-select {
-  min-width: 90px;
-  padding: 9px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  min-width: 150px;
   background-color: white;
-  color: #111;
-  font-size: 16px;
+  border-radius: 6px;
 }
 
 .mode-field {

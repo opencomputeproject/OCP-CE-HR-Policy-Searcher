@@ -1,21 +1,35 @@
 import React from 'react';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+
+const regions = [
+  { value: 'eu', label: 'EU' },
+  { value: 'nordic', label: 'Nordics' },
+  { value: 'us', label: 'US' },
+  { value: 'asia', label: 'Asia' },
+  { value: 'other', label: 'Other' },
+];
 
 function RegionDropdown({ value, onChange }) {
   return (
-    <label className="region-field">
-      <span className="region-label">Region</span>
-      <select
-        className="region-select"
+    <FormControl className="region-field" size="small">
+      <InputLabel id="region-select-label">Region</InputLabel>
+      <Select
+        labelId="region-select-label"
+        id="region-select"
         value={value}
+        label="Region"
         onChange={onChange}
       >
-        <option value="eu">EU</option>
-        <option value="nordic">Nordics</option>
-        <option value="us">US</option>
-        <option value="asia">Asia</option>  
-        <option value="other">Other</option> 
-      </select>
-    </label>
+        {regions.map((region) => (
+          <MenuItem key={region.value} value={region.value}>
+            {region.label}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 }
 
