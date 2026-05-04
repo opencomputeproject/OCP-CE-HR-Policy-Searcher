@@ -47,4 +47,4 @@ desktop.ini
 # Misc
 *.log
 .ruff_cache/
-package.json
+/package.json

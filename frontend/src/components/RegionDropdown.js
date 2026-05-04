@@ -10,6 +10,10 @@ function RegionDropdown({ value, onChange }) {
         onChange={onChange}
       >
         <option value="eu">EU</option>
+        <option value="nordic">Nordics</option>
+        <option value="us">US</option>
+        <option value="asia">Asia</option>  
+        <option value="other">Other</option> 
       </select>
     </label>
   );

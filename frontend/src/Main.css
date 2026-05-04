@@ -23,8 +23,24 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.prim-button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  color: black;
+  cursor: pointer;
+  background-color: rgb(200, 200, 200);
+}
+
+.second-button {
+  padding: 10px 18px;
+  border: none;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
 
