@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import './App.css';
 import AgentPanel from './components/AgentPanel';
-import RegionDropdown from './components/RegionDropdown';
+import Chatbot from './components/Chatbot';
 import TempLogoImage from './assets/templogo.png';
 
 function ComponentTestingView() {
-  const [region, setRegion] = useState('eu');
-
   return (
     <div className="App">
       <header className="App-header">
@@ -14,7 +12,7 @@ function ComponentTestingView() {
           <div className="component-test-header">
             <div>
               <p className="component-test-kicker">Component testing</p>
-              <h1>RegionDropdown</h1>
+              <h1>Chatbot</h1>
             </div>
             <a className="component-test-link" href="/">
               Back to app
@@ -24,12 +22,8 @@ function ComponentTestingView() {
 
       </header>
       <div className="App-main">
-        <section className="component-test-stage" aria-label="RegionDropdown test stage">
-          <RegionDropdown
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-          />
-          <p className="component-test-value">Selected value: {region}</p>
+        <section className="component-test-stage" aria-label="Chatbot test stage">
+          <Chatbot />
         </section>
       </div>
     </div>
@@ -47,7 +41,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>OCP Policy Searcher</h1>
+        <h1>OCP Policy Pulse</h1>
         <img src={TempLogoImage} alt="Temp Logo" className="logo-image" />
       </header>
       <main className="App-main">
