@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import './App.css';
 import AgentPanel from './components/AgentPanel';
-import Chatbot from './components/Chatbot';
 import TempLogoImage from './assets/templogo.png';
+import PolicyList from './components/PolicyList';
 
 function ComponentTestingView() {
   return (
@@ -12,7 +11,7 @@ function ComponentTestingView() {
           <div className="component-test-header">
             <div>
               <p className="component-test-kicker">Component testing</p>
-              <h1>Chatbot</h1>
+              <h1>Policies</h1>
             </div>
             <a className="component-test-link" href="/">
               Back to app
@@ -22,8 +21,8 @@ function ComponentTestingView() {
 
       </header>
       <div className="App-main">
-        <section className="component-test-stage" aria-label="Chatbot test stage">
-          <Chatbot />
+        <section className="component-test-stage" aria-label="Policy list test stage">
+          <PolicyList />
         </section>
       </div>
     </div>
