@@ -24,7 +24,8 @@ venv/
 env/
 
 # Runtime data
-data/
+# Might want to remove comment in actual implementation to protect the data however we want to keep it in the repo for testing purposes
+# data/
 
 # IDE
 .vscode/
