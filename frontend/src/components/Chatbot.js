@@ -18,7 +18,6 @@ import {
 import { ChatProvider, useChat, useChatStore, useMessageIds } from '@mui/x-chat/headless';
 
 const CONVERSATION_ID = 'cli-agent-conv';
-const RESPONSE_TIMEOUT_MS = 1200000;
 
 const chatUsers = {
   agent: {
@@ -107,7 +106,6 @@ function createWebSocketResponseStream({ ws, text, signal, onRunningChange }) {
         ws.removeEventListener('error', handleError);
         ws.removeEventListener('close', handleClose);
         signal?.removeEventListener('abort', handleAbort);
-        clearTimeout(timeoutId);
         onRunningChange?.(false);
       };
 
@@ -190,10 +188,6 @@ function createWebSocketResponseStream({ ws, text, signal, onRunningChange }) {
         controller.enqueue({ type: 'abort', messageId });
         controller.close();
       };
-
-      const timeoutId = setTimeout(() => {
-        settleWithError('The agent did not respond before the request timed out.');
-      }, RESPONSE_TIMEOUT_MS);
 
       ws.addEventListener('message', handleMessage);
       ws.addEventListener('error', handleError);

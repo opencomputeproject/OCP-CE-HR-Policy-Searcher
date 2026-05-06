@@ -1,4 +1,20 @@
+.policy-list {
+    width: min(100%, 1100px);
+    box-sizing: border-box;
+    color: #1f2937;
+    text-align: left;
+}
+
+.policy-list-items {
+    width: 100%;
+    min-width: 0;
+}
+
 .saved-policy-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     background-color: #ffffff;
     border: 1px solid #d7dee8;
     border-radius: 8px;
@@ -176,44 +192,55 @@
 }
 
 .saved-policy-details {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     padding: 16px;
-    animation: slideDown 0.2s ease;
+    animation: policyDetailsIn 160ms ease-out;
     display: grid;
     gap: 16px;
-    grid-template-columns: 0.5fr 0.5fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-areas:
-        'key-info key-info key-info'
-        'requirements requirements requirements'
-        'referenced-policies referenced-urls meta'
-        'verification actions actions';
+        'key-info key-info referenced-urls referenced-policies'
+        'key-requirements key-requirements key-requirements meta'
+        'verification actions actions actions';
 }
+
+.saved-policy-details > * {
+    min-width: 0;
+}
+
 #key-info {
     grid-area: key-info;
 }
+
 #key-requirements {
-    grid-area: requirements;
+    grid-area: key-requirements;
 }
+
 #referenced-policies{
     grid-area: referenced-policies;
 }
+
 #referenced-urls{
     grid-area: referenced-urls;
 }
 
-@keyframes slideDown {
+@keyframes policyDetailsIn {
     from {
         opacity: 0;
-        max-height: 0;
+        transform: translateY(-4px);
     }
 
     to {
         opacity: 1;
-        max-height: 1000px;
+        transform: translateY(0);
     }
 }
 
 .detail-section {
     margin-bottom: 16px;
+    min-width: 0;
 }
 
 .detail-section:last-child {
@@ -230,13 +257,13 @@
 }
 
 .detail-list {
-    grid-area: key-info;
     display: grid;
-    grid-template-columns: 0.4fr 1fr 0.4fr 1fr;
+    grid-template-columns: max-content minmax(0, 1fr);
     gap: 8px 12px;
     margin: 0;
     padding: 0;
     list-style: none;
+    min-width: 0;
 }
 
 .detail-list dt {
@@ -249,7 +276,8 @@
     margin: 0;
     color: #4b5563;
     font-size: 13px;
-    word-break: break-word;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .monospace {
@@ -258,6 +286,7 @@
     padding: 2px 4px;
     border-radius: 2px;
     font-size: 12px;
+    white-space: normal;
 }
 
 .requirements-text {
@@ -265,6 +294,7 @@
     font-size: 13px;
     line-height: 1.6;
     color: #4b5563;
+    overflow-wrap: anywhere;
 }
 
 .referenced-list,
@@ -272,6 +302,7 @@
     margin: 0;
     padding-left: 20px;
     list-style-type: disc;
+    min-width: 0;
 }
 
 .referenced-list li,
@@ -280,12 +311,13 @@
     font-size: 13px;
     color: #4b5563;
     line-height: 1.4;
+    overflow-wrap: anywhere;
 }
 
 .referenced-urls-list a {
     color: #3b82f6;
     text-decoration: none;
-    word-break: break-all;
+    overflow-wrap: anywhere;
 }
 
 .referenced-urls-list a:hover {
@@ -326,9 +358,11 @@
     padding-top: 12px;
     display: flex;
     gap: 8px;
+    min-width: 0;
 }
 
 .action-link {
+    box-sizing: border-box;
     padding: 8px 14px;
     border-radius: 4px;
     font-size: 13px;
@@ -383,8 +417,20 @@
         align-self: flex-start;
     }
 
+    .saved-policy-details {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            'key-info'
+            'key-requirements'
+            'referenced-policies'
+            'referenced-urls'
+            'meta'
+            'verification'
+            'actions';
+    }
+
     .detail-list {
-        grid-template-columns: 100px 1fr;
+        grid-template-columns: minmax(90px, max-content) minmax(0, 1fr);
         gap: 6px 8px;
     }
 
