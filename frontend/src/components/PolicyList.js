@@ -36,12 +36,12 @@ function PolicyList() {
   }
 
   return (
-    <section>
+    <section className="policy-list">
       <h2>Policies</h2>
       {policies.length === 0 ? (
         <p>No policies found.</p>
       ) : (
-        <div>
+        <div className="policy-list-items">
           {policies.map((policy, index) => (
             <SavedPolicy
               key={`${policy.scan_id}-${policy.domain_id}-${index}`}

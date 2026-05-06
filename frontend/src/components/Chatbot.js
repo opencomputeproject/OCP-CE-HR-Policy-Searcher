@@ -18,7 +18,7 @@ import {
 import { ChatProvider, useChat, useChatStore, useMessageIds } from '@mui/x-chat/headless';
 
 const CONVERSATION_ID = 'cli-agent-conv';
-const RESPONSE_TIMEOUT_MS = 120000;
+const RESPONSE_TIMEOUT_MS = 1200000;
 
 const chatUsers = {
   agent: {

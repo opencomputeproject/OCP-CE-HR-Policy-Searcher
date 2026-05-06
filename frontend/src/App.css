@@ -76,8 +76,10 @@
 }
 
 .component-test-stage {
+  width: min(100%, 1100px);
+  box-sizing: border-box;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 16px;
   min-height: 120px;
   padding: 24px;
