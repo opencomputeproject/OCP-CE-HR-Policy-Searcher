@@ -8,7 +8,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:800
 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
 
 function AgentPanel() {
-    const [selectedRegions, setSelectedRegions] = useState(['eu']);
+    const [selectedRegions, setSelectedRegions] = useState([]);
     const [mode, setMode] = useState('discover');
     const [isConnected, setIsConnected] = useState(false);
     const [isChatRunning, setIsChatRunning] = useState(false);
