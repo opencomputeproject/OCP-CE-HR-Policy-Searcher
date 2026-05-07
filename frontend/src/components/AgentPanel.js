@@ -124,43 +124,60 @@ function AgentPanel() {
     );
 
     useEffect(() => {
-        let isCurrent = true;
-        const categories = selectedRegions.filter((item) => item.startsWith('category:'));
-        const tags = selectedRegions.filter((item) => item.startsWith('tag:'));
-        const targets = selectedRegions.filter(
-            (item) => !item.startsWith('category:') && !item.startsWith('tag:'),
-        );
+    let isCurrent = true;
 
-        if (targets.length === 0) {
-            setCostEstimate(null);
-            setCostStatus(selectedRegions.length === 0 ? 'idle' : 'filters_only');
-            return () => {
-                isCurrent = false;
-            };
+    // Used to extract the actual target from various possible region/group identifiers for cost estimation
+    // TODO: It should be possible to get correct formating directly from the API call, but this is a quick fix. First we need to setup the RegionDropdown in a more intuitive way.
+    const normalizeTarget = (item) => {
+        if (item.startsWith('group:') && item.includes(':region:')) {
+            return item.slice(item.lastIndexOf(':region:') + ':region:'.length);
         }
+        if (item.startsWith('group:')) {
+            return item.slice('group:'.length);
+        }
+        if (item.startsWith('region:')) {
+            return item.slice('region:'.length);
+        }
+        return item;
+    };
 
-        setCostStatus('loading');
+    const categories = selectedRegions.filter((item) => item.startsWith('category:'));
+    const tags = selectedRegions.filter((item) => item.startsWith('tag:'));
 
-        Promise.all(targets.map((target) => getCostEstimate(target)))
-            .then((estimates) => {
-                if (!isCurrent) return;
-                setCostEstimate({
-                    ...sumCostEstimates(estimates),
-                    target_count: targets.length,
-                    has_filters: categories.length > 0 || tags.length > 0,
-                });
-                setCostStatus('ready');
-            })
-            .catch(() => {
-                if (!isCurrent) return;
-                setCostEstimate(null);
-                setCostStatus('error');
-            });
+    const targets = selectedRegions
+        .filter((item) => !item.startsWith('category:') && !item.startsWith('tag:'))
+        .map(normalizeTarget);
 
+    if (targets.length === 0) {
+        setCostEstimate(null);
+        setCostStatus(selectedRegions.length === 0 ? 'idle' : 'filters_only');
         return () => {
             isCurrent = false;
         };
-    }, [selectedRegions]);
+    }
+
+    setCostStatus('loading');
+
+    Promise.all(targets.map((target) => getCostEstimate(target)))
+        .then((estimates) => {
+            if (!isCurrent) return;
+            setCostEstimate({
+                ...sumCostEstimates(estimates),
+                target_count: targets.length,
+                has_filters: categories.length > 0 || tags.length > 0,
+            });
+            setCostStatus('ready');
+        })
+        .catch(() => {
+            if (!isCurrent) return;
+            setCostEstimate(null);
+            setCostStatus('error');
+        });
+
+    return () => {
+        isCurrent = false;
+    };
+}, [selectedRegions]);
 
     const getCostEstimateText = () => {
         if (costStatus === 'loading') {

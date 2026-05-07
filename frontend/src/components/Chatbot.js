@@ -424,7 +424,7 @@ const ChatbotInner = React.forwardRef(function ChatbotInner(
     (params) => (
       <ChatMessageGroup key={params.id} messageId={params.id}>
         <ChatMessage messageId={params.id} sx={messageSx}>
-          <ChatMessageContent partRenderers={{
+          <ChatMessageContent partrenderers={{
             reasoning: ({ part }) => <ReasoningPart part={part} />,
             'dynamic-tool': ({ part }) => (
               <ToolPart
