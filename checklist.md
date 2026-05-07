@@ -1,11 +1,11 @@
 # Checklist and planning
 
 ## Administration
-- [] Connecting with API key
-- [] Cost approximation for prompts
+- [] Connecting with API key in the UI
+- [x] Cost approximation for prompts
 
 ## Chat section
-- [] API Backend connection
+- [x] API Backend connection
 - [x] Send button
 - [] Separated handling of message types
 - [] Transparency of AI thinking
@@ -30,3 +30,5 @@
 ## Other
 - [] File for labels?
 - [] Copyright stuff for MUI
+- [] Remove ToDos
+- [] Clean and add comments
