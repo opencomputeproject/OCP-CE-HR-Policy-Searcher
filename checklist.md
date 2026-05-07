@@ -20,7 +20,9 @@
 
 ## Policy filters
 - [x] Mock policies visible
-- [] Discovered policies visible
+- [X] Discovered policies visible
+- [] Remove found policies
+- [] Review found policies
 - [] Policies filterable
 - [] Policies sortable
 - [] Policies searchable

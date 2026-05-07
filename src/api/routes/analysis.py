@@ -4,22 +4,24 @@ import os
 
 from fastapi import APIRouter, Depends
 
-from ..deps import get_config
+from ..deps import get_config, get_policy_store
 from ...core.config import ConfigLoader
 from ...core.crawler import AsyncCrawler
 from ...core.extractor import HtmlExtractor
 from ...core.keywords import KeywordMatcher
 from ...core.llm import ClaudeClient, LLMError
+from ...core.log_setup import log_audit_event
 from ...core.models import AnalyzeRequest
 from ...core.verifier import Verifier
+from ...storage.store import PolicyStore
 
 router = APIRouter(prefix="/api", tags=["analysis"])
 
 
-@router.post("/analyze")
 async def analyze_url(
     request: AnalyzeRequest,
     config: ConfigLoader = Depends(get_config),
+    store: PolicyStore = Depends(get_policy_store),
 ):
     """Analyze a single URL through the full pipeline."""
     url = request.url
@@ -105,8 +107,24 @@ async def analyze_url(
                     flags = verifier.verify(policy)
                     policy.verification_flags = flags
 
+                    added = store.add_policies([policy])
+
                     response["policy"] = policy.model_dump(mode="json")
                     response["verification_flags"] = [f.value for f in flags]
+                    response["saved"] = added > 0
+                    response["saved_to"] = str(store.policies_file)
+
+                    if added:
+                        log_audit_event(
+                            data_dir=str(store.data_dir),
+                            event="policy_found",
+                            scan_id=policy.scan_id,
+                            domain_id=policy.domain_id,
+                            policy_name=policy.policy_name,
+                            url=policy.url,
+                            relevance=policy.relevance_score,
+                            source="api_analyze",
+                        )
                 else:
                     response["policy"] = None
 

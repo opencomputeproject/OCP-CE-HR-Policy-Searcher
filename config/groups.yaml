@@ -1,640 +1,540 @@
-# =============================================================================
-# DOMAIN GROUPS
-# =============================================================================
-# Define custom groups for selective scanning with --domains flag
-#
-# HOW TO USE:
-# 1. Create a group by adding an entry below
-# 2. List the domain IDs you want included (from any domains/*.yaml file)
-# 3. Run with: python -m src.main --domains your_group_name
-#
-# EXAMPLES:
-#   python -m src.main --domains eu          # All European domains
-#   python -m src.main --domains quick       # Fast 2-domain test
-#   python -m src.main --domains my_custom   # Your custom group
-#
-# TIP: You can create groups for any combination of domains!
-# =============================================================================
-
 groups:
-
-  # ---------------------------------------------------------------------------
-  # SPECIAL GROUPS
-  # ---------------------------------------------------------------------------
-
   all:
-    description: "All enabled domains from all files"
-    # This group automatically includes ALL domains where enabled: true
-    # No need to list domain IDs - it's handled by the loader
-
-  # ---------------------------------------------------------------------------
-  # REGIONAL GROUPS
-  # ---------------------------------------------------------------------------
-
+    description: All enabled domains from all files
   eu:
-    description: "European Union institutions and member states"
+    description: European Union institutions and member states
     domains:
-      - bmwk_de
-      - ec_europa_energy
-      - eur_lex
-      - rvo_nl
-      - ecologie_fr
-      - ademe_fr
-      - bfe_ch
-      - bmk_at
-      - energy_be
-      - seai_ie
-      # Southern Europe
-      - miteco_es
-      - boe_es
-      - mase_it
-      - normattiva_it
-      - dgeg_pt
-      - dre_pt
-      - ypen_gr
-      - et_gr
-      # Eastern Europe
-      - klimat_pl
-      - isap_pl
-      - mpo_cz
-      - zakonyprolidi_cz
-      - energiaugyi_hu
-      - njt_hu
-      - energie_ro
-      - monitoruloficial_ro
-
+    - bmwk_de
+    - ec_europa_energy
+    - eur_lex
+    - rvo_nl
+    - ecologie_fr
+    - ademe_fr
+    - bfe_ch
+    - bmk_at
+    - energy_be
+    - seai_ie
+    - miteco_es
+    - boe_es
+    - mase_it
+    - normattiva_it
+    - dgeg_pt
+    - dre_pt
+    - ypen_gr
+    - et_gr
+    - klimat_pl
+    - isap_pl
+    - mpo_cz
+    - zakonyprolidi_cz
+    - energiaugyi_hu
+    - njt_hu
+    - energie_ro
+    - monitoruloficial_ro
+    - regeringen
+    - ei
+    - energimyndigheten
+    - riksdagense
   nordic:
-    description: "Nordic countries - leaders in heat reuse"
+    description: Nordic countries - leaders in heat reuse
     domains:
-      - energimyndigheten_se
-      - energimyndigheten_dc
-      - riksdagen_se_dc
-      - ens_dk
-      - ens_dk_heat
-      - retsinformation_dk
-      - energiavirasto_fi
-      - tem_fi
-      - oed_no
-      - enova_no
-      - lovdata_no
-      - orkustofnun_is
-
+    - energimyndigheten_se
+    - energimyndigheten_dc
+    - riksdagen_se_dc
+    - ens_dk
+    - ens_dk_heat
+    - retsinformation_dk
+    - energiavirasto_fi
+    - tem_fi
+    - oed_no
+    - enova_no
+    - lovdata_no
+    - orkustofnun_is
+    - regeringen
+    - ei
+    - energimyndigheten
+    - riksdagense
   germany:
-    description: "Germany - federal + 8 Länder"
+    description: Germany - federal + 8 Länder
     domains:
-      - gesetze_enefg
-      - bmwk_rechenzentren
-      - bmwk_de
-      - bfee_dc_registry
-      - hessen_energy
-      - hessen_digital_dc
-      - hessen_recht
-      - bayern_energy
-      - bayern_building
-      - bayern_recht
-      - nrw_energy
-      - nrw_energy4climate
-      - nrw_recht
-      - bw_energy
-      - bw_recht
-      - berlin_energy
-      - berlin_recht
-      - hamburg_energy
-      - hamburg_recht
-      - niedersachsen_energy
-      - niedersachsen_recht
-      - sachsen_energy
-      - sachsen_recht
-
+    - gesetze_enefg
+    - bmwk_rechenzentren
+    - bmwk_de
+    - bfee_dc_registry
+    - hessen_energy
+    - hessen_digital_dc
+    - hessen_recht
+    - bayern_energy
+    - bayern_building
+    - bayern_recht
+    - nrw_energy
+    - nrw_energy4climate
+    - nrw_recht
+    - bw_energy
+    - bw_recht
+    - berlin_energy
+    - berlin_recht
+    - hamburg_energy
+    - hamburg_recht
+    - niedersachsen_energy
+    - niedersachsen_recht
+    - sachsen_energy
+    - sachsen_recht
   australia:
-    description: "Australia - national + state energy policy"
+    description: Australia - national + state energy policy
     domains:
-      - energy_au
-      - nsw_energy
-      - nsw_ida_dc
-      - sa_energy_dc
-
+    - energy_au
+    - nsw_energy
+    - nsw_ida_dc
+    - sa_energy_dc
   eu_central:
-    description: "Germany, Switzerland, Austria, France"
+    description: Germany, Switzerland, Austria, France
     domains:
-      - bmwk_de
-      - bfe_ch
-      - bmk_at
-      - ecologie_fr
-      - ademe_fr
-
+    - bmwk_de
+    - bfe_ch
+    - bmk_at
+    - ecologie_fr
+    - ademe_fr
   eu_west:
-    description: "Netherlands, Belgium, Ireland"
+    description: Netherlands, Belgium, Ireland
     domains:
-      - rvo_nl
-      - energy_be
-      - seai_ie
-
+    - rvo_nl
+    - energy_be
+    - seai_ie
   eu_south:
-    description: "Spain, Italy, Portugal, Greece"
+    description: Spain, Italy, Portugal, Greece
     domains:
-      - miteco_es
-      - boe_es
-      - mase_it
-      - normattiva_it
-      - dgeg_pt
-      - dre_pt
-      - ypen_gr
-      - et_gr
-
+    - miteco_es
+    - boe_es
+    - mase_it
+    - normattiva_it
+    - dgeg_pt
+    - dre_pt
+    - ypen_gr
+    - et_gr
   eu_east:
-    description: "Poland, Czech Republic, Hungary, Romania"
+    description: Poland, Czech Republic, Hungary, Romania
     domains:
-      - klimat_pl
-      - isap_pl
-      - mpo_cz
-      - zakonyprolidi_cz
-      - energiaugyi_hu
-      - njt_hu
-      - energie_ro
-      - monitoruloficial_ro
-
+    - klimat_pl
+    - isap_pl
+    - mpo_cz
+    - zakonyprolidi_cz
+    - energiaugyi_hu
+    - njt_hu
+    - energie_ro
+    - monitoruloficial_ro
   us:
-    description: "United States - federal and state combined"
+    description: United States - federal and state combined
     domains:
-      # Federal
-      - energy_gov
-      - energystar_gov
-      - ferc_gov
-      - eia_gov
-      - whitehouse_gov
-      - pjm_com
-      # States (key ones)
-      - ca_energy
-      - nyserda
-      - va_energy
-      - va_legislature
-      - us_va_hb323_2026
-      - us_va_hb906_2026
-      - us_va_hb824_2026
-      - tx_seco
-      - wa_commerce
-      - co_energy
-      - co_legislature
-      - fl_psc
-      - fl_legislature
-      - mn_puc
-      - mn_commerce
-      - mn_legislature
-      - ct_deep
-      - ct_pura
-      - ct_legislature
-
+    - energy_gov
+    - energystar_gov
+    - ferc_gov
+    - eia_gov
+    - whitehouse_gov
+    - pjm_com
+    - ca_energy
+    - nyserda
+    - va_energy
+    - va_legislature
+    - us_va_hb323_2026
+    - us_va_hb906_2026
+    - us_va_hb824_2026
+    - tx_seco
+    - wa_commerce
+    - co_energy
+    - co_legislature
+    - fl_psc
+    - fl_legislature
+    - mn_puc
+    - mn_commerce
+    - mn_legislature
+    - ct_deep
+    - ct_pura
+    - ct_legislature
   us_federal:
-    description: "US federal agencies and regional orgs only"
+    description: US federal agencies and regional orgs only
     domains:
-      - energy_gov
-      - energystar_gov
-      - ferc_gov
-      - eia_gov
-      - whitehouse_gov
-      - pjm_com
-
+    - energy_gov
+    - energystar_gov
+    - ferc_gov
+    - eia_gov
+    - whitehouse_gov
+    - pjm_com
   us_states:
-    description: "US state governments only"
+    description: US state governments only
     domains:
-      - az_acc
-      - ca_energy
-      - ga_epd
-      - il_icc
-      - md_energy
-      - ma_doer
-      - mi_psc
-      - nj_bpu
-      - nyserda
-      - nc_utilities
-      - nc_legislature
-      - oh_energy
-      - or_energy
-      - pa_dep
-      - tx_seco
-      - tx_legislature
-      - va_energy
-      - va_legislature
-      - us_va_hb323_2026
-      - us_va_hb906_2026
-      - us_va_hb824_2026
-      - wa_commerce
-      - co_energy
-      - co_legislature
-      - fl_psc
-      - fl_legislature
-      - mn_puc
-      - mn_commerce
-      - mn_legislature
-      - ct_deep
-      - ct_pura
-      - ct_legislature
-
+    - az_acc
+    - ca_energy
+    - ga_epd
+    - il_icc
+    - md_energy
+    - ma_doer
+    - mi_psc
+    - nj_bpu
+    - nyserda
+    - nc_utilities
+    - nc_legislature
+    - oh_energy
+    - or_energy
+    - pa_dep
+    - tx_seco
+    - tx_legislature
+    - va_energy
+    - va_legislature
+    - us_va_hb323_2026
+    - us_va_hb906_2026
+    - us_va_hb824_2026
+    - wa_commerce
+    - co_energy
+    - co_legislature
+    - fl_psc
+    - fl_legislature
+    - mn_puc
+    - mn_commerce
+    - mn_legislature
+    - ct_deep
+    - ct_pura
+    - ct_legislature
   apac:
-    description: "Asia-Pacific region"
+    description: Asia-Pacific region
     domains:
-      - imda_sg
-      - ema_sg
-      - meti_jp
-      - enecho_jp
-      - motie_kr
-      - energy_au
-
-  # ---------------------------------------------------------------------------
-  # THEMATIC GROUPS
-  # ---------------------------------------------------------------------------
-
+    - imda_sg
+    - ema_sg
+    - meti_jp
+    - enecho_jp
+    - motie_kr
+    - energy_au
   federal:
-    description: "Federal/EU/National level only (no states/provinces)"
+    description: Federal/EU/National level only (no states/provinces)
     domains:
-      - ec_europa_energy
-      - eur_lex
-      - energy_gov
-      - energystar_gov
-      - bmwk_de
-      - oed_no
-      - meti_jp
-      - imda_sg
-
+    - ec_europa_energy
+    - eur_lex
+    - energy_gov
+    - energystar_gov
+    - bmwk_de
+    - oed_no
+    - meti_jp
+    - imda_sg
   leaders:
-    description: "Countries with most advanced heat reuse policies"
+    description: Countries with most advanced heat reuse policies
     domains:
-      - bmwk_de              # Germany - mandatory waste heat quotas
-      - energimyndigheten_se # Sweden - Stockholm district heating
-      - ens_dk               # Denmark - 60% district heating
-      - energiavirasto_fi    # Finland - voluntary adoption leader
-      - tem_fi               # Finland policy
-      - oed_no               # Norway - stricter than EU
-      - bfe_ch               # Switzerland - mandatory supply at cost
-      - imda_sg              # Singapore - Green DC Roadmap 2025
-      - ec_europa_energy     # EU - Energy Efficiency Directive
-
+    - bmwk_de
+    - energimyndigheten_se
+    - ens_dk
+    - energiavirasto_fi
+    - tem_fi
+    - oed_no
+    - bfe_ch
+    - imda_sg
+    - ec_europa_energy
   emerging:
-    description: "Countries with emerging regulations"
+    description: Countries with emerging regulations
     domains:
-      - ecologie_fr          # France - tax incentives
-      - energy_be            # Belgium - pilot programs
-      - seai_ie              # Ireland - growing DC hub
-      - bmk_at               # Austria - EU compliance
-      - meti_jp              # Japan - GX transformation
-      - motie_kr             # South Korea - PUE thresholds
-      - energy_au            # Australia - APAC growth
-
+    - ecologie_fr
+    - energy_be
+    - seai_ie
+    - bmk_at
+    - meti_jp
+    - motie_kr
+    - energy_au
   pending_legislation:
-    description: "Active/pending bills and legislative tracking domains"
+    description: Active/pending bills and legislative tracking domains
     domains:
-      # Virginia data center bills (2026)
-      - us_va_hb323_2026
-      - us_va_hb906_2026
-      - us_va_hb824_2026
-      - va_legislature
-      # US state legislatures
-      - ca_leginfo
-      - ca_assembly_util
-      - ca_senate_seuc
-      - ca_sd18_sb57
-      - co_legislature
-      - ct_legislature
-      - fl_legislature
-      - mn_legislature
-      - nc_legislature
-      - tx_legislature
-      # EU legislative sources
-      - eur_lex
-      - eurlex_eed_2023
-      - eurlex_dc_regulation
-      - riksdagen_se_dc
-      - retsinformation_dk
-      - lovdata_no
-      - legifrance_dc
-      - isap_pl
-      - zakonyprolidi_cz
-      - normattiva_it
-      - dre_pt
-      - njt_hu
-      - monitoruloficial_ro
-      - boe_es
-      - et_gr
-      - gesetze_enefg
-      # UK parliament
-      - uk_legislation
-      - uk_parliament_bills
-      - uk_scotland_parliament
-      - uk_wales_senedd
-
+    - us_va_hb323_2026
+    - us_va_hb906_2026
+    - us_va_hb824_2026
+    - va_legislature
+    - ca_leginfo
+    - ca_assembly_util
+    - ca_senate_seuc
+    - ca_sd18_sb57
+    - co_legislature
+    - ct_legislature
+    - fl_legislature
+    - mn_legislature
+    - nc_legislature
+    - tx_legislature
+    - eur_lex
+    - eurlex_eed_2023
+    - eurlex_dc_regulation
+    - riksdagen_se_dc
+    - retsinformation_dk
+    - lovdata_no
+    - legifrance_dc
+    - isap_pl
+    - zakonyprolidi_cz
+    - normattiva_it
+    - dre_pt
+    - njt_hu
+    - monitoruloficial_ro
+    - boe_es
+    - et_gr
+    - gesetze_enefg
+    - uk_legislation
+    - uk_parliament_bills
+    - uk_scotland_parliament
+    - uk_wales_senedd
   uk:
-    description: "United Kingdom - England, Scotland, Wales, Northern Ireland"
+    description: United Kingdom - England, Scotland, Wales, Northern Ireland
     domains:
-      - uk_desnz
-      - uk_ofgem
-      - uk_ccc
-      - uk_environment_agency
-      - uk_legislation
-      - uk_parliament_bills
-      - uk_parliament_hansard
-      - uk_parliament_si
-      - uk_gazette
-      - uk_scotland_energy
-      - uk_scotland_parliament
-      - uk_scotland_spice
-      - uk_wales_senedd
-      - uk_wales_senedd_research
-      - uk_ni_assembly
-      - uk_ni_assembly_archive
-
-  # ---------------------------------------------------------------------------
-  # TESTING GROUPS
-  # ---------------------------------------------------------------------------
-
+    - uk_desnz
+    - uk_ofgem
+    - uk_ccc
+    - uk_environment_agency
+    - uk_legislation
+    - uk_parliament_bills
+    - uk_parliament_hansard
+    - uk_parliament_si
+    - uk_gazette
+    - uk_scotland_energy
+    - uk_scotland_parliament
+    - uk_scotland_spice
+    - uk_wales_senedd
+    - uk_wales_senedd_research
+    - uk_ni_assembly
+    - uk_ni_assembly_archive
   test:
-    description: "Single domain for quick testing"
+    description: Single domain for quick testing
     domains:
-      - energy_gov
-
+    - energy_gov
   quick:
-    description: "Fast scan - 2 diverse domains"
+    description: Fast scan - 2 diverse domains
     domains:
-      - bmwk_de              # Germany (EU leader)
-      - energy_gov           # US federal
-
+    - bmwk_de
+    - energy_gov
   sample_nordic:
-    description: "Sample Nordic countries - 3 domains"
+    description: Sample Nordic countries - 3 domains
     domains:
-      - energimyndigheten_se
-      - ens_dk
-      - energiavirasto_fi
-
+    - energimyndigheten_se
+    - ens_dk
+    - energiavirasto_fi
   sample_apac:
-    description: "Sample APAC countries - 2 domains"
+    description: Sample APAC countries - 2 domains
     domains:
-      - imda_sg
-      - meti_jp
-
+    - imda_sg
+    - meti_jp
   test_new:
-    description: "DeepResearch new/updated domains"
+    description: DeepResearch new/updated domains
     domains:
-      - legifrance_dc
-      - rvo_nl
-      - lovdata_no
-      - riksdagen_se_dc
-      - energimyndigheten_dc
-      - retsinformation_dk
-      - ens_dk_heat
-      - cru_ie_dc
-      - gov_ie_dc
-      - bca_sg_greenmark
-      - imda_sg
-      - enecho_jp
-
+    - legifrance_dc
+    - rvo_nl
+    - lovdata_no
+    - riksdagen_se_dc
+    - energimyndigheten_dc
+    - retsinformation_dk
+    - ens_dk_heat
+    - cru_ie_dc
+    - gov_ie_dc
+    - bca_sg_greenmark
+    - imda_sg
+    - enecho_jp
   test_new_zh:
-    description: "DeepResearch Zurich domains"
+    description: DeepResearch Zurich domains
     domains:
-      - zh_energy_buildings
-      - zh_dc_guidance
-
+    - zh_energy_buildings
+    - zh_dc_guidance
   test_new_de:
-    description: "DeepResearch Germany domains"
+    description: DeepResearch Germany domains
     domains:
-      - gesetze_enefg
-      - bfee_dc_registry
-
+    - gesetze_enefg
+    - bfee_dc_registry
   test_new_eu:
-    description: "DeepResearch EU domains"
+    description: DeepResearch EU domains
     domains:
-      - eurlex_eed_2023
-      - eurlex_dc_regulation
-      - eurlex_eed_recommendation
-
+    - eurlex_eed_2023
+    - eurlex_dc_regulation
+    - eurlex_eed_recommendation
   test_new_us:
-    description: "DeepResearch US domains"
+    description: DeepResearch US domains
     domains:
-      - ca_energy
-      - or_building_codes
-      - tx_legislature
-
+    - ca_energy
+    - or_building_codes
+    - tx_legislature
   test_eu_expansion:
-    description: "New EU expansion domains (Phase 2)"
+    description: New EU expansion domains (Phase 2)
     domains:
-      # Southern Europe
-      - miteco_es
-      - boe_es
-      - mase_it
-      - normattiva_it
-      - dgeg_pt
-      - dre_pt
-      - ypen_gr
-      - et_gr
-      # Eastern Europe
-      - klimat_pl
-      - isap_pl
-      - mpo_cz
-      - zakonyprolidi_cz
-      - energiaugyi_hu
-      - njt_hu
-      - energie_ro
-      - monitoruloficial_ro
-
+    - miteco_es
+    - boe_es
+    - mase_it
+    - normattiva_it
+    - dgeg_pt
+    - dre_pt
+    - ypen_gr
+    - et_gr
+    - klimat_pl
+    - isap_pl
+    - mpo_cz
+    - zakonyprolidi_cz
+    - energiaugyi_hu
+    - njt_hu
+    - energie_ro
+    - monitoruloficial_ro
   test_us_expansion:
-    description: "New US state domains (Phase 3)"
+    description: New US state domains (Phase 3)
     domains:
-      - co_energy
-      - co_legislature
-      - fl_psc
-      - fl_legislature
-      - mn_puc
-      - mn_commerce
-      - mn_legislature
-      - ct_deep
-      - ct_pura
-      - ct_legislature
-
-  # ---------------------------------------------------------------------------
-  # SUB-NATIONAL GROUPS
-  # ---------------------------------------------------------------------------
-
+    - co_energy
+    - co_legislature
+    - fl_psc
+    - fl_legislature
+    - mn_puc
+    - mn_commerce
+    - mn_legislature
+    - ct_deep
+    - ct_pura
+    - ct_legislature
   scotland:
-    description: "Scotland - devolved energy and heat policy"
+    description: Scotland - devolved energy and heat policy
     domains:
-      - uk_scotland_energy
-      - uk_scotland_parliament
-      - uk_scotland_spice
-      - uk_scotland_heat_networks
-      - uk_scotland_shnf
-      - uk_scotland_hnsu
-      - uk_scotland_heat_map
-      - uk_spen
-      - scottish_enterprise
-      - hie_scotland
-      - business_energy_scotland
-      - sietf_scotland
-      - green_freeports_scotland
-      - lcitp_scotland
-      - dh_loan_scotland
-
+    - uk_scotland_energy
+    - uk_scotland_parliament
+    - uk_scotland_spice
+    - uk_scotland_heat_networks
+    - uk_scotland_shnf
+    - uk_scotland_hnsu
+    - uk_scotland_heat_map
+    - uk_spen
+    - scottish_enterprise
+    - hie_scotland
+    - business_energy_scotland
+    - sietf_scotland
+    - green_freeports_scotland
+    - lcitp_scotland
+    - dh_loan_scotland
   wales:
-    description: "Wales - devolved energy and climate policy"
+    description: Wales - devolved energy and climate policy
     domains:
-      - uk_wales_climate
-      - uk_wales_senedd
-      - uk_wales_senedd_research
-      - uk_wales_heat_strategy
-      - uk_wales_energy_service
-      - business_wales
-      - dev_bank_wales
-      - wges_wales
-      - salix_wales
-      - ynni_cymru_wales
-
+    - uk_wales_climate
+    - uk_wales_senedd
+    - uk_wales_senedd_research
+    - uk_wales_heat_strategy
+    - uk_wales_energy_service
+    - business_wales
+    - dev_bank_wales
+    - wges_wales
+    - salix_wales
+    - ynni_cymru_wales
   northern_ireland:
-    description: "Northern Ireland - devolved energy policy"
+    description: Northern Ireland - devolved energy policy
     domains:
-      - uk_ni_economy
-      - uk_ni_assembly
-      - uk_ni_assembly_archive
-      - invest_ni
-      - nibusinessinfo
-      - nisep_ni
-
+    - uk_ni_economy
+    - uk_ni_assembly
+    - uk_ni_assembly_archive
+    - invest_ni
+    - nibusinessinfo
+    - nisep_ni
   switzerland:
-    description: "Switzerland - federal and cantonal policy"
+    description: Switzerland - federal and cantonal policy
     domains:
-      - bfe_ch
-      - ch_eng_fedlex
-      - ch_admin_eng
-      - bfe_energy_policy
-      - bfe_district_heat
-      - bafu_buildings
-      - muken_2014
-      - endk_muken
-      - sdea_main
-      - energieschweiz_dc
-      - energieschweiz_abwaerme
-      - energieschweiz_fernwaerme
-      - zh_dc_guidance
-      - zh_energy_buildings
-      - zh_energiegesetz
-      - zh_bbv1
-      - zh_municipal_energy
-
+    - bfe_ch
+    - ch_eng_fedlex
+    - ch_admin_eng
+    - bfe_energy_policy
+    - bfe_district_heat
+    - bafu_buildings
+    - muken_2014
+    - endk_muken
+    - sdea_main
+    - energieschweiz_dc
+    - energieschweiz_abwaerme
+    - energieschweiz_fernwaerme
+    - zh_dc_guidance
+    - zh_energy_buildings
+    - zh_energiegesetz
+    - zh_bbv1
+    - zh_municipal_energy
   germany_laender:
-    description: "German Länder (states) - energy and legislation"
+    description: German Länder (states) - energy and legislation
     domains:
-      - hessen_energy
-      - hessen_digital_dc
-      - hessen_recht
-      - bayern_energy
-      - bayern_building
-      - bayern_recht
-      - nrw_energy
-      - nrw_energy4climate
-      - nrw_recht
-      - bw_energy
-      - bw_recht
-      - berlin_energy
-      - berlin_recht
-      - hamburg_energy
-      - hamburg_recht
-      - niedersachsen_energy
-      - niedersachsen_recht
-      - sachsen_energy
-      - sachsen_recht
-
-  # ---------------------------------------------------------------------------
-  # NEW COUNTRY GROUPS
-  # ---------------------------------------------------------------------------
-
+    - hessen_energy
+    - hessen_digital_dc
+    - hessen_recht
+    - bayern_energy
+    - bayern_building
+    - bayern_recht
+    - nrw_energy
+    - nrw_energy4climate
+    - nrw_recht
+    - bw_energy
+    - bw_recht
+    - berlin_energy
+    - berlin_recht
+    - hamburg_energy
+    - hamburg_recht
+    - niedersachsen_energy
+    - niedersachsen_recht
+    - sachsen_energy
+    - sachsen_recht
   canada:
-    description: "Canada - federal and provincial energy policy"
+    description: Canada - federal and provincial energy policy
     domains:
-      - nrcan_ca
-      - cer_ca
-      - eccc_ca
-      - nrcan_oee
-      - ontario_energy
-      - oeb_ca
-      - ieso_ca
-      - bc_energy
-      - cleanbc
-      - quebec_energy
-      - hydroquebec_ee
-      - alberta_energy
-      - auc_ca
-
+    - nrcan_ca
+    - cer_ca
+    - eccc_ca
+    - nrcan_oee
+    - ontario_energy
+    - oeb_ca
+    - ieso_ca
+    - bc_energy
+    - cleanbc
+    - quebec_energy
+    - hydroquebec_ee
+    - alberta_energy
+    - auc_ca
   india:
-    description: "India - national and state DC/energy policy"
+    description: India - national and state DC/energy policy
     domains:
-      - mop_in
-      - bee_in
-      - cea_in
-      - meity_in
-      - karnataka_dc_policy
-      - kredl_in
-      - tn_dc_policy
-      - telangana_dc
-      - tgredco_in
-      - maharashtra_energy
-
+    - mop_in
+    - bee_in
+    - cea_in
+    - meity_in
+    - karnataka_dc_policy
+    - kredl_in
+    - tn_dc_policy
+    - telangana_dc
+    - tgredco_in
+    - maharashtra_energy
   brazil:
-    description: "Brazil - federal energy and efficiency policy"
+    description: Brazil - federal energy and efficiency policy
     domains:
-      - mme_br
-      - aneel_br
-      - epe_br
-      - procel_br
-
+    - mme_br
+    - aneel_br
+    - epe_br
+    - procel_br
   uae:
-    description: "UAE - federal and emirate energy/DC policy"
+    description: UAE - federal and emirate energy/DC policy
     domains:
-      - moei_ae
-      - doe_abudhabi
-      - dewa_dubai
-
+    - moei_ae
+    - doe_abudhabi
+    - dewa_dubai
   middle_east:
-    description: "Middle East - UAE and Saudi Arabia"
+    description: Middle East - UAE and Saudi Arabia
     domains:
-      - moei_ae
-      - doe_abudhabi
-      - dewa_dubai
-      - moe_sa
-      - seec_sa
-
+    - moei_ae
+    - doe_abudhabi
+    - dewa_dubai
+    - moe_sa
+    - seec_sa
   north_america:
-    description: "North America - US federal and Canada national"
+    description: North America - US federal and Canada national
     domains:
-      - energy_gov
-      - energystar_gov
-      - ferc_gov
-      - eia_gov
-      - nrcan_ca
-      - cer_ca
-      - eccc_ca
-      - nrcan_oee
-      - sener_mx
-      - conuee_mx
-
+    - energy_gov
+    - energystar_gov
+    - ferc_gov
+    - eia_gov
+    - nrcan_ca
+    - cer_ca
+    - eccc_ca
+    - nrcan_oee
+    - sener_mx
+    - conuee_mx
   south_america:
-    description: "South America - Brazil"
+    description: South America - Brazil
     domains:
-      - mme_br
-      - aneel_br
-      - epe_br
-      - procel_br
-
+    - mme_br
+    - aneel_br
+    - epe_br
+    - procel_br
   africa:
-    description: "Africa - South Africa"
+    description: Africa - South Africa
     domains:
-      - dmre_za
-      - nersa_za
-
-  # ---------------------------------------------------------------------------
-  # CUSTOM GROUPS (add your own below)
-  # ---------------------------------------------------------------------------
-
-  # Example custom group:
-  # my_research:
-  #   description: "Domains I'm currently researching"
-  #   domains:
-  #     - bmwk_de
-  #     - energy_gov
-  #     - imda_sg
+    - dmre_za
+    - nersa_za

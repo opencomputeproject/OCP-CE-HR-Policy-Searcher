@@ -17,9 +17,12 @@ from .routes import domains, scans, policies, analysis, agent, logs
 _project_root = Path(__file__).resolve().parents[2]
 load_dotenv(_project_root / ".env", override=True)
 
+if not os.environ.get("OCP_DATA_DIR"):
+    os.environ["OCP_DATA_DIR"] = str(_project_root / "data")
+
 # Structured logging: JSON to file, JSON to console (API/production mode).
 # Uses the same unified config as the CLI agent.
-data_dir = os.environ.get("OCP_DATA_DIR", "data")
+data_dir = os.environ["OCP_DATA_DIR"]
 setup_logging(data_dir, json_console=True, console_level=logging.INFO)
 
 

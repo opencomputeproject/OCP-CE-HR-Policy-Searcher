@@ -44,6 +44,7 @@ async def run_agent(request: AgentRequest) -> AgentResponse:
     agent = PolicyAgent(
         api_key=api_key,
         model=request.model,
+        data_dir=os.environ.get("OCP_DATA_DIR", "data"),
     )
 
     tools_called: list[str] = []
@@ -105,6 +106,7 @@ async def agent_websocket(ws: WebSocket):
             agent = PolicyAgent(
                 api_key=api_key,
                 model=model,
+                data_dir=os.environ.get("OCP_DATA_DIR", "data"),
             )
 
             async def on_text(text: str):

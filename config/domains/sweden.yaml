@@ -74,3 +74,74 @@ domains:
       Includes waste heat data per EU Delegated Regulation 2024/1364.
       Supervised by Energimyndigheten (Swedish Energy Agency).
       Effective July 1, 2025.
+  - name: "Swedish Government - Proposition 2024/25:131 Data Centre & Sustainable Fuels"
+    id: "regeringen"
+    enabled: true
+    region:
+      - "eu"
+      - "nordic"
+      - "sweden"
+    base_url: "https://www.regeringen.se"
+    start_paths:
+      - "/rattsdokument/proposition/2024/11/prop.-202425131/"
+    max_depth: 2
+    language: en
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    verified_by: "auto-generated"
+    verified_date: "2026-05-06"
+    notes: Auto-generated from https://www.regeringen.se
+
+  - name: "Energimarknadsinspektionen (Swedish Energy Markets Inspectorate)"
+    id: "ei"
+    enabled: true
+    region:
+      - "eu"
+      - "nordic"
+      - "sweden"
+    base_url: "https://ei.se"
+    start_paths:
+      - "/om-oss/detta-ar-energimarknadsinspektionen"
+    max_depth: 2
+    language: en
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    verified_by: "auto-generated"
+    verified_date: "2026-05-06"
+    notes: Auto-generated from https://ei.se
+
+  - name: "Swedish Energy Agency – Data Centre Energy Performance"
+    id: "energimyndigheten"
+    enabled: true
+    region:
+      - "eu"
+      - "nordic"
+      - "sweden"
+    base_url: "https://www.energimyndigheten.se"
+    start_paths:
+      - "/en/climate/climate/data-centre-energy-performance-reporting/"
+    max_depth: 2
+    language: en
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    verified_by: "auto-generated"
+    verified_date: "2026-05-06"
+    notes: Auto-generated from https://www.energimyndigheten.se
+
+  - name: "Riksdagen – Lag 2025:570 Data Centre Energy Performance"
+    id: "riksdagense"
+    enabled: true
+    region:
+      - "eu"
+      - "nordic"
+      - "sweden"
+    base_url: "https://www.riksdagen.se"
+    start_paths:
+      - "/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/lag-2025570-om-offentliggorande-av-information_sfs-2025-570/"
+    max_depth: 2
+    language: sv
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    verified_by: "auto-generated"
+    verified_date: "2026-05-06"
+    notes: Auto-generated from https://www.riksdagen.se

@@ -1,0 +1,103 @@
+[
+  {
+    "url": "https://www.energimyndigheten.se/en/climate/climate/data-centre-energy-performance-reporting/",
+    "policy_name": "Act (2025:570) on the Disclosure of Information on the Energy Performance of Data Centres / Lag (2025:570) om uppgiftsskyldighet avseende energiprestanda f\u00f6r datacenter",
+    "jurisdiction": "Sweden (EU)",
+    "policy_type": "law",
+    "summary": "Sweden's Act (2025:570), effective 1 July 2025, requires owners or operators of data centres with an installed IT power demand of at least 500 kW to annually report energy performance data to an EU-wide database. The reporting requirements, derived from EU Delegated Regulation 2024/1364, include data on energy use, water use, and waste heat. Additionally, a proposed amendment to Swedish law (2013:268) would mandate that data centres with total energy supply above 1 MW use waste heat or other recovery applications, in line with Article 26.6 of the revised EU Energy Efficiency Directive 2023/1791, unless technically or economically infeasible.",
+    "relevance_score": 8,
+    "effective_date": "2025-07-01",
+    "source_language": "en",
+    "bill_number": null,
+    "key_requirements": "1. Data centres with \u2265500 kW installed IT power demand must report annual energy performance data to the EU database by 15 May 2026 (covering full year 2025). 2. Notification to the Swedish Energy Agency must be submitted by 27 April 2026. 3. Reported data must include energy use, water use, waste heat, and grid service contributions per Delegated Regulation 2024/1364 Annexes I and II. 4. Exemptions apply for data centres used for security-sensitive, defence, or civil contingency purposes under the Protective Security Act (2018:585). 5. Proposed amendment to Act (2013:268) would require data centres with total energy supply >1 MW to use waste heat or other recovery applications unless technically or economically infeasible (Article 26.6 EED). 6. Member states must promote EU Code of Conduct for Energy Efficiency best practices for facilities with \u22651 MW IT power demand (Article 12.4 EED).",
+    "discovered_at": "2026-05-06T13:03:29.845105",
+    "crawl_status": "success",
+    "error_details": null,
+    "review_status": "new",
+    "scan_id": "",
+    "domain_id": "",
+    "verification_flags": [],
+    "referenced_policies": [
+      "Act (2025:570) on the Disclosure of Information on the Energy Performance of Data Centres",
+      "Protective Security Act (2018:585)",
+      "EU Energy Efficiency Directive 2023/1791 (revised EED), Articles 12 and 26.6",
+      "EU Delegated Regulation 2024/1364",
+      "Public Access to Information and Secrecy Act (2009:400), Chapter 30 Section 23",
+      "Act (2013:268) on certain cost-benefit analyses (proposed amendment)",
+      "EU Code of Conduct for Energy Efficiency in Data Centres"
+    ],
+    "referenced_urls": [
+      "https://www.riksdagen.se",
+      "https://eur-lex.europa.eu",
+      "https://energy.ec.europa.eu",
+      "https://circab.europa.eu",
+      "https://joint-research-centre.ec.europa.eu",
+      "https://ecas.ec.europa.eu"
+    ]
+  },
+  {
+    "url": "https://www.regeringen.se/rattsliga-dokument/departementsserien-och-promemorior/2025/07/genomforande-av-delar-av-det-omarbetade-energieffektivitetsdirektivet",
+    "policy_name": "Genomf\u00f6rande av delar av det omarbetade energieffektivitetsdirektivet",
+    "jurisdiction": "Sweden",
+    "policy_type": "regulation",
+    "summary": "This Swedish Ministry of Climate and Enterprise memorandum proposes legislation implementing parts of the EU's recast Energy Efficiency Directive. It introduces mandatory obligations for new and renovated data centers to utilize waste heat or take measures to ensure waste heat recovery where technically and economically feasible. It also expands cost-benefit analysis requirements to include data centers during new construction or major renovation.",
+    "relevance_score": 9,
+    "effective_date": "2026-07-01",
+    "source_language": "sv",
+    "bill_number": null,
+    "key_requirements": "1. New and renovated data centers must utilize waste heat (spillv\u00e4rme) or take measures to ensure waste heat recovery if technically and economically feasible. 2. Data centers must conduct cost-benefit analyses during new construction or major renovation. 3. Companies with average annual energy use exceeding 85 TJ must implement energy management systems. 4. Companies with energy use exceeding 10 TJ must conduct energy audits every four years and publish action plans in annual reports. 5. District heating/cooling companies with non-efficient systems must prepare plans to achieve efficiency. 6. New contractual rights for district heating and cooling customers.",
+    "discovered_at": "2026-05-06T13:04:59.436010",
+    "crawl_status": "success",
+    "error_details": null,
+    "review_status": "new",
+    "scan_id": "",
+    "domain_id": "",
+    "verification_flags": [],
+    "referenced_policies": [
+      "EU omarbetade energieffektivitetsdirektivet (recast Energy Efficiency Directive / EED)",
+      "Lagen om energikartl\u00e4ggning i stora f\u00f6retag (current law being replaced)",
+      "Milj\u00f6balken (Swedish Environmental Code)",
+      "Ett bidrag f\u00f6r effektiv energianv\u00e4ndning i sm\u00e5hus, KN2026/00946",
+      "Int\u00e4ktsdelning fr\u00e5n vindkraftsanl\u00e4ggningar, KN2025/02059",
+      "V\u00e4rdet av vinden (SOU 2023:18)"
+    ],
+    "referenced_urls": [
+      "https://www.regeringen.se/rattsliga-dokument/departementsserien-och-promemorior/2025/07/genomforande-av-delar-av-det-omarbetade-energieffektivitetsdirektivet"
+    ]
+  },
+  {
+    "url": "https://www.riksdagen.se/sv/dokument-och-lagar/dokument/proposition/nya-regler-for-datacenter-och-hallbara-branslen_hc03131/html/",
+    "policy_name": "Nya regler f\u00f6r datacenter och h\u00e5llbara br\u00e4nslen samt en ny reduktionsplikt (Proposition 2024/25:131)",
+    "jurisdiction": "Sweden",
+    "policy_type": "law",
+    "summary": "Swedish government proposition implementing parts of the EU Energy Efficiency Directive (2023/1791) and Renewable Energy Directive, proposing a new law on public disclosure of data center energy performance. Data centers with installed IT power demand of at least 500 kW must annually report energy performance metrics to a European database. The proposition also covers sustainable fuel criteria, reduction obligations for fossil fuels, and related legislative amendments.",
+    "relevance_score": 6,
+    "effective_date": "2025-07-01",
+    "source_language": "sv",
+    "bill_number": null,
+    "key_requirements": "1. Data centers with installed IT power demand \u2265500 kW must annually report energy performance data to the EU database under Article 12 of Directive 2023/1791. 2. Reporting obligation does not apply to data centers used for security-sensitive activities, defense, or crisis preparedness. 3. A supervisory authority will oversee compliance and may issue injunctions with fines. 4. Reporting is governed by Commission Delegated Regulation (EU) 2024/1364. 5. Secrecy-protected information is exempt from reporting. 6. Supervisory authority decisions may be appealed to administrative courts.",
+    "discovered_at": "2026-05-06T13:05:28.267689",
+    "crawl_status": "success",
+    "error_details": null,
+    "review_status": "new",
+    "scan_id": "",
+    "domain_id": "",
+    "verification_flags": [],
+    "referenced_policies": [
+      "Europaparlamentets och r\u00e5dets direktiv (EU) 2023/1791 om energieffektivitet (Energy Efficiency Directive, EED recast) - Article 12 and Annex VII",
+      "Kommissionens delegerade f\u00f6rordning (EU) 2024/1364 om inr\u00e4ttandet av ett gemensamt unionssystem f\u00f6r bed\u00f6mning av datacentraler",
+      "Europaparlamentets och r\u00e5dets direktiv (EU) 2018/2001 om f\u00f6rnybar energi (RED II)",
+      "Europaparlamentets och r\u00e5dets direktiv (EU) 2023/2413 (RED III amendment)",
+      "EU-f\u00f6rordningen ReFuelEU Aviation",
+      "Lagen (1994:1776) om skatt p\u00e5 energi",
+      "Lagen (2010:598) om h\u00e5llbarhetskriterier f\u00f6r biodrivmedel och biobr\u00e4nslen",
+      "Drivmedelslagen (2011:319)",
+      "Lagen (2011:1200) om elcertifikat",
+      "Lagen (2017:1201) om reduktion av v\u00e4xthusgasutsl\u00e4pp fr\u00e5n vissa fossila drivmedel",
+      "Offentlighets- och sekretesslagen (2009:400)"
+    ],
+    "referenced_urls": [
+      "https://www.riksdagen.se/sv/dokument-och-lagar/dokument/proposition/nya-regler-for-datacenter-och-hallbara-branslen_hc03131/html/"
+    ]
+  }
+]

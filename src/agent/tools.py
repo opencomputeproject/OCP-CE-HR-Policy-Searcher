@@ -16,8 +16,10 @@ from ..core.crawler import AsyncCrawler
 from ..core.extractor import HtmlExtractor
 from ..core.keywords import KeywordMatcher
 from ..core.llm import ClaudeClient, LLMError
+from ..core.log_setup import log_audit_event
 from ..core.verifier import Verifier
 from ..orchestration.scan_manager import ScanManager
+from ..storage.store import PolicyStore
 import yaml
 
 from .domain_generator import (
@@ -499,12 +501,38 @@ async def execute_tool(
 
                     if screening.relevant:
                         analysis = await llm.analyze_policy(extracted.text, url, extracted.language)
-                        policy = llm.to_policy(analysis, url, extracted.language or "en")
+                        domain_id = generate_domain_id(urlparse(url).hostname or url)
+                        policy = llm.to_policy(
+                            analysis,
+                            url,
+                            extracted.language or "en",
+                            domain_id=domain_id,
+                            scan_id="manual-analysis",
+                        )
                         if policy:
                             verifier = Verifier()
                             flags = verifier.verify(policy)
+                            policy.verification_flags = flags
+
+                            store = PolicyStore(data_dir=scan_manager.data_dir)
+                            added = store.add_policies([policy])
+
                             response["policy"] = policy.model_dump(mode="json")
                             response["flags"] = [f.value for f in flags]
+                            response["saved"] = added > 0
+                            response["saved_to"] = str(store.policies_file)
+
+                            if added:
+                                log_audit_event(
+                                    data_dir=scan_manager.data_dir,
+                                    event="policy_found",
+                                    scan_id=policy.scan_id,
+                                    domain_id=policy.domain_id,
+                                    policy_name=policy.policy_name,
+                                    url=policy.url,
+                                    relevance=policy.relevance_score,
+                                    source="analyze_url",
+                                )
                 except LLMError as e:
                     response["llm_error"] = str(e)
                 finally:
@@ -523,7 +551,15 @@ async def execute_tool(
             }
 
         elif name == "search_policies":
-            policies = scan_manager.get_all_policies()
+            store = PolicyStore(data_dir=scan_manager.data_dir)
+            policies = store.get_all()
+            seen_urls = {p.get("url") for p in policies}
+            for policy in scan_manager.get_all_policies():
+                p_dict = policy.model_dump(mode="json")
+                if p_dict.get("url") not in seen_urls:
+                    policies.append(p_dict)
+                    seen_urls.add(p_dict.get("url"))
+
             jurisdiction = arguments.get("jurisdiction")
             policy_type = arguments.get("policy_type")
             min_score = arguments.get("min_score")
@@ -531,35 +567,45 @@ async def execute_tool(
 
             filtered = []
             for p in policies:
-                if jurisdiction and jurisdiction.lower() not in (p.jurisdiction or "").lower():
+                if jurisdiction and jurisdiction.lower() not in (p.get("jurisdiction", "") or "").lower():
                     continue
-                if policy_type and p.policy_type.value != policy_type:
+                if policy_type and p.get("policy_type") != policy_type:
                     continue
-                if min_score and p.relevance_score < min_score:
+                if min_score and (p.get("relevance_score", 0) or 0) < min_score:
                     continue
-                if query and query not in (p.policy_name + " " + p.summary).lower():
+                searchable_text = f"{p.get('policy_name', '')} {p.get('summary', '')}".lower()
+                if query and query not in searchable_text:
                     continue
                 filtered.append(p)
 
             return {
-                "policies": [p.model_dump(mode="json") for p in filtered],
+                "policies": filtered,
                 "count": len(filtered),
             }
 
         elif name == "get_policy_stats":
-            policies = scan_manager.get_all_policies()
+            store = PolicyStore(data_dir=scan_manager.data_dir)
+            policies = store.get_all()
+            seen_urls = {p.get("url") for p in policies}
+            for policy in scan_manager.get_all_policies():
+                p_dict = policy.model_dump(mode="json")
+                if p_dict.get("url") not in seen_urls:
+                    policies.append(p_dict)
+                    seen_urls.add(p_dict.get("url"))
+
             by_jurisdiction: dict[str, int] = {}
             by_type: dict[str, int] = {}
             for p in policies:
-                j = p.jurisdiction or "Unknown"
+                j = p.get("jurisdiction") or "Unknown"
                 by_jurisdiction[j] = by_jurisdiction.get(j, 0) + 1
-                by_type[p.policy_type.value] = by_type.get(p.policy_type.value, 0) + 1
+                pt = p.get("policy_type") or "unknown"
+                by_type[pt] = by_type.get(pt, 0) + 1
 
             return {
                 "total": len(policies),
                 "by_jurisdiction": by_jurisdiction,
                 "by_type": by_type,
-                "flagged": sum(1 for p in policies if p.verification_flags),
+                "flagged": sum(1 for p in policies if p.get("verification_flags")),
             }
 
         elif name == "get_audit_advisory":
