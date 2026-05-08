@@ -29,7 +29,7 @@
 - [X] Discovered policies visible
 - [] Remove found policies
 - [] Review found policies
-- [] Policies filterable
+- [x] Policies filterable
 - [] Policies sortable
 - [] Policies searchable
 - [] Multiple filters at the sasme time
