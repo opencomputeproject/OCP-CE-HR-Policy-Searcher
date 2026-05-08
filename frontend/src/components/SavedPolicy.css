@@ -5,6 +5,29 @@
     text-align: left;
 }
 
+.policy-list-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.policy-list-header h2 {
+    margin: 0;
+}
+
+.policy-list-filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.policy-list-filter {
+    background-color: #ffffff;
+}
+
 .policy-list-items {
     width: 100%;
     min-width: 0;
@@ -424,6 +447,16 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .policy-list-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .policy-list-filters {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
     .saved-policy-header {
         flex-direction: column;
         align-items: flex-start;

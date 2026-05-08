@@ -59,7 +59,7 @@ function getTagGroup(tag, description = '') {
     )?.[0] || 'default';
 }
 
-function formatTagLabel(tag) {
+export function formatTagLabel(tag) {
     return tag.replaceAll('_', ' ');
 }
 
@@ -73,7 +73,7 @@ function getTagBadgeStyle(tag, description) {
     };
 }
 
-function getPolicyTags(policy, tags) {
+export function getPolicyTags(policy, tags) {
     const explicitTags = Array.isArray(policy.tags) ? policy.tags : [];
     const searchableText = [
         policy.policy_name,
