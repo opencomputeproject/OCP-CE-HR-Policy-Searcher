@@ -1,0 +1,28 @@
+{
+  "expiry_days": 30,
+  "entries": {
+    "https://ens.dk/en/supply-and-consumption/heat": {
+      "url": "https://ens.dk/en/supply-and-consumption/heat",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "969a26fb8240964a",
+      "analyzed_date": "2026-05-10T12:40:22.982522+00:00",
+      "expires_date": "2026-06-09T12:40:22.982522+00:00",
+      "policy_type": ""
+    },
+    "https://ens.dk/forsyning-og-forbrug/overskudsvarme": {
+      "url": "https://ens.dk/forsyning-og-forbrug/overskudsvarme",
+      "is_relevant": true,
+      "relevance_score": 9,
+      "content_hash": "fd026aaca80f0d2f",
+      "analyzed_date": "2026-05-10T12:40:35.289164+00:00",
+      "expires_date": "2026-06-09T12:40:35.289164+00:00",
+      "policy_type": "regulation"
+    }
+  },
+  "metadata": {
+    "version": 1,
+    "last_saved": "2026-05-10T12:42:22.099866+00:00",
+    "total_entries": 2
+  }
+}

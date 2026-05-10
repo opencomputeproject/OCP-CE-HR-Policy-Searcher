@@ -99,5 +99,63 @@
     "referenced_urls": [
       "https://www.riksdagen.se/sv/dokument-och-lagar/dokument/proposition/nya-regler-for-datacenter-och-hallbara-branslen_hc03131/html/"
     ]
+  },
+  {
+    "url": "https://www.riksdagen.se/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/lag-2025570-om-offentliggorande-av-information_sfs-2025-570/",
+    "policy_name": "Lag (2025:570) om offentligg\u00f6rande av information om datacenters energiprestanda",
+    "jurisdiction": "Sweden",
+    "policy_type": "law",
+    "summary": "This Swedish law (SFS 2025:570) requires owners or operators of data centers with an installed IT power demand of at least 500 kW to annually report energy performance data to the EU database established under Article 12 of the EU Energy Efficiency Directive (2023/1791). The law establishes a supervisory authority with inspection and enforcement powers, including the ability to issue injunctions with financial penalties. Exemptions apply to data centers used for security-sensitive activities, defense, or civil emergency preparedness purposes.",
+    "relevance_score": 6,
+    "effective_date": "2025-05-28",
+    "source_language": "sv",
+    "bill_number": null,
+    "key_requirements": "1. Data center owners/operators with \u2265500 kW installed IT power must annually report energy performance data to the EU EED Article 12 database. 2. Reporting obligation does not apply to classified/secret information under Swedish secrecy law. 3. Exemptions for data centers used for security-sensitive, defense, or crisis preparedness purposes. 4. A government-designated supervisory authority oversees compliance and may request documents, access premises, and issue enforceable injunctions with fines. 5. Supervisory authority decisions are appealable to general administrative courts, with leave to appeal required at the Court of Appeal level.",
+    "discovered_at": "2026-05-10T12:18:30.610004",
+    "crawl_status": "success",
+    "error_details": null,
+    "review_status": "new",
+    "scan_id": "fd8b0ba2",
+    "domain_id": "riksdagense",
+    "verification_flags": [],
+    "referenced_policies": [
+      "Europaparlamentets och r\u00e5dets direktiv (EU) 2023/1791 om energieffektivitet (EU Energy Efficiency Directive - EED), Article 12",
+      "Kommissionens delegerade f\u00f6rordning (EU) 2024/1364 av den 14 mars 2024 om den f\u00f6rsta delen av inr\u00e4ttandet av ett gemensamt unionssystem f\u00f6r bed\u00f6mning av datacentraler",
+      "Offentlighets- och sekretesslagen (2009:400)"
+    ],
+    "referenced_urls": [
+      "https://www.riksdagen.se/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/lag-2025570-om-offentliggorande-av-information_sfs-2025-570/"
+    ]
+  },
+  {
+    "url": "https://ens.dk/forsyning-og-forbrug/overskudsvarme",
+    "policy_name": "Regulering af overskudsvarme / Bekendtg\u00f8relse om cost-benefit-analyser for industrianl\u00e6g, servicefaciliteter og datacentre",
+    "jurisdiction": "Denmark",
+    "policy_type": "regulation",
+    "summary": "Denmark abolished the previous waste heat price cap on 1 July 2025, making it more attractive for district heating companies to invest in waste heat utilization. From 11 October 2025, new EU-derived requirements mandate that operators of data centers over 1 MW, industrial facilities over 8 MW, and service facilities over 7 MW must prepare and submit a cost-benefit analysis to the Danish Energy Agency (Energistyrelsen) when constructing or undertaking major renovations. The cost-benefit analysis must assess the economic viability of supplying waste heat to district heating networks, and must be approved before project permits can be sought.",
+    "relevance_score": 9,
+    "effective_date": "2025-10-11",
+    "source_language": "da",
+    "bill_number": null,
+    "key_requirements": "1. Data centers over 1 MW must prepare a cost-benefit analysis when constructing or undertaking major renovations. 2. The analysis must evaluate economic feasibility of supplying waste heat to district heating or district cooling networks. 3. The cost-benefit analysis must be submitted digitally to Energistyrelsen (varme@ens.dk) for approval. 4. Energistyrelsen approval of the cost-benefit analysis is a prerequisite before applying for project approval under the project regulation (projektbekendtg\u00f8relsen) or cooling regulation (k\u00f8lebekendtg\u00f8relsen). 5. The waste heat price cap was abolished from 1 July 2025, removing the fixed upper limit on costs district heating companies can charge consumers for waste heat utilization. 6. Companies supplying raw waste heat to district heating remain outside the Heat Supply Act price regulation, but heat upgraded via heat pumps is subject to price regulation.",
+    "discovered_at": "2026-05-10T12:40:35.292562",
+    "crawl_status": "success",
+    "error_details": null,
+    "review_status": "new",
+    "scan_id": "e80e591c",
+    "domain_id": "ens_dk_heat",
+    "verification_flags": [],
+    "referenced_policies": [
+      "Aftale om afskaffelse af prisloft p\u00e5 overskudsvarme (17. januar 2025)",
+      "Opf\u00f8lgende aftale ifm. Klimaaftale for energi og industri mv. (7. september 2021)",
+      "Bekendtg\u00f8relse om cost-benefit-analyser (implementeret 11. oktober 2025)",
+      "Bekendtg\u00f8relse om godkendelse af projekter for kollektive varmeforsyningsanl\u00e6g (projektbekendtg\u00f8relsen)",
+      "Bekendtg\u00f8relse om godkendelse af projekter for fjernk\u00f8lingsanl\u00e6g (k\u00f8lebekendtg\u00f8relsen)",
+      "Varmeforsyningsloven (Danish Heat Supply Act)",
+      "EU Energy Efficiency Directive (EED) - Article 26 (implied by 'nye EU-krav')"
+    ],
+    "referenced_urls": [
+      "https://ens.dk/forsyning-og-forbrug/overskudsvarme"
+    ]
   }
 ]

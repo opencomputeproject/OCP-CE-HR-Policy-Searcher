@@ -94,7 +94,7 @@ async def cancel_scan(
     raise HTTPException(status_code=404, detail=f"Scan '{scan_id}' not running or not found")
 
 
-@router.websocket("/api/scans/{scan_id}/ws")
+@router.websocket("/scans/{scan_id}/ws")
 async def scan_websocket(
     websocket: WebSocket,
     scan_id: str,
