@@ -15,12 +15,12 @@
 - [x] Send button
 - [] Separated handling of message types
 - [] Transparency of AI thinking
-- [] Stop button
+- [x] Stop button
 
 ## Region selector / premade prompting
 - [x] List for regions
 - [] Proper sorting of lists
-- [] Non-hardcoded regions
+- [x] Non-hardcoded regions
 - [] Pre made prompts don't look like code
 - [] 
 
