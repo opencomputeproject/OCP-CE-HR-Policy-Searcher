@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ApiKeySettingsModal, { apiKeySettingsButtonStyle } from './ApiKeySettingsModal';
 import Chatbot from './Chatbot';
 import ModeSelector from './ModeSelector';
-import RegionDropdown from './RegionDropdown';
+import RegionSelector from './RegionSelector';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
@@ -370,8 +370,8 @@ function AgentPanel() {
                             API key settings
                         </button>
                     </div>
-                    <div className="region-dropdown-scroll">
-                        <RegionDropdown
+                    <div className="region-selector-scroll">
+                        <RegionSelector
                             selectedItems={selectedRegions}
                             onSelectionChange={(event, itemIds) => setSelectedRegions(itemIds)}
                         />

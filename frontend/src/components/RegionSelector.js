@@ -133,7 +133,7 @@ function flattenTreeItems(items) {
   ]);
 }
 
-export default function RegionTreeView({ selectedItems, onSelectionChange }) {
+export default function RegionSelector({ selectedItems, onSelectionChange }) {
   const [treeData, setTreeData] = React.useState([]);
   const [status, setStatus] = React.useState('loading');
   const [error, setError] = React.useState('');
