@@ -94,9 +94,27 @@ const styles = {
     background: '#ef4444',
     color: '#ffffff',
   },
+  secondaryButton: {
+    background: '#e2e8f0',
+    color: '#111827',
+  },
   disabledButton: {
     background: '#999',
     cursor: 'not-allowed',
+  },
+  warning: {
+    padding: 12,
+    border: '1px solid #f59e0b',
+    borderRadius: 6,
+    background: '#fffbeb',
+    color: '#92400e',
+    fontSize: 14,
+    lineHeight: 1.45,
+  },
+  actionRow: {
+    display: 'flex',
+    gap: 10,
+    flexWrap: 'wrap',
   },
   message: {
     margin: '14px 0 0',
@@ -108,7 +126,9 @@ const styles = {
 function buttonStyle(variant, disabled) {
   return {
     ...styles.buttonBase,
-    ...(variant === 'danger' ? styles.dangerButton : styles.saveButton),
+    ...(variant === 'danger' ? styles.dangerButton : {}),
+    ...(variant === 'secondary' ? styles.secondaryButton : {}),
+    ...(variant === 'save' ? styles.saveButton : {}),
     ...(disabled ? styles.disabledButton : {}),
   };
 }
@@ -118,6 +138,7 @@ function ApiKeySettingsModal({ open, onClose }) {
   const [apiKey, setApiKey] = useState('');
   const [message, setMessage] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const loadStatus = async () => {
     const response = await fetch(`${API_BASE_URL}/api/settings/api-key`);
@@ -132,6 +153,7 @@ function ApiKeySettingsModal({ open, onClose }) {
 
     setMessage('');
     setApiKey('');
+    setIsConfirmingDelete(false);
     loadStatus().catch((error) => setMessage(error.message));
   }, [open]);
 
@@ -177,6 +199,7 @@ function ApiKeySettingsModal({ open, onClose }) {
 
       setStatus(await response.json());
       setMessage('API key deleted.');
+      setIsConfirmingDelete(false);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -204,14 +227,43 @@ function ApiKeySettingsModal({ open, onClose }) {
               <span style={styles.label}>Current key</span>
               <span style={styles.keyValue}>{status.masked}</span>
             </div>
-            <button
-              type="button"
-              style={buttonStyle('danger', isBusy)}
-              onClick={deleteKey}
-              disabled={isBusy}
-            >
-              Delete key
-            </button>
+            {isConfirmingDelete ? (
+              <>
+                <div style={styles.warning}>
+                  Deleting this key will disable agent and LLM features until a new Anthropic API key is saved.
+                </div>
+                <div style={styles.actionRow}>
+                  <button
+                    type="button"
+                    style={buttonStyle('danger', isBusy)}
+                    onClick={deleteKey}
+                    disabled={isBusy}
+                  >
+                    Confirm delete
+                  </button>
+                  <button
+                    type="button"
+                    style={buttonStyle('secondary', isBusy)}
+                    onClick={() => setIsConfirmingDelete(false)}
+                    disabled={isBusy}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button
+                type="button"
+                style={buttonStyle('danger', isBusy)}
+                onClick={() => {
+                  setMessage('');
+                  setIsConfirmingDelete(true);
+                }}
+                disabled={isBusy}
+              >
+                Delete key
+              </button>
+            )}
           </div>
         ) : (
           <div style={styles.body}>

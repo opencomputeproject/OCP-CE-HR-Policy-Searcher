@@ -124,10 +124,18 @@
 }
 
 .panel-heading {
-  margin: 0 0 16px;
+  margin: 0;
   font-size: 22px;
   font-weight: 600;
   color: black;
+}
+
+.settings-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .toolbar-row {

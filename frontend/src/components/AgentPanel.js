@@ -10,7 +10,6 @@ const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
 function AgentPanel() {
     const [selectedRegions, setSelectedRegions] = useState([]);
     const [mode, setMode] = useState('standard');
-    const [isConnected, setIsConnected] = useState(false);
     const [isChatRunning, setIsChatRunning] = useState(false);
     const [isScanRequestRunning, setIsScanRequestRunning] = useState(false);
     const [activeScanId, setActiveScanId] = useState(null);
@@ -42,19 +41,13 @@ function AgentPanel() {
         const ws = new WebSocket(`${WS_BASE_URL}/api/agent/ws`);
         wsRef.current = ws;
 
-        ws.onopen = () => {
-            setIsConnected(true);
-        };
-
         ws.onclose = () => {
             wsRef.current = null;
-            setIsConnected(false);
             setIsChatRunning(false);
         };
 
         ws.onerror = (error) => {
             console.error('WebSocket error:', error);
-            setIsConnected(false);
             setIsChatRunning(false);
             pushNotice('error', 'Connection error.');
         };
@@ -366,7 +359,17 @@ function AgentPanel() {
         <div className="app-panel">
             <section className="settings-panel" aria-label="Search settings">
                 <div>
-                    <h2 className="panel-heading">Search settings</h2>
+                    <div className="settings-heading-row">
+                        <h2 className="panel-heading">Search settings</h2>
+                        <button
+                            type="button"
+                            className="button"
+                            style={apiKeySettingsButtonStyle}
+                            onClick={() => setIsSettingsOpen(true)}
+                        >
+                            API key settings
+                        </button>
+                    </div>
                     <div className="region-dropdown-scroll">
                         <RegionDropdown
                             selectedItems={selectedRegions}
@@ -402,24 +405,6 @@ function AgentPanel() {
             </section>
 
             <section className="chat-panel" aria-label="Agent chat">
-                <div className="toolbar-row">
-                    <button
-                        type="button"
-                        className="button"
-                        style={apiKeySettingsButtonStyle}
-                        onClick={() => setIsSettingsOpen(true)}
-                    >
-                        API key settings
-                    </button>
-                    <span className="status-text">
-                        {isScanRunning
-                            ? `Scan ${activeScanId} is running.`
-                            : isConnected
-                                ? 'Ready for CLI agent input.'
-                                : 'Open API key settings to configure the CLI agent.'}
-                    </span>
-                </div>
-
                 <ApiKeySettingsModal
                     open={isSettingsOpen}
                     onClose={() => setIsSettingsOpen(false)}
