@@ -27,3 +27,17 @@
 {"event": "scan_started", "scan_id": "d55a420b", "domain_count": 2, "domain_group": "alberta", "timestamp": "2026-05-15T13:29:14.664130+00:00"}
 {"event": "scan_started", "scan_id": "0683001b", "domain_count": 2, "domain_group": "alberta", "timestamp": "2026-05-15T13:32:09.303941+00:00"}
 {"event": "scan_completed", "scan_id": "0683001b", "domain_group": "alberta", "domains_scanned": 2, "policies_found": 0, "cost_usd": 0.0763, "duration_s": 751.170374, "timestamp": "2026-05-15T13:44:40.474315+00:00"}
+{"event": "scan_started", "scan_id": "8524d33a", "domain_count": 3, "domain_group": "denmark", "timestamp": "2026-05-15T16:58:16.861519+00:00"}
+{"event": "scan_completed", "scan_id": "8524d33a", "domain_group": "denmark", "domains_scanned": 3, "policies_found": 0, "cost_usd": 0.0, "duration_s": 16.717222, "timestamp": "2026-05-15T16:58:33.577766+00:00"}
+{"event": "scan_started", "scan_id": "92e65f3b", "domain_count": 3, "domain_group": "denmark", "timestamp": "2026-05-15T16:59:37.777558+00:00"}
+{"event": "scan_completed", "scan_id": "92e65f3b", "domain_group": "denmark", "domains_scanned": 3, "policies_found": 0, "cost_usd": 0.0, "duration_s": 8.394163, "timestamp": "2026-05-15T16:59:46.171721+00:00"}
+{"event": "scan_started", "scan_id": "5143f29b", "domain_count": 3, "domain_group": "denmark", "timestamp": "2026-05-15T17:04:16.483267+00:00"}
+{"event": "scan_completed", "scan_id": "5143f29b", "domain_group": "denmark", "domains_scanned": 3, "policies_found": 0, "cost_usd": 0.0, "duration_s": 8.349851, "timestamp": "2026-05-15T17:04:24.828393+00:00"}
+{"event": "scan_started", "scan_id": "1a72b21a", "domain_count": 2, "domain_group": "british_columbia", "timestamp": "2026-05-15T18:45:50.117660+00:00"}
+{"event": "scan_completed", "scan_id": "1a72b21a", "domain_group": "british_columbia", "domains_scanned": 2, "policies_found": 0, "cost_usd": 0.0063, "duration_s": 313.816412, "timestamp": "2026-05-15T18:51:03.932071+00:00"}
+{"event": "scan_started", "scan_id": "a5cda7be", "domain_count": 2, "domain_group": "british_columbia", "timestamp": "2026-05-15T19:02:31.554382+00:00"}
+{"event": "scan_started", "scan_id": "16cbd79f", "domain_count": 2, "domain_group": "british_columbia", "timestamp": "2026-05-15T19:02:50.175657+00:00"}
+{"event": "scan_started", "scan_id": "576617d6", "domain_count": 2, "domain_group": "alberta", "timestamp": "2026-05-15T19:02:55.884685+00:00"}
+{"event": "scan_completed", "scan_id": "576617d6", "domain_group": "alberta", "domains_scanned": 2, "policies_found": 0, "cost_usd": 0.0146, "duration_s": 692.6758, "timestamp": "2026-05-15T19:14:28.560485+00:00"}
+{"event": "scan_started", "scan_id": "e13a6e49", "domain_count": 2, "domain_group": "british_columbia", "timestamp": "2026-05-15T19:14:29.029180+00:00"}
+{"event": "scan_completed", "scan_id": "e13a6e49", "domain_group": "british_columbia", "domains_scanned": 2, "policies_found": 0, "cost_usd": 0.0, "duration_s": 313.657342, "timestamp": "2026-05-15T19:19:42.685522+00:00"}
