@@ -216,9 +216,13 @@ function ApiKeySettingsModal({ open, onClose }) {
       <div style={styles.modal} role="dialog" aria-modal="true" aria-labelledby="api-key-title">
         <div style={styles.header}>
           <h2 id="api-key-title" style={styles.title}>API key settings</h2>
+          
           <button type="button" style={styles.closeButton} onClick={onClose} aria-label="Close settings">
             x
           </button>
+        </div>
+        <div style={styles.label}>
+              An Anthropic API key is needed for the PolicyPulse agent to function.
         </div>
 
         {status?.exists ? (
@@ -285,7 +289,7 @@ function ApiKeySettingsModal({ open, onClose }) {
               onClick={saveKey}
               disabled={saveDisabled}
             >
-              Create .env file
+              Add an API key
             </button>
           </div>
         )}
