@@ -3,6 +3,7 @@ import ApiKeySettingsModal, { apiKeySettingsButtonStyle } from './ApiKeySettings
 import Chatbot from './Chatbot';
 import ModeSelector from './ModeSelector';
 import RegionSelector from './RegionSelector';
+import HelpWindow, { helpWindowStyle } from './HelpWindow';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
@@ -17,6 +18,7 @@ function AgentPanel() {
     const [costStatus, setCostStatus] = useState('idle');
     const [chatNotice, setChatNotice] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
     const wsRef = useRef(null);
     const scanWsRef = useRef(null);
     const isScanRunning = Boolean(activeScanId);
@@ -204,7 +206,7 @@ function AgentPanel() {
             const filterNote = costEstimate.has_filters ? ', filters not included' : '';
             return `$${cost} (${targetLabel}${filterNote})`;
         }
-        return 'No estimate';
+        return 'No cost estimate';
     };
 
     const formatScanEvent = (event) => {
@@ -364,6 +366,14 @@ function AgentPanel() {
                         <button
                             type="button"
                             className="button"
+                            style={helpWindowStyle}
+                            onClick={() => setIsHelpOpen(true)}
+                        >
+                            Help
+                        </button>
+                        <button
+                            type="button"
+                            className="button"
                             style={apiKeySettingsButtonStyle}
                             onClick={() => setIsSettingsOpen(true)}
                         >
@@ -405,6 +415,12 @@ function AgentPanel() {
             </section>
 
             <section className="chat-panel" aria-label="Agent chat">
+
+                <HelpWindow
+                    open={isHelpOpen}
+                    onClose={() => setIsHelpOpen(false)}
+                />
+
                 <ApiKeySettingsModal
                     open={isSettingsOpen}
                     onClose={() => setIsSettingsOpen(false)}

@@ -1,0 +1,159 @@
+import React, { useEffect, useState } from 'react';
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
+
+export const helpWindowStyle = {
+  minHeight: 40,
+  backgroundColor: '#2563eb',
+  color: '#fff',
+};
+
+const styles = {
+  backdrop: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 1000,
+    display: 'grid',
+    placeItems: 'center',
+    padding: 16,
+    background: 'rgba(15, 23, 42, 0.45)',
+  },
+  modal: {
+    width: 'min(100%, 460px)',
+    boxSizing: 'border-box',
+    padding: 20,
+    borderRadius: 8,
+    background: '#ffffff',
+    color: '#111827',
+    boxShadow: '0 18px 60px rgba(15, 23, 42, 0.25)',
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  title: {
+    margin: 0,
+    fontSize: 20,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    border: '1px solid #cbd5e1',
+    borderRadius: 6,
+    background: '#ffffff',
+    color: '#111827',
+    cursor: 'pointer',
+    fontSize: 18,
+    lineHeight: 1,
+  },
+  body: {
+    display: 'grid',
+    gap: 12,
+    marginTop: 18,
+  },
+  label: {
+    display: 'block',
+    marginBottom: 6,
+    color: '#334155',
+    fontSize: 14,
+    fontWeight: 700,
+  },
+  keyValue: {
+    display: 'inline-block',
+    padding: '8px 10px',
+    border: '1px solid #cbd5e1',
+    borderRadius: 6,
+    background: '#f8fafc',
+    color: '#111827',
+    fontFamily: 'monospace',
+  },
+  input: {
+    width: '100%',
+    boxSizing: 'border-box',
+    padding: '10px 12px',
+    border: '1px solid #cbd5e1',
+    borderRadius: 6,
+    color: '#111827',
+  },
+  buttonBase: {
+    minHeight: 40,
+    padding: '10px 14px',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    fontSize: 15,
+    fontWeight: 700,
+  },
+  saveButton: {
+    background: '#2563eb',
+    color: '#ffffff',
+  },
+  dangerButton: {
+    background: '#ef4444',
+    color: '#ffffff',
+  },
+  secondaryButton: {
+    background: '#e2e8f0',
+    color: '#111827',
+  },
+  disabledButton: {
+    background: '#999',
+    cursor: 'not-allowed',
+  },
+  warning: {
+    padding: 12,
+    border: '1px solid #f59e0b',
+    borderRadius: 6,
+    background: '#fffbeb',
+    color: '#92400e',
+    fontSize: 14,
+    lineHeight: 1.45,
+  },
+  actionRow: {
+    display: 'flex',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  message: {
+    margin: '14px 0 0',
+    color: '#334155',
+    fontSize: 14,
+  },
+};
+
+function HelpWindow({ open, onClose }) {
+  const [status, setStatus] = useState(null);
+  const [message, setMessage] = useState('');
+
+
+  useEffect(() => {
+    if (!open) return;
+
+    setMessage('');
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div style={styles.backdrop} role="presentation">
+      <div style={styles.modal} role="dialog" aria-modal="true" aria-labelledby="api-key-title">
+        <div style={styles.header}>
+          <h2 id="api-key-title" style={styles.title}>Help window</h2>
+          
+          <button type="button" style={styles.closeButton} onClick={onClose} aria-label="Close help window">
+            x
+          </button>
+        </div>
+        <div style={styles.label}>
+              Welcome to the PolicyPulse!
+              This is an AI based tool that helps you to find policies and regulations regarding the heat usage of datacenters.
+              You can either use the predefined search modes or ask the AI directly by typing your question in the chat.              
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default HelpWindow;
