@@ -5,16 +5,16 @@
 - [x] Cost approximation for prompts
 - [x] Settings window for connecting with API key
 - [x] Cost estimate for scans
-- [] Cost approximation for prompts
+- [x] Cost approximation for prompts
 - [] Enter API key on first time launch
-- [] Can't scan without being connected
+- [x] Can't scan without being connected
 - [] Info text stating that cost estimate is just an estimate
 
 ## Chat section
 - [x] API Backend connection
 - [x] Send button
-- [] Separated handling of message types
-- [] Transparency of AI thinking
+- [x] Separated handling of message types
+- [x] Transparency of AI thinking
 - [x] Stop button
 
 ## Region selector / premade prompting
