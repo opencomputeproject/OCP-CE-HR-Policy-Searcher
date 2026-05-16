@@ -79,6 +79,24 @@ function getMessageText(message) {
     .join('') ?? '';
 }
 
+function getToolStatusText(toolName) {
+  const labels = {
+    list_domains: 'Checking configured domains...',
+    estimate_cost: 'Estimating scan cost...',
+    start_scan: 'Starting scan...',
+    get_scan_status: 'Checking scan progress...',
+    list_scans: 'Checking recent scans...',
+    search_policies: 'Searching saved policies...',
+    get_policy_stats: 'Checking policy statistics...',
+    get_audit_advisory: 'Checking audit advisory...',
+    analyze_url: 'Analyzing webpage...',
+    add_domain: 'Adding domain...',
+    stop_scan: 'Stopping scan...',
+  };
+
+  return labels[toolName] || `Using ${toolName}...`;
+}
+
 // --- Custom Part Renderers for Agentic Features ---
 
 const ReasoningBlock = styled(Paper)(({ theme }) => ({
@@ -212,9 +230,11 @@ function enqueueTextResponse(controller, messageId, text) {
 function createWebSocketResponseStream({ ws, text, signal, onRunningChange }) {
   return new ReadableStream({
     start(controller) {
-      const messageId = `response-${Date.now()}`;
-      const textId = `${messageId}-text`;
       let settled = false;
+      let messageCount = 0;
+      let lastMessageId = null;
+
+      const nextMessageId = () => `response-${Date.now()}-${messageCount++}`;
 
       const cleanup = () => {
         ws.removeEventListener('message', handleMessage);
@@ -224,32 +244,38 @@ function createWebSocketResponseStream({ ws, text, signal, onRunningChange }) {
         onRunningChange?.(false);
       };
 
-      const startMessage = () => {
-        controller.enqueue({ type: 'start', messageId });
-        controller.enqueue({ type: 'text-start', id: textId });
+      const finishMessage = (messageId) => {
+        if (!messageId) return;
+        controller.enqueue({ type: 'finish', messageId });
       };
 
-      const enqueueDelta = (delta) => {
-        if (settled) return;
-        controller.enqueue({ type: 'text-delta', id: textId, delta });
+      const enqueueMessage = (responseText, { terminal = false } = {}) => {
+        if (settled || !responseText) return;
+        const messageId = nextMessageId();
+        const textId = `${messageId}-text`;
+        lastMessageId = messageId;
+        controller.enqueue({ type: 'start', messageId });
+        controller.enqueue({ type: 'text-start', id: textId });
+        controller.enqueue({ type: 'text-delta', id: textId, delta: responseText });
+        controller.enqueue({ type: 'text-end', id: textId });
+        if (terminal) {
+          finishMessage(messageId);
+        }
       };
 
       const settleFinish = () => {
         if (settled) return;
         settled = true;
         cleanup();
-        controller.enqueue({ type: 'text-end', id: textId });
-        controller.enqueue({ type: 'finish', messageId });
+        finishMessage(lastMessageId);
         controller.close();
       };
 
       const settleWithError = (responseText) => {
         if (settled) return;
+        enqueueMessage(responseText, { terminal: true });
         settled = true;
         cleanup();
-        controller.enqueue({ type: 'text-delta', id: textId, delta: responseText });
-        controller.enqueue({ type: 'text-end', id: textId });
-        controller.enqueue({ type: 'finish', messageId });
         controller.close();
       };
 
@@ -260,41 +286,26 @@ function createWebSocketResponseStream({ ws, text, signal, onRunningChange }) {
         try {
           payload = JSON.parse(event.data);
         } catch {
-          enqueueDelta(event.data);
+          enqueueMessage(event.data);
           return;
         }
 
         switch (payload.type) {
           case 'text':
-            enqueueDelta(payload.content || '');
+            enqueueMessage(payload.content || '');
             break;
           case 'tool_call':
-            // Add simulated reasoning before tool calls
-            controller.enqueue({
-              type: 'reasoning-delta',
-              id: `${messageId}-reasoning-${Date.now()}`,
-              delta: `I need to use the ${payload.name} tool to help with this task.`,
-            });
-            // Transform simple tool_call into agentic dynamic-tool message
-            controller.enqueue({
-              type: 'tool-input-available',
-              toolCallId: `tool-${payload.name}-${Date.now()}`,
-              toolName: payload.name,
-              input: payload.input,
-              dynamic: true,
-            });
+            enqueueMessage(getToolStatusText(payload.name));
             break;
           case 'tool_result':
-            // Transform simple tool_result into agentic tool output
-            controller.enqueue({
-              type: 'tool-output-available',
-              toolCallId: `tool-${payload.name}-${Date.now()}`,
-              output: payload.result,
-            });
             break;
           case 'complete':
-            if (payload.response) {
-              enqueueDelta(payload.response);
+            if (payload.response && !lastMessageId) {
+              enqueueMessage(payload.response, { terminal: true });
+              settled = true;
+              cleanup();
+              controller.close();
+              break;
             }
             settleFinish();
             break;
@@ -302,7 +313,7 @@ function createWebSocketResponseStream({ ws, text, signal, onRunningChange }) {
             settleWithError(payload.content || 'Agent error');
             break;
           default:
-            enqueueDelta(event.data);
+            enqueueMessage(event.data);
         }
       };
 
@@ -318,7 +329,6 @@ function createWebSocketResponseStream({ ws, text, signal, onRunningChange }) {
         if (settled) return;
         settled = true;
         cleanup();
-        controller.enqueue({ type: 'abort', messageId });
         controller.close();
       };
 
@@ -328,7 +338,6 @@ function createWebSocketResponseStream({ ws, text, signal, onRunningChange }) {
       signal?.addEventListener('abort', handleAbort);
 
       onRunningChange?.(true);
-      startMessage();
       ws.send(JSON.stringify({ message: text }));
     },
   });

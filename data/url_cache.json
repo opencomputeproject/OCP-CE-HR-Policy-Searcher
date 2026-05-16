@@ -18,11 +18,254 @@
       "analyzed_date": "2026-05-10T12:40:35.289164+00:00",
       "expires_date": "2026-06-09T12:40:35.289164+00:00",
       "policy_type": "regulation"
+    },
+    "https://www.alberta.ca/environment-and-protected-areas.aspx": {
+      "url": "https://www.alberta.ca/environment-and-protected-areas.aspx",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "618a234199373cb7",
+      "analyzed_date": "2026-05-15T13:43:34.733465+00:00",
+      "expires_date": "2026-06-14T13:43:34.733465+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/economic-opportunities": {
+      "url": "https://www.alberta.ca/economic-opportunities",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "371bfba674edf933",
+      "analyzed_date": "2026-05-15T13:43:36.879812+00:00",
+      "expires_date": "2026-06-14T13:43:36.879812+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/air-quality": {
+      "url": "https://www.alberta.ca/air-quality",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "89ed4d00fff260bf",
+      "analyzed_date": "2026-05-15T13:43:37.633701+00:00",
+      "expires_date": "2026-06-14T13:43:37.633701+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/albertas-environmental-science-program": {
+      "url": "https://www.alberta.ca/albertas-environmental-science-program",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "6b39fabbb16b3633",
+      "analyzed_date": "2026-05-15T13:43:38.523947+00:00",
+      "expires_date": "2026-06-14T13:43:38.523947+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/environmental-stewardship": {
+      "url": "https://www.alberta.ca/environmental-stewardship",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "9b15af02bc5b3677",
+      "analyzed_date": "2026-05-15T13:43:39.261154+00:00",
+      "expires_date": "2026-06-14T13:43:39.261154+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/albertas-greenhouse-gas-emissions-reduction-performance": {
+      "url": "https://www.alberta.ca/albertas-greenhouse-gas-emissions-reduction-performance",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "4c9a659e725be271",
+      "analyzed_date": "2026-05-15T13:43:40.455216+00:00",
+      "expires_date": "2026-06-14T13:43:40.455216+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/reducing-and-managing-emissions": {
+      "url": "https://www.alberta.ca/reducing-and-managing-emissions",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "c386b5644aa36b32",
+      "analyzed_date": "2026-05-15T13:43:41.208848+00:00",
+      "expires_date": "2026-06-14T13:43:41.208848+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/carbon-capture-utilization-and-storage-development-and-innovation": {
+      "url": "https://www.alberta.ca/carbon-capture-utilization-and-storage-development-and-innovation",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "9d626d374fd660cd",
+      "analyzed_date": "2026-05-15T13:43:42.255507+00:00",
+      "expires_date": "2026-06-14T13:43:42.255507+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/carbon-capture-utilization-and-storage-carbon-sequestration-tenure": {
+      "url": "https://www.alberta.ca/carbon-capture-utilization-and-storage-carbon-sequestration-tenure",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "70ecdb4dbb1a7ee7",
+      "analyzed_date": "2026-05-15T13:43:43.248145+00:00",
+      "expires_date": "2026-06-14T13:43:43.248145+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/ministries.aspx": {
+      "url": "https://www.alberta.ca/ministries.aspx",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "dfa9dc786ab723a1",
+      "analyzed_date": "2026-05-15T13:43:44.212148+00:00",
+      "expires_date": "2026-06-14T13:43:44.212148+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=93088E3E5C095-CD67-DE59-B4B2DA6A5506A976": {
+      "url": "https://www.alberta.ca/release.cfm?xID=93088E3E5C095-CD67-DE59-B4B2DA6A5506A976",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "0cff5ee9e4a75281",
+      "analyzed_date": "2026-05-15T13:43:45.354428+00:00",
+      "expires_date": "2026-06-14T13:43:45.354428+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=687034C2B869A-AC3C-2C91-42ECBF0A32298A0D": {
+      "url": "https://www.alberta.ca/release.cfm?xID=687034C2B869A-AC3C-2C91-42ECBF0A32298A0D",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "e82148e9006a12e0",
+      "analyzed_date": "2026-05-15T13:43:54.680960+00:00",
+      "expires_date": "2026-06-14T13:43:54.680960+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=32894784EFA57-04C8-CA1D-09E8077C1100C4EA": {
+      "url": "https://www.alberta.ca/release.cfm?xID=32894784EFA57-04C8-CA1D-09E8077C1100C4EA",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "3d0639ee252d6bef",
+      "analyzed_date": "2026-05-15T13:43:55.395491+00:00",
+      "expires_date": "2026-06-14T13:43:55.395491+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=64700F3D0C52E-CDA6-03BF-18E558FDA7079A67": {
+      "url": "https://www.alberta.ca/release.cfm?xID=64700F3D0C52E-CDA6-03BF-18E558FDA7079A67",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "d00173f30c787789",
+      "analyzed_date": "2026-05-15T13:44:00.598163+00:00",
+      "expires_date": "2026-06-14T13:44:00.598163+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=81967BDBFA3F8-E246-5F98-7DE0AC9BD138B33F": {
+      "url": "https://www.alberta.ca/release.cfm?xID=81967BDBFA3F8-E246-5F98-7DE0AC9BD138B33F",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "94cacb19170433b3",
+      "analyzed_date": "2026-05-15T13:44:03.318091+00:00",
+      "expires_date": "2026-06-14T13:44:03.318091+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=86627F9B03A91-B49D-0D36-8039479B4891CE7A": {
+      "url": "https://www.alberta.ca/release.cfm?xID=86627F9B03A91-B49D-0D36-8039479B4891CE7A",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "fdd183f0651e6173",
+      "analyzed_date": "2026-05-15T13:44:09.462461+00:00",
+      "expires_date": "2026-06-14T13:44:09.462461+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=7759886150199-DF14-3D35-556B08197AED16D8": {
+      "url": "https://www.alberta.ca/release.cfm?xID=7759886150199-DF14-3D35-556B08197AED16D8",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "77762567210237e2",
+      "analyzed_date": "2026-05-15T13:44:12.934495+00:00",
+      "expires_date": "2026-06-14T13:44:12.934495+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=38745A394B4AC-E351-1902-C80B529E9A001D59": {
+      "url": "https://www.alberta.ca/release.cfm?xID=38745A394B4AC-E351-1902-C80B529E9A001D59",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "56d93551d8159720",
+      "analyzed_date": "2026-05-15T13:44:15.616424+00:00",
+      "expires_date": "2026-06-14T13:44:15.616424+00:00",
+      "policy_type": ""
+    },
+    "http://www.alberta.ca/release.cfm?xID=41561DEB48417-979B-4BD0-EE240E29C9E240F3": {
+      "url": "http://www.alberta.ca/release.cfm?xID=41561DEB48417-979B-4BD0-EE240E29C9E240F3",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "912dfd3544c18326",
+      "analyzed_date": "2026-05-15T13:44:28.892057+00:00",
+      "expires_date": "2026-06-14T13:44:28.892057+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=95316BDF2757A-B5C7-C364-6498DC1D01A6CF64": {
+      "url": "https://www.alberta.ca/release.cfm?xID=95316BDF2757A-B5C7-C364-6498DC1D01A6CF64",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "8559d05d3e199506",
+      "analyzed_date": "2026-05-15T13:44:38.648015+00:00",
+      "expires_date": "2026-06-14T13:44:38.648015+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/release.cfm?xID=95787A8AD2BA3-9A0B-5D37-5C6F65B176393CA5": {
+      "url": "https://www.alberta.ca/release.cfm?xID=95787A8AD2BA3-9A0B-5D37-5C6F65B176393CA5",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "c6c7ddce196c7813",
+      "analyzed_date": "2026-05-15T13:44:39.541013+00:00",
+      "expires_date": "2026-06-14T13:44:39.541013+00:00",
+      "policy_type": ""
+    },
+    "https://cleanbc.gov.bc.ca/climate-actions/actions-you-can-take/": {
+      "url": "https://cleanbc.gov.bc.ca/climate-actions/actions-you-can-take/",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "9886ddd2638a16fd",
+      "analyzed_date": "2026-05-15T18:46:35.178183+00:00",
+      "expires_date": "2026-06-14T18:46:35.178183+00:00",
+      "policy_type": ""
+    },
+    "https://cleanbc.gov.bc.ca/about-climate-change/drivers/buildings/": {
+      "url": "https://cleanbc.gov.bc.ca/about-climate-change/drivers/buildings/",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "cda56ac8137e55e4",
+      "analyzed_date": "2026-05-15T18:46:35.983271+00:00",
+      "expires_date": "2026-06-14T18:46:35.983271+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/announcements.cfm?xID=95727E48F6AE3-9B30-7858-B90D837914A58A4D": {
+      "url": "https://www.alberta.ca/announcements.cfm?xID=95727E48F6AE3-9B30-7858-B90D837914A58A4D",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "74516f1fb32a2ca3",
+      "analyzed_date": "2026-05-15T19:14:21.322646+00:00",
+      "expires_date": "2026-06-14T19:14:21.322646+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/announcements.cfm?xID=95953EBE84C53-0546-04A5-0799663FA29BC710": {
+      "url": "https://www.alberta.ca/announcements.cfm?xID=95953EBE84C53-0546-04A5-0799663FA29BC710",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "4e943ac0fe992ad6",
+      "analyzed_date": "2026-05-15T19:14:22.400412+00:00",
+      "expires_date": "2026-06-14T19:14:22.400412+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/announcements.cfm?xID=957734B155EF5-A445-F0D8-2AFDD8411382F96A": {
+      "url": "https://www.alberta.ca/announcements.cfm?xID=957734B155EF5-A445-F0D8-2AFDD8411382F96A",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "673bfa216dc8cb17",
+      "analyzed_date": "2026-05-15T19:14:24.214937+00:00",
+      "expires_date": "2026-06-14T19:14:24.214937+00:00",
+      "policy_type": ""
+    },
+    "https://www.alberta.ca/announcements.cfm?xID=958107C1055C9-C1B1-E143-37E60D48689531AC": {
+      "url": "https://www.alberta.ca/announcements.cfm?xID=958107C1055C9-C1B1-E143-37E60D48689531AC",
+      "is_relevant": false,
+      "relevance_score": 0,
+      "content_hash": "0a41bc2342debfe3",
+      "analyzed_date": "2026-05-15T19:14:25.169612+00:00",
+      "expires_date": "2026-06-14T19:14:25.169612+00:00",
+      "policy_type": ""
     }
   },
   "metadata": {
     "version": 1,
-    "last_saved": "2026-05-10T12:42:22.099866+00:00",
-    "total_entries": 2
+    "last_saved": "2026-05-15T19:19:42.683520+00:00",
+    "total_entries": 29
   }
 }

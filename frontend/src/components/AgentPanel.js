@@ -3,6 +3,7 @@ import ApiKeySettingsModal, { apiKeySettingsButtonStyle } from './ApiKeySettings
 import Chatbot from './Chatbot';
 import ModeSelector from './ModeSelector';
 import RegionSelector from './RegionSelector';
+import HelpWindow, { helpWindowStyle } from './HelpWindow';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
@@ -17,10 +18,16 @@ function AgentPanel() {
     const [costStatus, setCostStatus] = useState('idle');
     const [chatNotice, setChatNotice] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const [hasApiKey, setHasApiKey] = useState(false);
     const wsRef = useRef(null);
     const scanWsRef = useRef(null);
+    const scanQueueRef = useRef([]);
+    const scanQueueCancelledRef = useRef(false);
+    const [queuedScanCount, setQueuedScanCount] = useState(0);
     const isScanRunning = Boolean(activeScanId);
-    const isBusy = isChatRunning || isScanRunning || isScanRequestRunning;
+    const isQueueRunning = queuedScanCount > 0;
+    const isBusy = isChatRunning || isScanRunning || isScanRequestRunning || isQueueRunning;
     const isStandardMode = mode === 'standard';
     const scanOptions = {
         discover: mode === 'discover',
@@ -53,7 +60,7 @@ function AgentPanel() {
         };
     }, []);
 
-    const buildScanRequest = () => {
+    const buildScanRequests = () => {
         const normalizeTarget = (item) => {
             if (item.startsWith('group:') && item.includes(':region:')) {
                 return item.slice(item.lastIndexOf(':region:') + ':region:'.length);
@@ -76,19 +83,22 @@ function AgentPanel() {
         const targets = selectedRegions
             .filter((item) => !item.startsWith('category:') && !item.startsWith('tag:'))
             .map(normalizeTarget);
+        const scanTargets = targets.length > 0 ? targets : ['all'];
+        const baseRequest = {
+            max_concurrent: scanOptions.deep ? 10 : 5,
+            skip_llm: false,
+            dry_run: false,
+            deep: scanOptions.deep,
+            discover: scanOptions.discover,
+            category: categories[0] || null,
+            tags: tags.length > 0 ? tags : null,
+        };
 
         return {
-            request: {
-                domains: targets[0] || 'all',
-                max_concurrent: scanOptions.deep ? 10 : 5,
-                skip_llm: false,
-                dry_run: false,
-                deep: scanOptions.deep,
-                discover: scanOptions.discover,
-                category: categories[0] || null,
-                tags: tags.length > 0 ? tags : null,
-            },
-            ignoredTargets: targets.slice(1),
+            requests: scanTargets.map((target) => ({
+                ...baseRequest,
+                domains: target,
+            })),
         };
     };
 
@@ -123,6 +133,17 @@ function AgentPanel() {
             estimated_cost_usd: 0,
         },
     );
+
+    const fetchApiKeyStatus = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/settings/api-key`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setHasApiKey(data.exists);
+        } catch {
+            setHasApiKey(false);
+        }
+    } ;
 
     useEffect(() => {
         let isCurrent = true;
@@ -204,7 +225,7 @@ function AgentPanel() {
             const filterNote = costEstimate.has_filters ? ', filters not included' : '';
             return `$${cost} (${targetLabel}${filterNote})`;
         }
-        return 'No estimate';
+        return 'No cost estimate';
     };
 
     const formatScanEvent = (event) => {
@@ -233,11 +254,21 @@ function AgentPanel() {
         }
     };
 
-    const connectScanWebSocket = (scanId) => {
+    const connectScanWebSocket = (scanId, callbacks = {}) => {
         scanWsRef.current?.close();
 
         const scanWs = new WebSocket(`${WS_BASE_URL}/api/scans/${scanId}/ws`);
         scanWsRef.current = scanWs;
+        let settled = false;
+        const finish = (completed) => {
+            if (settled) return;
+            settled = true;
+            if (completed) {
+                callbacks.onComplete?.();
+            } else {
+                callbacks.onError?.();
+            }
+        };
 
         scanWs.onmessage = (event) => {
             let payload;
@@ -253,6 +284,7 @@ function AgentPanel() {
             }
 
             if (payload.type === 'scan_complete' || payload.type === 'error') {
+                finish(payload.type === 'scan_complete');
                 setActiveScanId(null);
                 scanWs.close();
             }
@@ -260,35 +292,36 @@ function AgentPanel() {
 
         scanWs.onerror = () => {
             pushNotice('error', 'Scan progress connection error.');
+            finish(false);
+            scanWs.close();
         };
 
         scanWs.onclose = () => {
             if (scanWsRef.current === scanWs) {
                 scanWsRef.current = null;
             }
+
+            setActiveScanId((current) => {
+                if (current === scanId) {
+                    return null;
+                }
+                return current;
+            });
+
+            finish(false);
         };
     };
 
-    const scanSelectedRegion = async () => {
-        if (isBusy || selectedRegions.length === 0) return;
-
-        const { request, ignoredTargets } = buildScanRequest();
-
-        if (ignoredTargets.length > 0) {
-            pushNotice(
-                'system',
-                `Direct scan API runs one scan target at a time. Starting "${request.domains}" and ignoring: ${ignoredTargets.join(', ')}.`,
-            );
-        }
+    const startScanRequest = async (request, index, total) => {
+        setIsScanRequestRunning(true);
+        pushNotice(
+            'system',
+            request.discover
+                ? `Starting discovery ${index + 1}/${total} for "${request.domains}" via /api/scans.`
+                : `Starting scan ${index + 1}/${total} for "${request.domains}" via /api/scans.`,
+        );
 
         try {
-            setIsScanRequestRunning(true);
-            pushNotice(
-                'system',
-                request.discover
-                    ? `Starting discovery for "${request.domains}" via /api/scans.`
-                    : `Starting scan for "${request.domains}" via /api/scans.`,
-            );
             const response = await fetch(`${API_BASE_URL}/api/scans`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -306,7 +339,14 @@ function AgentPanel() {
                     'system',
                     scan.response || `Discovery for "${request.domains}" completed.`,
                 );
-                return;
+                return !scanQueueCancelledRef.current;
+            }
+
+            if (scanQueueCancelledRef.current) {
+                await fetch(`${API_BASE_URL}/api/scans/${scan.scan_id}`, {
+                    method: 'DELETE',
+                });
+                return false;
             }
 
             setActiveScanId(scan.scan_id);
@@ -314,16 +354,73 @@ function AgentPanel() {
                 'system',
                 `Scan ${scan.scan_id} queued (${scan.domain_count} domains). Listening for progress.`,
             );
-            connectScanWebSocket(scan.scan_id);
+
+            return await new Promise((resolve) => {
+                connectScanWebSocket(scan.scan_id, {
+                    onComplete: () => resolve(true),
+                    onError: () => resolve(false),
+                });
+            });
         } catch (error) {
             pushNotice('error', `Could not start scan: ${error.message}`);
+            return false;
         } finally {
             setIsScanRequestRunning(false);
         }
     };
 
+    const runScanQueue = async (requests) => {
+        scanQueueRef.current = requests;
+        scanQueueCancelledRef.current = false;
+        setQueuedScanCount(requests.length);
+
+        try {
+            for (let index = 0; index < requests.length; index += 1) {
+                if (scanQueueCancelledRef.current || scanQueueRef.current.length === 0) return;
+
+                const completed = await startScanRequest(requests[index], index, requests.length);
+                scanQueueRef.current = scanQueueRef.current.slice(1);
+                setQueuedScanCount(scanQueueRef.current.length);
+
+                if (!completed) {
+                    scanQueueRef.current = [];
+                    setQueuedScanCount(0);
+                    pushNotice('error', 'Scan queue stopped.');
+                    return;
+                }
+            }
+
+            if (requests.length > 1) {
+                pushNotice(
+                    'system',
+                    `Scan queue complete: ${requests.length} targets processed.`,
+                );
+            }
+        } finally {
+            scanQueueRef.current = [];
+            setQueuedScanCount(0);
+        }
+    };
+
+    const scanSelectedRegion = async () => {
+        if (isBusy || selectedRegions.length === 0 || !hasApiKey) return;
+
+        const { requests } = buildScanRequests();
+        if (requests.length > 1) {
+            pushNotice('system', `Starting sequential scan queue for ${requests.length} targets.`);
+        }
+
+        await runScanQueue(requests);
+    };
+
     const stopActiveScan = async () => {
-        if (!activeScanId) return;
+        scanQueueRef.current = [];
+        scanQueueCancelledRef.current = true;
+        setQueuedScanCount(0);
+        if (!activeScanId) {
+            pushNotice('system', 'Cleared scan queue.');
+            return;
+        }
 
         try {
             const scanId = activeScanId;
@@ -355,12 +452,24 @@ function AgentPanel() {
         };
     }, [connectWebSocket]);
 
+    useEffect(() => {
+    fetchApiKeyStatus();
+    }, []);
+
     return (
         <div className="app-panel">
-            <section className="settings-panel" aria-label="Search settings">
+            <section className="settings-panel" aria-label="Policy Scanner">
                 <div>
                     <div className="settings-heading-row">
-                        <h2 className="panel-heading">Search settings</h2>
+                        <h2 className="panel-heading">Policy Scanner</h2>
+                        <button
+                            type="button"
+                            className="button"
+                            style={helpWindowStyle}
+                            onClick={() => setIsHelpOpen(true)}
+                        >
+                            Help
+                        </button>
                         <button
                             type="button"
                             className="button"
@@ -389,15 +498,17 @@ function AgentPanel() {
                         type="button"
                         className="scan-button"
                         onClick={scanSelectedRegion}
-                        disabled={isBusy || selectedRegions.length === 0}
+                        disabled={isBusy || selectedRegions.length === 0 || !hasApiKey}
                     >
-                        {isScanRequestRunning || isScanRunning ? 'Scan running' : 'Scan'}
+                        {isQueueRunning
+                            ? `Queued (${queuedScanCount})`
+                            : isScanRequestRunning || isScanRunning ? 'Scan running' : 'Scan'}
                     </button>
                     <button
                         type="button"
                         className="stop-scan-button"
                         onClick={stopActiveScan}
-                        disabled={!isScanRunning}
+                        disabled={!isScanRunning && !isQueueRunning && !isScanRequestRunning}
                     >
                         Stop scan
                     </button>
@@ -405,18 +516,25 @@ function AgentPanel() {
             </section>
 
             <section className="chat-panel" aria-label="Agent chat">
-                <ApiKeySettingsModal
-                    open={isSettingsOpen}
-                    onClose={() => setIsSettingsOpen(false)}
-                />
-                <div className="chatbot-scroll">
-                    <Chatbot
-                        wsRef={wsRef}
-                        notice={chatNotice}
-                        onRunningChange={setIsChatRunning}
-                    />
-                </div>
 
+                <HelpWindow
+                    open={isHelpOpen}
+                    onClose={() => setIsHelpOpen(false)}
+                />
+
+                <ApiKeySettingsModal
+                        open={isSettingsOpen}
+                        onClose={() => {
+                            setIsSettingsOpen(false);
+                            fetchApiKeyStatus();
+                        }}
+                    />
+
+                <Chatbot
+                    wsRef={wsRef}
+                    notice={chatNotice}
+                    onRunningChange={setIsChatRunning}
+                />
             </section>
         </div>
     );

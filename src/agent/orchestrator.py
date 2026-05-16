@@ -42,6 +42,16 @@ MAX_RETRY_DELAY = 120.0   # cap at 2 minutes
 MAX_CONVERSATION_TURNS = 40
 
 
+async def _call_callback(callback: Optional[Callable[..., Any]], *args: Any) -> None:
+    """Run callbacks that may be sync or async."""
+    if callback is None:
+        return
+
+    result = callback(*args)
+    if asyncio.iscoroutine(result):
+        await result
+
+
 def _get_retry_delay(error: anthropic.RateLimitError, attempt: int) -> float:
     """Extract retry-after from API response headers, or use exponential backoff.
 
@@ -376,8 +386,7 @@ class PolicyAgent:
                         "  4. Restart the agent"
                     )
                     logger.error("Anthropic API authentication failed")
-                    if on_text:
-                        on_text(error_msg)
+                    await _call_callback(on_text, error_msg)
                     return error_msg
 
                 except anthropic.RateLimitError as e:
@@ -387,8 +396,8 @@ class PolicyAgent:
                             f"Agent rate limited, retry {api_attempt}/{MAX_API_RETRIES} "
                             f"in {delay:.0f}s"
                         )
-                        if on_text:
-                            on_text(
+                        await _call_callback(
+                            on_text,
                                 f"\n  ⏳ Rate limited — waiting {delay:.0f}s "
                                 f"before retry ({api_attempt}/{MAX_API_RETRIES})...\n"
                             )
@@ -403,8 +412,7 @@ class PolicyAgent:
                             "search_policies"
                         )
                         logger.error(f"Agent rate limit exhausted after {MAX_API_RETRIES} retries")
-                        if on_text:
-                            on_text(error_msg)
+                        await _call_callback(on_text, error_msg)
                         return error_msg
 
                 except anthropic.APIStatusError as e:
@@ -418,8 +426,8 @@ class PolicyAgent:
                             f"API overloaded (529), retry {api_attempt}/{MAX_API_RETRIES} "
                             f"in {delay:.0f}s"
                         )
-                        if on_text:
-                            on_text(
+                        await _call_callback(
+                            on_text,
                                 f"\n  ⏳ API overloaded — waiting {delay:.0f}s "
                                 f"before retry...\n"
                             )
@@ -427,15 +435,13 @@ class PolicyAgent:
                     else:
                         error_msg = f"API error: {e}"
                         logger.error(error_msg)
-                        if on_text:
-                            on_text(error_msg)
+                        await _call_callback(on_text, error_msg)
                         return error_msg
 
                 except anthropic.APIError as e:
                     error_msg = f"API error: {e}"
                     logger.error(error_msg)
-                    if on_text:
-                        on_text(error_msg)
+                    await _call_callback(on_text, error_msg)
                     return error_msg
 
             if response is None:
@@ -449,8 +455,7 @@ class PolicyAgent:
             for block in response.content:
                 if block.type == "text":
                     text_parts.append(block.text)
-                    if on_text:
-                        on_text(block.text)
+                    await _call_callback(on_text, block.text)
                 elif block.type == "tool_use":
                     tool_uses.append(block)
                 # web_search results come as server_tool_use — no dispatch needed
@@ -474,8 +479,7 @@ class PolicyAgent:
                 tool_input = tool_use.input
                 tools_called.append(tool_name)
 
-                if on_tool_call:
-                    on_tool_call(tool_name, tool_input)
+                await _call_callback(on_tool_call, tool_name, tool_input)
 
                 logger.info(f"Executing tool: {tool_name}")
 
@@ -512,8 +516,7 @@ class PolicyAgent:
                         "is_error": True,
                     })
 
-                if on_tool_result:
-                    on_tool_result(tool_name, result)
+                await _call_callback(on_tool_result, tool_name, result)
 
             # Send tool results back to Claude (persisted in conversation)
             self._messages.append({"role": "user", "content": tool_results})
@@ -521,8 +524,7 @@ class PolicyAgent:
             # Hit max_iterations
             limit_msg = f"(Reached {max_iterations} iteration limit)"
             all_text_parts.append(limit_msg)
-            if on_text:
-                on_text(limit_msg)
+            await _call_callback(on_text, limit_msg)
 
         return "\n".join(all_text_parts)
 

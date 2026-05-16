@@ -19,7 +19,7 @@ const cards = [
   {
     id: 'discover',
     title: 'Discover',
-    description: 'Discover new policies and regulations.',
+    description: 'Find new sources.',
     tint: '#f8fafc',
     hoverTint: '#f1f5f9',
     selectedTint: '#dbe4ef',
@@ -29,7 +29,7 @@ const cards = [
   {
     id: 'deep',
     title: 'Deep',
-    description: 'Perform a deep dive into policy details.',
+    description: 'Scan every source more thoroughly.',
     tint: '#fbfaf8',
     hoverTint: '#e0c7ea',
     selectedTint: '#e0d6e4',
