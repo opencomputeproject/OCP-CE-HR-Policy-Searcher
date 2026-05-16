@@ -17,6 +17,12 @@
     margin: 0;
 }
 
+.policy-list-count {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
 .policy-list-filters {
     display: flex;
     align-items: flex-end;

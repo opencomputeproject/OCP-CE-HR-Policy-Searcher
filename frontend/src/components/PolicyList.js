@@ -10,8 +10,8 @@ function getPolicyKey(policy, index) {
 function PolicyList() {
   const [policies, setPolicies] = useState([]);
   const [tags, setTags] = useState({});
-  const [selectedJurisdiction, setSelectedJurisdiction] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
+  const [selectedJurisdictions, setSelectedJurisdictions] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -97,16 +97,17 @@ function PolicyList() {
     return policies
       .map((policy, index) => ({ policy, policyKey: getPolicyKey(policy, index) }))
       .filter(({ policy, policyKey }) => {
-        const matchesJurisdiction = selectedJurisdiction
-          ? policy.jurisdiction === selectedJurisdiction
+        const matchesJurisdictions = selectedJurisdictions.length > 0
+          ? selectedJurisdictions.includes(policy.jurisdiction)
           : true;
-        const matchesTag = selectedTag
-          ? (policyTagsByKey.get(policyKey) || []).includes(selectedTag)
+        const policyTags = policyTagsByKey.get(policyKey) || [];
+        const matchesTags = selectedTags.length > 0
+          ? selectedTags.some((tag) => policyTags.includes(tag))
           : true;
 
-        return matchesJurisdiction && matchesTag;
+        return matchesJurisdictions && matchesTags;
       });
-  }, [policies, policyTagsByKey, selectedJurisdiction, selectedTag]);
+  }, [policies, policyTagsByKey, selectedJurisdictions, selectedTags]);
 
   if (isLoading) {
     return <div>Loading policies...</div>;
@@ -119,31 +120,45 @@ function PolicyList() {
   return (
     <section className="policy-list">
       <div className="policy-list-header">
-        <h2>Policies</h2>
+        <div>
+          <h2>Policies</h2>
+          <p className="policy-list-count">
+            {filteredPolicyEntries.length} of {policies.length} policies shown
+          </p>
+        </div>
         <div className="policy-list-filters">
           <Autocomplete
+            multiple
+            limitTags={1}
             disablePortal
             className="policy-list-filter"
             options={jurisdictionOptions}
-            value={selectedJurisdiction || null}
-            onChange={(_, value) => setSelectedJurisdiction(value || '')}
+            value={selectedJurisdictions}
+            onChange={(_, value) => setSelectedJurisdictions(value)}
             disabled={jurisdictionOptions.length === 0}
             sx={{ width: 260 }}
             renderInput={(params) => (
-              <TextField {...params} label="Filter by jurisdiction" size="small" />
+              <TextField
+                {...params}
+                label="Filter by jurisdictions"
+                placeholder="Jurisdictions"
+                size="small"
+              />
             )}
           />
           <Autocomplete
+            multiple
+            limitTags={1}
             disablePortal
             className="policy-list-filter"
             options={tagOptions}
-            value={selectedTag || null}
-            onChange={(_, value) => setSelectedTag(value || '')}
+            value={selectedTags}
+            onChange={(_, value) => setSelectedTags(value)}
             getOptionLabel={(tag) => formatTagLabel(tag)}
             disabled={tagOptions.length === 0}
             sx={{ width: 260 }}
             renderInput={(params) => (
-              <TextField {...params} label="Filter by tag" size="small" />
+              <TextField {...params} label="Filter by tags" placeholder="Tags" size="small" />
             )}
           />
         </div>

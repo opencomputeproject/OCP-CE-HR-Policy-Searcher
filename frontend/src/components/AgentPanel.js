@@ -409,12 +409,14 @@ function AgentPanel() {
                     open={isSettingsOpen}
                     onClose={() => setIsSettingsOpen(false)}
                 />
+                <div className="chatbot-scroll">
+                    <Chatbot
+                        wsRef={wsRef}
+                        notice={chatNotice}
+                        onRunningChange={setIsChatRunning}
+                    />
+                </div>
 
-                <Chatbot
-                    wsRef={wsRef}
-                    notice={chatNotice}
-                    onRunningChange={setIsChatRunning}
-                />
             </section>
         </div>
     );
