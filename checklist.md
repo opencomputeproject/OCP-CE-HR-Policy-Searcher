@@ -9,6 +9,7 @@
 - [] Enter API key on first time launch
 - [] Can't scan without being connected
 - [] Info text stating that cost estimate is just an estimate
+- [] Email /notice when scan is done
 
 ## Chat section
 - [x] API Backend connection
@@ -39,3 +40,5 @@
 - [] Remove ToDos
 - [] Clean and add comments
 - [] Remove Components views
+- [] Name of the application
+- [] Explanatory text for features
