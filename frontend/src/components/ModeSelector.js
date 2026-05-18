@@ -9,7 +9,7 @@ const cards = [
   {
     id: 'standard',
     title: 'Standard',
-    description: 'Scan known sources with normal settings.',
+    description: 'Scan known domains with normal settings.',
     tint: '#f8fafc',
     hoverTint: '#f1f5f9',
     selectedTint: '#dbe4ef',
@@ -19,7 +19,7 @@ const cards = [
   {
     id: 'discover',
     title: 'Discover',
-    description: 'Find new sources.',
+    description: 'Find new domains (URLs).',
     tint: '#f8fafc',
     hoverTint: '#f1f5f9',
     selectedTint: '#dbe4ef',
@@ -29,7 +29,7 @@ const cards = [
   {
     id: 'deep',
     title: 'Deep',
-    description: 'Scan every source more thoroughly.',
+    description: 'Scan every domain more thoroughly.',
     tint: '#fbfaf8',
     hoverTint: '#e0c7ea',
     selectedTint: '#e0d6e4',
