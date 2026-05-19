@@ -33,25 +33,7 @@ function PolicyList() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    /*
-    const loadMockPolicies = async () => {
-      try {
-        const response = await fetch('/mock-policies.json');
-
-        if (!response.ok) {
-          throw new Error(`Failed to load policies (${response.status})`);
-        }
-
-        const data = await response.json();
-        setPolicies(Array.isArray(data.policies) ? data.policies : []);
-      } catch (loadError) {
-        setError(loadError.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    */
-
+    
     const loadSavedPolicies = async () => {
       try {
         const [policiesResponse, tagsResponse] = await Promise.all([
