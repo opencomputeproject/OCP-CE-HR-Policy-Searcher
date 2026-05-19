@@ -122,7 +122,7 @@ function PolicyList() {
           : true;
         const policyTags = policyTagsByKey.get(policyKey) || [];
         const matchesTags = selectedTags.length > 0
-          ? selectedTags.some((tag) => policyTags.includes(tag))
+          ? selectedTags.every((tag) => policyTags.includes(tag))
           : true;
 
         return matchesName && matchesJurisdictions && matchesTags;
