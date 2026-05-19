@@ -60,21 +60,9 @@ function buildCountLabel(label, count) {
 
 function buildGroupRegionItems(groupId, domains, regionLabels) {
   const regionCounts = countDomainsByValue(domains, (domain) => domain.region || []);
-  const parentDomainIds = new Set(domains.map((domain) => domain.id).filter(Boolean));
 
   return sortByLabel(
     [...regionCounts.entries()]
-      .filter(([region]) => {
-        const childDomainIds = new Set(
-          domains
-            .filter((domain) => (domain.region || []).includes(region))
-            .map((domain) => domain.id)
-            .filter(Boolean),
-        );
-
-        return childDomainIds.size !== parentDomainIds.size
-          || [...childDomainIds].some((id) => !parentDomainIds.has(id));
-      })
       .map(([region, count]) => ({
         id: `group:${groupId}:region:${region}`,
         value: `group:${groupId}:region:${region}`,
