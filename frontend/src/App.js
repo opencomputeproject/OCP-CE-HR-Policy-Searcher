@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined';
 import './App.css';
 import AgentPanel from './components/AgentPanel';
-import TempLogoImage from './assets/templogo.png';
+import LogoImage from './assets/policypulselogo.png';
 import PolicyList from './components/PolicyList';
 import HelpWindow from './components/HelpWindow';
 
@@ -40,7 +40,7 @@ function App() {
       <header className="App-header">
         <div className="app-header-inner">
           <div className="app-brand">
-            <img src={TempLogoImage} alt="OCP Policy Pulse" className="logo-image" />
+            <img src={LogoImage} alt="OCP Policy Pulse" className="logo-image" />
             <div>
               <p className="app-brand-kicker">Open Compute Project</p>
               <h1>Policy Pulse</h1>

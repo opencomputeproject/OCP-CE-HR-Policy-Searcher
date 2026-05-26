@@ -312,7 +312,7 @@ select,
   font-size: 14px;
 }
 .logo-image {
-  width: 132px;
+  width: 48px;
   max-height: 48px;
   object-fit: contain;
 }
