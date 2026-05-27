@@ -10,10 +10,11 @@
 #   1. Checks for Python 3.11+
 #   2. Creates a virtual environment (.venv)
 #   3. Installs the project and its dependencies
-#   4. Copies config/example.env -> .env (if .env doesn't exist)
-#   5. Prompts for your Anthropic API key
-#   6. Prompts for Google Sheets credentials (optional)
-#   7. Tells you how to run the agent
+#   4. Checks for Node.js/npm and installs frontend dependencies
+#   5. Copies config/example.env -> .env (if .env doesn't exist)
+#   6. Prompts for your Anthropic API key
+#   7. Prompts for Google Sheets credentials (optional)
+#   8. Tells you how to run the app and agent
 # ============================================================================
 
 set -e
@@ -33,6 +34,23 @@ fi
 info()  { echo -e "${GREEN}✓${NC} $1"; }
 warn()  { echo -e "${YELLOW}⚠${NC} $1"; }
 error() { echo -e "${RED}✗${NC} $1"; }
+
+install_npm_dependencies() {
+    local dir="$1"
+    local label="$2"
+
+    pushd "$dir" >/dev/null
+    if [ -f "package-lock.json" ]; then
+        echo "Installing $label dependencies with npm ci..."
+        npm ci
+    else
+        echo "Installing $label dependencies with npm install..."
+        npm install
+    fi
+    popd >/dev/null
+
+    info "Installed $label dependencies"
+}
 
 # --------------------------------------------------------------------------
 # 1. Find Python 3.11+
@@ -100,7 +118,24 @@ else
 fi
 
 # --------------------------------------------------------------------------
-# 4. Copy example.env -> .env and prompt for API key
+# 4. Install frontend dependencies
+# --------------------------------------------------------------------------
+if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    error "Node.js and npm are required for the React frontend but were not found."
+    echo "  Install the current LTS version from: https://nodejs.org/"
+    echo "  Then rerun this script."
+    exit 1
+fi
+
+node_version=$(node --version)
+npm_version=$(npm --version)
+info "Found Node.js $node_version and npm $npm_version"
+
+install_npm_dependencies "." "root dev tooling"
+install_npm_dependencies "frontend" "frontend"
+
+# --------------------------------------------------------------------------
+# 5. Copy example.env -> .env and prompt for API key
 # --------------------------------------------------------------------------
 if [ ! -f ".env" ]; then
     cp config/example.env .env
@@ -139,7 +174,7 @@ if grep -q "your-key-here\|your-real-key-here" .env 2>/dev/null; then
 fi
 
 # --------------------------------------------------------------------------
-# 5. Google Sheets setup (optional)
+# 6. Google Sheets setup (optional)
 # --------------------------------------------------------------------------
 # Check for UNCOMMENTED credential lines (lines NOT starting with #).
 # The example.env has commented-out examples like "# GOOGLE_CREDENTIALS_FILE=..."
@@ -237,17 +272,21 @@ if [ "$has_creds_file" -eq 0 ] && [ "$has_creds_value" -eq 0 ]; then
 fi
 
 # --------------------------------------------------------------------------
-# 6. Done!
+# 7. Done!
 # --------------------------------------------------------------------------
 echo ""
 echo -e "${BOLD}Setup complete!${NC}"
 echo ""
 echo "Next steps:"
 echo ""
-echo "  1. Activate the virtual environment (needed each new terminal):"
-echo "     source .venv/bin/activate"
+echo "  1. Run the full web app (backend + frontend):"
+echo "     npm run dev"
 echo ""
-echo "  2. Run the agent:"
+echo "     Backend:  http://localhost:8000"
+echo "     Frontend: http://localhost:3000"
+echo ""
+echo "  2. Or run the agent only:"
+echo "     source .venv/bin/activate"
 echo "     python -m src.agent"
 echo ""
 echo ""

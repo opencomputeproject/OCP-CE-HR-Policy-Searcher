@@ -659,7 +659,7 @@ const Chatbot = React.forwardRef(function Chatbot(
           flexDirection: 'column',
           width: '100%',
           height: '100%',
-          maxHeight: '800px',
+          maxHeight: '80vh',
           minHeight: 0,
           border: '1px solid',
           borderColor: 'divider',
