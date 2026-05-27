@@ -6,9 +6,8 @@
 - [x] Settings window for connecting with API key
 - [x] Cost estimate for scans
 - [x] Cost approximation for prompts
-- [] Enter API key on first time launch
 - [x] Can't scan without being connected
-- [] Info text stating that cost estimate is just an estimate
+- [x] Info text stating that cost estimate is just an estimate
 - [] Email /notice when scan is done
 
 ## Chat section
@@ -17,13 +16,12 @@
 - [x] Separated handling of message types
 - [x] Transparency of AI thinking
 - [x] Stop button
-- [] Chat window size locked and scrolleable
+- [x] Chat window size locked and scrolleable
 
 ## Region selector / premade prompting
 - [x] List for regions
 - [] Proper sorting of lists
 - [x] Non-hardcoded regions
-- [] 
 
 ## Policy filters
 - [x] Mock policies visible
@@ -40,6 +38,6 @@
 - [] Remove ToDos
 - [] Clean and add comments
 - [x] Remove Components views
-- [] Name of the application
+- [x] Name of the application
 - [] Explanatory text for features
 - [x] Fix setup script
