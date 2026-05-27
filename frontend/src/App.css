@@ -123,12 +123,9 @@ select,
   color: currentColor;
 }
 
-.policy-list-stage {
+.app-stage {
   width: min(80%, 1600px);
   box-sizing: border-box;
-  display: flex;
-  align-items: stretch;
-  gap: 16px;
   min-height: 120px;
   padding: 24px;
   border: 1px solid #d7dee8;
@@ -136,16 +133,13 @@ select,
   background-color: #f8fafc;
 }
 
-.app-panel {
-  width: min(80%, 1600px);
-  margin: 20px auto;
-  text-align: left;
-  background-color: #fdfdfd;
-  padding: 1em;
-  border-radius: 8px;
+.app-stage + .app-stage {
+  margin-top: 20px;
 }
 
 .Policy-scanner {
+  width: 100%;
+  text-align: left;
   display: grid;
   grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr);
   gap: 24px;
@@ -178,16 +172,19 @@ select,
   display: flex;
   min-height: 520px;
   flex-direction: column;
+  background-color: #ffffff;
   border: 1px solid #d7dee8;
   border-radius: 8px;
-  padding: 0.8em;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .panel-heading {
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  color: black;
+  color: #020617;
+  font-size: 18px;
+  line-height: 1.15;
+  font-weight: 650;
 }
 
 .settings-heading-row {
@@ -254,21 +251,6 @@ select,
   cursor: not-allowed;
 }
 
-.stop-scan-button {
-  padding: 12px 22px;
-  border: none;
-  border-radius: 6px;
-  background-color: #ef4444;
-  color: #fff;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.stop-scan-button:disabled {
-  background-color: #999;
-  cursor: not-allowed;
-}
-
 .agent-action-row {
   display: flex;
   gap: 10px;
@@ -284,11 +266,25 @@ select,
   background-color: #8dc63f;
   border-color: #8dc63f;
   color: #fff;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.button:not(:disabled):hover {
+  background-color: #6fa52f;
 }
 
 .button:disabled {
   background-color: #999;
   cursor: not-allowed;
+}
+
+.stop-scan-button {
+  background-color: #ef4444;
+}
+
+.stop-scan-button:not(:disabled):hover {
+  background-color: #ba3838;
 }
 
 .textarea {
@@ -330,11 +326,7 @@ select,
     justify-content: space-between;
   }
 
-  .app-panel {
-    width: min(100%, 1600px);
-  }
-
-  .policy-list-stage {
+  .app-stage {
     width: min(100%, 1600px);
   }
 
@@ -343,8 +335,4 @@ select,
 
   }
 
-  .policy-list-stage {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }

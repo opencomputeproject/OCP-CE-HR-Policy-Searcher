@@ -82,37 +82,35 @@ function AgentPanel() {
     }, [fetchApiKeyStatus]);
 
     return (
-        <div className="app-panel">
-            <section className="Policy-scanner" aria-label="Policy Scanner">
-                <PolicyScannerHeader onOpenSettings={() => setIsSettingsOpen(true)} />
-                <DomainScanPanel
-                    selectedRegions={selectedRegions}
-                    onSelectionChange={(event, itemIds) => setSelectedRegions(itemIds)}
-                    mode={mode}
-                    onModeChange={setMode}
-                    costStatus={costStatus}
-                    costEstimateText={costEstimateText}
-                    isBusy={isBusy}
-                    hasApiKey={hasApiKey}
-                    isQueueRunning={isQueueRunning}
-                    queuedScanCount={queuedScanCount}
-                    isScanRequestRunning={isScanRequestRunning}
-                    isScanRunning={isScanRunning}
-                    onScan={scanSelectedRegion}
-                    onStop={stopActiveScan}
-                />
-                <AgentChatPanel
-                    isSettingsOpen={isSettingsOpen}
-                    onCloseSettings={() => {
-                        setIsSettingsOpen(false);
-                        fetchApiKeyStatus();
-                    }}
-                    wsRef={wsRef}
-                    notice={chatNotice}
-                    onRunningChange={setIsChatRunning}
-                />
-            </section>
-        </div>
+        <section className="Policy-scanner" aria-label="Policy Scanner">
+            <PolicyScannerHeader onOpenSettings={() => setIsSettingsOpen(true)} />
+            <DomainScanPanel
+                selectedRegions={selectedRegions}
+                onSelectionChange={(event, itemIds) => setSelectedRegions(itemIds)}
+                mode={mode}
+                onModeChange={setMode}
+                costStatus={costStatus}
+                costEstimateText={costEstimateText}
+                isBusy={isBusy}
+                hasApiKey={hasApiKey}
+                isQueueRunning={isQueueRunning}
+                queuedScanCount={queuedScanCount}
+                isScanRequestRunning={isScanRequestRunning}
+                isScanRunning={isScanRunning}
+                onScan={scanSelectedRegion}
+                onStop={stopActiveScan}
+            />
+            <AgentChatPanel
+                isSettingsOpen={isSettingsOpen}
+                onCloseSettings={() => {
+                    setIsSettingsOpen(false);
+                    fetchApiKeyStatus();
+                }}
+                wsRef={wsRef}
+                notice={chatNotice}
+                onRunningChange={setIsChatRunning}
+            />
+        </section>
     );
 }
 

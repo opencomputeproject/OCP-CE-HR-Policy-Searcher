@@ -65,8 +65,10 @@ function App() {
         onClose={isFirstRunHelpOpen ? closeWelcomeTutorial : () => setIsHelpOpen(false)}
       />
       <main className="App-main">
-        <AgentPanel />
-        <section className="policy-list-stage" aria-label="Discovered policies">
+        <section className="app-stage" aria-label="Policy scanner">
+          <AgentPanel />
+        </section>
+        <section className="app-stage" aria-label="Discovered policies">
           <PolicyList />
         </section>
       </main>
