@@ -101,6 +101,36 @@ domains:
       - "regulation"
     notes: "National energy policy and legislation"
 
+  - name: "Finlex - Finnish Legislation Database"
+    id: "finlex_fi"
+    enabled: true
+    region:
+      - "eu"
+      - "nordic"
+      - "finland"
+    base_url: "https://finlex.fi"
+    start_paths:
+      - "/fi/laki/haku/?search%5Btype%5D=pika&search%5Bpika%5D=kaukol%C3%A4mp%C3%B6"
+      - "/fi/laki/ajantasa/"
+    allowed_path_patterns:
+      - "/fi/laki/*"
+    max_depth: 2
+    language: "fi"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "district_heating"
+    policy_types:
+      - "law"
+      - "legislation"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: Finland had agency coverage
+      (energiavirasto_fi, tem_fi) but no legislation database. Finlex search
+      seeded on kaukolampo (district heating) plus consolidated legislation
+      browse. Covers the Energy Efficiency Act (1429/2014) and heat market law.
+
   - name: "Norwegian Ministry of Petroleum and Energy"
     id: "oed_no"
     enabled: true

@@ -25,3 +25,34 @@ domains:
       - "regulation"
       - "guidance"
     notes: "Austrian energy efficiency programs"
+
+  - name: "RIS - Austrian Federal Legal Information System"
+    id: "ris_at"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "austria"
+    base_url: "https://www.ris.bka.gv.at"
+    start_paths:
+      - "/Ergebnis.wxe?Abfrage=Bundesnormen&Titel=Energieeffizienz"
+    allowed_path_patterns:
+      - "/Ergebnis.wxe*"
+      - "/Dokumente/Bundesnormen/*"
+      - "/GeltendeFassung.wxe*"
+    max_depth: 2
+    language: "de"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "energy_efficiency"
+    policy_types:
+      - "law"
+      - "legislation"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: Austria had no legislation
+      database coverage. RIS (Rechtsinformationssystem des Bundes) federal
+      norms search seeded on Energieeffizienz titles. Covers the
+      Energieeffizienzgesetz (EEffG) and related federal law.

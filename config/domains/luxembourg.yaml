@@ -1,0 +1,26 @@
+# =============================================================================
+# LUXEMBOURG
+# =============================================================================
+# Added 2026-07-07 from recall/coverage audit: EU member bound by EED
+# Article 26 waste-heat rules; previously zero configured sources.
+# French keyword coverage applies.
+# =============================================================================
+
+domains:
+  - id: legilux_lu
+    name: "Legilux (Luxembourg Official Journal)"
+    base_url: "https://legilux.public.lu"
+    start_paths:
+      - "/search?q=efficacit%C3%A9+%C3%A9nerg%C3%A9tique"
+      - "/search?q=chaleur+fatale"
+    enabled: true
+    language: "fr"
+    region: ["luxembourg", "eu"]
+    category: "legislation"
+    tags: ["energy_efficiency", "district_heating"]
+    max_depth: 2
+    rate_limit_seconds: 3.0
+    notes: >
+      Official Luxembourg legislation portal. Search seeds: energy
+      efficiency and waste heat (chaleur fatale) in French.
+      Added 2026-07-07 from recall/coverage audit.

@@ -172,6 +172,64 @@ domains:
       - "standard"
     notes: "PUE thresholds for carbon reduction"
 
+  - name: "Japan e-Gov Laws Database"
+    id: "elaws_jp"
+    enabled: true
+    region:
+      - "apac"
+      - "japan"
+    base_url: "https://elaws.e-gov.go.jp"
+    start_paths:
+      - "/search/elawsSearch/elaws_search/lsg0100/?searchWord=%E7%9C%81%E3%82%A8%E3%83%8D"
+    allowed_path_patterns:
+      - "/search/*"
+      - "/document?*"
+    max_depth: 2
+    language: "ja"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "energy_efficiency"
+    policy_types:
+      - "law"
+      - "legislation"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: Japan had ministry coverage
+      (meti_jp, enecho_jp) but no primary law database. e-Gov laws search
+      seeded on shoene (energy conservation). Covers the Act on Rationalizing
+      Energy Use (Energy Efficiency Act) that sets the DC PUE benchmark.
+
+  - name: "South Korea National Law Information Center"
+    id: "law_kr"
+    enabled: true
+    region:
+      - "apac"
+      - "south_korea"
+    base_url: "https://www.law.go.kr"
+    start_paths:
+      - "/lsSc.do?query=%EC%97%90%EB%84%88%EC%A7%80%EC%9D%B4%EC%9A%A9"
+    allowed_path_patterns:
+      - "/lsSc.do*"
+      - "/lsInfoP.do*"
+    max_depth: 2
+    language: "ko"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "energy_efficiency"
+    policy_types:
+      - "law"
+      - "legislation"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: South Korea had only the
+      MOTIE ministry portal. National Law Information Center search seeded on
+      energy use (Rational Energy Utilization Act and related decrees that
+      underpin PUE thresholds for data centers).
+
   - name: "Australia Department of Climate Change, Energy"
     id: "energy_au"
     enabled: true

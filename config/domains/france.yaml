@@ -88,3 +88,36 @@ domains:
       L236-2: DCs >=1MW must install waste heat recovery systems.
       L236-3: Mandatory cost-benefit analysis for efficiency improvements.
       Effective October 1, 2025.
+
+  - name: "Legifrance - Waste Heat Legislation Search"
+    id: "legifrance_search"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_central"
+      - "france"
+    base_url: "https://www.legifrance.gouv.fr"
+    start_paths:
+      - "/search/code?tab_selection=code&searchField=ALL&query=chaleur+fatale"
+      - "/search/lois?tab_selection=lois&searchField=ALL&query=valorisation+chaleur"
+    allowed_path_patterns:
+      - "/search/*"
+      - "/codes/*"
+      - "/loda/*"
+      - "/jorf/*"
+    max_depth: 2
+    language: "fr"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislation"
+    tags:
+      - "waste_heat"
+      - "mandates"
+    policy_types:
+      - "law"
+      - "legislation"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: Legifrance full-text search
+      seeds for "chaleur fatale" (waste heat) and "valorisation chaleur".
+      Complements the fixed Code de l'energie sections in legifrance_dc by
+      surfacing new laws and decrees as they are published.

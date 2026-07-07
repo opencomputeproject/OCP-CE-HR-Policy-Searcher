@@ -94,3 +94,35 @@ domains:
       Must participate in wholesale electricity market.
       Effective December 2025.
       PDF at CDN: cruie-live-*.divio-media.com/documents/CRU2025236_*.pdf
+
+  - name: "Irish Statute Book"
+    id: "irishstatutebook_ie"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_west"
+      - "ireland"
+    base_url: "https://www.irishstatutebook.ie"
+    start_paths:
+      - "/search/?q=district+heating"
+      - "/search/?q=energy+efficiency"
+    allowed_path_patterns:
+      - "/search/*"
+      - "/eli/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "district_heating"
+      - "energy_efficiency"
+    policy_types:
+      - "law"
+      - "legislation"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: Ireland lacked primary
+      legislation database coverage (only agency/regulator sites). Official
+      electronic Irish Statute Book search seeds for district heating and
+      energy efficiency acts and statutory instruments.

@@ -32,3 +32,30 @@ domains:
       5th largest data center market nationally.
       AEP requesting cost shift to new customers like data centers.
 
+  - name: "Ohio General Assembly - Legislation"
+    id: "oh_legislature"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+      - "ohio"
+    base_url: "https://www.legislature.ohio.gov"
+    start_paths:
+      - "/legislation"
+    allowed_path_patterns:
+      - "/legislation*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: OH is the 5th largest data
+      center market with no legislature bill-search coverage (only the energy
+      office). Legislation portal for tracking energy and data center bills.
+

@@ -50,6 +50,7 @@ VALID_REGIONS = {
     "portugal": "Portugal", "czech_republic": "Czech Republic",
     "greece": "Greece", "hungary": "Hungary", "romania": "Romania",
     "finland": "Finland", "iceland": "Iceland",
+    "estonia": "Estonia", "luxembourg": "Luxembourg",
     # UK devolved nations
     "scotland": "Scotland", "wales": "Wales", "northern_ireland": "Northern Ireland",
     # Swiss cantons

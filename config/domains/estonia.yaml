@@ -1,0 +1,27 @@
+# =============================================================================
+# ESTONIA
+# =============================================================================
+# Added 2026-07-07 from recall/coverage audit: EU member bound by EED
+# Article 26 waste-heat rules; previously zero configured sources.
+# NOTE: keywords.yaml has no Estonian (et) terms yet — Riigi Teataja search
+# seeds carry discovery until Estonian keyword coverage is added.
+# =============================================================================
+
+domains:
+  - id: riigiteataja_ee
+    name: "Riigi Teataja (Estonian State Gazette)"
+    base_url: "https://www.riigiteataja.ee"
+    start_paths:
+      - "/otsingu_tulemus.html?otsisona=kaugk%C3%BCte"
+      - "/otsingu_tulemus.html?otsisona=energiat%C3%B5husus"
+    enabled: true
+    language: "et"
+    region: ["estonia", "eu"]
+    category: "legislation"
+    tags: ["energy_efficiency", "district_heating"]
+    max_depth: 2
+    rate_limit_seconds: 3.0
+    notes: >
+      Official Estonian legislation database. Search seeds: kaugküte
+      (district heating) and energiatõhusus (energy efficiency).
+      Added 2026-07-07 from recall/coverage audit.

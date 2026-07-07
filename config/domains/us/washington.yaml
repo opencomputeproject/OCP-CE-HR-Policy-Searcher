@@ -30,3 +30,31 @@ domains:
       - "guidance"
     notes: "Renewable energy requirements, major data center presence"
 
+  - name: "Washington State Legislature - Bill Information"
+    id: "wa_legislature"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+      - "washington"
+    base_url: "https://app.leg.wa.gov"
+    start_paths:
+      - "/billinfo/"
+    allowed_path_patterns:
+      - "/billinfo/*"
+      - "/billsummary*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: WA hosts major data center
+      clusters (Quincy) but had no legislature coverage (only Commerce).
+      Bill information portal for tracking energy and data center bills.
+

@@ -31,3 +31,30 @@ domains:
       Growing data center hub.
       SB 34: Prohibits passing data center costs to customers.
 
+  - name: "Georgia General Assembly - Legislation"
+    id: "ga_legislature"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+      - "georgia"
+    base_url: "https://www.legis.ga.gov"
+    start_paths:
+      - "/legislation"
+    allowed_path_patterns:
+      - "/legislation*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: true
+    rate_limit_seconds: 3.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: GA is a fast-growing data
+      center market (SB 34 cost allocation) with no legislature bill-search
+      coverage. Legislation portal is a JavaScript SPA, requires Playwright.
+

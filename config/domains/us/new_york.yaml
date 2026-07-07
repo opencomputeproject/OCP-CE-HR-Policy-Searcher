@@ -32,3 +32,31 @@ domains:
       - "report"
     notes: "NY state energy efficiency incentives"
 
+  - name: "New York State Senate - Legislation Search"
+    id: "ny_legislature"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+      - "new_york"
+    base_url: "https://www.nysenate.gov"
+    start_paths:
+      - "/search/legislation?searched=waste+heat"
+    allowed_path_patterns:
+      - "/search/legislation*"
+      - "/legislation/bills/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: NY is a top data center
+      market with no legislature bill-search coverage (only NYSERDA).
+      NY Senate legislation search seeded on waste heat.
+

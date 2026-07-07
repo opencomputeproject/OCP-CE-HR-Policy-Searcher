@@ -1,0 +1,39 @@
+# =============================================================================
+# NETHERLANDS
+# =============================================================================
+# National legislation database. Note: RVO (rvo.nl, id: rvo_nl) lives in
+# eu.yaml, not here.
+# =============================================================================
+
+domains:
+  - name: "Wetten.overheid.nl - Dutch National Legislation"
+    id: "wetten_overheid_nl"
+    enabled: true
+    region:
+      - "eu"
+      - "eu_west"
+      - "netherlands"
+    base_url: "https://wetten.overheid.nl"
+    start_paths:
+      - "/zoeken?keyword=restwarmte"
+      - "/zoeken?keyword=warmtenet"
+    allowed_path_patterns:
+      - "/zoeken*"
+      - "/BWBR*"
+    max_depth: 2
+    language: "nl"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislation"
+    tags:
+      - "waste_heat"
+      - "district_heating"
+      - "mandates"
+    policy_types:
+      - "law"
+      - "legislation"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: Netherlands had no national
+      legislation database coverage. Search seeds for restwarmte (waste heat)
+      and warmtenet (heat network). Covers Warmtewet and Wet collectieve
+      warmte. RVO subsidy programs are covered separately by rvo_nl in eu.yaml.

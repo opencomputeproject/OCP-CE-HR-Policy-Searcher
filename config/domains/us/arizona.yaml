@@ -29,3 +29,31 @@ domains:
       - "guidance"
     notes: "Growing Southwest data center market"
 
+  - name: "Arizona State Legislature - Bills"
+    id: "az_legislature"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+      - "arizona"
+    base_url: "https://www.azleg.gov"
+    start_paths:
+      - "/bills/"
+    allowed_path_patterns:
+      - "/bills/*"
+      - "/legtext/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: AZ (Phoenix metro) is a
+      major growth data center market with no legislature coverage (only the
+      Corporation Commission). Bills portal for energy legislation tracking.
+

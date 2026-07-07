@@ -32,3 +32,30 @@ domains:
       Chicago Quantum & Microelectronics Park: closed-loop wastewater system.
       Meta's 1.1 GW nuclear purchase agreement at Clinton facility.
 
+  - name: "Illinois General Assembly - Legislation"
+    id: "il_legislature"
+    enabled: true
+    region:
+      - "us"
+      - "us_states"
+      - "illinois"
+    base_url: "https://www.ilga.gov"
+    start_paths:
+      - "/legislation/"
+    allowed_path_patterns:
+      - "/legislation/*"
+    max_depth: 2
+    language: "en"
+    requires_playwright: false
+    rate_limit_seconds: 2.0
+    category: "legislative"
+    tags:
+      - "mandates"
+      - "efficiency"
+    policy_types:
+      - "law"
+    notes: |
+      Added 2026-07-07 from recall/coverage audit: IL is the 4th largest data
+      center market with no legislature bill-search coverage (only the ICC).
+      Legislation portal for tracking energy and data center bills.
+
