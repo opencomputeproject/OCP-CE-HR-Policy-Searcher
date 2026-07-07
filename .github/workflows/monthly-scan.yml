@@ -1,0 +1,90 @@
+# Monthly automated policy scan + static explorer publish.
+#
+# Requires repository secrets:
+#   ANTHROPIC_API_KEY   - funds the analysis stage (bounded: one scan/month)
+#   GOOGLE_CREDENTIALS  - optional, base64 service account for Sheets export
+#   SPREADSHEET_ID      - optional, target spreadsheet for the Staging tab
+#
+# Publishing to GitHub Pages requires Pages to be enabled for the repo
+# (Settings -> Pages -> Source: GitHub Actions).
+#
+# Action references are pinned to full commit SHAs (supply-chain hygiene);
+# the trailing comment records the tag each SHA corresponds to.
+
+name: Monthly Policy Scan
+
+on:
+  schedule:
+    # 06:00 UTC on the 1st of each month
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+    inputs:
+      group:
+        description: "Domain group to scan (from config/groups.yaml)"
+        required: false
+        default: "all"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: monthly-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[browser]"
+          playwright install chromium --with-deps
+
+      - name: Run scan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+          # Pass workflow input through env to avoid script injection via ${{ }}
+          SCAN_GROUP: ${{ inputs.group || 'all' }}
+        run: |
+          python -m src.agent "Scan the $SCAN_GROUP group and report results"
+
+      - name: Build static explorer
+        run: python scripts/build_explorer.py data/policies.json explorer/index.html
+
+      - name: Upload policies dataset
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: policies-${{ github.run_id }}
+          path: |
+            data/policies.json
+            data/logs/audit.jsonl
+          retention-days: 90
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: explorer/
+
+  publish:
+    needs: scan
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

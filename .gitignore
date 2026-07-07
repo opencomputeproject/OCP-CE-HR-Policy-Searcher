@@ -51,3 +51,4 @@ desktop.ini
 # Misc
 *.log
 .ruff_cache/
+explorer/
