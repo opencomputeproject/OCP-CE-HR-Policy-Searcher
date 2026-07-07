@@ -24,9 +24,9 @@ function DomainScanPanel({
             <div>
                 <div className="settings-heading-panel">
                     <div className="settings-heading-row">
-                        <h2 className="panel-heading">Domain Scan</h2>
+                        <h2 className="panel-heading">Search Government Sources</h2>
                     </div>
-                    <p className="text-block-small">Scan specific regions for policies.</p>
+                    <p className="text-block-small">Choose countries or regions to search for policies.</p>
                 </div>
 
                 <div className="region-selector-scroll">
@@ -65,6 +65,11 @@ function DomainScanPanel({
                     Stop scan
                 </button>
             </div>
+            {!hasApiKey && (
+                <p className="text-block-small">
+                    Add an Anthropic API key in Settings to enable scanning.
+                </p>
+            )}
         </div>
     );
 }

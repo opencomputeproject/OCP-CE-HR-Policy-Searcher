@@ -236,7 +236,8 @@ export default function RegionSelector({ selectedItems, onSelectionChange }) {
         setStatus('ready');
       } catch (loadError) {
         if (loadError.name === 'AbortError') return;
-        setError(loadError.message);
+        console.error(loadError);
+        setError('Could not load data. Check that the backend is running, then refresh.');
         setStatus('error');
       }
     }

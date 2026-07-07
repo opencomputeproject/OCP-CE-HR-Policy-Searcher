@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
@@ -173,10 +172,10 @@ function WelcomePart() {
       }}
     >
       <p>
-        Hello! Welcome to the <strong>OCP CE HR Policy Searcher</strong> - your tool for discovering
-        government policies on <strong>data center waste heat reuse</strong> around the world. For
-        Searching you can either ask questions here in the chat or use the Domain search to the left
-        of the chat for a more consistent and quicker but less specific search.
+        Hello! Welcome to <strong>Policy Pulse</strong> - your tool for discovering
+        government policies on <strong>data center waste heat reuse</strong> around the world. You
+        can ask questions here in the chat, or use the search panel on the left for a structured
+        scan.
       </p>
 
       <p>Here's what the chat can help you with:</p>
@@ -256,9 +255,9 @@ const messageSx = {
   },
 };
 
-function ToolPart({ part, onApprove, onDeny }) {
+function ToolPart({ part }) {
   const { toolInvocation } = part;
-  const { toolName, input, output, state } = toolInvocation;
+  const { toolName, input, output } = toolInvocation;
 
   return (
     <ToolBlock>
@@ -272,27 +271,6 @@ function ToolPart({ part, onApprove, onDeny }) {
         <Typography variant="body2" component="pre" sx={{ whiteSpace: 'pre-wrap', marginTop: 1 }}>
           Output: {JSON.stringify(output, null, 2)}
         </Typography>
-      )}
-      {state === 'approval-requested' && (
-        <Box sx={{ marginTop: 1 }}>
-          <Button
-            size="small"
-            variant="contained"
-            color="success"
-            onClick={() => onApprove?.(toolInvocation.toolCallId)}
-            sx={{ marginRight: 1 }}
-          >
-            Approve
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            color="error"
-            onClick={() => onDeny?.(toolInvocation.toolCallId)}
-          >
-            Deny
-          </Button>
-        </Box>
       )}
     </ToolBlock>
   );
@@ -493,7 +471,7 @@ function createCliAgentAdapter({ wsRef, onRunningChange }) {
       if (!text) {
         return new ReadableStream({
           start(controller) {
-            enqueueTextResponse(controller, `response-${Date.now()}`, 'Enter a command first.');
+            enqueueTextResponse(controller, `response-${Date.now()}`, 'Type a question first.');
           },
         });
       }
@@ -579,7 +557,7 @@ const ChatbotInner = React.forwardRef(function ChatbotInner(
         }}
       >
         <ChatComposerTextArea
-          placeholder="Type your command here..."
+          placeholder="Ask about heat reuse policies, e.g. 'Find rules in Denmark'"
           disabled={inputDisabled}
           sx={{
             maxHeight: '120px',
@@ -632,13 +610,7 @@ const Chatbot = React.forwardRef(function Chatbot(
     () => ({
       welcome: () => <WelcomePart />,
       reasoning: ({ part }) => <ReasoningPart part={part} />,
-      'dynamic-tool': ({ part }) => (
-        <ToolPart
-          part={part}
-          onApprove={() => {}}
-          onDeny={() => {}}
-        />
-      ),
+      'dynamic-tool': ({ part }) => <ToolPart part={part} />,
     }),
     [],
   );

@@ -19,7 +19,7 @@ const cards = [
   {
     id: 'discover',
     title: 'Discover',
-    description: 'Find new domains (URLs).',
+    description: 'Find new government websites not yet covered.',
     tint: '#f8fafc',
     hoverTint: '#f1f5f9',
     selectedTint: '#dbe4ef',
@@ -29,7 +29,7 @@ const cards = [
   {
     id: 'deep',
     title: 'Deep',
-    description: 'Scan every domain more thoroughly.',
+    description: 'Slower and higher cost; digs deeper into each site.',
     tint: '#fbfaf8',
     hoverTint: '#e0c7ea',
     selectedTint: '#e0d6e4',
@@ -74,8 +74,9 @@ function ModeSelector({ value = 'standard', onChange }) {
               sx={{
                 height: '100%',
                 transition: 'none',
-                '& .MuiCardActionArea-focusHighlight': {
-                  display: 'none',
+                '&:focus-visible': {
+                  outline: '2px solid #4d7c0f',
+                  outlineOffset: 2,
                 },
                 '&:hover': {
                   backgroundColor: isSelected ? card.selectedHoverTint : card.hoverTint,

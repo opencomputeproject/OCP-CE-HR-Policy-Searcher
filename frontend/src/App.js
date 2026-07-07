@@ -14,9 +14,9 @@ function App() {
 
   const markWelcomeTutorialSeen = () => {
     try {
-      window.sessionStorage.setItem(WELCOME_TUTORIAL_STORAGE_KEY, 'true');
+      window.localStorage.setItem(WELCOME_TUTORIAL_STORAGE_KEY, 'true');
     } catch {
-      // sessionStorage can be unavailable in private or restricted browser modes.
+      // localStorage can be unavailable in private or restricted browser modes.
     }
   };
 
@@ -27,7 +27,7 @@ function App() {
 
   useEffect(() => {
     try {
-      if (window.sessionStorage.getItem(WELCOME_TUTORIAL_STORAGE_KEY) !== 'true') {
+      if (window.localStorage.getItem(WELCOME_TUTORIAL_STORAGE_KEY) !== 'true') {
         setIsFirstRunHelpOpen(true);
       }
     } catch {

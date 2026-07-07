@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
@@ -55,7 +56,8 @@ function PolicyList() {
         setPolicies(Array.isArray(data.policies) ? data.policies : []);
         setTags(tagData && typeof tagData === 'object' ? tagData : {});
       } catch (loadError) {
-        setError(loadError.message);
+        console.error(loadError);
+        setError('Could not load data. Check that the backend is running, then refresh.');
       } finally {
         setIsLoading(false);
       }
@@ -146,11 +148,11 @@ function PolicyList() {
   };
 
   if (isLoading) {
-    return <div>Loading policies...</div>;
+    return <div role="status">Loading policies...</div>;
   }
 
   if (error) {
-    return <div>Unable to load policies: {error}</div>;
+    return <div>{error}</div>;
   }
 
   return (
@@ -169,6 +171,7 @@ function PolicyList() {
           </div>
           <TextField
             className="policy-list-filter policy-list-search"
+            label="Filter by name"
             placeholder="Filter by name..."
             size="small"
             value={nameQuery}
@@ -188,6 +191,7 @@ function PolicyList() {
             renderInput={(params) => (
               <TextField
                 {...params}
+                label="Jurisdiction"
                 placeholder={selectedJurisdictions.length === 0 ? 'All jurisdictions' : ''}
                 size="small"
               />
@@ -207,21 +211,25 @@ function PolicyList() {
             renderInput={(params) => (
               <TextField
                 {...params}
+                label="Tag"
                 placeholder={selectedTags.length === 0 ? 'All tags' : ''}
                 size="small"
               />
             )}
           />
           <FormControl className="policy-list-filter policy-list-sort" size="small" sx={{ width: 250 }}>
+            <InputLabel id="policy-sort-label">Sort by</InputLabel>
             <Select
               id="policy-sort"
+              labelId="policy-sort-label"
+              label="Sort by"
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
             >
-              <MenuItem value="relevance">Sorting by: Relevance (High)</MenuItem>
-              <MenuItem value="name">Sorting by: Name (A-Z)</MenuItem>
-              <MenuItem value="jurisdiction">Sorting by: Jurisdiction (A-Z)</MenuItem>
-              <MenuItem value="date">Sorting by: Date added (Newest)</MenuItem>
+              <MenuItem value="relevance">Relevance (High)</MenuItem>
+              <MenuItem value="name">Name (A-Z)</MenuItem>
+              <MenuItem value="jurisdiction">Jurisdiction (A-Z)</MenuItem>
+              <MenuItem value="date">Date added (Newest)</MenuItem>
             </Select>
           </FormControl>
           <button type="button" className="policy-clear-button" onClick={clearFilters}>
@@ -230,7 +238,7 @@ function PolicyList() {
         </div>
       </div>
       {policies.length === 0 ? (
-        <p>No policies found.</p>
+        <p>No policies discovered yet. Select a region in the scanner and press Scan, or ask the agent in the chat.</p>
       ) : filteredPolicyEntries.length === 0 ? (
         <p className="text-block">
           No policies match the selected filters in our current database. Use the agent to find policies within your requirements.

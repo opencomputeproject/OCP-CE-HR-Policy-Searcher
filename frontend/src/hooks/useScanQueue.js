@@ -107,8 +107,8 @@ function useScanQueue({ onNotice }) {
         onNotice(
             'system',
             request.discover
-                ? `Starting discovery ${index + 1}/${total} for "${request.domains}" via /api/scans.`
-                : `Starting scan ${index + 1}/${total} for "${request.domains}" via /api/scans.`,
+                ? `Starting discovery ${index + 1}/${total} for "${request.domains}".`
+                : `Starting scan ${index + 1}/${total} for "${request.domains}".`,
         );
 
         try {

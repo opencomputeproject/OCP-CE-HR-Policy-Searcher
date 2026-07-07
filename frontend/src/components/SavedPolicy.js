@@ -135,13 +135,10 @@ function SavedPolicy({ policy, tags = {} }) {
     };
 
     const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
+        if (!dateString) return 'Not specified';
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        });
+        if (Number.isNaN(date.getTime())) return 'Not specified';
+        return new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium' }).format(date);
     };
 
     return (

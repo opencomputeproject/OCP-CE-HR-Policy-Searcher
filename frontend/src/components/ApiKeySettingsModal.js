@@ -215,7 +215,7 @@ function ApiKeySettingsModal({ open, onClose }) {
           </button>
         </div>
         <div style={styles.label}>
-              An Anthropic API key is needed for the PolicyPulse agent to function.
+              An Anthropic API key is needed for the Policy Pulse agent to function.
         </div>
 
         {status?.exists ? (
