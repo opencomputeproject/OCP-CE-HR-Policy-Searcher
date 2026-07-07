@@ -59,6 +59,15 @@ keywords:
         - "cogeneration"
         - "thermal energy network"
 
+        # EU statutory/technical terms
+        - "energy reuse factor"
+        - "ERF"
+        - "heat offtake"
+        - "waste heat reuse"
+        - "energy efficiency directive"
+        - "waste heat recovery obligation"
+        - "heat network zoning"
+
       de:
         - "Abwärme"
         - "Abwärmenutzung"
@@ -70,6 +79,9 @@ keywords:
         - "Wärmenutzung"
         - "Wärmeauskopplung"
         - "Restwärme"
+        - "kommunale Wärmeplanung"
+        - "Sektorkopplung"
+        - "Abwärmenutzungspflicht"
 
       fr:
         - "chaleur résiduelle"
@@ -80,6 +92,8 @@ keywords:
         - "réseau de chaleur"
         - "chauffage urbain"
         - "valorisation thermique"
+        - "obligation de valorisation de la chaleur fatale"
+        - "planification thermique"
 
       nl:
         - "restwarmte"
@@ -89,6 +103,10 @@ keywords:
         - "datacenter warmte"
         - "warmtenet"
         - "stadsverwarming"
+        - "Warmtewet"
+        - "WKO"
+        - "aquathermie"
+        - "restwarmtebenutting"
 
       sv:
         - "spillvärme"
@@ -97,6 +115,8 @@ keywords:
         - "värmeutvinning"
         - "datacenter värme"
         - "fjärrvärme"
+        - "energieffektiviseringsdirektivet"
+        - "spillvärmeåtervinning"
 
       da:
         - "overskudsvarme"
@@ -104,6 +124,8 @@ keywords:
         - "varmegenvinding"
         - "varmeudnyttelse"
         - "fjernvarme"
+        - "Varmeforsyningsloven"
+        - "overskudsvarmeafgift"
 
       "no":
         - "spillvarme"
@@ -132,6 +154,8 @@ keywords:
         - "endurheimt varma"
         - "hitaveita"
         - "varmadæla"
+        - "glatvarmi"
+        - "affallsvarmi"
 
       it:
         - "calore residuo"
@@ -263,6 +287,16 @@ keywords:
         - "rulemaking"
         - "executive order"
 
+        # EU legislative instruments
+        - "EED"
+        - "Directive (EU) 2023/1791"
+        - "Directive 2012/27/EU"
+        - "Article 26"
+        - "delegated regulation"
+        - "implementing regulation"
+        - "recast directive"
+        - "statutory instrument"
+
       de:
         - "Verordnung"
         - "Gesetz"
@@ -272,6 +306,12 @@ keywords:
         - "Pflicht"
         - "Bestimmung"
         - "Anforderung"
+        - "EnEfG"
+        - "Energieeffizienzgesetz"
+        - "Wärmeplanungsgesetz"
+        - "WPG"
+        - "GEG"
+        - "Gebäudeenergiegesetz"
 
       fr:
         - "règlement"
@@ -282,6 +322,8 @@ keywords:
         - "arrêté"
         - "ordonnance"
         - "obligation réglementaire"
+        - "décret tertiaire"
+        - "loi de transition énergétique"
 
       nl:
         - "verordening"
@@ -555,6 +597,23 @@ keywords:
         - "credit fiscal"
         - "finanțare"
 
+      ja:
+        - "補助金"
+        - "税額控除"
+        - "助成金"
+        - "優遇措置"
+
+      ko:
+        - "보조금"
+        - "세액공제"
+        - "지원금"
+        - "인센티브"
+
+      ar:
+        - "دعم مالي"
+        - "إعفاء ضريبي"
+        - "منحة"
+
   # ---------------------------------------------------------------------------
   # ENABLING ACTION KEYWORDS (lower weight)
   # ---------------------------------------------------------------------------
@@ -704,6 +763,16 @@ keywords:
         - "plan de acțiune"
         - "proiect pilot"
         - "studiu de fezabilitate"
+
+      ja:
+        - "熱供給"
+        - "地域熱供給網"
+        - "熱導管"
+
+      ko:
+        - "열공급"
+        - "지역난방망"
+        - "열배관"
 
   # ---------------------------------------------------------------------------
   # OFF-TAKER KEYWORDS (lower weight)
@@ -856,20 +925,30 @@ keywords:
         - "distributed generation"
         - "behind the meter"
 
+        # Technical/spelling variants
+        - "datacenter"
+        - "datacentre"
+        - "free cooling"
+        - "liquid cooling"
+        - "immersion cooling"
+
       de:
         - "Rechenzentrum"
         - "Rechenzentren"
         - "Serverraum"
         - "Colocation"
+        - "Datacenter"
 
       fr:
         - "centre de données"
         - "salle serveur"
         - "infrastructure cloud"
+        - "datacenter"
 
       nl:
         - "datacentrum"
         - "serverruimte"
+        - "datacenter"
 
       sv:
         - "datacenter"
@@ -893,6 +972,7 @@ keywords:
       is:
         - "gagnamiðstöð"
         - "þjónasalur"
+        - "gagnaver"
 
       it:
         - "centro dati"
@@ -966,6 +1046,9 @@ keywords:
         - "decarbonisation"
         - "circular economy"
         - "net zero"
+        - "coefficient of performance"
+        - "COP"
+        - "heat pump"
 
       de:
         - "Energieeffizienz"
@@ -1058,6 +1141,23 @@ keywords:
         - "consum de energie"
         - "sustenabilitate"
         - "decarbonizare"
+
+      ja:
+        - "エネルギー効率"
+        - "省エネ"
+        - "脱炭素"
+        - "熱回収"
+
+      ko:
+        - "에너지 효율"
+        - "탄소중립"
+        - "열회수"
+        - "지역난방"
+
+      ar:
+        - "كفاءة الطاقة"
+        - "الحياد الكربوني"
+        - "الاستدامة"
 
 # =============================================================================
 # THRESHOLDS
@@ -1326,6 +1426,10 @@ stricter_requirements:
       - "mandatory heat recovery"
       - "energy reuse effectiveness"
       - "ERE"  # Energy Reuse Effectiveness metric
+      - "Article 26"  # EED waste heat article
+      - "EnEfG"  # German Energy Efficiency Act
+      - "2023/1791"  # EED recast directive number
+      - "waste heat recovery obligation"
 
       # US legislative session terms
       - "2025 session"
