@@ -76,14 +76,9 @@ select,
   letter-spacing: 0;
 }
 
-.app-brand-kicker {
-  margin: 0 0 3px;
-  color: #5f6b7a;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1.1;
-  text-transform: uppercase;
+.app-brand-title {
+  padding-left: 18px;
+  border-left: 1px solid #d6dbe1;
 }
 
 .app-header-nav {
@@ -311,8 +306,9 @@ select,
   font-size: 14px;
 }
 .logo-image {
-  width: 48px;
-  max-height: 48px;
+  /* Official OCP horizontal lockup, 315x128 viewBox */
+  height: 52px;
+  width: auto;
   object-fit: contain;
 }
 
