@@ -158,6 +158,7 @@ class TestDomainScannerScan:
         policies = await scanner.scan()
         assert len(policies) == 0
         assert scanner.progress.pages_filtered == 1
+        assert scanner.progress.filtered_short_content == 1
 
     @pytest.mark.asyncio
     async def test_filters_excluded_content(self, scanner_deps):
@@ -168,6 +169,7 @@ class TestDomainScannerScan:
         policies = await scanner.scan()
         assert len(policies) == 0
         assert scanner.progress.pages_filtered == 1
+        assert scanner.progress.filtered_excluded == 1
 
     @pytest.mark.asyncio
     async def test_filters_low_keyword_score(self, scanner_deps):
@@ -176,6 +178,43 @@ class TestDomainScannerScan:
         scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
         policies = await scanner.scan()
         assert len(policies) == 0
+        assert scanner.progress.filtered_keywords == 1
+
+    @pytest.mark.asyncio
+    async def test_keyword_rejection_is_logged_visibly(self, scanner_deps, caplog):
+        """A dropped page must leave a trace at INFO, the default log level."""
+        import logging as _logging
+
+        scanner_deps["keyword_matcher"].is_relevant.return_value = False
+        scanner_deps["keyword_matcher"].check_near_miss.return_value = False
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        with caplog.at_level(_logging.INFO, logger="src.core.scanner"):
+            await scanner.scan()
+        assert any(
+            "keyword gate" in r.message.lower() and "example.gov" in r.message
+            for r in caplog.records
+        )
+
+    @pytest.mark.asyncio
+    async def test_near_miss_counted_and_logged(self, scanner_deps, caplog):
+        import logging as _logging
+
+        scanner_deps["keyword_matcher"].is_relevant.return_value = False
+        scanner_deps["keyword_matcher"].check_near_miss.return_value = True
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        with caplog.at_level(_logging.INFO, logger="src.core.scanner"):
+            await scanner.scan()
+        assert scanner.progress.near_misses == 1
+        assert any("near miss" in r.message.lower() for r in caplog.records)
+
+    @pytest.mark.asyncio
+    async def test_screening_rejection_counted(self, scanner_deps):
+        scanner_deps["llm_client"].screen_relevance = AsyncMock(
+            return_value=ScreeningResult(relevant=False, confidence=9),
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        await scanner.scan()
+        assert scanner.progress.filtered_screening == 1
 
     @pytest.mark.asyncio
     async def test_skips_llm_when_disabled(self, scanner_deps):

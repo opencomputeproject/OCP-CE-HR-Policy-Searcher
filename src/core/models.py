@@ -261,6 +261,13 @@ class DomainProgress(BaseModel):
     status: DomainScanStatus = DomainScanStatus.PENDING
     pages_crawled: int = 0
     pages_filtered: int = 0
+    # Rejection breakdown: pages_filtered alone lumps every drop reason
+    # into one opaque number, hiding recall loss.
+    filtered_short_content: int = 0
+    filtered_excluded: int = 0
+    filtered_keywords: int = 0
+    filtered_screening: int = 0
+    near_misses: int = 0
     keywords_matched: int = 0
     policies_found: int = 0
     llm_skipped: int = 0

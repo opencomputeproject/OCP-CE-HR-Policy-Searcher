@@ -300,6 +300,11 @@ class ScanManager:
                             dp.status = scanner.progress.status
                             dp.pages_crawled = scanner.progress.pages_crawled
                             dp.pages_filtered = scanner.progress.pages_filtered
+                            dp.filtered_short_content = scanner.progress.filtered_short_content
+                            dp.filtered_excluded = scanner.progress.filtered_excluded
+                            dp.filtered_keywords = scanner.progress.filtered_keywords
+                            dp.filtered_screening = scanner.progress.filtered_screening
+                            dp.near_misses = scanner.progress.near_misses
                             dp.keywords_matched = scanner.progress.keywords_matched
                             dp.policies_found = scanner.progress.policies_found
                             dp.errors = scanner.progress.errors

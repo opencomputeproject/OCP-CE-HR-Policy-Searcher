@@ -144,12 +144,14 @@ class DomainScanner:
         extracted = self.extractor.extract(result.content, result.url)
         if not extracted.text or extracted.word_count < 50:
             self.progress.pages_filtered += 1
+            self.progress.filtered_short_content += 1
             return None
 
         # Stage 3: Keyword matching
         kw_result = self.keyword_matcher.match(extracted.text)
         if kw_result.is_excluded:
             self.progress.pages_filtered += 1
+            self.progress.filtered_excluded += 1
             return None
 
         min_score = self.domain.get("min_keyword_score")
@@ -158,11 +160,24 @@ class DomainScanner:
         )
 
         if not is_relevant:
-            # Track near misses
+            self.progress.pages_filtered += 1
+            self.progress.filtered_keywords += 1
+            # Near misses at INFO: these are the pages to inspect when
+            # tuning thresholds or keyword lists.
             if self.keyword_matcher.check_near_miss(kw_result, url=result.url, min_score_override=min_score):
                 kw_result.is_near_miss = True
-                logger.debug(f"Near miss: {result.url} (score={kw_result.score})")
-            self.progress.pages_filtered += 1
+                self.progress.near_misses += 1
+                logger.info(
+                    "Near miss at keyword gate: %s (score=%.1f+%.1f url bonus, "
+                    "matched=%s)",
+                    result.url, kw_result.score, kw_result.url_bonus,
+                    [m.term for m in kw_result.matches],
+                )
+            else:
+                logger.info(
+                    "Dropped at keyword gate: %s (score=%.1f, matches=%d)",
+                    result.url, kw_result.score, len(kw_result.matches),
+                )
             return None
 
         self.progress.keywords_matched += 1
@@ -205,6 +220,12 @@ class DomainScanner:
         )
         if not screening.relevant:
             if screening.confidence >= self.screening_min_confidence:
+                self.progress.pages_filtered += 1
+                self.progress.filtered_screening += 1
+                logger.info(
+                    "Dropped at screening gate: %s (confidence=%d)",
+                    result.url, screening.confidence,
+                )
                 self.cache.set(
                     result.url, is_relevant=False,
                     relevance_score=0, content_hash=content_hash,
