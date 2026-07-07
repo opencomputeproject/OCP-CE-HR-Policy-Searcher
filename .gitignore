@@ -38,6 +38,10 @@ data/
 .coverage
 htmlcov/
 .tox/
+# MagicMock used as a filesystem path creates junk dirs (see CLAUDE.md gotchas)
+MagicMock/
+# Stale nested checkout, kept out of version control
+OCP-CE-HR-Policy-Searcher/
 
 # OS
 .DS_Store
