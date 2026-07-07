@@ -172,6 +172,9 @@ class PolicyAnalysis(BaseModel):
     confidence: int = 5
     referenced_policies: list[str] = Field(default_factory=list)
     referenced_urls: list[str] = Field(default_factory=list)
+    # Index/listing pages describe several policies; the primary one uses
+    # the fields above, the rest arrive here.
+    additional_policies: list["PolicyAnalysis"] = Field(default_factory=list)
 
 
 # --- Policy (final output) ---

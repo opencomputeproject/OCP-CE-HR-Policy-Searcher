@@ -463,6 +463,15 @@ class AsyncCrawler:
 
         return list(set(links))
 
+    async def fetch_url(self, url: str) -> CrawlResult:
+        """Fetch a single URL outside a crawl (e.g. a referenced policy link).
+
+        Respects the crawler's rate limiting and retry logic; PDFs go
+        through text extraction like any crawled page.
+        """
+        client = await self._ensure_client()
+        return await self._fetch_with_retry(client, url)
+
     async def close(self) -> None:
         if self._client:
             await self._client.aclose()

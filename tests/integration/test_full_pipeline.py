@@ -367,14 +367,14 @@ class TestAnalyzeUrlPipeline:
                     jurisdiction="US",
                     summary="Requires data centers to reuse waste heat",
                 ))
-                mock_llm.to_policy.return_value = Policy(
+                mock_llm.to_policies.return_value = [Policy(
                     url="https://test.gov/policy/heat-reuse",
                     policy_name="Heat Reuse Act",
                     jurisdiction="US",
                     policy_type=PolicyType.LAW,
                     summary="Requires data centers to reuse waste heat",
                     relevance_score=9,
-                )
+                )]
                 mock_llm.close = AsyncMock()
                 MockLLM.return_value = mock_llm
 

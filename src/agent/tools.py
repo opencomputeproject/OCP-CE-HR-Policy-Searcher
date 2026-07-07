@@ -507,37 +507,43 @@ async def execute_tool(
                     if screening.relevant:
                         analysis = await llm.analyze_policy(extracted.text, url, extracted.language)
                         domain_id = generate_domain_id(urlparse(url).hostname or url)
-                        policy = llm.to_policy(
+                        found = llm.to_policies(
                             analysis,
                             url,
                             extracted.language or "en",
                             domain_id=domain_id,
                             scan_id="manual-analysis",
                         )
-                        if policy:
+                        if found:
                             verifier = Verifier()
-                            flags = verifier.verify(policy)
-                            policy.verification_flags = flags
+                            for policy in found:
+                                policy.verification_flags = verifier.verify(policy)
 
                             store = PolicyStore(data_dir=scan_manager.data_dir)
-                            added = store.add_policies([policy])
+                            added = store.add_policies(found)
 
-                            response["policy"] = policy.model_dump(mode="json")
-                            response["flags"] = [f.value for f in flags]
+                            primary = found[0]
+                            response["policy"] = primary.model_dump(mode="json")
+                            if len(found) > 1:
+                                response["additional_policies"] = [
+                                    p.model_dump(mode="json") for p in found[1:]
+                                ]
+                            response["flags"] = [f.value for f in primary.verification_flags]
                             response["saved"] = added > 0
                             response["saved_to"] = str(store.policies_file)
 
                             if added:
-                                log_audit_event(
-                                    data_dir=scan_manager.data_dir,
-                                    event="policy_found",
-                                    scan_id=policy.scan_id,
-                                    domain_id=policy.domain_id,
-                                    policy_name=policy.policy_name,
-                                    url=policy.url,
-                                    relevance=policy.relevance_score,
-                                    source="analyze_url",
-                                )
+                                for policy in found:
+                                    log_audit_event(
+                                        data_dir=scan_manager.data_dir,
+                                        event="policy_found",
+                                        scan_id=policy.scan_id,
+                                        domain_id=policy.domain_id,
+                                        policy_name=policy.policy_name,
+                                        url=policy.url,
+                                        relevance=policy.relevance_score,
+                                        source="analyze_url",
+                                    )
                 except LLMError as e:
                     response["llm_error"] = str(e)
                 finally:

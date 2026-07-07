@@ -7,6 +7,7 @@ Pipeline stages:
 
 import logging
 from typing import Optional, Callable, Awaitable
+from urllib.parse import urlparse
 
 from .cache import URLCache, compute_content_hash
 from .crawler import AsyncCrawler
@@ -91,6 +92,7 @@ class DomainScanner:
             self.progress.pages_crawled = len(crawl_results)
 
             # Process each successful page through the pipeline
+            processed_urls = {r.url for r in crawl_results}
             for result in crawl_results:
                 if not result.is_success or not result.content:
                     if result.is_blocked:
@@ -103,22 +105,8 @@ class DomainScanner:
                     "response_ms": result.response_time_ms,
                 })
 
-                try:
-                    policy = await self._process_page(result)
-                except LLMAuthError:
-                    # Invalid key affects every page — abort the domain.
-                    raise
-                except Exception as e:
-                    # Per-page isolation: one failed page (rate limit
-                    # exhaustion, parse error) must not lose the rest of
-                    # the domain's pages.
-                    logger.error(
-                        "Page processing failed for %s: %s — continuing "
-                        "with remaining pages", result.url, e,
-                    )
-                    self.progress.errors += 1
-                    continue
-                if policy:
+                page_policies = await self._process_page_isolated(result)
+                for policy in page_policies:
                     policies.append(policy)
                     self.progress.policies_found += 1
                     await self._emit("policy_found", {
@@ -126,6 +114,21 @@ class DomainScanner:
                         "policy_name": policy.policy_name,
                         "relevance": policy.relevance_score,
                     })
+
+            # Citation follow-up: analysis extracts referenced_urls from
+            # every policy; laws cite laws, so same-site references we did
+            # not crawl are fetched and processed too.
+            followup_policies = await self._follow_referenced_urls(
+                policies, processed_urls,
+            )
+            for policy in followup_policies:
+                policies.append(policy)
+                self.progress.policies_found += 1
+                await self._emit("policy_found", {
+                    "url": policy.url,
+                    "policy_name": policy.policy_name,
+                    "relevance": policy.relevance_score,
+                })
 
             # Verify all policies for this domain
             domain_regions = self.domain.get("region", [])
@@ -151,7 +154,69 @@ class DomainScanner:
 
         return policies
 
-    async def _process_page(self, result: CrawlResult) -> Optional[Policy]:
+    MAX_REFERENCED_URLS = 20  # follow-up fetch budget per domain
+
+    async def _process_page_isolated(self, result: CrawlResult) -> list[Policy]:
+        """Run _process_page with per-page error isolation.
+
+        One failed page (rate-limit exhaustion, parse error) must not lose
+        the rest of the domain; an auth failure affects every page and
+        still aborts.
+        """
+        try:
+            return await self._process_page(result)
+        except LLMAuthError:
+            raise
+        except Exception as e:
+            logger.error(
+                "Page processing failed for %s: %s — continuing with "
+                "remaining pages", result.url, e,
+            )
+            self.progress.errors += 1
+            return []
+
+    async def _follow_referenced_urls(
+        self, policies: list[Policy], processed_urls: set[str],
+    ) -> list[Policy]:
+        """Fetch and process same-site URLs cited by discovered policies."""
+        base_netloc = urlparse(self.domain["base_url"]).netloc
+        queue: list[str] = []
+        for policy in policies:
+            for ref in policy.referenced_urls:
+                if ref in processed_urls or ref in queue:
+                    continue
+                parsed = urlparse(ref)
+                if parsed.scheme not in ("http", "https"):
+                    continue
+                if not AsyncCrawler._same_site(parsed.netloc, base_netloc):
+                    logger.info(
+                        "Referenced URL is cross-site, not auto-followed: %s",
+                        ref,
+                    )
+                    continue
+                queue.append(ref)
+
+        if not queue:
+            return []
+        if len(queue) > self.MAX_REFERENCED_URLS:
+            logger.info(
+                "Capping referenced-URL follow-up at %d of %d candidates",
+                self.MAX_REFERENCED_URLS, len(queue),
+            )
+            queue = queue[:self.MAX_REFERENCED_URLS]
+
+        found: list[Policy] = []
+        for url in queue:
+            processed_urls.add(url)
+            result = await self.crawler.fetch_url(url)
+            result.domain_id = self.domain_id
+            if not result.is_success or not result.content:
+                continue
+            logger.info("Following referenced policy URL: %s", url)
+            found.extend(await self._process_page_isolated(result))
+        return found
+
+    async def _process_page(self, result: CrawlResult) -> list[Policy]:
         """Process a single page through extract → keywords → LLM → verify."""
 
         # Stage 2: Extract content
@@ -159,14 +224,14 @@ class DomainScanner:
         if not extracted.text or extracted.word_count < 50:
             self.progress.pages_filtered += 1
             self.progress.filtered_short_content += 1
-            return None
+            return []
 
         # Stage 3: Keyword matching
         kw_result = self.keyword_matcher.match(extracted.text)
         if kw_result.is_excluded:
             self.progress.pages_filtered += 1
             self.progress.filtered_excluded += 1
-            return None
+            return []
 
         min_score = self.domain.get("min_keyword_score")
         is_relevant = self.keyword_matcher.is_relevant(
@@ -192,7 +257,7 @@ class DomainScanner:
                     "Dropped at keyword gate: %s (score=%.1f, matches=%d)",
                     result.url, kw_result.score, len(kw_result.matches),
                 )
-            return None
+            return []
 
         self.progress.keywords_matched += 1
         await self._emit("keyword_match", {
@@ -206,10 +271,10 @@ class DomainScanner:
         cached = self.cache.get(result.url, content_hash)
         if cached:
             if not cached.is_relevant:
-                return None
+                return []
             # Still return a policy stub from cache? For now skip re-analysis.
             logger.debug(f"Cache hit: {result.url}")
-            return None  # Cache hit means we already have this policy
+            return []  # Cache hit means we already have this policy
 
         # Stage 5: LLM analysis (skip if disabled)
         if self.skip_llm or not self.llm_client:
@@ -225,7 +290,7 @@ class DomainScanner:
                 result.url,
                 "disabled" if self.skip_llm else "unavailable (no API key)",
             )
-            return None
+            return []
 
         # Stage 5a: Haiku screening
         screening = await self.llm_client.screen_relevance(
@@ -244,7 +309,7 @@ class DomainScanner:
                     result.url, is_relevant=False,
                     relevance_score=0, content_hash=content_hash,
                 )
-                return None
+                return []
             # Borderline rejection: the screener is not confident enough to
             # make the final call — escalate to full analysis instead.
             logger.info(
@@ -267,12 +332,10 @@ class DomainScanner:
             policy_type=analysis.policy_type,
         )
 
-        # Stage 6: Convert to Policy
-        policy = self.llm_client.to_policy(
+        # Stage 6: Convert to Policy records (index pages can hold several)
+        return self.llm_client.to_policies(
             analysis, result.url,
             language=extracted.language or "en",
             domain_id=self.domain_id,
             scan_id=self.scan_id,
         )
-
-        return policy

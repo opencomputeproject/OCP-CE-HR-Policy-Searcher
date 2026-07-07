@@ -325,11 +325,16 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
                     if screening.relevant:
                         analysis = await llm.analyze_policy(extracted.text, url, extracted.language)
-                        policy = llm.to_policy(analysis, url, extracted.language or "en")
-                        if policy:
+                        found = llm.to_policies(analysis, url, extracted.language or "en")
+                        if found:
                             verifier = Verifier()
-                            flags = verifier.verify(policy)
-                            response["policy"] = policy.model_dump(mode="json")
+                            primary = found[0]
+                            flags = verifier.verify(primary)
+                            response["policy"] = primary.model_dump(mode="json")
+                            if len(found) > 1:
+                                response["additional_policies"] = [
+                                    p.model_dump(mode="json") for p in found[1:]
+                                ]
                             response["flags"] = [f.value for f in flags]
                 except LLMError as e:
                     response["llm_error"] = str(e)

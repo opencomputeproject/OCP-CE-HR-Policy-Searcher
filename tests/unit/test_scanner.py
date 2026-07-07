@@ -103,7 +103,7 @@ class TestDomainScannerScan:
             summary="A law about heat recovery",
         )
         llm_client.analyze_policy = AsyncMock(return_value=analysis)
-        llm_client.to_policy.return_value = Policy(
+        llm_client.to_policies.return_value = [Policy(
             url="https://example.gov/page",
             policy_name="Heat Recovery Act",
             jurisdiction="US",
@@ -112,7 +112,7 @@ class TestDomainScannerScan:
             relevance_score=8,
             domain_id="test_domain",
             scan_id="scan_1",
-        )
+        )]
 
         # Verifier returns no flags
         verifier.verify_batch.return_value = {}
@@ -263,6 +263,45 @@ class TestDomainScannerScan:
         policies = await scanner.scan()
         assert len(policies) == 0
         scanner_deps["llm_client"].analyze_policy.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_multiple_policies_from_one_page(self, scanner_deps):
+        """An index page listing several laws yields several records."""
+        def _policy(name):
+            return Policy(
+                url="https://example.gov/page", policy_name=name,
+                jurisdiction="US", policy_type=PolicyType.LAW,
+                summary="x", relevance_score=7,
+            )
+        scanner_deps["llm_client"].to_policies.return_value = [
+            _policy("Act One"), _policy("Act Two"), _policy("Act Three"),
+        ]
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        policies = await scanner.scan()
+        assert len(policies) == 3
+        assert scanner.progress.policies_found == 3
+
+    @pytest.mark.asyncio
+    async def test_referenced_urls_are_followed(self, scanner_deps):
+        """Same-site referenced_urls from analysis feed back into the scan."""
+        scanner_deps["llm_client"].to_policies.return_value = [Policy(
+            url="https://example.gov/page", policy_name="Heat Recovery Act",
+            jurisdiction="US", policy_type=PolicyType.LAW, summary="x",
+            relevance_score=8,
+            referenced_urls=[
+                "https://example.gov/related-act",   # same site: follow
+                "https://elsewhere.org/other",        # cross-site: skip
+            ],
+        )]
+        followup = _make_crawl_result(url="https://example.gov/related-act")
+        scanner_deps["crawler"].fetch_url = AsyncMock(return_value=followup)
+
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        await scanner.scan()
+
+        fetched = [c.args[0] for c in scanner_deps["crawler"].fetch_url.await_args_list]
+        assert "https://example.gov/related-act" in fetched
+        assert not any("elsewhere.org" in u for u in fetched)
 
     @pytest.mark.asyncio
     async def test_llm_error_on_one_page_does_not_abort_domain(self, scanner_deps):

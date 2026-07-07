@@ -192,12 +192,59 @@ class TestToPolicy:
         )
         assert client.to_policy(analysis, "https://a.gov", "en") is None
 
-    def test_returns_none_when_no_name(self, client):
+    def test_unnamed_relevant_policy_gets_synthesized_name(self, client):
+        """A relevant policy without a crisp title must not be dropped."""
         analysis = PolicyAnalysis(
             is_relevant=True,
             policy_name="",
+            policy_type="regulation",
+            jurisdiction="Netherlands",
+            relevance_score=7,
+            summary="Waste heat feed-in rules",
         )
-        assert client.to_policy(analysis, "https://a.gov", "en") is None
+        policy = client.to_policy(analysis, "https://a.gov/x", "nl")
+        assert policy is not None
+        assert policy.policy_name  # synthesized, never empty
+        assert "Netherlands" in policy.policy_name
+
+    def test_to_policies_extracts_all_policies_on_page(self, client):
+        """Index pages listing several laws must yield several records."""
+        analysis = PolicyAnalysis(
+            is_relevant=True,
+            relevance_score=8,
+            policy_type="law",
+            policy_name="Heat Act",
+            jurisdiction="Denmark",
+            summary="Primary law",
+            additional_policies=[
+                PolicyAnalysis(
+                    is_relevant=True, relevance_score=7, policy_type="regulation",
+                    policy_name="Heat Supply Order", jurisdiction="Denmark",
+                    summary="Order under the act",
+                ),
+                PolicyAnalysis(
+                    is_relevant=True, relevance_score=6, policy_type="incentive",
+                    policy_name="Waste Heat Tax Relief", jurisdiction="Denmark",
+                    summary="Tax measure",
+                ),
+            ],
+        )
+        policies = client.to_policies(analysis, "https://a.gov/laws", "da", "dom1", "s1")
+        assert len(policies) == 3
+        names = {p.policy_name for p in policies}
+        assert names == {"Heat Act", "Heat Supply Order", "Waste Heat Tax Relief"}
+        assert all(p.url == "https://a.gov/laws" for p in policies)
+
+    def test_to_policies_skips_irrelevant_additionals(self, client):
+        analysis = PolicyAnalysis(
+            is_relevant=True, relevance_score=8, policy_type="law",
+            policy_name="Heat Act", jurisdiction="DK", summary="x",
+            additional_policies=[
+                PolicyAnalysis(is_relevant=False, policy_name="Noise"),
+            ],
+        )
+        policies = client.to_policies(analysis, "https://a.gov", "en")
+        assert len(policies) == 1
 
     def test_invalid_policy_type_becomes_unknown(self, client):
         analysis = PolicyAnalysis(
@@ -334,6 +381,15 @@ class TestPromptContent:
     def test_screening_tells_model_to_keep_borderline(self):
         lowered = SCREENING_PROMPT.lower()
         assert "in doubt" in lowered or "unsure" in lowered
+
+    def test_analysis_asks_for_every_policy_on_page(self):
+        lowered = ANALYSIS_PROMPT.lower()
+        assert "additional_policies" in lowered
+        assert "every" in lowered or "each" in lowered or "all distinct" in lowered
+
+    def test_analysis_forbids_empty_name_for_relevant(self):
+        lowered = ANALYSIS_PROMPT.lower()
+        assert "descriptive label" in lowered or "never leave" in lowered
 
 
 class TestScreeningExcerpt:

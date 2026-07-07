@@ -70,8 +70,14 @@ TASK:
 
    The content may be in any language. Look for policy substance regardless of language.
 
-2. If relevant, extract:
-   - Policy name/title (in original language if not English)
+2. If relevant, extract EVERY distinct policy the page describes.
+   Listing/index pages often contain several. Put the most significant
+   policy in the top-level fields and each further one in
+   additional_policies. For each policy:
+   - Policy name/title (in original language if not English). If the page
+     is relevant but states no clear title, write a short descriptive
+     label (e.g. "Dutch waste heat feed-in regulation") — never leave the
+     name empty for a relevant policy.
    - Jurisdiction (country/region)
    - Type (law/regulation/directive/incentive/grant/plan)
    - Brief summary (2-3 sentences)
@@ -101,7 +107,20 @@ RESPOND WITH JSON ONLY:
     "key_requirements": "Key points or null",
     "bill_number": "Number or null",
     "referenced_policies": ["Related law/directive names or empty list"],
-    "referenced_urls": ["URLs to related policy documents or empty list"]
+    "referenced_urls": ["URLs to related policy documents or empty list"],
+    "additional_policies": [
+        {{
+            "is_relevant": true,
+            "relevance_score": 1-10,
+            "policy_name": "Name (never empty)",
+            "jurisdiction": "Country/region",
+            "policy_type": "law|regulation|directive|incentive|grant|plan|unknown",
+            "summary": "2-3 sentences",
+            "effective_date": "YYYY-MM-DD or null",
+            "key_requirements": "Key points or null",
+            "bill_number": "Number or null"
+        }}
+    ]
 }}
 """
 
@@ -262,6 +281,15 @@ def _coerce_types(data: dict) -> dict:
             result[list_key] = [val] if val else []
         elif isinstance(val, list):
             result[list_key] = [item for item in val if item and item not in _NULL_VALUES]
+
+    # Coerce each nested additional policy through the same rules
+    extras = result.get("additional_policies")
+    if not isinstance(extras, list):
+        result["additional_policies"] = []
+    else:
+        result["additional_policies"] = [
+            _coerce_types(item) for item in extras if isinstance(item, dict)
+        ]
 
     return result
 
@@ -608,9 +636,21 @@ class ClaudeClient:
         self, analysis: PolicyAnalysis, url: str, language: str,
         domain_id: str = "", scan_id: str = "",
     ) -> Optional[Policy]:
-        """Convert PolicyAnalysis to Policy model."""
-        if not analysis.is_relevant or not analysis.policy_name:
+        """Convert a single PolicyAnalysis to a Policy model.
+
+        A relevant policy without a stated title gets a synthesized
+        descriptive name instead of being dropped.
+        """
+        if not analysis.is_relevant:
             return None
+
+        policy_name = analysis.policy_name
+        if not policy_name:
+            jurisdiction = analysis.jurisdiction or "Unknown jurisdiction"
+            kind = analysis.policy_type if analysis.policy_type not in (
+                "", "unknown", "not_relevant",
+            ) else "policy"
+            policy_name = f"Untitled {kind} ({jurisdiction})"
 
         effective_date = None
         if analysis.effective_date:
@@ -626,7 +666,7 @@ class ClaudeClient:
 
         return Policy(
             url=url,
-            policy_name=analysis.policy_name,
+            policy_name=policy_name,
             jurisdiction=analysis.jurisdiction or "Unknown",
             policy_type=policy_type,
             summary=analysis.summary or "",
@@ -639,6 +679,25 @@ class ClaudeClient:
             referenced_policies=analysis.referenced_policies,
             referenced_urls=analysis.referenced_urls,
         )
+
+    def to_policies(
+        self, analysis: PolicyAnalysis, url: str, language: str,
+        domain_id: str = "", scan_id: str = "",
+    ) -> list[Policy]:
+        """Convert an analysis (primary + additional policies) to Policy models.
+
+        Index and listing pages describe several policies; all of them
+        share the page URL as their source.
+        """
+        policies = []
+        primary = self.to_policy(analysis, url, language, domain_id, scan_id)
+        if primary:
+            policies.append(primary)
+        for extra in analysis.additional_policies:
+            policy = self.to_policy(extra, url, language, domain_id, scan_id)
+            if policy:
+                policies.append(policy)
+        return policies
 
     def update_cost_estimate(self):
         """Update USD cost estimate based on token usage."""
