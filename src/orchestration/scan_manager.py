@@ -148,6 +148,18 @@ class ScanManager:
         domain.setdefault("min_keyword_score", 2.0)
         return domain
 
+    @staticmethod
+    def _with_keyword_score_default(domain: dict, settings) -> dict:
+        """Default the keyword gate to settings.analysis.min_keyword_score.
+
+        Domains without an explicit min_keyword_score otherwise fall back to
+        the stricter keywords.yaml threshold inside KeywordMatcher, silently
+        ignoring the documented settings value.
+        """
+        domain = dict(domain)
+        domain.setdefault("min_keyword_score", settings.analysis.min_keyword_score)
+        return domain
+
     async def _run_scan(
         self,
         scan_id: str,
@@ -245,6 +257,7 @@ class ScanManager:
 
         async def scan_domain(domain: dict) -> list[Policy]:
             async with semaphore:
+                domain = self._with_keyword_score_default(domain, settings)
                 # Bind domain context for log correlation
                 structlog.contextvars.bind_contextvars(
                     domain_id=domain["id"],
