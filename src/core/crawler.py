@@ -22,12 +22,15 @@ import httpx
 from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 
 from .models import CrawlResult, PageStatus
+from .pdf import PDFExtractionError, extract_pdf_text, looks_like_pdf
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 logger = logging.getLogger(__name__)
 
+# .pdf is deliberately NOT skipped: statutes and regulations are
+# overwhelmingly published as PDFs and go through text extraction.
 _DEFAULT_SKIP_EXTENSIONS = [
-    ".pdf", ".doc", ".docx", ".zip", ".jpg", ".jpeg", ".png", ".gif",
+    ".doc", ".docx", ".zip", ".jpg", ".jpeg", ".png", ".gif",
     ".svg", ".css", ".js", ".json", ".xml", ".mp3", ".mp4", ".ico",
 ]
 
@@ -244,9 +247,14 @@ class AsyncCrawler:
             if self._should_skip_url(url):
                 continue
 
-            if requires_playwright:
+            # PDFs are static files: always fetch over httpx, even on
+            # Playwright domains (a browser tab cannot extract PDF text).
+            is_pdf_url = urlparse(url).path.lower().endswith(".pdf")
+            if requires_playwright and not is_pdf_url:
                 result = await self._fetch_playwright(url)
             else:
+                if client is None:
+                    client = await self._ensure_client()
                 result = await self._fetch_with_retry(client, url)
             result.domain_id = domain_id
             results.append(result)
@@ -254,7 +262,11 @@ class AsyncCrawler:
             if self.on_page_fetched:
                 await self.on_page_fetched(result)
 
-            if result.is_success and depth < max_depth:
+            if (
+                result.is_success
+                and depth < max_depth
+                and result.content_type != "application/pdf"
+            ):
                 links = self._extract_links(
                     result.content, url, base_url,
                     allowed_path_patterns, all_blocked,
@@ -320,11 +332,31 @@ class AsyncCrawler:
                         error_message=f"HTTP {response.status_code}",
                     )
 
+                content_type = response.headers.get("content-type", "")
+                if looks_like_pdf(url, content_type):
+                    try:
+                        text = extract_pdf_text(response.content)
+                    except PDFExtractionError as e:
+                        return CrawlResult(
+                            url=url,
+                            status=PageStatus.UNKNOWN_ERROR,
+                            response_time_ms=elapsed,
+                            error_message=f"PDF extraction failed: {e}",
+                        )
+                    return CrawlResult(
+                        url=url,
+                        status=PageStatus.SUCCESS,
+                        content=text,
+                        content_type="application/pdf",
+                        response_time_ms=elapsed,
+                        content_length=len(text),
+                    )
+
                 return CrawlResult(
                     url=url,
                     status=PageStatus.SUCCESS,
                     content=response.text,
-                    content_type=response.headers.get("content-type", ""),
+                    content_type=content_type,
                     response_time_ms=elapsed,
                     content_length=len(response.text),
                 )

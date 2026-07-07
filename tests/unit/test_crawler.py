@@ -79,14 +79,17 @@ class TestExtractLinks:
         <html><body>
             <a href="/doc.pdf">PDF</a>
             <a href="/image.jpg">Image</a>
+            <a href="/archive.zip">Zip</a>
             <a href="/page">Page</a>
         </body></html>
         """
         links = crawler._extract_links(
             html, "https://example.gov/", "https://example.gov",
         )
-        assert not any(link.endswith(".pdf") for link in links)
+        # PDFs carry the actual statutes and must be followed
+        assert any(link.endswith(".pdf") for link in links)
         assert not any(link.endswith(".jpg") for link in links)
+        assert not any(link.endswith(".zip") for link in links)
         assert "https://example.gov/page" in links
 
     def test_blocked_patterns_filtered(self):
@@ -174,12 +177,13 @@ class TestExtractLinks:
 
 # --- AsyncCrawler fetch and crawl (async tests using mocked httpx) ---
 
-def _mock_response(status_code=200, text="", headers=None):
+def _mock_response(status_code=200, text="", headers=None, content=None):
     """Create a mock httpx.Response."""
     resp = MagicMock(spec=httpx.Response)
     resp.status_code = status_code
     resp.text = text
     resp.headers = headers or {}
+    resp.content = content if content is not None else text.encode()
     return resp
 
 
@@ -195,6 +199,37 @@ class TestAsyncCrawlerFetch:
         result = await crawler._fetch_with_retry(mock_client, "https://example.gov/page")
         assert result.status.value == "success"
         assert "Hello" in result.content
+
+    @pytest.mark.asyncio
+    async def test_fetch_pdf_extracts_text(self):
+        from tests.unit.test_pdf import _minimal_pdf
+
+        crawler = AsyncCrawler(delay_seconds=0, max_retries=1)
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=_mock_response(
+            200, headers={"content-type": "application/pdf"},
+            content=_minimal_pdf("District Heating Act 2026"),
+        ))
+        result = await crawler._fetch_with_retry(
+            mock_client, "https://example.gov/statute.pdf",
+        )
+        assert result.status.value == "success"
+        assert "District Heating Act 2026" in result.content
+        assert result.content_type == "application/pdf"
+
+    @pytest.mark.asyncio
+    async def test_fetch_corrupt_pdf_is_error_not_garbage(self):
+        crawler = AsyncCrawler(delay_seconds=0, max_retries=1)
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=_mock_response(
+            200, headers={"content-type": "application/pdf"},
+            content=b"\x00\x01 not a pdf",
+        ))
+        result = await crawler._fetch_with_retry(
+            mock_client, "https://example.gov/broken.pdf",
+        )
+        assert result.status.value != "success"
+        assert result.content is None
 
     @pytest.mark.asyncio
     async def test_fetch_404(self):

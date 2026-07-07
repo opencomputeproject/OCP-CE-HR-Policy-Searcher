@@ -183,9 +183,9 @@ url_filters:
   # FILE EXTENSIONS TO SKIP
   # =========================================================================
   # Binary files and documents that can't be analyzed as HTML.
-  # Note: Some PDFs may contain policies - consider removing .pdf if needed.
+  # .pdf is deliberately absent: statutes are mostly PDFs and the crawler
+  # extracts their text (src/core/pdf.py, added 2026-07-07 recall audit).
   skip_extensions:
-    - .pdf      # PDFs require special handling (Phase 3+)
     - .doc
     - .docx
     - .xls

@@ -69,6 +69,8 @@ REGION_TO_GROUPS: dict[str, list[str]] = {
     "switzerland": ["eu_central"],
     "finland": ["nordic", "eu"],
     "iceland": ["nordic"],
+    "estonia": ["eu_east", "eu"],
+    "luxembourg": ["eu_west", "eu"],
     # UK
     "uk": ["uk"],
     "scotland": ["uk"],
