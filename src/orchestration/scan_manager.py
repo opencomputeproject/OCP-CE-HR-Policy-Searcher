@@ -23,7 +23,7 @@ from ..core.keywords import KeywordMatcher
 from ..core.llm import ClaudeClient
 from ..core.models import (
     Policy, ScanJob, ScanStatus, ScanProgress, DomainProgress,
-    DomainScanStatus, ScanEvent, SheetsExportStatus,
+    DomainScanStatus, ScanEvent,
 )
 from ..core.scanner import DomainScanner
 from ..core.verifier import Verifier

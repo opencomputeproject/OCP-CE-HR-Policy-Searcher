@@ -6,6 +6,7 @@ Defines 15 tools in Anthropic API format:
 - 1 add_domain tool (creates new domain YAML configs)
 """
 
+import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -23,12 +24,15 @@ from ..storage.store import PolicyStore
 import yaml
 
 from .domain_generator import (
+    US_STATE_ABBREVS as _US_STATES,
     generate_domain_id,
     detect_region,
     suggest_output_file,
     build_domain_entry,
     format_domain_yaml,
 )
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Region -> groups mapping for auto-assignment when adding domains
@@ -115,7 +119,6 @@ REGION_TO_GROUPS: dict[str, list[str]] = {
 }
 
 # Auto-add US state names so add_domain auto-assigns to us_states/us groups
-from .domain_generator import US_STATE_ABBREVS as _US_STATES
 REGION_TO_GROUPS.update({
     state.replace("-", "_"): ["us_states", "us"]
     for state in _US_STATES

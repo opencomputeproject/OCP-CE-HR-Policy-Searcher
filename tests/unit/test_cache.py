@@ -171,7 +171,6 @@ class TestURLCache:
         cache_file.write_text('{"entries": {}}', encoding="utf-8")
         # Make json.load raise a non-JSON error
         import json as json_mod
-        original_load = json_mod.load
         def broken_load(f):
             raise PermissionError("Access denied")
         monkeypatch.setattr(json_mod, "load", broken_load)

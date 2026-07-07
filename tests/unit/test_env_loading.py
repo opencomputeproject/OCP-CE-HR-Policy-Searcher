@@ -9,7 +9,7 @@ even when the process working directory is *not* the project root
 import base64
 import os
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 

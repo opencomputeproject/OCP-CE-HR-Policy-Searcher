@@ -8,12 +8,14 @@ from typing import Optional
 
 import yaml
 
-logger = logging.getLogger(__name__)
+from src.agent.domain_generator import US_STATE_ABBREVS as _US_STATES_REG
 
 from .models import (
     DomainConfig, CrawlSettings, AnalysisSettings, OutputSettings, AppSettings,
     DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigurationError(Exception):
@@ -79,7 +81,6 @@ VALID_REGIONS = {
 }
 
 # Auto-add all 50 US states from domain_generator
-from src.agent.domain_generator import US_STATE_ABBREVS as _US_STATES_REG
 VALID_REGIONS.update({
     s.replace("-", "_"): s.replace("-", " ").title()
     for s in _US_STATES_REG

@@ -36,9 +36,11 @@ def real_config():
 
 
 @pytest.fixture
-def scan_manager(real_config):
+def scan_manager(real_config, tmp_path):
+    # Isolated data_dir: agent tools read the persisted PolicyStore, so tests
+    # must not see the developer's real data/policies.json.
     broadcaster = EventBroadcaster()
-    return ScanManager(config=real_config, broadcaster=broadcaster, data_dir="data")
+    return ScanManager(config=real_config, broadcaster=broadcaster, data_dir=str(tmp_path))
 
 
 @pytest.fixture
@@ -1579,7 +1581,8 @@ class TestOnboardingFlow:
         """setup.ps1 tells the user what to do after setup."""
         content = Path("setup.ps1").read_text(encoding="utf-8")
         assert "console.anthropic.com" in content
-        assert "python -m src.agent" in content
+        # Accept either the bare or venv-qualified interpreter form
+        assert "-m src.agent" in content
 
     def test_setup_ps1_ascii_only_strings(self):
         """setup.ps1 uses only ASCII in strings to avoid PowerShell encoding errors.

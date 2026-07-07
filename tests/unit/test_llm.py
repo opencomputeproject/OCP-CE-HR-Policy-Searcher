@@ -364,7 +364,6 @@ class TestScreeningRateLimitRetry:
 
     def _build_client(self):
         """Create a ClaudeClient with mocked async client (skips validation)."""
-        from src.core.models import DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL
         client = ClaudeClient.__new__(ClaudeClient)
         client.screening_model = DEFAULT_SCREENING_MODEL
         client.analysis_model = DEFAULT_ANALYSIS_MODEL
