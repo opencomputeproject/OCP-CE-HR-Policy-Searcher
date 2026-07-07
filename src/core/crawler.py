@@ -110,6 +110,7 @@ class AsyncCrawler:
         self._client: Optional[httpx.AsyncClient] = None
         self._playwright = None          # Playwright context manager
         self._pw_browser = None           # Launched Chromium instance
+        self._pw_fallback_broken = False  # stop retrying if Playwright is unavailable
         self._last_request_time: float = 0
         self._visited: set[str] = set()
 
@@ -252,6 +253,35 @@ class AsyncCrawler:
 
         client = await self._ensure_client() if not requires_playwright else None
 
+        # Sitemap seeding: enumerate deep document URLs the BFS budget
+        # would never reach. Failure is silent — many sites have none.
+        # Sitemap URLs obey the same path filters as extracted links.
+        if client is None:
+            client = await self._ensure_client()
+        base_netloc = urlparse(base_url).netloc
+        for sitemap_url in await self._sitemap_urls(client, base_url):
+            parsed = urlparse(sitemap_url)
+            if not self._same_site(parsed.netloc, base_netloc):
+                continue
+            if sitemap_url in self._visited:
+                continue
+            path_lower = parsed.path.lower()
+            if any(path_lower.endswith(ext) for ext in self.skip_extensions):
+                continue
+            if all_blocked and any(
+                fnmatch.fnmatch(path_lower, p.lower()) for p in all_blocked
+            ):
+                continue
+            if allowed_path_patterns and not any(
+                fnmatch.fnmatch(path_lower, p.lower())
+                for p in allowed_path_patterns
+            ):
+                continue
+            heapq.heappush(
+                queue, (-self._url_priority(sitemap_url), seq, sitemap_url, 1),
+            )
+            seq += 1
+
         while queue and len(results) < max_pages:
             _, _, url, depth = heapq.heappop(queue)
 
@@ -272,6 +302,39 @@ class AsyncCrawler:
                 if client is None:
                     client = await self._ensure_client()
                 result = await self._fetch_with_retry(client, url)
+
+                # JS-shell fallback: a "successful" HTML page with almost
+                # no visible text is usually an unflagged SPA. Retry once
+                # with Playwright rather than silently scoring zero words.
+                if (
+                    not requires_playwright
+                    and not self._pw_fallback_broken
+                    and result.is_success
+                    and result.content
+                    and "html" in (result.content_type or "")
+                    and self._visible_text_len(result.content) < 200
+                ):
+                    try:
+                        rendered = await self._fetch_playwright(url)
+                        if (
+                            rendered.is_success
+                            and self._visible_text_len(rendered.content or "")
+                            > self._visible_text_len(result.content)
+                        ):
+                            logger.info(
+                                "Playwright fallback recovered content for %s",
+                                url,
+                            )
+                            rendered.used_playwright = True
+                            result = rendered
+                    except Exception as e:
+                        # Playwright unavailable (not installed / no
+                        # browser) — stop trying for this crawl.
+                        logger.warning(
+                            "Playwright fallback unavailable (%s); "
+                            "disabled for the rest of this crawl", e,
+                        )
+                        self._pw_fallback_broken = True
             result.domain_id = domain_id
             results.append(result)
 
@@ -395,6 +458,54 @@ class AsyncCrawler:
             status=PageStatus.TIMEOUT if "Timeout" in (last_error or "") else PageStatus.UNKNOWN_ERROR,
             error_message=last_error or "Unknown error",
         )
+
+    MAX_SITEMAP_URLS = 200
+    MAX_NESTED_SITEMAPS = 5
+    _SITEMAP_LOC_RE = re.compile(r"<loc>\s*(.*?)\s*</loc>", re.IGNORECASE | re.DOTALL)
+
+    @staticmethod
+    def _visible_text_len(html: str) -> int:
+        """Rough visible-text length, cheap enough to run per page."""
+        if not html:
+            return 0
+        stripped = re.sub(
+            r"<(script|style)[^>]*>.*?</\1>", " ", html,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        stripped = re.sub(r"<[^>]+>", " ", stripped)
+        return len(" ".join(stripped.split()))
+
+    async def _sitemap_urls(self, client, base_url: str) -> list[str]:
+        """Enumerate URLs from sitemap.xml (one level of nesting).
+
+        Sitemaps list deep document URLs directly, countering the page
+        budget and depth limits of BFS crawling. Regex extraction of
+        <loc> avoids parsing untrusted XML.
+        """
+        seen: list[str] = []
+        try:
+            queue = [urljoin(base_url, "/sitemap.xml")]
+            nested_budget = self.MAX_NESTED_SITEMAPS
+            while queue and len(seen) < self.MAX_SITEMAP_URLS:
+                sitemap_url = queue.pop(0)
+                result = await self._fetch_with_retry(client, sitemap_url)
+                if not result.is_success or not result.content:
+                    continue
+                for loc in self._SITEMAP_LOC_RE.findall(result.content):
+                    loc = loc.strip()
+                    if loc.lower().endswith(".xml"):
+                        if nested_budget > 0:
+                            queue.append(loc)
+                            nested_budget -= 1
+                        continue
+                    seen.append(loc)
+                    if len(seen) >= self.MAX_SITEMAP_URLS:
+                        break
+        except Exception as e:
+            logger.debug("Sitemap enumeration failed for %s: %s", base_url, e)
+        if seen:
+            logger.info("Sitemap seeded %d URLs for %s", len(seen), base_url)
+        return seen
 
     @staticmethod
     def _same_site(link_netloc: str, base_netloc: str) -> bool:
