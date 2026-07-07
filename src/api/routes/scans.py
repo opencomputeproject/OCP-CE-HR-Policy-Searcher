@@ -21,7 +21,14 @@ async def start_scan(
     manager: ScanManager = Depends(get_scan_manager),
     store: PolicyStore = Depends(get_policy_store),
 ):
-    """Start a new parallel scan. Returns immediately with scan_id."""
+    """Start a new parallel scan. Returns immediately with scan_id.
+
+    With discover=true, runs the agent discovery workflow instead and
+    returns its result synchronously (scan_id is null).
+    """
+    if request.discover:
+        return await _run_discovery(request)
+
     manager.api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not request.skip_llm and not manager.api_key:
         raise HTTPException(

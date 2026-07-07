@@ -18,6 +18,7 @@ from ...storage.store import PolicyStore
 router = APIRouter(prefix="/api", tags=["analysis"])
 
 
+@router.post("/analyze")
 async def analyze_url(
     request: AnalyzeRequest,
     config: ConfigLoader = Depends(get_config),

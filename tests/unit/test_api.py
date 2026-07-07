@@ -211,6 +211,39 @@ class TestPolicyRoutes:
         assert "total" in data
 
 
+# --- Analysis ---
+
+class TestAnalysisRoutes:
+    def test_analyze_route_is_registered(self, client):
+        # An invalid body must fail validation (422), not routing (404).
+        response = client.post("/api/analyze", json={})
+        assert response.status_code == 422
+
+    def test_analyze_url_fetch_failure_returns_status(self, client):
+        with patch("src.api.routes.analysis.AsyncCrawler") as crawler_cls:
+            crawler = crawler_cls.return_value
+            crawler.crawl_domain = AsyncMock(return_value=[])
+            crawler.close = AsyncMock()
+            response = client.post(
+                "/api/analyze", json={"url": "https://example.gov/policy"}
+            )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["crawl_status"] == "fetch_failed"
+
+    def test_root_listing_matches_registered_routes(self, client):
+        """Every endpoint advertised at / must actually be registered."""
+        from src.api.app import app
+
+        registered = set(app.openapi()["paths"])
+        advertised = client.get("/").json()["endpoints"]
+        for name, path in advertised.items():
+            base = path.split("?")[0]
+            assert any(
+                r == base or r.startswith(base) for r in registered
+            ), f"advertised endpoint '{name}' ({base}) is not registered"
+
+
 # --- Scans ---
 
 class TestScanRoutes:
