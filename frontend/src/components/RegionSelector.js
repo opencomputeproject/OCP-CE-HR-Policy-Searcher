@@ -27,7 +27,14 @@ const LABEL_OVERRIDES = {
   nordic: 'Nordic',
 };
 
-function formatLabel(value) {
+// Internal QA groups from groups.yaml that end users should never scan
+const HIDDEN_GROUP_PATTERN = /^(test($|_)|sample($|_))/;
+
+export function isHiddenGroup(groupId) {
+  return HIDDEN_GROUP_PATTERN.test(groupId);
+}
+
+export function formatLabel(value) {
   if (!value) return '';
   if (LABEL_OVERRIDES[value]) return LABEL_OVERRIDES[value];
 
@@ -71,17 +78,26 @@ function buildGroupRegionItems(groupId, domains, regionLabels) {
   );
 }
 
-function buildTreeData({ groups, groupDomains, regions }) {
+export function buildTreeData({ groups, groupDomains, regions }) {
   const groupItems = sortByLabel(
-    Object.entries(groups).map(([id, description]) => ({
-      id: `group:${id}`,
-      value: `group:${id}`,
-      label: description && description !== 'No description'
-        ? `${formatLabel(id)} - ${description}`
-        : formatLabel(id),
-      children: buildGroupRegionItems(id, groupDomains[id] || [], regions),
-    })),
+    Object.entries(groups)
+      .filter(([id]) => !isHiddenGroup(id))
+      .map(([id, description]) => ({
+        id: `group:${id}`,
+        value: `group:${id}`,
+        label: description && description !== 'No description'
+          ? `${formatLabel(id)} - ${description}`
+          : formatLabel(id),
+        children: buildGroupRegionItems(id, groupDomains[id] || [], regions),
+      })),
   );
+
+  // Pin the catch-all group to the top; everything else stays alphabetical
+  const allIndex = groupItems.findIndex((item) => item.id === 'group:all');
+  if (allIndex > 0) {
+    const [allItem] = groupItems.splice(allIndex, 1);
+    groupItems.unshift(allItem);
+  }
 
   return groupItems;
 }
@@ -96,7 +112,7 @@ async function fetchJson(path, signal) {
 
 async function fetchGroupDomains(groups, signal) {
   const entries = await Promise.all(
-    Object.keys(groups).map(async (groupId) => {
+    Object.keys(groups).filter((id) => !isHiddenGroup(id)).map(async (groupId) => {
       const params = new URLSearchParams({ group: groupId });
       const response = await fetchJson(`/api/domains?${params.toString()}`, signal);
       return [groupId, response.domains || []];
