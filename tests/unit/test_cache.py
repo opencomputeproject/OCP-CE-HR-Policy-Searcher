@@ -99,6 +99,28 @@ class TestURLCache:
         assert entry is None
         assert cache.stats.content_changed == 1
 
+    def test_negative_entries_expire_sooner(self):
+        """A wrong screening rejection must not be frozen for a month:
+        negative verdicts get a shorter TTL than positive ones."""
+        cache = URLCache(expiry_days=30)
+        pos = cache.set("https://a.gov/yes", is_relevant=True)
+        neg = cache.set("https://a.gov/no", is_relevant=False)
+        pos_expiry = datetime.fromisoformat(pos.expires_date)
+        neg_expiry = datetime.fromisoformat(neg.expires_date)
+        assert neg_expiry < pos_expiry
+        delta = pos_expiry - neg_expiry
+        assert delta.days >= 20  # 30-day positive vs 7-day negative
+
+
+class TestContentHash:
+    def test_change_beyond_10k_chars_is_detected(self):
+        """Amendments often appear late in a statute; the hash must cover
+        the full document, not just its head."""
+        from src.core.cache import compute_content_hash
+        base = "x" * 12000
+        amended = base + " Section 26 amended: waste heat mandatory."
+        assert compute_content_hash(base) != compute_content_hash(amended)
+
     def test_get_content_matches(self):
         cache = URLCache()
         cache.set("https://a.gov", is_relevant=True, content_hash="same")
@@ -209,9 +231,9 @@ class TestComputeContentHash:
         assert isinstance(h, str)
         assert len(h) == 16
 
-    def test_long_content_uses_first_10k(self):
-        long_content = "x" * 20000
-        h1 = compute_content_hash(long_content)
-        # Same first 10k chars → same hash
+    def test_full_content_hashed(self):
+        """The hash must cover the whole document so late amendments are
+        detected as changes."""
+        h1 = compute_content_hash("x" * 20000)
         h2 = compute_content_hash("x" * 10000)
-        assert h1 == h2
+        assert h1 != h2

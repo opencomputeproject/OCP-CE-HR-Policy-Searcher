@@ -92,6 +92,79 @@ class TestExtractLinks:
         assert not any(link.endswith(".zip") for link in links)
         assert "https://example.gov/page" in links
 
+    def test_nav_links_are_followed(self):
+        """Statute tables of contents live inside <nav>/<aside> on
+        legislation sites; link discovery must not strip them."""
+        crawler = AsyncCrawler()
+        html = """
+        <html><body>
+            <nav><a href="/law/section-11">Section 11</a></nav>
+            <aside role="navigation"><a href="/law/section-12">Section 12</a></aside>
+            <p><a href="/law/full-text">Full text</a></p>
+        </body></html>
+        """
+        links = crawler._extract_links(
+            html, "https://example.gov/law", "https://example.gov",
+        )
+        assert "https://example.gov/law/section-11" in links
+        assert "https://example.gov/law/section-12" in links
+        assert "https://example.gov/law/full-text" in links
+
+    def test_subdomain_links_followed(self):
+        """Gov sites put document stores on sibling subdomains."""
+        crawler = AsyncCrawler()
+        html = """
+        <html><body>
+            <a href="https://efiling.energy.ca.gov/doc/1">Filing</a>
+            <a href="https://energy.ca.gov/page">Apex</a>
+            <a href="https://othersite.com/x">External</a>
+        </body></html>
+        """
+        links = crawler._extract_links(
+            html, "https://www.energy.ca.gov/", "https://www.energy.ca.gov",
+        )
+        assert any("efiling.energy.ca.gov" in link for link in links)
+        assert any(link.startswith("https://energy.ca.gov/page") for link in links)
+        assert not any("othersite.com" in link for link in links)
+
+    def test_url_priority_prefers_law_paths(self):
+        crawler = AsyncCrawler()
+        assert crawler._url_priority("https://a.gov/laws/energy-heat-act") > \
+            crawler._url_priority("https://a.gov/press/photo-gallery")
+        assert crawler._url_priority("https://a.gov/statute.pdf") > \
+            crawler._url_priority("https://a.gov/about-us")
+
+    @pytest.mark.asyncio
+    async def test_crawl_fetches_promising_links_first(self):
+        """With a tight page budget, law-like URLs must win over press."""
+        crawler = AsyncCrawler(delay_seconds=0, max_retries=1, max_pages=2, max_depth=2)
+        seed_html = """
+        <html><body>
+            <a href="/press/gallery">Gallery</a>
+            <a href="/laws/heat-act">Heat Act</a>
+        </body></html>
+        """
+        fetched = []
+
+        async def fake_fetch(client, url):
+            fetched.append(url)
+            from src.core.models import CrawlResult, PageStatus
+            return CrawlResult(
+                url=url, status=PageStatus.SUCCESS,
+                content=seed_html if len(fetched) == 1 else "<html></html>",
+                content_type="text/html", content_length=10,
+            )
+
+        with patch.object(crawler, "_fetch_with_retry", side_effect=fake_fetch), \
+                patch.object(crawler, "_ensure_client", AsyncMock(return_value=MagicMock())):
+            await crawler.crawl_domain(
+                base_url="https://example.gov",
+                start_paths=["/"],
+                domain_id="d1",
+            )
+        assert len(fetched) == 2
+        assert fetched[1].endswith("/laws/heat-act")
+
     def test_blocked_patterns_filtered(self):
         crawler = AsyncCrawler()
         html = """
@@ -122,7 +195,9 @@ class TestExtractLinks:
         assert "https://example.gov/policy/heat" in links
         assert not any("about" in link for link in links)
 
-    def test_removes_nav_links(self):
+    def test_keeps_nav_links(self):
+        """Nav links are kept: statute ToCs render as navigation, and the
+        priority queue deprioritizes generic nav noise instead."""
         crawler = AsyncCrawler()
         html = """
         <html><body>
@@ -134,8 +209,7 @@ class TestExtractLinks:
             html, "https://example.gov/", "https://example.gov",
         )
         assert "https://example.gov/content" in links
-        # Nav links should be removed
-        assert "https://example.gov/home" not in links
+        assert "https://example.gov/home" in links
 
     def test_deduplicates_links(self):
         crawler = AsyncCrawler()

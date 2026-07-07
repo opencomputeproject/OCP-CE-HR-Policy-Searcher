@@ -265,6 +265,44 @@ class TestDomainScannerScan:
         scanner_deps["llm_client"].analyze_policy.assert_not_awaited()
 
     @pytest.mark.asyncio
+    async def test_llm_error_on_one_page_does_not_abort_domain(self, scanner_deps):
+        """Rate-limit exhaustion on one page must not lose the rest of the
+        domain's pages."""
+        from src.core.llm import LLMRateLimitError
+
+        page1 = _make_crawl_result(url="https://example.gov/fails")
+        page2 = _make_crawl_result(url="https://example.gov/works")
+        scanner_deps["crawler"].crawl_domain = AsyncMock(return_value=[page1, page2])
+        scanner_deps["llm_client"].analyze_policy = AsyncMock(
+            side_effect=[
+                LLMRateLimitError("rate limit after retries"),
+                PolicyAnalysis(
+                    is_relevant=True, relevance_score=8, policy_type="law",
+                    policy_name="Heat Recovery Act", jurisdiction="US",
+                    summary="A law about heat recovery",
+                ),
+            ],
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        policies = await scanner.scan()
+        assert len(policies) == 1
+        assert scanner.progress.errors == 1
+        assert scanner.progress.status.value == "completed"
+
+    @pytest.mark.asyncio
+    async def test_auth_error_still_aborts_domain(self, scanner_deps):
+        """An invalid API key affects every page: continuing is pointless."""
+        from src.core.llm import LLMAuthError
+
+        scanner_deps["llm_client"].analyze_policy = AsyncMock(
+            side_effect=LLMAuthError("bad key"),
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        policies = await scanner.scan()
+        assert len(policies) == 0
+        assert scanner.progress.status.value == "failed"
+
+    @pytest.mark.asyncio
     async def test_cache_hit_skips_llm(self, scanner_deps):
         # Pre-populate cache
         scanner_deps["cache"].set(

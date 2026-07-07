@@ -11,6 +11,7 @@ per crawl and reused for every page in that domain.
 
 import asyncio
 import fnmatch
+import heapq
 import logging
 import re
 import warnings
@@ -34,7 +35,16 @@ _DEFAULT_SKIP_EXTENSIONS = [
     ".svg", ".css", ".js", ".json", ".xml", ".mp3", ".mp4", ".ico",
 ]
 
-_NAV_TAGS_FOR_LINK_EXTRACTION = ["nav", "header", "footer"]
+# URL substrings that suggest a page holds or indexes legislation.
+# Used to prioritize the crawl frontier so the page budget is spent on
+# likely law pages instead of whatever FIFO order surfaced first.
+_PRIORITY_URL_TERMS = [
+    "law", "legislation", "statute", "regulation", "directive", "act",
+    "bill", "decree", "ordinance", "code",
+    "energy", "energi", "heat", "warme", "wärme", "varme", "abwarme",
+    "abwärme", "chaleur", "calor", "climate", "klima", "efficien",
+    "gesetz", "recht", "loi", "ley", "lag", "lov", "laki", "wet",
+]
 
 # Patterns indicating access denial or bot protection
 _DENIAL_PATTERNS = [
@@ -230,14 +240,20 @@ class AsyncCrawler:
 
         self._visited.clear()
         results: list[CrawlResult] = []
-        queue: list[tuple[str, int]] = [
-            (urljoin(base_url, p), 0) for p in start_paths
-        ]
+        # Priority frontier: law-like URLs first so the page budget is not
+        # exhausted on nav noise before reaching legislation. seq keeps
+        # FIFO order among equal priorities (still BFS-ish).
+        seq = 0
+        queue: list[tuple[int, int, str, int]] = []
+        for p in start_paths:
+            url = urljoin(base_url, p)
+            heapq.heappush(queue, (-self._url_priority(url), seq, url, 0))
+            seq += 1
 
         client = await self._ensure_client() if not requires_playwright else None
 
         while queue and len(results) < max_pages:
-            url, depth = queue.pop(0)
+            _, _, url, depth = heapq.heappop(queue)
 
             if url in self._visited:
                 continue
@@ -273,7 +289,11 @@ class AsyncCrawler:
                 )
                 for link in links:
                     if link not in self._visited:
-                        queue.append((link, depth + 1))
+                        heapq.heappush(
+                            queue,
+                            (-self._url_priority(link), seq, link, depth + 1),
+                        )
+                        seq += 1
 
         return results
 
@@ -376,6 +396,26 @@ class AsyncCrawler:
             error_message=last_error or "Unknown error",
         )
 
+    @staticmethod
+    def _same_site(link_netloc: str, base_netloc: str) -> bool:
+        """Same host, www/apex variants, or a subdomain of the seed host.
+
+        Gov sites routinely place document stores and legislation viewers
+        on sibling subdomains; an exact-netloc match dropped those links.
+        """
+        link_host = link_netloc.lower().removeprefix("www.")
+        base_host = base_netloc.lower().removeprefix("www.")
+        return link_host == base_host or link_host.endswith("." + base_host)
+
+    @staticmethod
+    def _url_priority(url: str) -> int:
+        """Score a URL by how likely it is to hold or index legislation."""
+        lowered = url.lower()
+        score = sum(1 for term in _PRIORITY_URL_TERMS if term in lowered)
+        if lowered.endswith(".pdf"):
+            score += 2  # statutes are usually the PDFs
+        return score
+
     def _extract_links(
         self,
         html: str,
@@ -384,14 +424,13 @@ class AsyncCrawler:
         allowed_patterns: Optional[list[str]] = None,
         blocked_patterns: Optional[list[str]] = None,
     ) -> list[str]:
-        """Extract same-domain links from HTML, removing nav elements first."""
-        soup = BeautifulSoup(html, "lxml")
+        """Extract same-site links from HTML.
 
-        for tag_name in _NAV_TAGS_FOR_LINK_EXTRACTION:
-            for el in soup.find_all(tag_name):
-                el.decompose()
-        for el in soup.find_all(attrs={"role": "navigation"}):
-            el.decompose()
+        Nav/aside elements are deliberately KEPT: on legislation sites the
+        statute's table of contents (links into each section of a law) is
+        usually rendered as a navigation element.
+        """
+        soup = BeautifulSoup(html, "lxml")
 
         base_domain = urlparse(base_url).netloc
         links = []
@@ -400,7 +439,7 @@ class AsyncCrawler:
             full_url = urljoin(current_url, a["href"])
             parsed = urlparse(full_url)
 
-            if parsed.netloc != base_domain:
+            if not self._same_site(parsed.netloc, base_domain):
                 continue
             if parsed.scheme not in ("http", "https"):
                 continue

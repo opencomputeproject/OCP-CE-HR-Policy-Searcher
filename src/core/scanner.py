@@ -12,7 +12,7 @@ from .cache import URLCache, compute_content_hash
 from .crawler import AsyncCrawler
 from .extractor import HtmlExtractor
 from .keywords import KeywordMatcher
-from .llm import ClaudeClient
+from .llm import ClaudeClient, LLMAuthError
 from .models import (
     CrawlResult, Policy, DomainProgress, DomainScanStatus,
     ScanEvent,
@@ -103,7 +103,21 @@ class DomainScanner:
                     "response_ms": result.response_time_ms,
                 })
 
-                policy = await self._process_page(result)
+                try:
+                    policy = await self._process_page(result)
+                except LLMAuthError:
+                    # Invalid key affects every page — abort the domain.
+                    raise
+                except Exception as e:
+                    # Per-page isolation: one failed page (rate limit
+                    # exhaustion, parse error) must not lose the rest of
+                    # the domain's pages.
+                    logger.error(
+                        "Page processing failed for %s: %s — continuing "
+                        "with remaining pages", result.url, e,
+                    )
+                    self.progress.errors += 1
+                    continue
                 if policy:
                     policies.append(policy)
                     self.progress.policies_found += 1

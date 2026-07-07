@@ -61,6 +61,9 @@ class URLCache:
     """Cache for URL analysis results with TTL and content-hash support."""
 
     DEFAULT_EXPIRY_DAYS = 30
+    # Negative verdicts expire sooner: a wrong screening rejection should
+    # not be frozen for a month while prompts and keywords improve.
+    NEGATIVE_EXPIRY_DAYS = 7
     DEFAULT_CACHE_PATH = Path("data/url_cache.json")
     SAVE_INTERVAL = 50  # Auto-save every N sets
 
@@ -106,7 +109,11 @@ class URLCache:
     ) -> CacheEntry:
         """Cache an analysis result."""
         now = datetime.now(timezone.utc)
-        expires = now + timedelta(days=self.expiry_days)
+        expiry_days = (
+            self.expiry_days if is_relevant
+            else min(self.expiry_days, self.NEGATIVE_EXPIRY_DAYS)
+        )
+        expires = now + timedelta(days=expiry_days)
 
         entry = CacheEntry(
             url=url,
@@ -196,6 +203,9 @@ class URLCache:
 
 
 def compute_content_hash(content: str) -> str:
-    """Hash first 10K chars for change detection."""
-    sample = content[:10000] if content else ""
-    return hashlib.sha256(sample.encode("utf-8")).hexdigest()[:16]
+    """Hash the full content for change detection.
+
+    Hashing only a head sample missed statute amendments that appear late
+    in the document, serving stale cached verdicts for changed pages.
+    """
+    return hashlib.sha256((content or "").encode("utf-8")).hexdigest()[:16]
