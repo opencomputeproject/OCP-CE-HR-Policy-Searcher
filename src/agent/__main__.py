@@ -505,6 +505,28 @@ def main():
         _handle_logs_command(args[1:], data_dir)
         sys.exit(0)
 
+    if args and args[0] == "--signals":
+        # Cheap weekly sweep: news feeds -> lead queue. Works without an
+        # API key (no triage); with a key, Haiku filters the noise.
+        from ..core.config import ConfigLoader
+        from ..signals.news import run_news_signals
+        from ..storage.leads import LeadStore
+
+        data_dir = os.environ.get("OCP_DATA_DIR", "data")
+        config = ConfigLoader(config_dir=os.environ.get("OCP_CONFIG_DIR", "config"))
+        config.load()
+        summary = asyncio.run(run_news_signals(
+            config.get_signals_config(),
+            LeadStore(data_dir=data_dir),
+            api_key=os.environ.get("ANTHROPIC_API_KEY"),
+        ))
+        print(
+            f"News signals: {summary.get('items_seen', 0)} items seen, "
+            f"{summary.get('leads_added', 0)} new leads "
+            f"(review at /api/leads or in the app)."
+        )
+        sys.exit(0)
+
     # Check for API key (everything below needs it)
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
