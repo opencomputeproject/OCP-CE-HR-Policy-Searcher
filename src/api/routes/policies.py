@@ -5,6 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 
 from ..deps import get_scan_manager, get_policy_store
+from ...agent.tools import jurisdiction_matches
 from ...orchestration.scan_manager import ScanManager
 from ...storage.store import PolicyStore
 
@@ -33,7 +34,7 @@ def list_policies(
     in_memory = []
     for policy in manager.get_all_policies():
         p_dict = policy.model_dump(mode="json")
-        if jurisdiction and jurisdiction.lower() not in (p_dict.get("jurisdiction", "") or "").lower():
+        if jurisdiction and not jurisdiction_matches(jurisdiction, p_dict.get("jurisdiction", "")):
             continue
         if policy_type and p_dict.get("policy_type") != policy_type:
             continue

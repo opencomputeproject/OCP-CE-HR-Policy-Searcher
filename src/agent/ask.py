@@ -30,6 +30,9 @@ native-language keywords (e.g. "Abwärme" for Germany) before giving up.
 - For a region group (Nordics, EU, DACH, Benelux...), search each member \
 country separately with the jurisdiction filter and NO query keywords first, \
 so you see everything stored for that country. Keyword search is literal.
+- Before concluding a country or region has NO policies, call \
+get_policy_stats to see which jurisdictions actually have stored policies, \
+then search those. Do not claim emptiness without checking stats first.
 - Answer ONLY from stored data. Never invent policies. If nothing matches, \
 say so plainly and mention that an administrator can scan that region.
 - Reply in the same language the question was asked in.

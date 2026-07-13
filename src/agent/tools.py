@@ -8,6 +8,7 @@ Defines 15 tools in Anthropic API format:
 
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -33,6 +34,60 @@ from .domain_generator import (
 )
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Jurisdiction matching for search_policies
+# ---------------------------------------------------------------------------
+# Countries are stored inconsistently ("US", "Sweden (EU)", "Finland
+# (EU-wide regulation)") while reader questions phrase them in full
+# ("United States", "USA"). Match on shared aliases plus word-boundary
+# containment, so "United States" finds "US" but "US" never matches
+# "Belarus".
+_JURISDICTION_ALIAS_GROUPS: list[set[str]] = [
+    {"us", "usa", "united states", "united states of america", "america"},
+    {"uk", "united kingdom", "britain", "great britain"},
+    {"eu", "european union"},
+    {"uae", "united arab emirates"},
+    {"south korea", "korea", "republic of korea"},
+    {"czech republic", "czechia"},
+]
+
+
+def _word_in(needle: str, haystack: str) -> bool:
+    """True if needle appears as a whole word/phrase in haystack."""
+    return re.search(rf"\b{re.escape(needle)}\b", haystack) is not None
+
+
+def _jurisdiction_aliases(text: str) -> set[str]:
+    """Expand a jurisdiction string to itself plus any alias-group members."""
+    aliases = {text}
+    for group in _JURISDICTION_ALIAS_GROUPS:
+        if any(_word_in(member, text) for member in group):
+            aliases |= group
+    return aliases
+
+
+def jurisdiction_matches(query: str, stored: str) -> bool:
+    """Whether a jurisdiction query should match a stored jurisdiction value."""
+    q = (query or "").strip().lower()
+    if not q:
+        return True
+    s = (stored or "").strip().lower()
+    if not s:
+        return False
+
+    query_aliases = _jurisdiction_aliases(q)
+    stored_aliases = _jurisdiction_aliases(s)
+    if query_aliases & stored_aliases:
+        return True
+
+    # Word-boundary containment either direction: "Sweden" -> "Sweden (EU)".
+    return any(
+        _word_in(qa, sa) or _word_in(sa, qa)
+        for qa in query_aliases
+        for sa in stored_aliases
+    )
+
 
 # ---------------------------------------------------------------------------
 # Region -> groups mapping for auto-assignment when adding domains
@@ -578,7 +633,9 @@ async def execute_tool(
 
             filtered = []
             for p in policies:
-                if jurisdiction and jurisdiction.lower() not in (p.get("jurisdiction", "") or "").lower():
+                if jurisdiction and not jurisdiction_matches(
+                    jurisdiction, p.get("jurisdiction", "")
+                ):
                     continue
                 if policy_type and p.get("policy_type") != policy_type:
                     continue
