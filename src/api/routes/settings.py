@@ -127,6 +127,19 @@ class CostSettingsUpdate(BaseModel):
     ask_daily_limit: Optional[int] = Field(default=None, ge=0, le=10000)
 
 
+@router.get("/legiscan-usage")
+def get_legiscan_usage():
+    """LegiScan monthly query usage against the 30,000/month public cap.
+
+    Read-only and open, so the reader UI can show remaining budget. Returns
+    configured=false when no LegiScan key is set.
+    """
+    if not os.environ.get("LEGISCAN_API_KEY"):
+        return {"configured": False}
+    from ...sources.legiscan import monthly_usage
+    return {"configured": True, **monthly_usage()}
+
+
 @router.get("/costs")
 def get_cost_settings(cost_store=Depends(get_cost_settings_store)):
     """Current cost level, reader-question limits, and resolved models."""

@@ -52,6 +52,7 @@ def _bill_response(bill: dict | None) -> _FakeResponse:
 @pytest.fixture(autouse=True)
 def _seen_file(tmp_path, monkeypatch):
     monkeypatch.setattr(legiscan, "SEEN_FILE", tmp_path / "legiscan_seen.json")
+    monkeypatch.setattr(legiscan, "USAGE_FILE", tmp_path / "legiscan_usage.json")
 
 
 @pytest.fixture(autouse=True)
@@ -165,6 +166,69 @@ class TestApiCallBudget:
         with patch("httpx.AsyncClient", return_value=fake_client):
             results = await LegiscanSource().fetch(
                 {"source_params": {"terms": ["term1", "term2"], "max_api_calls": 1}}
+            )
+        assert results == []
+        assert len(fake_client.calls) == 1
+
+
+class TestMonthlyBudget:
+    """The 30,000-query/month public limit is enforced with a persistent
+    per-calendar-month ledger, so big scans cannot silently overspend."""
+
+    @pytest.mark.asyncio
+    async def test_usage_recorded_after_run(self):
+        hit = {"bill_id": 7, "change_hash": "h7", "title": "T", "last_action": ""}
+        bill = {"title": "T", "description": "d", "state_link": "https://x.gov/b", "status_text": ""}
+        fake = _FakeAsyncClient([_search_response({"0": hit}), _bill_response(bill)])
+        with patch("httpx.AsyncClient", return_value=fake):
+            await LegiscanSource().fetch({"source_params": {"terms": ["t"]}})
+        usage = legiscan.monthly_usage()
+        assert usage["used"] == 2          # one search + one getBill
+        assert usage["remaining"] == legiscan.MONTHLY_QUERY_LIMIT - 2
+
+    @pytest.mark.asyncio
+    async def test_run_capped_by_monthly_remaining(self):
+        # Pre-seed near the limit: only 1 query left this month
+        legiscan._record_usage(legiscan.MONTHLY_QUERY_LIMIT - 1)
+        hit = {"bill_id": 7, "change_hash": "h7", "title": "T", "last_action": ""}
+        fake = _FakeAsyncClient([_search_response({"0": hit}), _bill_response({})])
+        with patch("httpx.AsyncClient", return_value=fake):
+            await LegiscanSource().fetch(
+                {"source_params": {"terms": ["a", "b"], "max_api_calls": 40}}
+            )
+        assert len(fake.calls) == 1        # stopped at the 1 remaining query
+
+    @pytest.mark.asyncio
+    async def test_at_limit_makes_no_calls(self):
+        legiscan._record_usage(legiscan.MONTHLY_QUERY_LIMIT)
+        fake = _FakeAsyncClient([_search_response({"0": {"bill_id": 1}})])
+        with patch("httpx.AsyncClient", return_value=fake):
+            results = await LegiscanSource().fetch({"source_params": {"terms": ["t"]}})
+        assert results == []
+        assert len(fake.calls) == 0
+
+    def test_month_rollover_resets(self, monkeypatch):
+        legiscan.USAGE_FILE.write_text('{"month": "2000-01", "queries": 12345}', encoding="utf-8")
+        usage = legiscan.monthly_usage()
+        assert usage["used"] == 0          # stale month is ignored
+
+
+class TestApiStatusError:
+    """The Crash Course requires checking the JSON 'status' field. An ERROR
+    (e.g. monthly limit exhausted or bad key) returns HTTP 200, so it must be
+    detected explicitly and the run must stop rather than burn more queries."""
+
+    @pytest.mark.asyncio
+    async def test_error_status_stops_run_without_more_calls(self):
+        error = _FakeResponse(json_data={
+            "status": "ERROR",
+            "alert": {"message": "Query limit exceeded"},
+        })
+        # A second term's response is queued but must NOT be reached.
+        fake_client = _FakeAsyncClient([error, _search_response({"0": {"bill_id": 1}})])
+        with patch("httpx.AsyncClient", return_value=fake_client):
+            results = await LegiscanSource().fetch(
+                {"source_params": {"terms": ["term1", "term2"], "max_api_calls": 40}}
             )
         assert results == []
         assert len(fake_client.calls) == 1

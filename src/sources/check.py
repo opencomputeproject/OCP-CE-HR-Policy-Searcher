@@ -79,6 +79,12 @@ def main(argv: list[str] | None = None) -> int:
                         help="probe each ready source with a tiny live fetch")
     args = parser.parse_args(argv)
 
+    # Load .env so keys stored there are visible when this runs standalone
+    # (the API/agent load it at startup; this CLI needs its own load).
+    from dotenv import load_dotenv
+    from pathlib import Path
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
+
     rows = source_key_status()
     live = asyncio.run(_run_live(rows)) if args.live else {}
 
@@ -98,6 +104,15 @@ def main(argv: list[str] | None = None) -> int:
     print("-" * 78)
     print(f"{ready_count}/{len(rows)} sources ready "
           f"({len(rows) - ready_count} awaiting an API key).")
+
+    # LegiScan monthly query budget (only source with a hard monthly cap).
+    if os.environ.get("LEGISCAN_API_KEY"):
+        from .legiscan import monthly_usage
+        u = monthly_usage()
+        pct = (u["used"] / u["limit"] * 100) if u["limit"] else 0
+        print(f"\nLegiScan queries this month ({u['month']}): "
+              f"{u['used']:,} / {u['limit']:,} used ({pct:.1f}%), "
+              f"{u['remaining']:,} remaining.")
     return 0
 
 
