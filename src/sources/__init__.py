@@ -1,0 +1,40 @@
+"""Structured policy sources and their registry.
+
+Client modules self-register on import; add new imports at the bottom.
+"""
+
+from .base import PolicySource, SourceError
+
+SOURCE_REGISTRY: dict[str, type[PolicySource]] = {}
+
+
+def register_source(cls: type[PolicySource]) -> type[PolicySource]:
+    """Register a PolicySource class under its id (usable as a decorator)."""
+    if not cls.id:
+        raise ValueError(f"{cls.__name__} has no id")
+    SOURCE_REGISTRY[cls.id] = cls
+    return cls
+
+
+def get_source(source_id: str) -> PolicySource:
+    """Instantiate the source registered under source_id.
+
+    Raises:
+        KeyError: unknown source id (surfaces as a failed domain with a
+            clear message rather than a silent skip).
+    """
+    if source_id not in SOURCE_REGISTRY:
+        raise KeyError(
+            f"Unknown source_type '{source_id}'. "
+            f"Known: {sorted(SOURCE_REGISTRY)} (plus 'crawl')"
+        )
+    return SOURCE_REGISTRY[source_id]()
+
+
+__all__ = [
+    "PolicySource",
+    "SourceError",
+    "SOURCE_REGISTRY",
+    "register_source",
+    "get_source",
+]

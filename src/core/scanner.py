@@ -77,17 +77,29 @@ class DomainScanner:
         policies: list[Policy] = []
 
         try:
-            # Stage 1: Crawl
-            crawl_results = await self.crawler.crawl_domain(
-                base_url=self.domain["base_url"],
-                start_paths=self.domain.get("start_paths", ["/"]),
-                domain_id=self.domain_id,
-                allowed_path_patterns=self.domain.get("allowed_path_patterns"),
-                blocked_path_patterns=self.domain.get("blocked_path_patterns"),
-                max_depth_override=self.domain.get("max_depth"),
-                max_pages_override=self.domain.get("max_pages"),
-                requires_playwright=self.domain.get("requires_playwright", False),
-            )
+            # Stage 1: Acquire documents — structured source or crawl
+            source_type = self.domain.get("source_type", "crawl")
+            if source_type != "crawl":
+                from ..sources import get_source
+                source = get_source(source_type)
+                logger.info(
+                    "Domain %s uses structured source '%s'",
+                    self.domain_id, source_type,
+                )
+                crawl_results = await source.fetch(self.domain)
+                for r in crawl_results:
+                    r.domain_id = self.domain_id
+            else:
+                crawl_results = await self.crawler.crawl_domain(
+                    base_url=self.domain["base_url"],
+                    start_paths=self.domain.get("start_paths", ["/"]),
+                    domain_id=self.domain_id,
+                    allowed_path_patterns=self.domain.get("allowed_path_patterns"),
+                    blocked_path_patterns=self.domain.get("blocked_path_patterns"),
+                    max_depth_override=self.domain.get("max_depth"),
+                    max_pages_override=self.domain.get("max_pages"),
+                    requires_playwright=self.domain.get("requires_playwright", False),
+                )
 
             self.progress.pages_crawled = len(crawl_results)
 
@@ -333,9 +345,15 @@ class DomainScanner:
         )
 
         # Stage 6: Convert to Policy records (index pages can hold several)
-        return self.llm_client.to_policies(
+        policies = self.llm_client.to_policies(
             analysis, result.url,
             language=extracted.language or "en",
             domain_id=self.domain_id,
             scan_id=self.scan_id,
         )
+        # A source-declared stage (bill status, open consultation) is
+        # authoritative over the analysis model's inference.
+        if result.lifecycle_stage:
+            for policy in policies:
+                policy.lifecycle_stage = result.lifecycle_stage
+        return policies

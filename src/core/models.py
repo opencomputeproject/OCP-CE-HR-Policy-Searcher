@@ -110,6 +110,9 @@ class CrawlResult(BaseModel):
     requires_human_review: bool = False
     used_playwright: bool = False
     domain_id: Optional[str] = None
+    # Set by structured sources that know the document's stage (bill
+    # status, open consultation); overrides analysis inference.
+    lifecycle_stage: Optional[str] = None
 
     @property
     def is_success(self) -> bool:
@@ -172,12 +175,21 @@ class PolicyAnalysis(BaseModel):
     confidence: int = 5
     referenced_policies: list[str] = Field(default_factory=list)
     referenced_urls: list[str] = Field(default_factory=list)
+    lifecycle_stage: str = "unknown"
     # Index/listing pages describe several policies; the primary one uses
     # the fields above, the rest arrive here.
     additional_policies: list["PolicyAnalysis"] = Field(default_factory=list)
 
 
 # --- Policy (final output) ---
+
+# Where a policy sits in its life: sources set this when they know it
+# (bill status, consultation window); otherwise analysis infers it.
+LIFECYCLE_STAGES = (
+    "proposed", "consultation", "in_committee", "passed",
+    "enacted", "transposition_notified", "amended", "unknown",
+)
+
 
 class Policy(BaseModel):
     url: str
@@ -199,6 +211,7 @@ class Policy(BaseModel):
     verification_flags: list[VerificationFlag] = Field(default_factory=list)
     referenced_policies: list[str] = Field(default_factory=list)
     referenced_urls: list[str] = Field(default_factory=list)
+    lifecycle_stage: str = "unknown"
 
     @staticmethod
     def sheet_headers() -> list[str]:
@@ -208,7 +221,7 @@ class Policy(BaseModel):
             "Effective Date", "Bill Number", "Key Requirements",
             "Discovered At", "Crawl Status", "Error Details", "Review Status",
             "Scan ID", "Domain ID", "Verification Flags",
-            "Referenced Policies", "Referenced URLs",
+            "Referenced Policies", "Referenced URLs", "Lifecycle Stage",
         ]
 
     def to_sheet_row(self) -> list:
@@ -232,6 +245,7 @@ class Policy(BaseModel):
             ", ".join(f.value for f in self.verification_flags) if self.verification_flags else "",
             "; ".join(self.referenced_policies) if self.referenced_policies else "",
             "; ".join(self.referenced_urls) if self.referenced_urls else "",
+            self.lifecycle_stage,
         ]
 
 

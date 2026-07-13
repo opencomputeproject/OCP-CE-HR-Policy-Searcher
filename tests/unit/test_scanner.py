@@ -265,6 +265,66 @@ class TestDomainScannerScan:
         scanner_deps["llm_client"].analyze_policy.assert_not_awaited()
 
     @pytest.mark.asyncio
+    async def test_api_source_domain_bypasses_crawler(self, scanner_deps):
+        """A domain with source_type != crawl fetches via its PolicySource
+        and never touches the crawler; results flow through the pipeline."""
+        from src.sources import SOURCE_REGISTRY
+        from src.sources.base import PolicySource
+
+        class _StubSource(PolicySource):
+            id = "stub_bills"
+
+            async def fetch(self, domain):
+                return [_make_crawl_result(url="https://parliament.example.gov/bill/7")]
+
+        SOURCE_REGISTRY["stub_bills"] = _StubSource
+        try:
+            scanner = DomainScanner(
+                domain=_make_domain(source_type="stub_bills"),
+                scan_id="s1", **scanner_deps,
+            )
+            policies = await scanner.scan()
+        finally:
+            SOURCE_REGISTRY.pop("stub_bills", None)
+
+        scanner_deps["crawler"].crawl_domain.assert_not_awaited()
+        assert len(policies) == 1
+
+    @pytest.mark.asyncio
+    async def test_source_lifecycle_stage_lands_on_policy(self, scanner_deps):
+        """A source-declared stage (e.g. bill status) overrides analysis."""
+        from src.sources import SOURCE_REGISTRY
+        from src.sources.base import PolicySource
+
+        result = _make_crawl_result(url="https://parliament.example.gov/bill/9")
+        result.lifecycle_stage = "in_committee"
+
+        class _StubSource(PolicySource):
+            id = "stub_stage"
+
+            async def fetch(self, domain):
+                return [result]
+
+        real_policy = Policy(
+            url="https://parliament.example.gov/bill/9", policy_name="Bill 9",
+            jurisdiction="US", policy_type=PolicyType.LAW, summary="x",
+            relevance_score=7,
+        )
+        scanner_deps["llm_client"].to_policies.return_value = [real_policy]
+
+        SOURCE_REGISTRY["stub_stage"] = _StubSource
+        try:
+            scanner = DomainScanner(
+                domain=_make_domain(source_type="stub_stage"),
+                scan_id="s1", **scanner_deps,
+            )
+            policies = await scanner.scan()
+        finally:
+            SOURCE_REGISTRY.pop("stub_stage", None)
+
+        assert policies[0].lifecycle_stage == "in_committee"
+
+    @pytest.mark.asyncio
     async def test_multiple_policies_from_one_page(self, scanner_deps):
         """An index page listing several laws yields several records."""
         def _policy(name):
