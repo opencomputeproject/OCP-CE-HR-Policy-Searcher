@@ -1,5 +1,6 @@
 """FastAPI application — REST API + WebSocket for OCP CE HR Policy Searcher."""
 
+import hmac
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -8,9 +9,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 from ..core.log_setup import setup_logging
-from .routes import domains, scans, policies, analysis, agent, logs, settings
+from .routes import domains, scans, policies, analysis, agent, leads, logs, settings
 
 # Resolve .env from project root (2 levels up from src/api/app.py)
 # so credentials load regardless of the process working directory.
@@ -45,6 +48,45 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+def admin_token_configured() -> bool:
+    return bool(os.environ.get("ADMIN_TOKEN"))
+
+
+# Non-GET routes that stay open when admin mode is active:
+# community lead submission is the point of the reader-facing app.
+_ADMIN_EXEMPT = {("POST", "/api/leads")}
+
+
+class AdminGateMiddleware(BaseHTTPMiddleware):
+    """Shared-token gate for state-changing endpoints.
+
+    When ADMIN_TOKEN is set, every non-GET /api request (except explicit
+    exemptions) must carry a matching X-Admin-Token header. Reading stays
+    open; scanning, chatting, settings, and review actions become
+    admin-only — the access model agreed at the 2026-07-07 OCP call.
+    When ADMIN_TOKEN is unset (local single-user), nothing changes.
+    """
+
+    async def dispatch(self, request, call_next):
+        token = os.environ.get("ADMIN_TOKEN")
+        if (
+            token
+            and request.url.path.startswith("/api")
+            and request.method not in ("GET", "HEAD", "OPTIONS")
+            and (request.method, request.url.path) not in _ADMIN_EXEMPT
+        ):
+            provided = request.headers.get("x-admin-token", "")
+            if not hmac.compare_digest(provided, token):
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Administrator token required"},
+                )
+        return await call_next(request)
+
+
+app.add_middleware(AdminGateMiddleware)
+
 # CORS — allow React frontend
 app.add_middleware(
     CORSMiddleware,
@@ -65,6 +107,7 @@ app.include_router(scans.router)
 app.include_router(policies.router)
 app.include_router(analysis.router)
 app.include_router(agent.router)
+app.include_router(leads.router)
 app.include_router(logs.router)
 app.include_router(settings.router)
 
@@ -81,6 +124,7 @@ def root():
             "policies": "/api/policies",
             "analyze": "/api/analyze",
             "agent": "/api/agent",
+            "leads": "/api/leads",
             "logs": "/api/logs",
         },
     }
@@ -88,4 +132,4 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "admin_required": admin_token_configured()}

@@ -29,6 +29,13 @@ def get_policy_store() -> PolicyStore:
 
 
 @lru_cache()
+def get_lead_store():
+    from ..storage.leads import LeadStore
+    data_dir = os.environ.get("OCP_DATA_DIR", "data")
+    return LeadStore(data_dir=data_dir)
+
+
+@lru_cache()
 def get_scan_manager() -> ScanManager:
     config = get_config()
     broadcaster = get_broadcaster()

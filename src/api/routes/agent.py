@@ -87,6 +87,19 @@ async def agent_websocket(ws: WebSocket):
     """
     await ws.accept()
 
+    # Admin gate: websockets bypass the HTTP middleware, so the chat
+    # (which spends API budget) checks the token itself via ?token=.
+    admin_token = os.environ.get("ADMIN_TOKEN")
+    if admin_token:
+        import hmac
+        provided = ws.query_params.get("token", "")
+        if not hmac.compare_digest(provided, admin_token):
+            await ws.send_json(
+                {"type": "error", "content": "Administrator token required"}
+            )
+            await ws.close()
+            return
+
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         await ws.send_json({"type": "error", "content": "ANTHROPIC_API_KEY not set"})
