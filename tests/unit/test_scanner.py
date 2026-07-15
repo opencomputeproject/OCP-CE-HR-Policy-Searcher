@@ -127,6 +127,31 @@ class TestDomainScannerScan:
         }
 
     @pytest.mark.asyncio
+    async def test_structured_source_bypasses_keyword_and_short_gates(self, scanner_deps):
+        """A LegiScan/GovInfo hit is a one-line bill already matched by the
+        source's own query. The web-page keyword gate and the <50-word
+        short-content gate must NOT drop it — it goes straight to LLM
+        screening/analysis."""
+        # Thin content (a bill title) that would fail both crawl gates:
+        scanner_deps["extractor"].extract.return_value = ExtractedContent(
+            text="Data centers: waste heat energy.",
+            title="AB1095", language="en", word_count=5,
+        )
+        scanner_deps["keyword_matcher"].is_relevant.return_value = False
+
+        scanner = DomainScanner(
+            domain=_make_domain(source_type="legiscan"),
+            scan_id="scan_1",
+            **scanner_deps,
+        )
+        result = _make_crawl_result(url="https://leginfo.ca.gov/AB1095")
+        policies = await scanner._process_page_isolated(result)
+
+        assert len(policies) == 1                      # reached analysis
+        assert scanner.progress.filtered_keywords == 0
+        assert scanner.progress.filtered_short_content == 0
+
+    @pytest.mark.asyncio
     async def test_full_pipeline_finds_policy(self, scanner_deps):
         scanner = DomainScanner(
             domain=_make_domain(),

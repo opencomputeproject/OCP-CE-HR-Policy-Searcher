@@ -233,22 +233,34 @@ class DomainScanner:
 
         # Stage 2: Extract content
         extracted = self.extractor.extract(result.content, result.url)
-        if not extracted.text or extracted.word_count < 50:
-            self.progress.pages_filtered += 1
-            self.progress.filtered_short_content += 1
-            return []
 
-        # Stage 3: Keyword matching
-        kw_result = self.keyword_matcher.match(extracted.text)
-        if kw_result.is_excluded:
-            self.progress.pages_filtered += 1
-            self.progress.filtered_excluded += 1
-            return []
+        # Structured sources (LegiScan, GovInfo, DIP, ...) return one-line
+        # bills already matched by the source's own targeted query. The web-
+        # page gates below — the <50-word short filter and the keyword score
+        # gate — are tuned for full HTML pages and would wrongly drop these
+        # thin-but-relevant hits, so skip them and let the LLM screen/analyze.
+        is_structured = self.domain.get("source_type", "crawl") != "crawl"
 
-        min_score = self.domain.get("min_keyword_score")
-        is_relevant = self.keyword_matcher.is_relevant(
-            kw_result, url=result.url, min_score_override=min_score,
-        )
+        if not is_structured:
+            if not extracted.text or extracted.word_count < 50:
+                self.progress.pages_filtered += 1
+                self.progress.filtered_short_content += 1
+                return []
+
+            # Stage 3: Keyword matching
+            kw_result = self.keyword_matcher.match(extracted.text)
+            if kw_result.is_excluded:
+                self.progress.pages_filtered += 1
+                self.progress.filtered_excluded += 1
+                return []
+
+            min_score = self.domain.get("min_keyword_score")
+            is_relevant = self.keyword_matcher.is_relevant(
+                kw_result, url=result.url, min_score_override=min_score,
+            )
+        else:
+            kw_result = self.keyword_matcher.match(extracted.text or "")
+            is_relevant = True
 
         if not is_relevant:
             self.progress.pages_filtered += 1
