@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
 import { apiUrl, WS_BASE_URL } from '../config/api';
 import { adminHeaders } from '../utils/adminAuth';
 
@@ -69,22 +71,24 @@ function PlanPreview({ plan }) {
     );
 }
 
-function SearchPanel({ hasApiKey, isBusy, onBusyChange }) {
+function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false }) {
     const [place, setPlace] = useState('');
     const [topic, setTopic] = useState('');
     const [plan, setPlan] = useState(null);
     const [isPlanning, setIsPlanning] = useState(false);
-    const [regions, setRegions] = useState([]);
+    const [places, setPlaces] = useState([]);
     const [scan, setScan] = useState(null);
     const wsRef = useRef(null);
     const planRequestRef = useRef(0);
 
     useEffect(() => {
         let cancelled = false;
-        fetch(apiUrl('/api/regions'))
-            .then((res) => (res.ok ? res.json() : {}))
+        // Suggestions come from /api/search/places, whose every entry is
+        // resolver-verified - never suggest an input the search will reject.
+        fetch(apiUrl('/api/search/places'))
+            .then((res) => (res.ok ? res.json() : { places: [] }))
             .then((data) => {
-                if (!cancelled) setRegions(Object.values(data || {}));
+                if (!cancelled) setPlaces(data.places || []);
             })
             .catch(() => {});
         return () => { cancelled = true; };
@@ -126,7 +130,7 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange }) {
         if (!plan || !plan.targets || isBusy) return;
 
         onBusyChange?.(true);
-        setScan({ status: 'starting', found: 0, sourcesDone: 0, names: [] });
+        setScan({ status: 'starting', found: 0, sourcesDone: 0, sourceErrors: 0, names: [] });
 
         try {
             const response = await fetch(apiUrl('/api/scans'), {
@@ -141,6 +145,12 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange }) {
                     max_concurrent: 5,
                 }),
             });
+            if (response.status === 401) {
+                throw new Error(
+                    'Searching needs an administrator sign-in. Open Settings and '
+                    + 'enter the administrator token, then try again.',
+                );
+            }
             if (!response.ok) {
                 const text = await response.text();
                 throw new Error(text || `Search failed with ${response.status}`);
@@ -183,9 +193,12 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange }) {
                     onBusyChange?.(false);
                     ws.close();
                 } else if (payload.type === 'error') {
-                    setScan((prev) => prev && ({ ...prev, status: 'error' }));
-                    onBusyChange?.(false);
-                    ws.close();
+                    // Per-source errors are routine (one website timing out);
+                    // the scan continues, so the search card must too.
+                    setScan((prev) => prev && ({
+                        ...prev,
+                        sourceErrors: (prev.sourceErrors || 0) + 1,
+                    }));
                 }
             };
             ws.onerror = () => {
@@ -229,22 +242,23 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange }) {
                 </p>
             </div>
             <form className="search-panel-form" onSubmit={runSearch}>
-                <label className="visually-hidden" htmlFor="search-place-input">
-                    Place to search
-                </label>
-                <input
-                    id="search-place-input"
-                    className="ask-box-input"
-                    type="text"
-                    list="search-place-options"
-                    placeholder='Where? e.g. "California", "Sweden", "EU"'
-                    value={place}
-                    onChange={(event) => setPlace(event.target.value)}
+                <Autocomplete
+                    freeSolo
+                    options={places}
+                    inputValue={place}
+                    onInputChange={(event, value) => setPlace(value || '')}
                     disabled={isRunning}
+                    autoHighlight
+                    className="search-place-autocomplete"
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            size="small"
+                            label="Place to search"
+                            placeholder='e.g. "California", "Sweden", "EU"'
+                        />
+                    )}
                 />
-                <datalist id="search-place-options">
-                    {regions.map((name) => <option key={name} value={name} />)}
-                </datalist>
                 <label className="visually-hidden" htmlFor="search-topic-input">
                     Topic (optional)
                 </label>
@@ -261,6 +275,11 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange }) {
                     {isRunning ? 'Searching...' : 'Search'}
                 </button>
             </form>
+            {adminRequired && (
+                <p className="search-admin-note" role="note">
+                    Signed in as administrator - searches run on the project API key.
+                </p>
+            )}
             {isPlanning && (
                 <p className="search-plan-status" role="status">Planning search...</p>
             )}
@@ -277,6 +296,8 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange }) {
                             <p className="search-progress-line">
                                 Searching {scan.sourceCount ?? '...'} sources
                                 {' '}· {scan.sourcesDone} done · {scan.found} policies found
+                                {scan.sourceErrors > 0
+                                    && ` · ${scan.sourceErrors} source ${scan.sourceErrors === 1 ? 'error' : 'errors'}`}
                                 <button
                                     type="button"
                                     className="leads-dismiss-button search-stop-button"
@@ -296,6 +317,8 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange }) {
                         <p className="search-progress-line search-progress-done">
                             Done: {scan.found} {scan.found === 1 ? 'policy' : 'policies'} found
                             and added to review. New rows are in the Staging sheet.
+                            {scan.sourceErrors > 0
+                                && ` (${scan.sourceErrors} of the sources had errors and were skipped.)`}
                         </p>
                     )}
                     {scan.status === 'complete' && scan.found === 0 && (

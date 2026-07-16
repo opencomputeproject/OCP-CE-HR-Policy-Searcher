@@ -10,6 +10,7 @@ The plan's `targets` string is directly usable as ScanRequest.domains
 """
 
 import os
+import re
 from typing import Optional
 
 from src.agent.domain_generator import US_STATE_ABBREVS
@@ -124,9 +125,26 @@ def _normalize(text: str) -> str:
     return " ".join((text or "").replace("_", " ").replace("-", " ").split()).lower()
 
 
+# Natural phrasings people actually type or that older UI suggestions used.
+_PLACE_ALIASES = {
+    "us states": "us_states",
+    "us state governments": "us_states",
+    "all us states": "us_states",
+    "asia pacific": "apac",
+    "nordics": "nordic",
+    "the nordics": "nordic",
+    "scandinavia": "nordic",
+}
+
+
 def resolve_place(query: str) -> dict:
     """Resolve free text ("California", "EU", "Nordic") into a place dict."""
     low = _normalize(query)
+    # "United States (federal and state)" -> "united states"
+    low = re.sub(r"\s*\([^)]*\)\s*$", "", low).strip()
+    # "Nordic countries" -> "nordic"
+    low = re.sub(r"\s+countries$", "", low).strip()
+    low = _PLACE_ALIASES.get(low, low)
     if not low:
         return {"query": query, "kind": "unknown", "region_key": "", "display": ""}
 
@@ -165,6 +183,40 @@ def resolve_place(query: str) -> dict:
             "region_key": key, "display": VALID_REGIONS[key],
         }
     return {"query": query, "kind": "unknown", "region_key": "", "display": query}
+
+
+# Group-level suggestions, curated so each reads naturally AND resolves.
+_GROUP_SUGGESTIONS = [
+    "European Union", "United States", "United Kingdom",
+    "Nordic", "Europe", "North America", "South America",
+    "Middle East", "Africa", "APAC",
+]
+
+
+def suggested_places() -> list[str]:
+    """Alphabetized place names for the search box - every entry resolves.
+
+    Regression guard: the UI once suggested region DESCRIPTIONS
+    ("US state governments") that resolve_place rejected. Suggestions are
+    generated from names, then filtered through the resolver itself so a
+    suggestion that stops resolving fails tests instead of failing users.
+    """
+    from .config import VALID_REGIONS
+
+    names: set[str] = set(_GROUP_SUGGESTIONS)
+    names.update(name.title() for name in _STATE_BY_NAME)
+    for key, display in VALID_REGIONS.items():
+        if key in _GROUP_KEYS or key in ("us", "uk", "eu", "us_states"):
+            continue
+        for candidate in (display, key.replace("_", " ").title()):
+            if resolve_place(candidate)["kind"] != "unknown":
+                names.add(candidate)
+                break
+
+    return sorted(
+        (n for n in names if resolve_place(n)["kind"] != "unknown"),
+        key=str.lower,
+    )
 
 
 def _coverage_keys(place: dict) -> set[str]:

@@ -39,17 +39,22 @@ const UNKNOWN_PLAN = {
     warnings: ["Could not recognize 'Atlantis'. Try a country (\"Sweden\")."],
 };
 
-function mockFetch({ plan = CA_PLAN } = {}) {
+function mockFetch({ plan = CA_PLAN, scanStatus = 200 } = {}) {
     return jest.fn(async (url) => {
         const path = String(url);
-        if (path.includes('/api/regions')) {
-            return { ok: true, json: async () => ({ california: 'California' }) };
+        if (path.includes('/api/search/places')) {
+            return { ok: true, json: async () => ({ places: ['California', 'Sweden'] }) };
         }
         if (path.includes('/api/search/plan')) {
             return { ok: true, json: async () => plan };
         }
         if (path.includes('/api/scans')) {
-            return { ok: true, json: async () => ({ scan_id: 'abc12345', domain_count: 2 }) };
+            return {
+                ok: scanStatus === 200,
+                status: scanStatus,
+                json: async () => ({ scan_id: 'abc12345', domain_count: 2 }),
+                text: async () => 'denied',
+            };
         }
         return { ok: false, text: async () => 'not found' };
     });
@@ -61,6 +66,10 @@ class FakeWebSocket {
     }
 
     close() {}
+
+    emit(payload) {
+        this.onmessage?.({ data: JSON.stringify(payload) });
+    }
 }
 FakeWebSocket.instances = [];
 
@@ -147,5 +156,54 @@ describe('SearchPanel run', () => {
         expect(body.channels).toEqual(['crawl', 'law_apis']);
         expect(body.source_params).toEqual({ state: 'CA' });
         expect(FakeWebSocket.instances).toHaveLength(1);
+    });
+
+    it('survives per-source errors and completes with a summary', async () => {
+        global.fetch = mockFetch();
+        render(<SearchPanel hasApiKey isBusy={false} />);
+
+        await typePlace('California');
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: 'Search' })).toBeEnabled();
+        });
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+        });
+
+        const ws = FakeWebSocket.instances[0];
+        await act(async () => {
+            ws.emit({ type: 'error', data: { error: 'timeout' } });
+            ws.emit({ type: 'policy_found', data: { policy_name: 'Heat Act' } });
+            ws.emit({ type: 'scan_complete', data: { total_policies: 1 } });
+        });
+
+        expect(screen.getByText(/Done: 1 policy found/)).toBeInTheDocument();
+        expect(screen.getByText(/1 of the sources had errors/)).toBeInTheDocument();
+        expect(screen.queryByText(/could not be completed/)).not.toBeInTheDocument();
+    });
+
+    it('explains a 401 as a sign-in problem', async () => {
+        global.fetch = mockFetch({ scanStatus: 401 });
+        render(<SearchPanel hasApiKey isBusy={false} />);
+
+        await typePlace('California');
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: 'Search' })).toBeEnabled();
+        });
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+        });
+
+        expect(
+            screen.getByText(/administrator sign-in. Open Settings/),
+        ).toBeInTheDocument();
+    });
+
+    it('shows the administrator indicator when the gate is active', async () => {
+        global.fetch = mockFetch();
+        render(<SearchPanel hasApiKey isBusy={false} adminRequired />);
+        expect(
+            screen.getByText(/Signed in as administrator/),
+        ).toBeInTheDocument();
     });
 });

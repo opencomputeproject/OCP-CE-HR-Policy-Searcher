@@ -110,6 +110,7 @@ function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminToken
                         hasApiKey={hasApiKey}
                         isBusy={isBusy}
                         onBusyChange={setIsSearchBusy}
+                        adminRequired={adminRequired}
                     />
                     <details className="advanced-scan">
                         <summary className="advanced-scan-summary">
