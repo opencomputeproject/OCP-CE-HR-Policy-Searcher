@@ -131,6 +131,20 @@ describe('SearchPanel plan preview', () => {
         });
         expect(screen.getByRole('button', { name: 'Search' })).toBeDisabled();
     });
+
+    it('does not scold while the user is still typing toward a suggestion', async () => {
+        // "cal" is on its way to "California" - suppress the unknown-place
+        // warning while a suggestion still prefix-matches the input.
+        global.fetch = mockFetch({ plan: UNKNOWN_PLAN });
+        render(<SearchPanel hasApiKey isBusy={false} />);
+
+        await typePlace('cal');
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox')).toHaveValue('cal');
+        });
+        expect(screen.queryByText(/Could not recognize/)).not.toBeInTheDocument();
+    });
 });
 
 describe('SearchPanel run', () => {
@@ -172,7 +186,7 @@ describe('SearchPanel run', () => {
 
         const ws = FakeWebSocket.instances[0];
         await act(async () => {
-            ws.emit({ type: 'error', data: { error: 'timeout' } });
+            ws.emit({ type: 'error', domain_id: 'nyserda', data: { error: 'Playwright is required' } });
             ws.emit({ type: 'policy_found', data: { policy_name: 'Heat Act' } });
             ws.emit({ type: 'scan_complete', data: { total_policies: 1 } });
         });
@@ -180,6 +194,10 @@ describe('SearchPanel run', () => {
         expect(screen.getByText(/Done: 1 policy found/)).toBeInTheDocument();
         expect(screen.getByText(/1 of the sources had errors/)).toBeInTheDocument();
         expect(screen.queryByText(/could not be completed/)).not.toBeInTheDocument();
+        // The errors are inspectable, not a mystery number.
+        expect(screen.getByText('1 source error - show details')).toBeInTheDocument();
+        expect(screen.getByText(/nyserda/)).toBeInTheDocument();
+        expect(screen.getByText(/Playwright is required/)).toBeInTheDocument();
     });
 
     it('explains a 401 as a sign-in problem', async () => {

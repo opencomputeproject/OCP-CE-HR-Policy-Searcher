@@ -198,6 +198,13 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
                     setScan((prev) => prev && ({
                         ...prev,
                         sourceErrors: (prev.sourceErrors || 0) + 1,
+                        errorDetails: [
+                            ...(prev.errorDetails || []),
+                            {
+                                source: payload.domain_id || 'scan',
+                                message: String(payload.data?.error || 'unknown error').slice(0, 160),
+                            },
+                        ].slice(-8),
                     }));
                 }
             };
@@ -231,6 +238,21 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
         plan && plan.targets && hasApiKey && !isBusy && scan?.status !== 'running',
     );
     const isRunning = scan?.status === 'starting' || scan?.status === 'running';
+
+    // Don't scold mid-keystroke: while the text is still a prefix of a real
+    // suggestion ("cal" on its way to "California"), hold the unknown-place
+    // warning back instead of flashing "Could not recognize 'cal'".
+    const typedLower = place.trim().toLowerCase();
+    const typingTowardSuggestion = Boolean(
+        plan
+        && plan.place?.kind === 'unknown'
+        && typedLower
+        && places.some((name) => {
+            const lower = name.toLowerCase();
+            return lower.startsWith(typedLower) && lower !== typedLower;
+        }),
+    );
+    const displayPlan = typingTowardSuggestion ? null : plan;
 
     return (
         <section className="search-panel" aria-label="Find new policies">
@@ -283,7 +305,7 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
             {isPlanning && (
                 <p className="search-plan-status" role="status">Planning search...</p>
             )}
-            {!isPlanning && <PlanPreview plan={plan} />}
+            {!isPlanning && <PlanPreview plan={displayPlan} />}
             {!hasApiKey && (
                 <p className="text-block-small">
                     Add an Anthropic API key in Settings to enable searching.
@@ -337,6 +359,22 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
                     )}
                     {scan.status === 'stopped' && (
                         <p className="search-progress-line">Search stopped.</p>
+                    )}
+                    {scan.errorDetails?.length > 0 && (
+                        <details className="search-error-details">
+                            <summary>
+                                {scan.sourceErrors} source
+                                {scan.sourceErrors === 1 ? ' error' : ' errors'} - show details
+                            </summary>
+                            <ul>
+                                {scan.errorDetails.map((detail, index) => (
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    <li key={index}>
+                                        <strong>{detail.source}</strong>: {detail.message}
+                                    </li>
+                                ))}
+                            </ul>
+                        </details>
                     )}
                     {scan.status === 'error' && (
                         <p className="ask-box-error" role="alert">
