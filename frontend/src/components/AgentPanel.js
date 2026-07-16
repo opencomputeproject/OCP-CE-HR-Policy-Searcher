@@ -139,6 +139,7 @@ function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminToken
                         wsRef={wsRef}
                         notice={chatNotice}
                         onRunningChange={setIsChatRunning}
+                        isRunning={isChatRunning}
                     />
                 </>
             )}

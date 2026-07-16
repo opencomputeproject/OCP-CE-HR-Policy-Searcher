@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { apiUrl } from '../config/api';
 
 const URL_PATTERN = /(https?:\/\/[^\s)]+)/g;
@@ -49,6 +49,25 @@ function AskPolicyBox() {
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState('');
   const [isAsking, setIsAsking] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const answerRef = useRef(null);
+
+  useEffect(() => {
+    if (!isAsking) return undefined;
+    setElapsedSeconds(0);
+    // A visibly ticking clock proves the request is alive; answers
+    // typically take 5-30 seconds while the library is searched.
+    const timer = setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isAsking]);
+
+  useEffect(() => {
+    if (answer && answerRef.current) {
+      answerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [answer]);
 
   const submitQuestion = async (event) => {
     event.preventDefault();
@@ -112,8 +131,9 @@ function AskPolicyBox() {
         </button>
       </form>
       {isAsking ? (
-        <p className="ask-box-status" role="status">
-          Searching the policy library...
+        <p className="ask-box-status ask-box-status-busy" role="status">
+          <span className="search-pulse-dot" aria-hidden="true" />
+          Searching the policy library... {elapsedSeconds}s
         </p>
       ) : null}
       {error ? (
@@ -121,7 +141,7 @@ function AskPolicyBox() {
           {error}
         </p>
       ) : null}
-      {answer ? <AnswerText answer={answer} /> : null}
+      {answer ? <div ref={answerRef}><AnswerText answer={answer} /></div> : null}
     </section>
   );
 }
