@@ -63,6 +63,27 @@ export function formatTagLabel(tag) {
     return tag.replaceAll('_', ' ');
 }
 
+const LIFECYCLE_LABELS = {
+    proposed: 'Proposed',
+    consultation: 'Consultation',
+    in_committee: 'In Committee',
+    passed: 'Passed',
+    transposition_notified: 'Transposition Notified',
+    enacted: 'Enacted',
+    amended: 'Amended',
+};
+
+const UPCOMING_LIFECYCLE_STAGES = new Set([
+    'proposed', 'consultation', 'in_committee', 'passed', 'transposition_notified',
+]);
+
+function getLifecycleBadgeStyle(stage) {
+    if (UPCOMING_LIFECYCLE_STAGES.has(stage)) {
+        return { color: '#92400e', backgroundColor: '#fef3c7', borderColor: '#fde68a' };
+    }
+    return { color: '#166534', backgroundColor: '#dcfce7', borderColor: '#bbf7d0' };
+}
+
 function getTagBadgeStyle(tag, description) {
     const group = TAG_GROUPS[getTagGroup(tag, description)];
 
@@ -160,6 +181,14 @@ function SavedPolicy({ policy, tags = {} }) {
                         <span className={`saved-policy-badge ${getReviewStatusBadge(policy.review_status)}`}>
                             {policy.review_status}
                         </span>
+                        {policy.lifecycle_stage && policy.lifecycle_stage !== 'unknown' && (
+                            <span
+                                className="policy-tag-badge lifecycle-badge"
+                                style={getLifecycleBadgeStyle(policy.lifecycle_stage)}
+                            >
+                                {LIFECYCLE_LABELS[policy.lifecycle_stage] || formatTagLabel(policy.lifecycle_stage)}
+                            </span>
+                        )}
                     </span>
                     {policyTags.length > 0 && (
                         <span className="saved-policy-tags" aria-label="Policy tags">

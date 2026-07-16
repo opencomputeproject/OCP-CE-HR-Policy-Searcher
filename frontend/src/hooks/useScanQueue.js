@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiUrl, WS_BASE_URL } from '../config/api';
+import { adminHeaders } from '../utils/adminAuth';
 
 function notifyPolicyDataChanged() {
     window.dispatchEvent(new Event('policy-data-changed'));
@@ -114,7 +115,7 @@ function useScanQueue({ onNotice }) {
         try {
             const response = await fetch(apiUrl('/api/scans'), {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...adminHeaders() },
                 body: JSON.stringify(request),
             });
 
@@ -136,6 +137,7 @@ function useScanQueue({ onNotice }) {
             if (scanQueueCancelledRef.current) {
                 await fetch(apiUrl(`/api/scans/${scan.scan_id}`), {
                     method: 'DELETE',
+                    headers: adminHeaders(),
                 });
                 return false;
             }
@@ -206,6 +208,7 @@ function useScanQueue({ onNotice }) {
             const scanId = activeScanId;
             const response = await fetch(apiUrl(`/api/scans/${scanId}`), {
                 method: 'DELETE',
+                headers: adminHeaders(),
             });
 
             if (!response.ok) {

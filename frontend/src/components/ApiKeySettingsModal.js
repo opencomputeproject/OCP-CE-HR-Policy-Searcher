@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../config/api';
+import { adminHeaders, getAdminToken, setAdminToken } from '../utils/adminAuth';
 
 const styles = {
   backdrop: {
@@ -126,12 +127,21 @@ function buttonStyle(variant, disabled) {
   };
 }
 
-function ApiKeySettingsModal({ open, onClose }) {
+const COST_LEVEL_LABELS = {
+  low: 'Low — cheapest models everywhere',
+  standard: 'Standard — balanced (default)',
+  high: 'High — best quality, most expensive',
+};
+
+function ApiKeySettingsModal({ open, onClose, adminRequired = false, onAdminTokenChange }) {
   const [status, setStatus] = useState(null);
   const [apiKey, setApiKey] = useState('');
+  const [adminTokenValue, setAdminTokenValue] = useState('');
   const [message, setMessage] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [costSettings, setCostSettings] = useState(null);
+  const [costMessage, setCostMessage] = useState('');
 
   const loadStatus = async () => {
     const response = await fetch(apiUrl('/api/settings/api-key'));
@@ -141,14 +151,46 @@ function ApiKeySettingsModal({ open, onClose }) {
     setStatus(await response.json());
   };
 
+  const loadCostSettings = async () => {
+    const response = await fetch(apiUrl('/api/settings/costs'));
+    if (!response.ok) return;
+    setCostSettings(await response.json());
+  };
+
   useEffect(() => {
     if (!open) return;
 
     setMessage('');
+    setCostMessage('');
     setApiKey('');
+    setAdminTokenValue(getAdminToken());
     setIsConfirmingDelete(false);
     loadStatus().catch((error) => setMessage(error.message));
+    loadCostSettings().catch(() => {});
   }, [open]);
+
+  const updateCostSettings = async (changes) => {
+    setCostMessage('');
+    try {
+      const response = await fetch(apiUrl('/api/settings/costs'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...adminHeaders() },
+        body: JSON.stringify(changes),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(
+          response.status === 401
+            ? 'Administrator token required to change cost settings.'
+            : body.detail || 'Could not update cost settings.'
+        );
+      }
+      setCostSettings(await response.json());
+      setCostMessage('Cost settings saved.');
+    } catch (error) {
+      setCostMessage(error.message);
+    }
+  };
 
   const saveKey = async () => {
     setIsBusy(true);
@@ -157,7 +199,7 @@ function ApiKeySettingsModal({ open, onClose }) {
     try {
       const response = await fetch(apiUrl('/api/settings/api-key'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...adminHeaders() },
         body: JSON.stringify({ api_key: apiKey }),
       });
 
@@ -184,6 +226,7 @@ function ApiKeySettingsModal({ open, onClose }) {
     try {
       const response = await fetch(apiUrl('/api/settings/api-key'), {
         method: 'DELETE',
+        headers: adminHeaders(),
       });
 
       if (!response.ok) {
@@ -198,6 +241,13 @@ function ApiKeySettingsModal({ open, onClose }) {
     } finally {
       setIsBusy(false);
     }
+  };
+
+  const handleAdminTokenChange = (event) => {
+    const value = event.target.value;
+    setAdminTokenValue(value);
+    setAdminToken(value);
+    onAdminTokenChange?.();
   };
 
   if (!open) return null;
@@ -284,6 +334,76 @@ function ApiKeySettingsModal({ open, onClose }) {
             >
               Add an API key
             </button>
+          </div>
+        )}
+
+        {adminRequired && (
+          <div style={styles.body}>
+            <label style={styles.label} htmlFor="admin-token-input">
+              Administrator token
+            </label>
+            <input
+              id="admin-token-input"
+              type="password"
+              value={adminTokenValue}
+              onChange={handleAdminTokenChange}
+              placeholder="Admin token"
+              autoComplete="off"
+              style={styles.input}
+            />
+            <p style={styles.message}>
+              Required to run scans or use the chat on this server.
+            </p>
+          </div>
+        )}
+
+        {costSettings && (
+          <div style={styles.body}>
+            <label style={styles.label} htmlFor="cost-level-select">
+              Cost level (scans and answers)
+            </label>
+            <select
+              id="cost-level-select"
+              style={styles.input}
+              value={costSettings.cost_level}
+              onChange={(event) => updateCostSettings({ cost_level: event.target.value })}
+            >
+              {Object.entries(COST_LEVEL_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <label style={styles.label} htmlFor="ask-daily-limit-input">
+              Reader questions per day
+            </label>
+            <input
+              id="ask-daily-limit-input"
+              type="number"
+              min="0"
+              max="10000"
+              style={styles.input}
+              defaultValue={costSettings.ask_daily_limit}
+              onBlur={(event) => {
+                const value = Number(event.target.value);
+                if (
+                  Number.isInteger(value)
+                  && value >= 0
+                  && value !== costSettings.ask_daily_limit
+                ) {
+                  updateCostSettings({ ask_daily_limit: value });
+                }
+              }}
+            />
+            <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={costSettings.ask_enabled}
+                onChange={(event) => updateCostSettings({ ask_enabled: event.target.checked })}
+              />
+              Allow public &quot;Ask about policies&quot; questions
+            </label>
+            {costMessage ? <p style={styles.message}>{costMessage}</p> : null}
           </div>
         )}
 

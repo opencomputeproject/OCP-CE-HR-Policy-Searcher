@@ -77,9 +77,12 @@ class ScanManager:
         category: Optional[str] = None,
         tags: Optional[list[str]] = None,
         policy_type: Optional[str] = None,
+        channels: Optional[list[str]] = None,
+        source_params: Optional[dict] = None,
     ) -> ScanJob:
         """Start a new parallel scan. Returns immediately with scan_id."""
         scan_id = str(uuid.uuid4())[:8]
+        channels = channels or ["crawl"]
 
         # Resolve domains
         domains = self.config.get_enabled_domains(domains_group)
@@ -97,8 +100,13 @@ class ScanManager:
                 d for d in domains
                 if policy_type in d.get("policy_types", [])
             ]
+        # Channel scoping — "news" has its own runner and matches no
+        # domain here, so channels=["news"] naturally yields 0 domains.
+        domains = [d for d in domains if self._domain_channel(d) in channels]
         if deep:
             domains = [self._with_deep_scan_defaults(d) for d in domains]
+        if source_params:
+            domains = [self._with_source_params(d, source_params) for d in domains]
 
         job = ScanJob(
             scan_id=scan_id,
@@ -121,6 +129,7 @@ class ScanManager:
                 "skip_llm": skip_llm,
                 "dry_run": dry_run,
                 "deep": deep,
+                "channels": channels,
             },
         )
 
@@ -138,6 +147,35 @@ class ScanManager:
         )
         self._tasks[scan_id] = task
         return job
+
+    @staticmethod
+    def _domain_channel(domain: dict) -> str:
+        """Classify a domain into a scan channel based on its source_type.
+
+        'news' is never produced here — it has its own runner outside
+        scan_manager, so requesting channels=['news'] alone filters out
+        every domain (0 domains, handled by the normal empty-scan path).
+        """
+        source_type = domain.get("source_type", "crawl")
+        if source_type == "crawl":
+            return "crawl"
+        if source_type == "eurlex_nim":
+            return "transposition"
+        return "law_apis"
+
+    @staticmethod
+    def _with_source_params(domain: dict, overrides: Optional[dict]) -> dict:
+        """Merge per-request source params into a structured-source domain.
+
+        Request values win over the domain's configured source_params (that
+        is the point: the admin scoped this run). Crawl domains have no
+        source client, so they pass through untouched.
+        """
+        if not overrides or domain.get("source_type", "crawl") == "crawl":
+            return domain
+        domain = dict(domain)
+        domain["source_params"] = {**domain.get("source_params", {}), **overrides}
+        return domain
 
     @staticmethod
     def _with_deep_scan_defaults(domain: dict) -> dict:

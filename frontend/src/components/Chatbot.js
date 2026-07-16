@@ -46,8 +46,8 @@ const chatUsers = {
 const initialConversations = [
   {
     id: CONVERSATION_ID,
-    title: 'Policy Agent',
-    subtitle: 'Connected to the policy search agent',
+    title: 'Admin assistant',
+    subtitle: 'Can run searches and change settings - actions here cost money',
     participants: [chatUsers.agent, chatUsers.you],
   },
 ];
@@ -172,10 +172,11 @@ function WelcomePart() {
       }}
     >
       <p>
-        Hello! Welcome to <strong>Policy Pulse</strong> - your tool for discovering
-        government policies on <strong>data center waste heat reuse</strong> around the world. You
-        can ask questions here in the chat, or use the search panel on the left for a structured
-        scan.
+        This is the <strong>admin assistant</strong> - it can run scans, add new
+        government websites, and change settings, and those actions{' '}
+        <strong>cost money</strong>. For a simple &quot;what&apos;s new in a
+        place&quot; search, use <strong>Find new policies</strong> above - it
+        shows you the cost before anything runs.
       </p>
 
       <p>Here's what the chat can help you with:</p>
@@ -203,8 +204,9 @@ function WelcomePart() {
       </ul>
 
       <p>
-        <strong>Where would you like to start?</strong> You can name a country, region, or topic - and
-        I'll take it from there!
+        <strong>Ask me for the things the buttons can&apos;t do</strong> - deep
+        scans, adding coverage for a new country, or questions about scan
+        results and costs.
       </p>
     </Box>
   );

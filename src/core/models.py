@@ -110,6 +110,9 @@ class CrawlResult(BaseModel):
     requires_human_review: bool = False
     used_playwright: bool = False
     domain_id: Optional[str] = None
+    # Set by structured sources that know the document's stage (bill
+    # status, open consultation); overrides analysis inference.
+    lifecycle_stage: Optional[str] = None
 
     @property
     def is_success(self) -> bool:
@@ -172,12 +175,21 @@ class PolicyAnalysis(BaseModel):
     confidence: int = 5
     referenced_policies: list[str] = Field(default_factory=list)
     referenced_urls: list[str] = Field(default_factory=list)
+    lifecycle_stage: str = "unknown"
     # Index/listing pages describe several policies; the primary one uses
     # the fields above, the rest arrive here.
     additional_policies: list["PolicyAnalysis"] = Field(default_factory=list)
 
 
 # --- Policy (final output) ---
+
+# Where a policy sits in its life: sources set this when they know it
+# (bill status, consultation window); otherwise analysis infers it.
+LIFECYCLE_STAGES = (
+    "proposed", "consultation", "in_committee", "passed",
+    "enacted", "transposition_notified", "amended", "unknown",
+)
+
 
 class Policy(BaseModel):
     url: str
@@ -199,40 +211,18 @@ class Policy(BaseModel):
     verification_flags: list[VerificationFlag] = Field(default_factory=list)
     referenced_policies: list[str] = Field(default_factory=list)
     referenced_urls: list[str] = Field(default_factory=list)
+    lifecycle_stage: str = "unknown"
 
     @staticmethod
     def sheet_headers() -> list[str]:
-        return [
-            "URL", "Policy Name", "Jurisdiction", "Policy Type",
-            "Summary", "Relevance Score", "Source Language",
-            "Effective Date", "Bill Number", "Key Requirements",
-            "Discovered At", "Crawl Status", "Error Details", "Review Status",
-            "Scan ID", "Domain ID", "Verification Flags",
-            "Referenced Policies", "Referenced URLs",
-        ]
+        """Staging headers, aligned with the Heat Reuse Policies Database tab."""
+        from .policy_schema import STAGING_HEADERS
+        return list(STAGING_HEADERS)
 
     def to_sheet_row(self) -> list:
-        return [
-            self.url,
-            self.policy_name,
-            self.jurisdiction,
-            self.policy_type.value,
-            self.summary,
-            self.relevance_score,
-            self.source_language,
-            self.effective_date.isoformat() if self.effective_date else "",
-            self.bill_number or "",
-            self.key_requirements or "",
-            self.discovered_at.isoformat(),
-            self.crawl_status,
-            self.error_details or "",
-            self.review_status,
-            self.scan_id or "",
-            self.domain_id or "",
-            ", ".join(f.value for f in self.verification_flags) if self.verification_flags else "",
-            "; ".join(self.referenced_policies) if self.referenced_policies else "",
-            "; ".join(self.referenced_urls) if self.referenced_urls else "",
-        ]
+        """Serialize into a Staging row matching sheet_headers()."""
+        from .policy_schema import to_staging_row
+        return to_staging_row(self)
 
 
 # --- Scan Events (WebSocket) ---
@@ -320,6 +310,11 @@ class ScanJob(BaseModel):
 
 # --- API Request/Response Schemas ---
 
+# Channels a scan can be scoped to. "news" has its own runner (not
+# scan_manager) and never appears as a domain's classified channel.
+VALID_SCAN_CHANNELS = {"crawl", "law_apis", "transposition", "news"}
+
+
 class ScanRequest(BaseModel):
     domains: str = "quick"
     max_concurrent: int = Field(default=5, ge=1, le=20)
@@ -330,11 +325,25 @@ class ScanRequest(BaseModel):
     category: Optional[str] = None
     tags: Optional[list[str]] = None
     policy_type: Optional[str] = None
+    channels: list[str] = Field(default_factory=lambda: ["crawl"])
+    # Per-request overrides for structured sources (e.g. {"state": "CA",
+    # "terms": [...]} from a place-first search). Crawl domains ignore this.
+    source_params: Optional[dict] = None
 
     @model_validator(mode="after")
     def validate_scan_mode(self) -> "ScanRequest":
         if self.deep and self.discover:
             raise ValueError("Choose one scan mode: standard, deep, or discover")
+        return self
+
+    @model_validator(mode="after")
+    def validate_channels(self) -> "ScanRequest":
+        invalid = sorted(set(self.channels) - VALID_SCAN_CHANNELS)
+        if invalid:
+            raise ValueError(
+                f"Invalid channel(s): {invalid}. "
+                f"Valid values: {sorted(VALID_SCAN_CHANNELS)}"
+            )
         return self
 
 

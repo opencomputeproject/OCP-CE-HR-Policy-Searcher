@@ -79,6 +79,11 @@ groups:
       - finlex_fi
       - riigiteataja_ee
       - legilux_lu
+      # Structured API sources (added 2026-07-12, discovery expansion plan)
+      - riksdagen_api
+      - folketing_api
+      - eurlex_nim_tracker
+      - dip_api
 
   nordic:
     description: "Nordic countries - leaders in heat reuse"
@@ -102,6 +107,9 @@ groups:
       - energimyndigheten
       - riksdagense
       - riksrevisionen
+      # Structured API sources (added 2026-07-12, discovery expansion plan)
+      - riksdagen_api
+      - folketing_api
 
   germany:
     description: "Germany - federal + 8 Länder"
@@ -212,6 +220,10 @@ groups:
       - ct_deep
       - ct_pura
       - ct_legislature
+      # Structured API sources (added 2026-07-12, discovery expansion plan)
+      - legiscan_api
+      - govinfo_api
+      - regulations_gov_api
 
   us_federal:
     description: "US federal agencies and regional orgs only"
@@ -265,6 +277,8 @@ groups:
       - oh_legislature
       - az_legislature
       - il_legislature
+      # Structured API sources (added 2026-07-12, discovery expansion plan)
+      - legiscan_api
 
   apac:
     description: "Asia-Pacific region"
@@ -386,6 +400,8 @@ groups:
       - uk_wales_senedd_research
       - uk_ni_assembly
       - uk_ni_assembly_archive
+      # Structured API sources (added 2026-07-12, discovery expansion plan)
+      - uk_bills_api
 
   # ---------------------------------------------------------------------------
   # TESTING GROUPS
@@ -604,6 +620,8 @@ groups:
       - hydroquebec_ee
       - alberta_energy
       - auc_ca
+      # Structured API sources (added 2026-07-12, discovery expansion plan)
+      - legisinfo_api
 
   india:
     description: "India - national and state DC/energy policy"

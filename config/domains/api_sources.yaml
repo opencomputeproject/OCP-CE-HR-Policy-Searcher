@@ -1,0 +1,167 @@
+# =============================================================================
+# STRUCTURED API SOURCES (discovery expansion, 2026-07-12)
+# =============================================================================
+# These domains are not crawled — `source_type` routes them through the
+# matching client in src/sources/ (see src/sources/__init__.py registry)
+# instead of AsyncCrawler. `base_url` is the API root for reference only;
+# the scanner never fetches it directly for these entries.
+#
+# Channel classification (src/orchestration/scan_manager.py):
+#   source_type == "eurlex_nim"        -> channel "transposition"
+#   any other non-"crawl" source_type  -> channel "law_apis"
+# =============================================================================
+
+domains:
+  - name: "Riksdagen Open Data API (Sweden)"
+    id: "riksdagen_api"
+    enabled: true
+    source_type: "riksdagen"
+    base_url: "https://data.riksdagen.se"
+    region:
+      - "sweden"
+      - "nordic"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      No API key required.
+
+  - name: "UK Parliament Bills API"
+    id: "uk_bills_api"
+    enabled: true
+    source_type: "uk_bills"
+    base_url: "https://bills-api.parliament.uk"
+    region:
+      - "uk"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      No API key required.
+
+  - name: "LEGISinfo (Parliament of Canada)"
+    id: "legisinfo_api"
+    enabled: true
+    source_type: "legisinfo"
+    base_url: "https://www.parl.ca/legisinfo"
+    region:
+      - "canada"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      No API key required.
+
+  - name: "Folketinget Open Data API (Denmark)"
+    id: "folketing_api"
+    enabled: true
+    source_type: "folketing"
+    base_url: "https://oda.ft.dk"
+    region:
+      - "denmark"
+      - "nordic"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      No API key required.
+
+  - name: "EUR-Lex National Implementing Measures Tracker"
+    id: "eurlex_nim_tracker"
+    enabled: true
+    source_type: "eurlex_nim"
+    base_url: "https://eur-lex.europa.eu"
+    region:
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "eu_eed"
+    policy_types:
+      - "directive"
+      - "legislation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      Tracks national transposition status per config/directives.yaml.
+      No API key required. Classified into the "transposition" channel.
+
+  - name: "LegiScan API (US state legislation)"
+    id: "legiscan_api"
+    enabled: true
+    source_type: "legiscan"
+    base_url: "https://api.legiscan.com"
+    region:
+      - "us"
+      - "us_states"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      Self-disables (returns no results) until LEGISCAN_API_KEY is set.
+
+  - name: "GovInfo API (US federal legislation)"
+    id: "govinfo_api"
+    enabled: true
+    source_type: "govinfo"
+    base_url: "https://api.govinfo.gov"
+    region:
+      - "us"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      Requires GOVINFO_API_KEY; self-disables until set.
+
+  - name: "Regulations.gov API (US federal rulemaking)"
+    id: "regulations_gov_api"
+    enabled: true
+    source_type: "regulations_gov"
+    base_url: "https://api.regulations.gov"
+    region:
+      - "us"
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "reporting"
+    policy_types:
+      - "regulation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      Requires REGULATIONSGOV_API_KEY; self-disables until set.
+
+  - name: "DIP Bundestag API (Germany)"
+    id: "dip_api"
+    enabled: true
+    source_type: "dip"
+    base_url: "https://search.dip.bundestag.de"
+    region:
+      - "germany"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Structured source added 2026-07-12, discovery expansion plan.
+      Requires DIP_API_KEY; self-disables until set.

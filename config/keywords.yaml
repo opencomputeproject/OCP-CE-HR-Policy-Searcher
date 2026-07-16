@@ -68,6 +68,11 @@ keywords:
         - "waste heat recovery obligation"
         - "heat network zoning"
 
+        # Adjacency terms (added 2026-07-12, discovery expansion plan)
+        - "fossil heating phase-out"
+        - "gas boiler ban"
+        - "waste heat feed-in"
+
       de:
         - "Abwärme"
         - "Abwärmenutzung"
@@ -82,6 +87,10 @@ keywords:
         - "kommunale Wärmeplanung"
         - "Sektorkopplung"
         - "Abwärmenutzungspflicht"
+        # Adjacency terms (added 2026-07-12, discovery expansion plan)
+        - "Gasheizungsverbot"
+        - "Anschlusszwang Fernwärme"
+        - "Wärmenetzausbau"
 
       fr:
         - "chaleur résiduelle"
@@ -94,6 +103,9 @@ keywords:
         - "valorisation thermique"
         - "obligation de valorisation de la chaleur fatale"
         - "planification thermique"
+        # Adjacency terms (added 2026-07-12, discovery expansion plan)
+        - "réseau de chaleur obligation"
+        - "interdiction chaudière gaz"
 
       nl:
         - "restwarmte"
@@ -107,6 +119,9 @@ keywords:
         - "WKO"
         - "aquathermie"
         - "restwarmtebenutting"
+        # Adjacency terms (added 2026-07-12, discovery expansion plan)
+        - "gasketel verbod"
+        - "warmtenet aansluitplicht"
 
       sv:
         - "spillvärme"
@@ -296,6 +311,10 @@ keywords:
         - "implementing regulation"
         - "recast directive"
         - "statutory instrument"
+
+        # Adjacency terms (added 2026-07-12, discovery expansion plan)
+        - "clean heat auction"
+        - "heat network regulation"
 
       de:
         - "Verordnung"
@@ -645,6 +664,11 @@ keywords:
         - "demand response"
         - "energy audit"
         - "benchmarking"
+
+        # Adjacency terms (added 2026-07-12, discovery expansion plan)
+        - "grid connection queue"
+        - "electricity tariff data center"
+        - "energy reuse reporting"
 
       de:
         - "Plattform"
@@ -1430,6 +1454,7 @@ stricter_requirements:
       - "EnEfG"  # German Energy Efficiency Act
       - "2023/1791"  # EED recast directive number
       - "waste heat recovery obligation"
+      - "clean heat auction"  # Adjacency term, added 2026-07-12
 
       # US legislative session terms
       - "2025 session"
@@ -1441,6 +1466,7 @@ stricter_requirements:
       - "Abwärmenutzungspflicht"
       - "Rechenzentrumsabwärme"
       - "Fernwärme Rechenzentrum"
+      - "Wärmeplanungsgesetz kommunal"  # Adjacency term, added 2026-07-12
 
       # Swedish
       - "spillvärme datacenter"

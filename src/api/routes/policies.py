@@ -1,10 +1,12 @@
-"""Policy CRUD and statistics endpoints."""
+"""Policy CRUD, review workflow, and statistics endpoints."""
 
-from typing import Optional
+from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 
 from ..deps import get_scan_manager, get_policy_store
+from ...agent.tools import jurisdiction_matches
 from ...orchestration.scan_manager import ScanManager
 from ...storage.store import PolicyStore
 
@@ -17,6 +19,7 @@ def list_policies(
     policy_type: Optional[str] = Query(None),
     min_score: Optional[int] = Query(None, ge=1, le=10),
     scan_id: Optional[str] = Query(None),
+    review_status: Optional[str] = Query(None),
     store: PolicyStore = Depends(get_policy_store),
     manager: ScanManager = Depends(get_scan_manager),
 ):
@@ -27,19 +30,22 @@ def list_policies(
         policy_type=policy_type,
         min_score=min_score,
         scan_id=scan_id,
+        review_status=review_status,
     )
 
     # Also include in-memory policies from recent scans
     in_memory = []
     for policy in manager.get_all_policies():
         p_dict = policy.model_dump(mode="json")
-        if jurisdiction and jurisdiction.lower() not in (p_dict.get("jurisdiction", "") or "").lower():
+        if jurisdiction and not jurisdiction_matches(jurisdiction, p_dict.get("jurisdiction", "")):
             continue
         if policy_type and p_dict.get("policy_type") != policy_type:
             continue
         if min_score and (p_dict.get("relevance_score", 0) or 0) < min_score:
             continue
         if scan_id and p_dict.get("scan_id") != scan_id:
+            continue
+        if review_status and p_dict.get("review_status", "new") != review_status:
             continue
         in_memory.append(p_dict)
 
@@ -51,6 +57,35 @@ def list_policies(
             seen_urls.add(p["url"])
 
     return {"policies": stored, "count": len(stored)}
+
+
+class ReviewUpdate(BaseModel):
+    url: str
+    review_status: Literal["new", "reviewed", "promoted", "rejected"]
+
+
+@router.patch("/policies/review")
+def update_review_status(
+    update: ReviewUpdate,
+    store: PolicyStore = Depends(get_policy_store),
+    manager: ScanManager = Depends(get_scan_manager),
+):
+    """Set a policy's review status (admin action via the gate middleware)."""
+    updated = store.update_review_status(update.url, update.review_status)
+
+    # Policies also live in ScanManager's in-memory results for the life of
+    # the process; without this, a reviewed policy resurrects in the "new"
+    # queue on the next list merge.
+    for policy in manager.get_all_policies():
+        if policy.url == update.url:
+            policy.review_status = update.review_status
+            updated = True
+
+    if not updated:
+        raise HTTPException(
+            status_code=404, detail=f"No policy with URL: {update.url}",
+        )
+    return {"url": update.url, "review_status": update.review_status}
 
 
 @router.get("/policies/stats")

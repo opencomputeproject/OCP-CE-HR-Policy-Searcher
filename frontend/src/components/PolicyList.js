@@ -9,6 +9,25 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { apiUrl } from '../config/api';
 import SavedPolicy, { formatTagLabel, getPolicyTags } from './SavedPolicy';
 
+const UPCOMING_LIFECYCLE_STAGES = ['proposed', 'consultation', 'in_committee', 'passed', 'transposition_notified'];
+const ENACTED_LIFECYCLE_STAGES = ['enacted', 'amended'];
+
+const LIFECYCLE_FILTER_MODES = [
+  { id: 'all', label: 'All' },
+  { id: 'upcoming', label: 'Upcoming' },
+  { id: 'enacted', label: 'Enacted' },
+];
+
+export function filterByLifecycle(policies, mode) {
+  if (mode === 'upcoming') {
+    return policies.filter((policy) => UPCOMING_LIFECYCLE_STAGES.includes(policy.lifecycle_stage));
+  }
+  if (mode === 'enacted') {
+    return policies.filter((policy) => ENACTED_LIFECYCLE_STAGES.includes(policy.lifecycle_stage));
+  }
+  return policies;
+}
+
 function getPolicyKey(policy, index) {
   return `${policy.scan_id}-${policy.domain_id}-${index}`;
 }
@@ -30,6 +49,7 @@ function PolicyList() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [nameQuery, setNameQuery] = useState('');
   const [sortBy, setSortBy] = useState('relevance');
+  const [lifecycleMode, setLifecycleMode] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -97,12 +117,18 @@ function PolicyList() {
       );
   }, [policies]);
 
+  const lifecycleAllowedPolicies = useMemo(
+    () => new Set(filterByLifecycle(policies, lifecycleMode)),
+    [policies, lifecycleMode],
+  );
+
   const filteredPolicyEntries = useMemo(() => {
     const normalizedNameQuery = nameQuery.trim().toLowerCase();
 
     return policies
       .map((policy, index) => ({ policy, policyKey: getPolicyKey(policy, index) }))
       .filter(({ policy, policyKey }) => {
+        const matchesLifecycle = lifecycleAllowedPolicies.has(policy);
         const matchesName = normalizedNameQuery
           ? String(policy.policy_name || '').toLowerCase().includes(normalizedNameQuery)
           : true;
@@ -114,7 +140,7 @@ function PolicyList() {
           ? selectedTags.every((tag) => policyTags.includes(tag))
           : true;
 
-        return matchesName && matchesJurisdictions && matchesTags;
+        return matchesLifecycle && matchesName && matchesJurisdictions && matchesTags;
       })
       .sort((firstEntry, secondEntry) => {
         const firstPolicy = firstEntry.policy;
@@ -134,6 +160,7 @@ function PolicyList() {
   }, [
     policies,
     policyTagsByKey,
+    lifecycleAllowedPolicies,
     selectedJurisdictions,
     selectedTags,
     nameQuery,
@@ -145,6 +172,7 @@ function PolicyList() {
     setSelectedJurisdictions([]);
     setSelectedTags([]);
     setSortBy('relevance');
+    setLifecycleMode('all');
   };
 
   if (isLoading) {
@@ -236,6 +264,19 @@ function PolicyList() {
             Clear
           </button>
         </div>
+      </div>
+      <div className="lifecycle-filter-chips" role="group" aria-label="Lifecycle stage filter">
+        {LIFECYCLE_FILTER_MODES.map((modeOption) => (
+          <button
+            key={modeOption.id}
+            type="button"
+            className={`lifecycle-chip ${lifecycleMode === modeOption.id ? 'active' : ''}`}
+            aria-pressed={lifecycleMode === modeOption.id}
+            onClick={() => setLifecycleMode(modeOption.id)}
+          >
+            {modeOption.label}
+          </button>
+        ))}
       </div>
       {policies.length === 0 ? (
         <p>No policies discovered yet. Select a region in the scanner and press Scan, or ask the agent in the chat.</p>

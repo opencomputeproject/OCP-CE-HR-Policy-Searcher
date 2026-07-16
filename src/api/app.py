@@ -1,5 +1,6 @@
 """FastAPI application — REST API + WebSocket for OCP CE HR Policy Searcher."""
 
+import hmac
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -8,9 +9,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 from ..core.log_setup import setup_logging
-from .routes import domains, scans, policies, analysis, agent, logs, settings
+from .routes import (
+    domains, scans, policies, analysis, agent, ask, leads, logs, search, settings,
+)
 
 # Resolve .env from project root (2 levels up from src/api/app.py)
 # so credentials load regardless of the process working directory.
@@ -30,6 +35,10 @@ setup_logging(data_dir, json_console=True, console_level=logging.INFO)
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle."""
     logging.getLogger("ocp").info("OCP CE HR Policy Searcher starting")
+    # Apply the admin's saved cost level so scans started after a restart
+    # (including cron-triggered ones) run on the chosen models.
+    from .deps import get_config, get_cost_settings_store
+    get_cost_settings_store().apply_to_config(get_config())
     yield
     logging.getLogger("ocp").info("OCP CE HR Policy Searcher shutting down")
 
@@ -44,6 +53,46 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+
+def admin_token_configured() -> bool:
+    return bool(os.environ.get("ADMIN_TOKEN"))
+
+
+# Non-GET routes that stay open when admin mode is active:
+# community lead submission and reader questions are the point of the
+# reader-facing app. /api/ask has its own rate and daily spend limits.
+_ADMIN_EXEMPT = {("POST", "/api/leads"), ("POST", "/api/ask")}
+
+
+class AdminGateMiddleware(BaseHTTPMiddleware):
+    """Shared-token gate for state-changing endpoints.
+
+    When ADMIN_TOKEN is set, every non-GET /api request (except explicit
+    exemptions) must carry a matching X-Admin-Token header. Reading stays
+    open; scanning, chatting, settings, and review actions become
+    admin-only — the access model agreed at the 2026-07-07 OCP call.
+    When ADMIN_TOKEN is unset (local single-user), nothing changes.
+    """
+
+    async def dispatch(self, request, call_next):
+        token = os.environ.get("ADMIN_TOKEN")
+        if (
+            token
+            and request.url.path.startswith("/api")
+            and request.method not in ("GET", "HEAD", "OPTIONS")
+            and (request.method, request.url.path) not in _ADMIN_EXEMPT
+        ):
+            provided = request.headers.get("x-admin-token", "")
+            if not hmac.compare_digest(provided, token):
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Administrator token required"},
+                )
+        return await call_next(request)
+
+
+app.add_middleware(AdminGateMiddleware)
 
 # CORS — allow React frontend
 app.add_middleware(
@@ -65,7 +114,10 @@ app.include_router(scans.router)
 app.include_router(policies.router)
 app.include_router(analysis.router)
 app.include_router(agent.router)
+app.include_router(ask.router)
+app.include_router(leads.router)
 app.include_router(logs.router)
+app.include_router(search.router)
 app.include_router(settings.router)
 
 
@@ -81,6 +133,7 @@ def root():
             "policies": "/api/policies",
             "analyze": "/api/analyze",
             "agent": "/api/agent",
+            "leads": "/api/leads",
             "logs": "/api/logs",
         },
     }
@@ -88,4 +141,4 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "admin_required": admin_token_configured()}

@@ -127,6 +127,31 @@ class TestDomainScannerScan:
         }
 
     @pytest.mark.asyncio
+    async def test_structured_source_bypasses_keyword_and_short_gates(self, scanner_deps):
+        """A LegiScan/GovInfo hit is a one-line bill already matched by the
+        source's own query. The web-page keyword gate and the <50-word
+        short-content gate must NOT drop it — it goes straight to LLM
+        screening/analysis."""
+        # Thin content (a bill title) that would fail both crawl gates:
+        scanner_deps["extractor"].extract.return_value = ExtractedContent(
+            text="Data centers: waste heat energy.",
+            title="AB1095", language="en", word_count=5,
+        )
+        scanner_deps["keyword_matcher"].is_relevant.return_value = False
+
+        scanner = DomainScanner(
+            domain=_make_domain(source_type="legiscan"),
+            scan_id="scan_1",
+            **scanner_deps,
+        )
+        result = _make_crawl_result(url="https://leginfo.ca.gov/AB1095")
+        policies = await scanner._process_page_isolated(result)
+
+        assert len(policies) == 1                      # reached analysis
+        assert scanner.progress.filtered_keywords == 0
+        assert scanner.progress.filtered_short_content == 0
+
+    @pytest.mark.asyncio
     async def test_full_pipeline_finds_policy(self, scanner_deps):
         scanner = DomainScanner(
             domain=_make_domain(),
@@ -263,6 +288,66 @@ class TestDomainScannerScan:
         policies = await scanner.scan()
         assert len(policies) == 0
         scanner_deps["llm_client"].analyze_policy.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_api_source_domain_bypasses_crawler(self, scanner_deps):
+        """A domain with source_type != crawl fetches via its PolicySource
+        and never touches the crawler; results flow through the pipeline."""
+        from src.sources import SOURCE_REGISTRY
+        from src.sources.base import PolicySource
+
+        class _StubSource(PolicySource):
+            id = "stub_bills"
+
+            async def fetch(self, domain):
+                return [_make_crawl_result(url="https://parliament.example.gov/bill/7")]
+
+        SOURCE_REGISTRY["stub_bills"] = _StubSource
+        try:
+            scanner = DomainScanner(
+                domain=_make_domain(source_type="stub_bills"),
+                scan_id="s1", **scanner_deps,
+            )
+            policies = await scanner.scan()
+        finally:
+            SOURCE_REGISTRY.pop("stub_bills", None)
+
+        scanner_deps["crawler"].crawl_domain.assert_not_awaited()
+        assert len(policies) == 1
+
+    @pytest.mark.asyncio
+    async def test_source_lifecycle_stage_lands_on_policy(self, scanner_deps):
+        """A source-declared stage (e.g. bill status) overrides analysis."""
+        from src.sources import SOURCE_REGISTRY
+        from src.sources.base import PolicySource
+
+        result = _make_crawl_result(url="https://parliament.example.gov/bill/9")
+        result.lifecycle_stage = "in_committee"
+
+        class _StubSource(PolicySource):
+            id = "stub_stage"
+
+            async def fetch(self, domain):
+                return [result]
+
+        real_policy = Policy(
+            url="https://parliament.example.gov/bill/9", policy_name="Bill 9",
+            jurisdiction="US", policy_type=PolicyType.LAW, summary="x",
+            relevance_score=7,
+        )
+        scanner_deps["llm_client"].to_policies.return_value = [real_policy]
+
+        SOURCE_REGISTRY["stub_stage"] = _StubSource
+        try:
+            scanner = DomainScanner(
+                domain=_make_domain(source_type="stub_stage"),
+                scan_id="s1", **scanner_deps,
+            )
+            policies = await scanner.scan()
+        finally:
+            SOURCE_REGISTRY.pop("stub_stage", None)
+
+        assert policies[0].lifecycle_stage == "in_committee"
 
     @pytest.mark.asyncio
     async def test_multiple_policies_from_one_page(self, scanner_deps):

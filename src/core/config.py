@@ -135,6 +135,10 @@ VALID_TAGS = {
     "data_centers": "Data center specific",
 }
 
+# Returned by get_signals_config() when config/signals.yaml is missing or
+# has no `news` section, so the news channel simply produces no leads.
+DEFAULT_SIGNALS_CONFIG = {"enabled": False}
+
 VALID_POLICY_TYPES = {
     "law": "Enacted legislation",
     "legislation": "Primary legislation",
@@ -249,6 +253,7 @@ class ConfigLoader:
         self._domains_config: Optional[dict] = None
         self._keywords_config: Optional[dict] = None
         self._url_filters: Optional[dict] = None
+        self._signals_config: Optional[dict] = None
 
     def load(self) -> None:
         """Load all configuration files."""
@@ -256,6 +261,7 @@ class ConfigLoader:
         self._load_domains()
         self._load_keywords()
         self._load_url_filters()
+        self._load_signals()
 
         # Log validation warnings (non-blocking)
         for warning in self.validate_config():
@@ -360,6 +366,13 @@ class ConfigLoader:
         filters_file = self.config_dir / "url_filters.yaml"
         self._url_filters = _load_yaml(filters_file).get("url_filters", {})
 
+    def _load_signals(self) -> None:
+        """Load config/signals.yaml (news channel). Tolerates a missing file."""
+        signals_file = self.config_dir / "signals.yaml"
+        self._signals_config = _load_yaml(signals_file).get(
+            "news", DEFAULT_SIGNALS_CONFIG
+        )
+
     @property
     def settings(self) -> AppSettings:
         if not self._settings:
@@ -384,10 +397,30 @@ class ConfigLoader:
             self.load()
         return self._url_filters
 
+    @property
+    def signals_config(self) -> dict:
+        if self._signals_config is None:
+            self.load()
+        return self._signals_config
+
     # --- Domain resolution ---
 
     def get_enabled_domains(self, group: str = "all") -> list[dict]:
-        """Resolve domains by group, region, file, or individual ID."""
+        """Resolve domains by group, region, file, or individual ID.
+
+        Accepts a comma-separated list of targets ("california,legiscan_api")
+        and returns the union, deduplicated by domain id — this is what lets
+        one scan cover a place's websites plus its structured law sources.
+        """
+        if "," in group:
+            merged: dict[str, dict] = {}
+            for part in (p.strip() for p in group.split(",")):
+                if not part:
+                    continue
+                for domain in self.get_enabled_domains(part):
+                    merged.setdefault(domain["id"], domain)
+            return list(merged.values())
+
         all_domains = {d["id"]: d for d in self.domains_config.get("domains", [])}
 
         if group == "all":
@@ -544,6 +577,14 @@ class ConfigLoader:
         return self.url_filters.get("skip_extensions", [
             ".pdf", ".doc", ".docx", ".zip", ".jpg", ".png",
         ])
+
+    def get_signals_config(self) -> dict:
+        """Get news/signals discovery config (config/signals.yaml).
+
+        Tolerates a missing file — returns DEFAULT_SIGNALS_CONFIG (disabled)
+        so the news channel simply produces no leads until configured.
+        """
+        return self.signals_config
 
     def validate_config(self) -> list[str]:
         """Check for orphan domains and stale group references. Returns warnings."""

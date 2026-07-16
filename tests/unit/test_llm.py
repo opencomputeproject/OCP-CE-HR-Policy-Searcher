@@ -293,10 +293,14 @@ class TestToPolicy:
         assert policy.referenced_policies == ["EU EED Article 26", "EnEfG §12"]
         assert policy.referenced_urls == ["https://eur-lex.europa.eu/eli/dir/2023/1791"]
 
-        # Verify end-to-end sheet serialization
+        # Verify end-to-end sheet serialization (Referenced Policies/URLs
+        # are extra columns after the 13 master-database columns).
+        from src.core.policy_schema import STAGING_HEADERS
         row = policy.to_sheet_row()
-        assert row[17] == "EU EED Article 26; EnEfG §12"
-        assert row[18] == "https://eur-lex.europa.eu/eli/dir/2023/1791"
+        assert row[STAGING_HEADERS.index("Referenced Policies")] == \
+            "EU EED Article 26; EnEfG §12"
+        assert row[STAGING_HEADERS.index("Referenced URLs")] == \
+            "https://eur-lex.europa.eu/eli/dir/2023/1791"
 
     def test_to_policy_empty_references_default(self, client):
         """Policy with no references should have empty lists."""

@@ -10,8 +10,18 @@ from google.oauth2.service_account import Credentials
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from ..core.models import Policy
+from ..core.policy_schema import LINK_HEADER, STAGING_HEADERS
 
 logger = logging.getLogger(__name__)
+
+
+def _col_letter(n: int) -> str:
+    """1-based column index -> spreadsheet letter (1 -> A, 27 -> AA)."""
+    letters = ""
+    while n > 0:
+        n, rem = divmod(n - 1, 26)
+        letters = chr(65 + rem) + letters
+    return letters
 
 
 class SheetsClient:
@@ -41,15 +51,33 @@ class SheetsClient:
         try:
             return self._spreadsheet.worksheet(name)
         except gspread.WorksheetNotFound:
-            sheet = self._spreadsheet.add_worksheet(name, rows=1000, cols=20)
-            sheet.update("A1:Q1", [Policy.sheet_headers()])
+            headers = Policy.sheet_headers()
+            sheet = self._spreadsheet.add_worksheet(
+                name, rows=1000, cols=len(headers),
+            )
+            end_col = _col_letter(len(headers))
+            sheet.update([headers], f"A1:{end_col}1")
             return sheet
+
+    def _link_column_index(self, sheet: gspread.Worksheet) -> int:
+        """1-based index of the URL column, found by header name.
+
+        The Staging layout mirrors the master database where the URL lives in
+        the "Link" column, not column A, so dedupe must locate it by header.
+        """
+        header_row = sheet.row_values(1)
+        for idx, header in enumerate(header_row, start=1):
+            if header.strip().lower() == LINK_HEADER.lower():
+                return idx
+        # Empty/absent header row: fall back to the canonical layout position.
+        return STAGING_HEADERS.index(LINK_HEADER) + 1
 
     def get_existing_urls(self, sheet_name: str = "Staging") -> set[str]:
         try:
             sheet = self._spreadsheet.worksheet(sheet_name)
-            urls = sheet.col_values(1)
-            return set(urls[1:])
+            link_col = self._link_column_index(sheet)
+            urls = sheet.col_values(link_col)
+            return set(u for u in urls[1:] if u)
         except gspread.WorksheetNotFound:
             return set()
 

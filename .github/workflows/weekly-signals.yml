@@ -1,0 +1,54 @@
+# Weekly news-signal sweep: free data sources -> lead queue.
+#
+# Cheap by design: GDELT, Google News RSS, and trade feeds cost nothing;
+# the only spend is Haiku triage of headlines (cents). Discovered leads
+# land in data/leads.json as a build artifact for review — chasing a
+# lead (full analysis) stays a human decision.
+#
+# Optional secret: ANTHROPIC_API_KEY (without it, leads skip triage and
+# are all kept for human review).
+
+name: Weekly Policy Signals
+
+on:
+  schedule:
+    # 06:30 UTC every Monday
+    - cron: "30 6 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-signals
+  cancel-in-progress: false
+
+jobs:
+  signals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run news signals sweep
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python -m src.agent --signals
+
+      - name: Upload lead queue
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: leads-${{ github.run_id }}
+          path: data/leads.json
+          if-no-files-found: warn
+          retention-days: 90

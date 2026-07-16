@@ -1,4 +1,8 @@
-"""Tests for Google Sheets integration and Policy sheet methods."""
+"""Tests for Google Sheets integration and Policy sheet methods.
+
+The Staging schema mirrors the OCP "Heat Reuse Policies Database" tab: the
+first 13 columns match that tab exactly, followed by PolicyPulse extras.
+"""
 
 from datetime import date, datetime
 from unittest.mock import MagicMock
@@ -6,25 +10,39 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.core.models import Policy, PolicyType, VerificationFlag
+from src.core.policy_schema import STAGING_HEADERS
 
 
 class TestPolicySheetHeaders:
     """Test Policy.sheet_headers()."""
 
     def test_header_count(self):
-        headers = Policy.sheet_headers()
-        assert len(headers) == 19
+        # 13 master-database columns + 15 PolicyPulse extras.
+        assert len(Policy.sheet_headers()) == 28
 
-    def test_header_order(self):
+    def test_master_columns_match_database_order(self):
         headers = Policy.sheet_headers()
-        assert headers[0] == "URL"
-        assert headers[1] == "Policy Name"
-        assert headers[5] == "Relevance Score"
-        assert headers[14] == "Scan ID"
-        assert headers[15] == "Domain ID"
-        assert headers[16] == "Verification Flags"
-        assert headers[17] == "Referenced Policies"
-        assert headers[18] == "Referenced URLs"
+        assert headers[0] == "Geographical Area"
+        assert headers[1] == "Country"
+        assert headers[2] == "Region"
+        assert headers[3] == "Name"
+        assert headers[4] == "Incentive, Standard, or Enabler?"
+        assert headers[5].startswith("Type (")
+        assert headers[6] == "Description"
+        assert headers[7] == "Exclusive to Data Centers?"
+        assert headers[8] == "Status"
+        assert headers[9] == "Date Issued (newest version)"
+        assert headers[10] == "Link"
+        assert headers[11] == "Notes"
+        assert headers[12] == "Person Who Added it to the Database"
+
+    def test_extra_columns_present(self):
+        headers = Policy.sheet_headers()
+        assert headers[13] == "Relevance Score"
+        assert "Scan ID" in headers
+        assert "Domain ID" in headers
+        assert "Referenced URLs" in headers
+        assert "Lifecycle Stage" in headers
 
     def test_headers_are_strings(self):
         for h in Policy.sheet_headers():
@@ -52,30 +70,40 @@ class TestPolicyToSheetRow:
             review_status="new",
             scan_id="scan_123",
             domain_id="bmwk_de",
+            lifecycle_stage="enacted",
             verification_flags=[VerificationFlag.GENERIC_NAME],
         )
         row = policy.to_sheet_row()
 
-        assert len(row) == 19
-        assert row[0] == "https://example.gov/policy"
-        assert row[1] == "Test Act"
-        assert row[2] == "Germany"
-        assert row[3] == "law"
-        assert row[4] == "A test law"
-        assert row[5] == 9
-        assert row[6] == "German"
-        assert row[7] == "2024-03-01"
-        assert row[8] == "EnEfG-2024"
-        assert row[9] == "Must reuse heat"
-        assert row[10] == "2024-06-15T10:30:00"
-        assert row[11] == "success"
-        assert row[12] == ""  # error_details is None
-        assert row[13] == "new"
-        assert row[14] == "scan_123"
-        assert row[15] == "bmwk_de"
-        assert row[16] == "generic_name"
-        assert row[17] == ""  # referenced_policies (empty)
-        assert row[18] == ""  # referenced_urls (empty)
+        assert len(row) == 28
+        # Master columns
+        assert row[0] == "Europe"          # Geographical Area
+        assert row[1] == "Germany"         # Country
+        assert row[2] == "National"        # Region
+        assert row[3] == "Test Act"        # Name
+        assert row[4] == ""                # Incentive/Standard/Enabler (curation)
+        assert row[5] == "Legislation"     # Type
+        assert row[6] == "A test law"      # Description
+        assert row[7] == ""                # Exclusive to Data Centers (curation)
+        assert row[8] == "Enacted"         # Status
+        assert row[9] == "2024-03-01"      # Date Issued
+        assert row[10] == "https://example.gov/policy"  # Link
+        assert row[11] == ""               # Notes (curation)
+        assert row[12] == "PolicyPulse (automated)"     # Person who added
+        # Extras
+        assert row[13] == 9                # Relevance Score
+        assert row[14] == "enacted"        # Lifecycle Stage (raw)
+        assert row[15] == "law"            # Policy Type (raw)
+        assert row[16] == "Must reuse heat"  # Key Requirements
+        assert row[17] == "EnEfG-2024"     # Bill Number
+        assert row[18] == "German"         # Source Language
+        assert row[19] == "2024-06-15T10:30:00"  # Discovered At
+        assert row[20] == "success"        # Crawl Status
+        assert row[21] == "new"            # Review Status
+        assert row[22] == "generic_name"   # Verification Flags
+        assert row[25] == "scan_123"       # Scan ID
+        assert row[26] == "bmwk_de"        # Domain ID
+        assert row[27] == ""               # Error Details
 
     def test_empty_optionals(self):
         policy = Policy(
@@ -88,16 +116,18 @@ class TestPolicyToSheetRow:
         )
         row = policy.to_sheet_row()
 
-        assert len(row) == 19
-        assert row[7] == ""   # effective_date
-        assert row[8] == ""   # bill_number
-        assert row[9] == ""   # key_requirements
-        assert row[12] == ""  # error_details
-        assert row[14] == ""  # scan_id
-        assert row[15] == ""  # domain_id
-        assert row[16] == ""  # verification_flags
-        assert row[17] == ""  # referenced_policies
-        assert row[18] == ""  # referenced_urls
+        assert len(row) == 28
+        assert row[0] == "North America"   # US -> North America
+        assert row[1] == "USA"
+        assert row[2] == "National"
+        assert row[8] == ""    # Status (lifecycle unknown)
+        assert row[9] == ""    # Date Issued (no effective_date)
+        assert row[16] == ""   # Key Requirements
+        assert row[17] == ""   # Bill Number
+        assert row[22] == ""   # Verification Flags
+        assert row[23] == ""   # Referenced Policies
+        assert row[24] == ""   # Referenced URLs
+        assert row[27] == ""   # Error Details
 
     def test_multiple_verification_flags(self):
         policy = Policy(
@@ -113,7 +143,7 @@ class TestPolicyToSheetRow:
             ],
         )
         row = policy.to_sheet_row()
-        assert row[16] == "jurisdiction_mismatch, future_date"
+        assert row[22] == "jurisdiction_mismatch, future_date"
 
     def test_row_with_referenced_policies(self):
         """Referenced policies and URLs should serialize with semicolons."""
@@ -128,8 +158,10 @@ class TestPolicyToSheetRow:
             referenced_urls=["https://eur-lex.europa.eu/x", "https://bmwk.de/y"],
         )
         row = policy.to_sheet_row()
-        assert row[17] == "EU EED Art 26; EnEfG §12"
-        assert row[18] == "https://eur-lex.europa.eu/x; https://bmwk.de/y"
+        assert row[0] == "Europe"
+        assert row[1] == "EU Member States"
+        assert row[23] == "EU EED Art 26; EnEfG §12"
+        assert row[24] == "https://eur-lex.europa.eu/x; https://bmwk.de/y"
 
     def test_row_matches_headers_length(self):
         policy = Policy(
@@ -173,7 +205,7 @@ class TestSheetsClient:
             Policy(
                 url="https://b.gov/p2",
                 policy_name="Policy B",
-                jurisdiction="DE",
+                jurisdiction="Germany",
                 policy_type=PolicyType.REGULATION,
                 summary="Summary B",
                 relevance_score=6,
@@ -186,8 +218,10 @@ class TestSheetsClient:
         mock_sheet.append_rows.assert_called_once()
         rows = mock_sheet.append_rows.call_args[0][0]
         assert len(rows) == 2
-        assert rows[0][0] == "https://a.gov/p1"
-        assert rows[1][0] == "https://b.gov/p2"
+        # URL is the "Link" column (index 10), not column A.
+        link_col = STAGING_HEADERS.index("Link")
+        assert rows[0][link_col] == "https://a.gov/p1"
+        assert rows[1][link_col] == "https://b.gov/p2"
 
     def test_append_empty_list(self):
         """SheetsClient.append_policies returns 0 for empty list."""
@@ -199,8 +233,8 @@ class TestSheetsClient:
         client = SheetsClient.__new__(SheetsClient)
         assert client.append_policies([]) == 0
 
-    def test_get_existing_urls(self):
-        """SheetsClient.get_existing_urls returns URL set."""
+    def test_get_existing_urls_reads_link_column(self):
+        """get_existing_urls locates the Link column by header, not column A."""
         try:
             from src.output.sheets import SheetsClient
         except ImportError:
@@ -208,11 +242,15 @@ class TestSheetsClient:
 
         client = SheetsClient.__new__(SheetsClient)
 
+        link_idx = STAGING_HEADERS.index("Link") + 1  # 1-based
         mock_sheet = MagicMock()
-        mock_sheet.col_values.return_value = ["URL", "https://a.gov", "https://b.gov"]
+        mock_sheet.row_values.return_value = list(STAGING_HEADERS)
+        mock_sheet.col_values.return_value = ["Link", "https://a.gov", "https://b.gov"]
         mock_spreadsheet = MagicMock()
         mock_spreadsheet.worksheet.return_value = mock_sheet
         client._spreadsheet = mock_spreadsheet
 
         urls = client.get_existing_urls()
+
+        mock_sheet.col_values.assert_called_once_with(link_idx)
         assert urls == {"https://a.gov", "https://b.gov"}

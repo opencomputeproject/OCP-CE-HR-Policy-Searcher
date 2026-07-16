@@ -1,0 +1,110 @@
+# =============================================================================
+# NEWS SIGNALS (discovery layer)
+# =============================================================================
+# Configures the "news" scan channel — a separate lead-generation runner
+# (not scan_manager) that watches news sources for early signals of
+# upcoming waste-heat-reuse policy activity, ahead of it landing in an
+# official law/bill database.
+#
+# This file is optional. If missing, get_signals_config() returns a
+# disabled default and the news channel simply produces no leads.
+# =============================================================================
+
+news:
+  # Master switch for the news signals runner.
+  enabled: true
+
+  # Cap on how many leads a single run will surface, regardless of how
+  # many raw hits the queries below return. Keeps the review queue sane.
+  max_leads_per_run: 50
+
+  # How many of the top-ranked leads to auto-chase (i.e. automatically
+  # queue a follow-up crawl/law-API lookup) after each run.
+  # 0 = never auto-chase; leads are surfaced for human triage only.
+  auto_chase_top: 0
+
+  # ---------------------------------------------------------------------------
+  # GDELT
+  # ---------------------------------------------------------------------------
+  # Queries against the GDELT Doc API. Each entry is a search phrase plus
+  # a timespan (GDELT's lookback window, e.g. "1w" = 1 week). Includes
+  # native-language phrasing so early local coverage isn't missed while
+  # waiting for English-language pickup.
+  gdelt:
+    enabled: true
+    queries:
+      # English
+      - q: '"district heating" law'
+        timespan: "1w"
+      - q: '"waste heat" "data center" bill'
+        timespan: "1w"
+      - q: '"heat network" regulation'
+        timespan: "1w"
+      - q: '"waste heat" datacenter regulation'
+        timespan: "1w"
+      # German
+      - q: '"Abwärme" Gesetz'
+        timespan: "1w"
+      - q: '"Fernwärme" Rechenzentrum Gesetz'
+        timespan: "1w"
+      # Swedish
+      - q: '"fjärrvärme" lag'
+        timespan: "1w"
+      # French
+      - q: '"chaleur fatale" décret'
+        timespan: "1w"
+      # Dutch
+      - q: '"restwarmte" wet'
+        timespan: "1w"
+      # Danish
+      - q: '"overskudsvarme" lov'
+        timespan: "1w"
+      # Norwegian
+      - q: '"spillvarme" datasenter lov'
+        timespan: "1w"
+      # Finnish
+      - q: '"hukkalämpö" laki'
+        timespan: "1w"
+
+  # ---------------------------------------------------------------------------
+  # GOOGLE NEWS
+  # ---------------------------------------------------------------------------
+  # Queries against Google News search. hl = interface/result language,
+  # gl = country for geographic result weighting.
+  google_news:
+    enabled: true
+    queries:
+      - q: "fernwärme rechenzentrum gesetz"
+        hl: "de"
+        gl: "DE"
+      - q: "spillvärme datacenter lag"
+        hl: "sv"
+        gl: "SE"
+      - q: "waste heat data center law"
+        hl: "en"
+        gl: "US"
+      - q: "chaleur fatale datacenter"
+        hl: "fr"
+        gl: "FR"
+      - q: "overskudsvarme datacenter"
+        hl: "da"
+        gl: "DK"
+
+  # ---------------------------------------------------------------------------
+  # RSS FEEDS
+  # ---------------------------------------------------------------------------
+  # Trade-press feeds polled directly for waste-heat/regulatory coverage.
+  rss_feeds:
+    - name: "DataCenterDynamics"
+      url: "https://www.datacenterdynamics.com/en/rss/"
+    - name: "DataCenterKnowledge"
+      url: "https://www.datacenterknowledge.com/rss.xml"
+
+  # ---------------------------------------------------------------------------
+  # WATCH PAGES
+  # ---------------------------------------------------------------------------
+  # Non-RSS pages checked periodically for new posts (diffed by the
+  # runner, not scan_manager's crawler).
+  watch_pages:
+    - name: "Euroheat news"
+      url: "https://www.euroheat.org/news/"

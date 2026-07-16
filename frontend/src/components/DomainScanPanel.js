@@ -1,13 +1,26 @@
 import React from 'react';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormGroup from '@mui/material/FormGroup';
+import Tooltip from '@mui/material/Tooltip';
 import ModeSelector from './ModeSelector';
 import RegionSelector from './RegionSelector';
-import Tooltip from '@mui/material/Tooltip';
+
+// "news" is deliberately absent: news signals run on their own weekly
+// schedule, not inside a scan — a checkbox here would silently do nothing.
+const CHANNEL_OPTIONS = [
+    { id: 'crawl', label: 'Government websites' },
+    { id: 'law_apis', label: 'Law databases' },
+    { id: 'transposition', label: 'EU transposition' },
+];
 
 function DomainScanPanel({
     selectedRegions,
     onSelectionChange,
     mode,
     onModeChange,
+    channels,
+    onChannelsChange,
     costStatus,
     costEstimateText,
     isBusy,
@@ -19,6 +32,13 @@ function DomainScanPanel({
     onScan,
     onStop,
 }) {
+    const handleChannelToggle = (channelId, checked) => {
+        const nextChannels = checked
+            ? [...channels, channelId]
+            : channels.filter((id) => id !== channelId);
+        onChannelsChange(nextChannels);
+    };
+
     return (
         <div className="domain-scan" aria-label="Domain scan">
             <div>
@@ -39,6 +59,28 @@ function DomainScanPanel({
                     value={mode}
                     onChange={onModeChange}
                 />
+                <div className="channels-group" role="group" aria-label="Sources to check">
+                    <p className="text-block-small channels-heading">Sources to check</p>
+                    <FormGroup row>
+                        {CHANNEL_OPTIONS.map((option) => (
+                            <FormControlLabel
+                                key={option.id}
+                                control={
+                                    <Checkbox
+                                        size="small"
+                                        checked={channels.includes(option.id)}
+                                        onChange={(event) => handleChannelToggle(option.id, event.target.checked)}
+                                    />
+                                }
+                                label={option.label}
+                            />
+                        ))}
+                    </FormGroup>
+                    <p className="text-block-small">
+                        Law databases and transposition checks are free data sources; website crawling is
+                        the main driver of scan cost.
+                    </p>
+                </div>
                 <Tooltip title="Please note that this is only an estimate and may not reflect the actual cost" placement="top" arrow>
                     <output className={`cost-estimate ${costStatus}`} aria-live="polite">
                         {costEstimateText}

@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisco
 
 from ...agent.discovery import build_discovery_prompt
 from ...agent.orchestrator import PolicyAgent
-from ..deps import get_scan_manager, get_broadcaster, get_policy_store
-from ...core.models import DEFAULT_ANALYSIS_MODEL, ScanRequest
+from ..deps import get_cost_settings_store, get_scan_manager, get_broadcaster, get_policy_store
+from ...core.models import ScanRequest
 from ...orchestration.events import EventBroadcaster
 from ...orchestration.scan_manager import ScanManager
 from ...storage.store import PolicyStore
@@ -45,6 +45,8 @@ async def start_scan(
         category=request.category,
         tags=request.tags,
         policy_type=request.policy_type,
+        channels=request.channels,
+        source_params=request.source_params,
     )
     return {
         "scan_id": job.scan_id,
@@ -64,9 +66,11 @@ async def _run_discovery(request: ScanRequest):
     if not api_key:
         raise HTTPException(status_code=503, detail="ANTHROPIC_API_KEY environment variable is not set")
 
+    # The admin's cost level decides which model the discovery agent runs on.
+    analysis_model = get_cost_settings_store().resolved_models()["analysis_model"]
     agent = PolicyAgent(
         api_key=api_key,
-        model=DEFAULT_ANALYSIS_MODEL,
+        model=analysis_model,
         config_dir=os.environ.get("OCP_CONFIG_DIR", "config"),
         data_dir=os.environ.get("OCP_DATA_DIR", "data"),
     )

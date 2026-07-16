@@ -94,6 +94,13 @@ TASK:
    - List any bill numbers, law names, directive references, or related policies mentioned
    - List any URLs linking to other relevant policy documents
 
+5. Determine the lifecycle stage of the policy:
+   - proposed (draft bill or announced intention), consultation (open for
+     public comment), in_committee, passed (adopted but not in force),
+     enacted (in force), amended, or unknown
+   - Documents that are drafts, bills, or consultations are valuable EARLY
+     signals; identify them as such rather than defaulting to enacted
+
 RESPOND WITH JSON ONLY:
 {{
     "is_relevant": true/false,
@@ -106,6 +113,7 @@ RESPOND WITH JSON ONLY:
     "effective_date": "YYYY-MM-DD or null",
     "key_requirements": "Key points or null",
     "bill_number": "Number or null",
+    "lifecycle_stage": "proposed|consultation|in_committee|passed|enacted|amended|unknown",
     "referenced_policies": ["Related law/directive names or empty list"],
     "referenced_urls": ["URLs to related policy documents or empty list"],
     "additional_policies": [
@@ -271,6 +279,12 @@ def _coerce_types(data: dict) -> dict:
     # policy_type default
     if not result.get("policy_type") or result["policy_type"] in _NULL_VALUES:
         result["policy_type"] = "not_relevant" if not result.get("is_relevant") else "unknown"
+
+    # lifecycle_stage: constrain to the known vocabulary
+    from .models import LIFECYCLE_STAGES
+    stage = result.get("lifecycle_stage")
+    if not isinstance(stage, str) or stage not in LIFECYCLE_STAGES:
+        result["lifecycle_stage"] = "unknown"
 
     # Normalize list fields (referenced_policies, referenced_urls)
     for list_key in ("referenced_policies", "referenced_urls"):
@@ -678,6 +692,7 @@ class ClaudeClient:
             scan_id=scan_id,
             referenced_policies=analysis.referenced_policies,
             referenced_urls=analysis.referenced_urls,
+            lifecycle_stage=analysis.lifecycle_stage,
         )
 
     def to_policies(

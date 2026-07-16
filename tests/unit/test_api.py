@@ -296,6 +296,48 @@ class TestScanRoutes:
 
         assert response.status_code == 422
 
+    def test_start_scan_rejects_invalid_channel(self, client):
+        response = client.post(
+            "/api/scans",
+            json={"domains": "quick", "channels": ["bogus"]},
+        )
+        assert response.status_code == 422
+        data = response.json()
+        assert "bogus" in str(data["detail"])
+
+    def test_start_scan_defaults_to_crawl_channel(self, client, mock_manager):
+        job = ScanJob(
+            scan_id="s1",
+            status=ScanStatus.RUNNING,
+            domain_count=1,
+            options={"channels": ["crawl"]},
+        )
+        mock_manager.start_scan = AsyncMock(return_value=job)
+
+        response = client.post("/api/scans", json={"domains": "quick"})
+
+        assert response.status_code == 200
+        mock_manager.start_scan.assert_awaited_once()
+        assert mock_manager.start_scan.await_args.kwargs["channels"] == ["crawl"]
+
+    def test_start_scan_passes_requested_channels(self, client, mock_manager):
+        job = ScanJob(
+            scan_id="s1",
+            status=ScanStatus.RUNNING,
+            domain_count=0,
+            options={"channels": ["law_apis"]},
+        )
+        mock_manager.start_scan = AsyncMock(return_value=job)
+
+        response = client.post(
+            "/api/scans", json={"domains": "quick", "channels": ["law_apis"]}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["options"]["channels"] == ["law_apis"]
+        assert mock_manager.start_scan.await_args.kwargs["channels"] == ["law_apis"]
+
     def test_list_scans_empty(self, client):
         response = client.get("/api/scans")
         assert response.status_code == 200

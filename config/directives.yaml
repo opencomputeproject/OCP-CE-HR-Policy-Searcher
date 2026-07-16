@@ -1,0 +1,5 @@
+directives:
+  - celex: "32023L1791"
+    name: "Energy Efficiency Directive (recast)"
+  - celex: "32024L1275"
+    name: "Energy Performance of Buildings Directive (recast)"

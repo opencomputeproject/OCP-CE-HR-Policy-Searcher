@@ -1,16 +1,42 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined';
 import './App.css';
 import AgentPanel from './components/AgentPanel';
+import AskPolicyBox from './components/AskPolicyBox';
 import LogoImage from './assets/ocp-logo.svg';
+import LeadsInbox from './components/LeadsInbox';
 import PolicyList from './components/PolicyList';
+import ReviewInbox from './components/ReviewInbox';
 import HelpWindow from './components/HelpWindow';
+import { apiUrl } from './config/api';
+import { getAdminToken } from './utils/adminAuth';
 
 const WELCOME_TUTORIAL_STORAGE_KEY = 'policy-pulse-welcome-seen';
 
 function App() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isFirstRunHelpOpen, setIsFirstRunHelpOpen] = useState(false);
+  const [adminRequired, setAdminRequired] = useState(false);
+  const [hasAdminToken, setHasAdminToken] = useState(Boolean(getAdminToken()));
+
+  const refreshAdminTokenStatus = useCallback(() => {
+    setHasAdminToken(Boolean(getAdminToken()));
+  }, []);
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      try {
+        const response = await fetch(apiUrl('/health'));
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        setAdminRequired(Boolean(data.admin_required));
+      } catch {
+        setAdminRequired(false);
+      }
+    };
+
+    fetchHealth();
+  }, []);
 
   const markWelcomeTutorialSeen = () => {
     try {
@@ -65,9 +91,16 @@ function App() {
       />
       <main className="App-main">
         <section className="app-stage" aria-label="Policy scanner">
-          <AgentPanel />
+          <AgentPanel
+            adminRequired={adminRequired}
+            hasAdminToken={hasAdminToken}
+            onAdminTokenChange={refreshAdminTokenStatus}
+          />
         </section>
         <section className="app-stage" aria-label="Discovered policies">
+          <ReviewInbox isAdmin={!adminRequired || hasAdminToken} />
+          <AskPolicyBox />
+          <LeadsInbox adminRequired={adminRequired} hasAdminToken={hasAdminToken} />
           <PolicyList />
         </section>
       </main>

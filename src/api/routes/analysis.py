@@ -25,7 +25,16 @@ async def analyze_url(
     store: PolicyStore = Depends(get_policy_store),
 ):
     """Analyze a single URL through the full pipeline."""
-    url = request.url
+    return await run_url_analysis(request.url, config, store)
+
+
+async def run_url_analysis(
+    url: str, config: ConfigLoader, store: PolicyStore,
+) -> dict:
+    """Full fetch->extract->keywords->LLM pipeline for one URL.
+
+    Shared by the /analyze endpoint and lead chasing.
+    """
     settings = config.settings
 
     # 1. Fetch

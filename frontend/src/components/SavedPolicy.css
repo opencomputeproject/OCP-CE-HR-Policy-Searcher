@@ -95,6 +95,40 @@
     color: #111827;
 }
 
+.lifecycle-filter-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.lifecycle-chip {
+    padding: 6px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    background-color: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.lifecycle-chip:hover {
+    border-color: #8dc63f;
+    color: #111827;
+}
+
+.lifecycle-chip.active {
+    border-color: #6fa52f;
+    background-color: #eef7e4;
+    color: #365314;
+}
+
+.lifecycle-badge {
+    text-transform: none;
+}
+
 .policy-list-items {
     width: 100%;
     min-width: 0;

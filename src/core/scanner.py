@@ -77,17 +77,29 @@ class DomainScanner:
         policies: list[Policy] = []
 
         try:
-            # Stage 1: Crawl
-            crawl_results = await self.crawler.crawl_domain(
-                base_url=self.domain["base_url"],
-                start_paths=self.domain.get("start_paths", ["/"]),
-                domain_id=self.domain_id,
-                allowed_path_patterns=self.domain.get("allowed_path_patterns"),
-                blocked_path_patterns=self.domain.get("blocked_path_patterns"),
-                max_depth_override=self.domain.get("max_depth"),
-                max_pages_override=self.domain.get("max_pages"),
-                requires_playwright=self.domain.get("requires_playwright", False),
-            )
+            # Stage 1: Acquire documents — structured source or crawl
+            source_type = self.domain.get("source_type", "crawl")
+            if source_type != "crawl":
+                from ..sources import get_source
+                source = get_source(source_type)
+                logger.info(
+                    "Domain %s uses structured source '%s'",
+                    self.domain_id, source_type,
+                )
+                crawl_results = await source.fetch(self.domain)
+                for r in crawl_results:
+                    r.domain_id = self.domain_id
+            else:
+                crawl_results = await self.crawler.crawl_domain(
+                    base_url=self.domain["base_url"],
+                    start_paths=self.domain.get("start_paths", ["/"]),
+                    domain_id=self.domain_id,
+                    allowed_path_patterns=self.domain.get("allowed_path_patterns"),
+                    blocked_path_patterns=self.domain.get("blocked_path_patterns"),
+                    max_depth_override=self.domain.get("max_depth"),
+                    max_pages_override=self.domain.get("max_pages"),
+                    requires_playwright=self.domain.get("requires_playwright", False),
+                )
 
             self.progress.pages_crawled = len(crawl_results)
 
@@ -221,22 +233,34 @@ class DomainScanner:
 
         # Stage 2: Extract content
         extracted = self.extractor.extract(result.content, result.url)
-        if not extracted.text or extracted.word_count < 50:
-            self.progress.pages_filtered += 1
-            self.progress.filtered_short_content += 1
-            return []
 
-        # Stage 3: Keyword matching
-        kw_result = self.keyword_matcher.match(extracted.text)
-        if kw_result.is_excluded:
-            self.progress.pages_filtered += 1
-            self.progress.filtered_excluded += 1
-            return []
+        # Structured sources (LegiScan, GovInfo, DIP, ...) return one-line
+        # bills already matched by the source's own targeted query. The web-
+        # page gates below — the <50-word short filter and the keyword score
+        # gate — are tuned for full HTML pages and would wrongly drop these
+        # thin-but-relevant hits, so skip them and let the LLM screen/analyze.
+        is_structured = self.domain.get("source_type", "crawl") != "crawl"
 
-        min_score = self.domain.get("min_keyword_score")
-        is_relevant = self.keyword_matcher.is_relevant(
-            kw_result, url=result.url, min_score_override=min_score,
-        )
+        if not is_structured:
+            if not extracted.text or extracted.word_count < 50:
+                self.progress.pages_filtered += 1
+                self.progress.filtered_short_content += 1
+                return []
+
+            # Stage 3: Keyword matching
+            kw_result = self.keyword_matcher.match(extracted.text)
+            if kw_result.is_excluded:
+                self.progress.pages_filtered += 1
+                self.progress.filtered_excluded += 1
+                return []
+
+            min_score = self.domain.get("min_keyword_score")
+            is_relevant = self.keyword_matcher.is_relevant(
+                kw_result, url=result.url, min_score_override=min_score,
+            )
+        else:
+            kw_result = self.keyword_matcher.match(extracted.text or "")
+            is_relevant = True
 
         if not is_relevant:
             self.progress.pages_filtered += 1
@@ -333,9 +357,15 @@ class DomainScanner:
         )
 
         # Stage 6: Convert to Policy records (index pages can hold several)
-        return self.llm_client.to_policies(
+        policies = self.llm_client.to_policies(
             analysis, result.url,
             language=extracted.language or "en",
             domain_id=self.domain_id,
             scan_id=self.scan_id,
         )
+        # A source-declared stage (bill status, open consultation) is
+        # authoritative over the analysis model's inference.
+        if result.lifecycle_stage:
+            for policy in policies:
+                policy.lifecycle_stage = result.lifecycle_stage
+        return policies
