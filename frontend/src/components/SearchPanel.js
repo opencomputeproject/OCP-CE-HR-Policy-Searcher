@@ -1,8 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
+import LinearProgress from '@mui/material/LinearProgress';
 import TextField from '@mui/material/TextField';
 import { apiUrl, WS_BASE_URL } from '../config/api';
 import { adminHeaders } from '../utils/adminAuth';
+
+// If no scan event arrives for this long, say so instead of going silent -
+// a stall the UI explains is patience; a stall it hides is a bug report.
+const STALL_AFTER_MS = 45000;
+
+function formatElapsed(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
 
 const PLAN_DEBOUNCE_MS = 450;
 
@@ -78,8 +89,11 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
     const [isPlanning, setIsPlanning] = useState(false);
     const [places, setPlaces] = useState([]);
     const [scan, setScan] = useState(null);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [isStalled, setIsStalled] = useState(false);
     const wsRef = useRef(null);
     const planRequestRef = useRef(0);
+    const lastEventAtRef = useRef(0);
 
     useEffect(() => {
         let cancelled = false;
@@ -130,7 +144,14 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
         if (!plan || !plan.targets || isBusy) return;
 
         onBusyChange?.(true);
-        setScan({ status: 'starting', found: 0, sourcesDone: 0, sourceErrors: 0, names: [] });
+        setScan({
+            status: 'starting', found: 0, sourcesDone: 0, sourceErrors: 0,
+            pagesChecked: 0, currentSource: null, names: [],
+            startedAt: Date.now(),
+        });
+        setElapsedSeconds(0);
+        setIsStalled(false);
+        lastEventAtRef.current = Date.now();
 
         try {
             const response = await fetch(apiUrl('/api/scans'), {
@@ -172,7 +193,21 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
                 } catch {
                     return;
                 }
-                if (payload.type === 'policy_found') {
+                lastEventAtRef.current = Date.now();
+                setIsStalled(false);
+                if (payload.type === 'domain_started') {
+                    setScan((prev) => prev && ({
+                        ...prev,
+                        currentSource: payload.data?.domain_name || null,
+                    }));
+                } else if (payload.type === 'page_fetched' || payload.type === 'keyword_match') {
+                    if (payload.type === 'page_fetched') {
+                        setScan((prev) => prev && ({
+                            ...prev,
+                            pagesChecked: (prev.pagesChecked || 0) + 1,
+                        }));
+                    }
+                } else if (payload.type === 'policy_found') {
                     setScan((prev) => prev && ({
                         ...prev,
                         found: prev.found + 1,
@@ -238,6 +273,20 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
         plan && plan.targets && hasApiKey && !isBusy && scan?.status !== 'running',
     );
     const isRunning = scan?.status === 'starting' || scan?.status === 'running';
+
+    useEffect(() => {
+        if (!isRunning) return undefined;
+        const timer = setInterval(() => {
+            // The clock ticks every second regardless of scan events, so the
+            // user always sees motion; the stall note kicks in when the scan
+            // itself has been quiet too long.
+            setElapsedSeconds((prev) => prev + 1);
+            if (Date.now() - lastEventAtRef.current > STALL_AFTER_MS) {
+                setIsStalled(true);
+            }
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [isRunning]);
 
     // Don't scold mid-keystroke: while the text is still a prefix of a real
     // suggestion ("cal" on its way to "California"), hold the unknown-place
@@ -315,11 +364,20 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
                 <div className="search-progress" role="status" aria-live="polite">
                     {isRunning && (
                         <>
+                            <LinearProgress
+                                variant={scan.sourceCount ? 'determinate' : 'indeterminate'}
+                                value={scan.sourceCount
+                                    ? Math.round((scan.sourcesDone / scan.sourceCount) * 100)
+                                    : 0}
+                                className="search-progress-bar"
+                            />
                             <p className="search-progress-line">
-                                Searching {scan.sourceCount ?? '...'} sources
-                                {' '}· {scan.sourcesDone} done · {scan.found} policies found
+                                {scan.sourcesDone} of {scan.sourceCount ?? '...'} sources done
+                                {' '}· {scan.pagesChecked || 0} pages checked
+                                {' '}· {scan.found} found
                                 {scan.sourceErrors > 0
-                                    && ` · ${scan.sourceErrors} source ${scan.sourceErrors === 1 ? 'error' : 'errors'}`}
+                                    && ` · ${scan.sourceErrors} ${scan.sourceErrors === 1 ? 'error' : 'errors'}`}
+                                {' '}· {formatElapsed(elapsedSeconds)}
                                 <button
                                     type="button"
                                     className="leads-dismiss-button search-stop-button"
@@ -328,9 +386,20 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
                                     Stop
                                 </button>
                             </p>
+                            {scan.currentSource && (
+                                <p className="search-progress-names">
+                                    <span className="search-pulse-dot" aria-hidden="true" />
+                                    Now checking: {scan.currentSource}
+                                </p>
+                            )}
                             {scan.names?.length > 0 && (
                                 <p className="search-progress-names">
                                     Latest: {scan.names[scan.names.length - 1]}
+                                </p>
+                            )}
+                            {isStalled && (
+                                <p className="search-progress-names" role="status">
+                                    Still working - some websites respond slowly.
                                 </p>
                             )}
                         </>

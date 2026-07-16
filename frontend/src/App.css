@@ -861,3 +861,24 @@ select,
   margin-bottom: 4px;
   color: #64748b;
 }
+
+.search-progress-bar {
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.search-pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background-color: #8dc63f;
+  animation: search-pulse 1.2s ease-in-out infinite;
+  vertical-align: 1px;
+}
+
+@keyframes search-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.75); }
+}

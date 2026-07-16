@@ -200,6 +200,50 @@ describe('SearchPanel run', () => {
         expect(screen.getByText(/Playwright is required/)).toBeInTheDocument();
     });
 
+    it('shows live activity: progress bar, current source, page heartbeat', async () => {
+        global.fetch = mockFetch();
+        render(<SearchPanel hasApiKey isBusy={false} />);
+
+        await typePlace('California');
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: 'Search' })).toBeEnabled();
+        });
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+        });
+
+        const ws = FakeWebSocket.instances[0];
+        await act(async () => {
+            ws.emit({ type: 'domain_started', data: { domain_name: 'LegiScan API' } });
+            ws.emit({ type: 'page_fetched', data: { url: 'https://a.gov/1' } });
+            ws.emit({ type: 'page_fetched', data: { url: 'https://a.gov/2' } });
+            ws.emit({ type: 'domain_complete', data: { pages: 2, policies: 0 } });
+        });
+
+        expect(screen.getByRole('progressbar')).toBeInTheDocument();
+        expect(screen.getByText(/Now checking:/)).toHaveTextContent('LegiScan API');
+        expect(screen.getByText(/2 pages checked/)).toBeInTheDocument();
+    });
+
+    it('reassures instead of going silent when events stall', async () => {
+        global.fetch = mockFetch();
+        render(<SearchPanel hasApiKey isBusy={false} />);
+
+        await typePlace('California');
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: 'Search' })).toBeEnabled();
+        });
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+        });
+
+        await act(async () => {
+            jest.advanceTimersByTime(50000);
+        });
+
+        expect(screen.getByText(/Still working/)).toBeInTheDocument();
+    });
+
     it('explains a 401 as a sign-in problem', async () => {
         global.fetch = mockFetch({ scanStatus: 401 });
         render(<SearchPanel hasApiKey isBusy={false} />);
