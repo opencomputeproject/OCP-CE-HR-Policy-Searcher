@@ -1,12 +1,13 @@
 """Settings endpoints for local .env API key management and cost controls."""
 
+import hmac
 import os
 import re
 from pathlib import Path
 from typing import Literal, Optional
 
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from ..deps import get_config, get_cost_settings_store, get_scan_manager
@@ -125,6 +126,28 @@ class CostSettingsUpdate(BaseModel):
     ask_enabled: Optional[bool] = None
     ask_rate_per_minute: Optional[int] = Field(default=None, ge=1, le=60)
     ask_daily_limit: Optional[int] = Field(default=None, ge=0, le=10000)
+
+
+@router.get("/sheet")
+def get_sheet_link(request: Request):
+    """Google Sheet link for review ("open Staging"). Admin-only read.
+
+    The middleware only gates mutations, but the sheet id should not leak
+    to anonymous readers, so this read checks the admin token itself.
+    """
+    admin_token = os.environ.get("ADMIN_TOKEN")
+    if admin_token:
+        provided = request.headers.get("x-admin-token", "")
+        if not hmac.compare_digest(provided, admin_token):
+            raise HTTPException(status_code=401, detail="Administrator token required")
+
+    sheet_id = os.environ.get("SPREADSHEET_ID", "")
+    if not sheet_id:
+        return {"configured": False, "url": None}
+    return {
+        "configured": True,
+        "url": f"https://docs.google.com/spreadsheets/d/{sheet_id}",
+    }
 
 
 @router.get("/legiscan-usage")

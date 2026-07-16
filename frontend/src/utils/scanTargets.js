@@ -80,11 +80,6 @@ export async function buildScanRequests(selectedItems, scanOptions) {
         (!categories[0] || domain.category === categories[0])
         && (tags.length === 0 || tags.some((tag) => (domain.tags || []).includes(tag)))
     );
-    const scanTargets = scanOptions.discover
-        ? targets.map(normalizeTarget)
-        : (await resolveDomainsForTargets(targets))
-            .filter(domainMatchesFilters)
-            .map((domain) => domain.id);
     const baseRequest = {
         max_concurrent: scanOptions.deep ? 10 : 5,
         skip_llm: false,
@@ -96,8 +91,24 @@ export async function buildScanRequests(selectedItems, scanOptions) {
         channels: buildChannels(scanOptions.channels),
     };
 
-    return (scanTargets.length > 0 ? scanTargets : ['all']).map((target) => ({
+    // Discovery runs an agent workflow per country, so it stays per-target.
+    if (scanOptions.discover) {
+        const discoverTargets = targets.map(normalizeTarget);
+        return (discoverTargets.length > 0 ? discoverTargets : ['all']).map((target) => ({
+            ...baseRequest,
+            domains: target,
+        }));
+    }
+
+    // Everything else is ONE consolidated scan: the backend accepts a
+    // comma-separated union, so one intent never fans out into a scan
+    // per domain (which looked broken and buried the real results).
+    const domainIds = (await resolveDomainsForTargets(targets))
+        .filter(domainMatchesFilters)
+        .map((domain) => domain.id);
+
+    return [{
         ...baseRequest,
-        domains: target,
-    }));
+        domains: domainIds.length > 0 ? domainIds.join(',') : 'all',
+    }];
 }

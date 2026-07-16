@@ -1,8 +1,9 @@
-"""Policy CRUD and statistics endpoints."""
+"""Policy CRUD, review workflow, and statistics endpoints."""
 
-from typing import Optional
+from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 
 from ..deps import get_scan_manager, get_policy_store
 from ...agent.tools import jurisdiction_matches
@@ -18,6 +19,7 @@ def list_policies(
     policy_type: Optional[str] = Query(None),
     min_score: Optional[int] = Query(None, ge=1, le=10),
     scan_id: Optional[str] = Query(None),
+    review_status: Optional[str] = Query(None),
     store: PolicyStore = Depends(get_policy_store),
     manager: ScanManager = Depends(get_scan_manager),
 ):
@@ -28,6 +30,7 @@ def list_policies(
         policy_type=policy_type,
         min_score=min_score,
         scan_id=scan_id,
+        review_status=review_status,
     )
 
     # Also include in-memory policies from recent scans
@@ -42,6 +45,8 @@ def list_policies(
             continue
         if scan_id and p_dict.get("scan_id") != scan_id:
             continue
+        if review_status and p_dict.get("review_status", "new") != review_status:
+            continue
         in_memory.append(p_dict)
 
     # Deduplicate by URL
@@ -52,6 +57,24 @@ def list_policies(
             seen_urls.add(p["url"])
 
     return {"policies": stored, "count": len(stored)}
+
+
+class ReviewUpdate(BaseModel):
+    url: str
+    review_status: Literal["new", "reviewed", "promoted", "rejected"]
+
+
+@router.patch("/policies/review")
+def update_review_status(
+    update: ReviewUpdate,
+    store: PolicyStore = Depends(get_policy_store),
+):
+    """Set a policy's review status (admin action via the gate middleware)."""
+    if not store.update_review_status(update.url, update.review_status):
+        raise HTTPException(
+            status_code=404, detail=f"No policy with URL: {update.url}",
+        )
+    return {"url": update.url, "review_status": update.review_status}
 
 
 @router.get("/policies/stats")

@@ -88,15 +88,30 @@ class PolicyStore:
     def get_all(self) -> list[dict]:
         return self._policies.copy()
 
+    def update_review_status(self, url: str, review_status: str) -> bool:
+        """Set a policy's review status by URL. Returns False if not found."""
+        for policy in self._policies:
+            if policy.get("url") == url:
+                policy["review_status"] = review_status
+                self.save()
+                return True
+        return False
+
     def search(
         self,
         jurisdiction: Optional[str] = None,
         policy_type: Optional[str] = None,
         min_score: Optional[int] = None,
         scan_id: Optional[str] = None,
+        review_status: Optional[str] = None,
     ) -> list[dict]:
         """Search policies with filters."""
         results = self._policies
+        if review_status:
+            results = [
+                p for p in results
+                if p.get("review_status", "new") == review_status
+            ]
         if jurisdiction:
             j_lower = jurisdiction.lower()
             results = [

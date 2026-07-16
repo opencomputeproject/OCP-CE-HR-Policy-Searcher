@@ -13,7 +13,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from ..core.log_setup import setup_logging
-from .routes import domains, scans, policies, analysis, agent, ask, leads, logs, settings
+from .routes import (
+    domains, scans, policies, analysis, agent, ask, leads, logs, search, settings,
+)
 
 # Resolve .env from project root (2 levels up from src/api/app.py)
 # so credentials load regardless of the process working directory.
@@ -115,6 +117,7 @@ app.include_router(agent.router)
 app.include_router(ask.router)
 app.include_router(leads.router)
 app.include_router(logs.router)
+app.include_router(search.router)
 app.include_router(settings.router)
 
 

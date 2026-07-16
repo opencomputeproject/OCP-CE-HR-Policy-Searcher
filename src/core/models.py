@@ -326,6 +326,9 @@ class ScanRequest(BaseModel):
     tags: Optional[list[str]] = None
     policy_type: Optional[str] = None
     channels: list[str] = Field(default_factory=lambda: ["crawl"])
+    # Per-request overrides for structured sources (e.g. {"state": "CA",
+    # "terms": [...]} from a place-first search). Crawl domains ignore this.
+    source_params: Optional[dict] = None
 
     @model_validator(mode="after")
     def validate_scan_mode(self) -> "ScanRequest":

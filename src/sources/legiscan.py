@@ -38,7 +38,16 @@ logger = logging.getLogger(__name__)
 
 API_KEY_ENV = "LEGISCAN_API_KEY"
 BASE_URL = "https://api.legiscan.com/"
-DEFAULT_TERMS = ["waste heat", "district heating", "data center energy"]
+# Terms speak the language bills actually use: real early-stage US bills
+# (NJ A4490, CT HB05337, MN HF4348) say "thermal energy network", not
+# "waste heat". Each extra term costs one search query per run.
+DEFAULT_TERMS = [
+    "waste heat",
+    "district heating",
+    "data center energy",
+    "thermal energy network",
+    "heat reuse",
+]
 DEFAULT_MAX_DOCUMENTS = 25
 DEFAULT_MAX_API_CALLS = 40
 
@@ -180,6 +189,8 @@ class LegiscanSource(PolicySource):
         terms = params.get("terms") or DEFAULT_TERMS
         max_documents = params.get("max_documents", DEFAULT_MAX_DOCUMENTS)
         max_api_calls = params.get("max_api_calls", DEFAULT_MAX_API_CALLS)
+        # Optional two-letter state scope (place-first search); ALL = nationwide.
+        state = str(params.get("state") or "ALL").upper()
 
         # Enforce the 30,000-query/month public cap: this run may spend at
         # most whatever is left this calendar month.
@@ -203,7 +214,9 @@ class LegiscanSource(PolicySource):
                 for term in terms:
                     if len(results) >= max_documents or budget.exhausted:
                         break
-                    for bill_id, hit in await self._search(client, term, api_key, budget):
+                    for bill_id, hit in await self._search(
+                        client, term, api_key, budget, state
+                    ):
                         if len(results) >= max_documents or budget.exhausted:
                             break
                         result = await self._to_crawl_result(
@@ -218,12 +231,17 @@ class LegiscanSource(PolicySource):
         return results
 
     async def _search(
-        self, client: httpx.AsyncClient, term: str, api_key: str, budget: "_CallBudget"
+        self,
+        client: httpx.AsyncClient,
+        term: str,
+        api_key: str,
+        budget: "_CallBudget",
+        state: str = "ALL",
     ) -> list[tuple[int, dict]]:
         try:
             resp = await client.get(
                 BASE_URL,
-                params={"key": api_key, "op": "getSearchRaw", "state": "ALL", "query": term},
+                params={"key": api_key, "op": "getSearchRaw", "state": state, "query": term},
             )
             budget.spend()
             resp.raise_for_status()

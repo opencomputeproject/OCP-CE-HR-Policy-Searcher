@@ -46,8 +46,8 @@ const chatUsers = {
 const initialConversations = [
   {
     id: CONVERSATION_ID,
-    title: 'Policy Agent',
-    subtitle: 'Connected to the policy search agent',
+    title: 'Admin assistant',
+    subtitle: 'Can run searches and change settings - actions here cost money',
     participants: [chatUsers.agent, chatUsers.you],
   },
 ];

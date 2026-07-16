@@ -262,3 +262,40 @@ class TestApiStatusError:
             )
         assert results == []
         assert len(fake_client.calls) == 1
+
+
+class TestStateScoping:
+    @pytest.mark.asyncio
+    async def test_default_searches_all_states(self):
+        fake = _FakeAsyncClient([_search_response([])])
+        with patch("httpx.AsyncClient", return_value=fake):
+            await LegiscanSource().fetch({"source_params": {"terms": ["waste heat"]}})
+        assert fake.calls[0]["state"] == "ALL"
+
+    @pytest.mark.asyncio
+    async def test_state_param_scopes_search(self):
+        fake = _FakeAsyncClient([_search_response([])])
+        with patch("httpx.AsyncClient", return_value=fake):
+            await LegiscanSource().fetch(
+                {"source_params": {"terms": ["waste heat"], "state": "CA"}}
+            )
+        assert fake.calls[0]["state"] == "CA"
+
+    @pytest.mark.asyncio
+    async def test_state_param_normalized_upper(self):
+        fake = _FakeAsyncClient([_search_response([])])
+        with patch("httpx.AsyncClient", return_value=fake):
+            await LegiscanSource().fetch(
+                {"source_params": {"terms": ["waste heat"], "state": "ca"}}
+            )
+        assert fake.calls[0]["state"] == "CA"
+
+
+class TestEarlySignalTerms:
+    def test_default_terms_cover_early_us_bill_vocabulary(self):
+        # Real early-stage US bills (NJ A4490, CT HB05337, MN HF4348) are
+        # titled "thermal energy network", not "waste heat" — the defaults
+        # must speak the language bills actually use.
+        assert "thermal energy network" in legiscan.DEFAULT_TERMS
+        assert "heat reuse" in legiscan.DEFAULT_TERMS
+        assert "waste heat" in legiscan.DEFAULT_TERMS

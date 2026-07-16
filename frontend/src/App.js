@@ -6,6 +6,7 @@ import AskPolicyBox from './components/AskPolicyBox';
 import LogoImage from './assets/ocp-logo.svg';
 import LeadsInbox from './components/LeadsInbox';
 import PolicyList from './components/PolicyList';
+import ReviewInbox from './components/ReviewInbox';
 import HelpWindow from './components/HelpWindow';
 import { apiUrl } from './config/api';
 import { getAdminToken } from './utils/adminAuth';
@@ -97,6 +98,7 @@ function App() {
           />
         </section>
         <section className="app-stage" aria-label="Discovered policies">
+          <ReviewInbox isAdmin={!adminRequired || hasAdminToken} />
           <AskPolicyBox />
           <LeadsInbox adminRequired={adminRequired} hasAdminToken={hasAdminToken} />
           <PolicyList />

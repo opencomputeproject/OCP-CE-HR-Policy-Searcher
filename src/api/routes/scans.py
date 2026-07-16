@@ -46,6 +46,7 @@ async def start_scan(
         tags=request.tags,
         policy_type=request.policy_type,
         channels=request.channels,
+        source_params=request.source_params,
     )
     return {
         "scan_id": job.scan_id,

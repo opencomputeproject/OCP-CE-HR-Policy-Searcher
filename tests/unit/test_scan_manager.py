@@ -136,3 +136,57 @@ class TestStartScanChannels:
         job = await manager.start_scan(dry_run=True, channels=["news"])
         assert job.domain_count == 0
         assert job.options["channels"] == ["news"]
+
+
+class TestSourceParamsOverride:
+    """Per-request source_params reach structured sources, never crawl."""
+
+    def test_merges_into_structured_domain(self):
+        domain = {
+            "id": "legiscan_api", "source_type": "legiscan",
+            "source_params": {"max_documents": 10},
+        }
+        result = ScanManager._with_source_params(domain, {"state": "CA"})
+        assert result["source_params"] == {"max_documents": 10, "state": "CA"}
+
+    def test_request_params_win_over_config(self):
+        domain = {
+            "id": "legiscan_api", "source_type": "legiscan",
+            "source_params": {"terms": ["old"]},
+        }
+        result = ScanManager._with_source_params(domain, {"terms": ["new"]})
+        assert result["source_params"]["terms"] == ["new"]
+
+    def test_crawl_domain_untouched(self):
+        domain = {"id": "site1", "base_url": "https://a.gov"}
+        result = ScanManager._with_source_params(domain, {"state": "CA"})
+        assert "source_params" not in result
+
+    def test_original_not_mutated(self):
+        domain = {"id": "legiscan_api", "source_type": "legiscan"}
+        ScanManager._with_source_params(domain, {"state": "CA"})
+        assert "source_params" not in domain
+
+    def test_none_override_is_noop(self):
+        domain = {"id": "legiscan_api", "source_type": "legiscan"}
+        assert ScanManager._with_source_params(domain, None) is domain
+
+    @pytest.mark.asyncio
+    async def test_start_scan_applies_source_params(self, monkeypatch):
+        from unittest.mock import AsyncMock
+        domains = [
+            {"id": "crawl1", "name": "Crawl 1"},
+            {"id": "api1", "name": "Api 1", "source_type": "legiscan"},
+        ]
+        manager = _manager_with_domains(domains)
+        run_mock = AsyncMock()
+        monkeypatch.setattr(manager, "_run_scan", run_mock)
+
+        await manager.start_scan(
+            channels=["crawl", "law_apis"], source_params={"state": "CA"},
+        )
+
+        passed = run_mock.call_args[0][1]
+        by_id = {d["id"]: d for d in passed}
+        assert by_id["api1"]["source_params"] == {"state": "CA"}
+        assert "source_params" not in by_id["crawl1"]

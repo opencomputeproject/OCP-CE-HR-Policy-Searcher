@@ -84,10 +84,10 @@ function AskPolicyBox() {
 
   return (
     <section className="ask-box" aria-label="Ask about policies">
-      <h2 className="ask-box-title">Ask about policies</h2>
+      <h2 className="ask-box-title">Ask about found policies</h2>
       <p className="ask-box-hint">
-        Ask in any language, e.g. &quot;What does Germany require for data center waste
-        heat?&quot; or &quot;Are there incentives in the Nordics?&quot;
+        Free for everyone - answers only from what has already been found. Ask in any
+        language, e.g. &quot;What does Germany require for data center waste heat?&quot;
       </p>
       <form className="ask-box-form" onSubmit={submitQuestion}>
         <label className="visually-hidden" htmlFor="ask-box-input">

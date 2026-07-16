@@ -6,11 +6,12 @@ import Tooltip from '@mui/material/Tooltip';
 import ModeSelector from './ModeSelector';
 import RegionSelector from './RegionSelector';
 
+// "news" is deliberately absent: news signals run on their own weekly
+// schedule, not inside a scan — a checkbox here would silently do nothing.
 const CHANNEL_OPTIONS = [
     { id: 'crawl', label: 'Government websites' },
     { id: 'law_apis', label: 'Law databases' },
     { id: 'transposition', label: 'EU transposition' },
-    { id: 'news', label: 'News signals' },
 ];
 
 function DomainScanPanel({

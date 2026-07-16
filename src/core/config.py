@@ -406,7 +406,21 @@ class ConfigLoader:
     # --- Domain resolution ---
 
     def get_enabled_domains(self, group: str = "all") -> list[dict]:
-        """Resolve domains by group, region, file, or individual ID."""
+        """Resolve domains by group, region, file, or individual ID.
+
+        Accepts a comma-separated list of targets ("california,legiscan_api")
+        and returns the union, deduplicated by domain id — this is what lets
+        one scan cover a place's websites plus its structured law sources.
+        """
+        if "," in group:
+            merged: dict[str, dict] = {}
+            for part in (p.strip() for p in group.split(",")):
+                if not part:
+                    continue
+                for domain in self.get_enabled_domains(part):
+                    merged.setdefault(domain["id"], domain)
+            return list(merged.values())
+
         all_domains = {d["id"]: d for d in self.domains_config.get("domains", [])}
 
         if group == "all":

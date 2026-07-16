@@ -8,6 +8,7 @@ import AgentChatPanel from './AgentChatPanel';
 import ApiKeySettingsModal from './ApiKeySettingsModal';
 import DomainScanPanel from './DomainScanPanel';
 import PolicyScannerHeader from './PolicyScannerHeader';
+import SearchPanel from './SearchPanel';
 
 function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminTokenChange }) {
     const [selectedRegions, setSelectedRegions] = useState([]);
@@ -16,6 +17,7 @@ function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminToken
     const [chatNotice, setChatNotice] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [hasApiKey, setHasApiKey] = useState(false);
+    const [isSearchBusy, setIsSearchBusy] = useState(false);
     const isStandardMode = mode === 'standard';
     const isReadOnly = adminRequired && !hasAdminToken;
     const scanOptions = {
@@ -50,7 +52,8 @@ function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminToken
         onNotice: pushNotice,
     });
 
-    const isBusy = isChatRunning || isScanRunning || isScanRequestRunning || isQueueRunning;
+    const isBusy = isChatRunning || isScanRunning || isScanRequestRunning
+        || isQueueRunning || isSearchBusy;
 
     const fetchApiKeyStatus = useCallback(async () => {
         try {
@@ -103,24 +106,34 @@ function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminToken
                 </p>
             ) : (
                 <>
-                    <DomainScanPanel
-                        selectedRegions={selectedRegions}
-                        onSelectionChange={(event, itemIds) => setSelectedRegions(itemIds)}
-                        mode={mode}
-                        onModeChange={setMode}
-                        channels={channels}
-                        onChannelsChange={setChannels}
-                        costStatus={costStatus}
-                        costEstimateText={costEstimateText}
-                        isBusy={isBusy}
+                    <SearchPanel
                         hasApiKey={hasApiKey}
-                        isQueueRunning={isQueueRunning}
-                        queuedScanCount={queuedScanCount}
-                        isScanRequestRunning={isScanRequestRunning}
-                        isScanRunning={isScanRunning}
-                        onScan={scanSelectedRegion}
-                        onStop={stopActiveScan}
+                        isBusy={isBusy}
+                        onBusyChange={setIsSearchBusy}
                     />
+                    <details className="advanced-scan">
+                        <summary className="advanced-scan-summary">
+                            Advanced: pick individual regions and sources
+                        </summary>
+                        <DomainScanPanel
+                            selectedRegions={selectedRegions}
+                            onSelectionChange={(event, itemIds) => setSelectedRegions(itemIds)}
+                            mode={mode}
+                            onModeChange={setMode}
+                            channels={channels}
+                            onChannelsChange={setChannels}
+                            costStatus={costStatus}
+                            costEstimateText={costEstimateText}
+                            isBusy={isBusy}
+                            hasApiKey={hasApiKey}
+                            isQueueRunning={isQueueRunning}
+                            queuedScanCount={queuedScanCount}
+                            isScanRequestRunning={isScanRequestRunning}
+                            isScanRunning={isScanRunning}
+                            onScan={scanSelectedRegion}
+                            onStop={stopActiveScan}
+                        />
+                    </details>
                     <AgentChatPanel
                         wsRef={wsRef}
                         notice={chatNotice}
