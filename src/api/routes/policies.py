@@ -68,9 +68,20 @@ class ReviewUpdate(BaseModel):
 def update_review_status(
     update: ReviewUpdate,
     store: PolicyStore = Depends(get_policy_store),
+    manager: ScanManager = Depends(get_scan_manager),
 ):
     """Set a policy's review status (admin action via the gate middleware)."""
-    if not store.update_review_status(update.url, update.review_status):
+    updated = store.update_review_status(update.url, update.review_status)
+
+    # Policies also live in ScanManager's in-memory results for the life of
+    # the process; without this, a reviewed policy resurrects in the "new"
+    # queue on the next list merge.
+    for policy in manager.get_all_policies():
+        if policy.url == update.url:
+            policy.review_status = update.review_status
+            updated = True
+
+    if not updated:
         raise HTTPException(
             status_code=404, detail=f"No policy with URL: {update.url}",
         )

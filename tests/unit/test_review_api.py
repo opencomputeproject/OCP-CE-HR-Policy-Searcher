@@ -69,6 +69,40 @@ class TestUpdateReviewStatus:
         stored = {p["url"]: p for p in store.get_all()}
         assert stored["https://a.gov/1"]["review_status"] == "reviewed"
 
+    def test_in_memory_scan_copy_also_updated(self, store, monkeypatch):
+        """Marking reviewed must not resurrect via ScanManager's in-memory copy.
+
+        Policies live in two places while the server runs: the JSON store and
+        ScanManager._policies. If PATCH only updates the store, the in-memory
+        copy (review_status='new') re-enters the review queue on every merge.
+        """
+        monkeypatch.delenv("ADMIN_TOKEN", raising=False)
+
+        from src.api.app import app
+        from src.api import deps
+
+        in_memory = _policy("https://a.gov/1", "new")
+        manager = MagicMock()
+        manager.get_all_policies.return_value = [in_memory]
+        app.dependency_overrides[deps.get_policy_store] = lambda: store
+        app.dependency_overrides[deps.get_scan_manager] = lambda: manager
+        try:
+            with TestClient(app) as c:
+                resp = c.patch(
+                    "/api/policies/review",
+                    json={"url": "https://a.gov/1", "review_status": "reviewed"},
+                )
+                assert resp.status_code == 200
+                assert in_memory.review_status == "reviewed"
+
+                listed = c.get(
+                    "/api/policies", params={"review_status": "new"},
+                ).json()
+                urls = {p["url"] for p in listed["policies"]}
+                assert "https://a.gov/1" not in urls
+        finally:
+            app.dependency_overrides.clear()
+
     def test_unknown_url_404(self, client):
         resp = client.patch(
             "/api/policies/review",
