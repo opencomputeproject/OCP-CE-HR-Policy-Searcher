@@ -108,6 +108,8 @@ class ScanManager:
         if source_params:
             domains = [self._with_source_params(d, source_params) for d in domains]
 
+        domains = self._structured_first(domains)
+
         job = ScanJob(
             scan_id=scan_id,
             status=ScanStatus.RUNNING,
@@ -162,6 +164,21 @@ class ScanManager:
         if source_type == "eurlex_nim":
             return "transposition"
         return "law_apis"
+
+    @staticmethod
+    def _structured_first(domains: list[dict]) -> list[dict]:
+        """Order structured sources ahead of crawls, preserving config order.
+
+        Structured sources (law APIs, transposition trackers) query an
+        official index directly: they are fast, cheap, and account for most
+        of what a scan finds. Crawls are the long tail. Config file order
+        would otherwise scatter the APIs through the queue — a 165-domain
+        US scan buried them at positions 40, 101 and 119 — so the useful
+        results arrived last and Stop threw them away.
+        """
+        return sorted(
+            domains, key=lambda d: ScanManager._domain_channel(d) == "crawl"
+        )
 
     @staticmethod
     def _with_source_params(domain: dict, overrides: Optional[dict]) -> dict:
