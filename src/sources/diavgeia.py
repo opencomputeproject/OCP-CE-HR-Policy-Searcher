@@ -140,7 +140,7 @@ class DiavgeiaSource(PolicySource):
         # metadata-only if the document is unavailable or a scanned image.
         document_text = ""
         document_url = decision.get("documentUrl")
-        if document_url:
+        if document_url and isinstance(document_url, str):
             document_text, _ = await fetch_document_text(client, document_url)
 
         content = "\n\n".join(p for p in (

@@ -52,6 +52,9 @@ class RiigikoguSource(PolicySource):
     id = "riigikogu"
     api_key_env = None
 
+    # Reset per fetch; class default keeps helpers safe if called directly.
+    _request_count = 0
+
     async def fetch(self, domain: dict) -> list[CrawlResult]:
         params = domain.get("source_params", {})
         terms = params.get("terms") or DEFAULT_TERMS

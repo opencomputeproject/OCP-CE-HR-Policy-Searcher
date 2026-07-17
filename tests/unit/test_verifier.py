@@ -89,6 +89,29 @@ class TestJurisdictionMismatch:
         )
         assert VerificationFlag.JURISDICTION_MISMATCH not in flags
 
+    def test_second_batch_source_countries_are_checked(self):
+        """Every country with a structured source must be in the
+        jurisdiction map, or the mismatch check silently skips for it.
+        Regression for the 2026-07-17 batch (GR, EE, PL, ZA, BR)."""
+        v = Verifier()
+        for region, native in [
+            ("greece", "Ελλάδα"),
+            ("estonia", "Eesti"),
+            ("poland", "Polska"),
+            ("south_africa", "South Africa"),
+            ("brazil", "Brasil"),
+        ]:
+            flags = v.verify(
+                _make_policy(url=f"https://example.org/{region}", jurisdiction=native),
+                domain_regions=[region],
+            )
+            assert VerificationFlag.JURISDICTION_MISMATCH not in flags, region
+            flags = v.verify(
+                _make_policy(url=f"https://example.org/{region}2", jurisdiction="France"),
+                domain_regions=[region],
+            )
+            assert VerificationFlag.JURISDICTION_MISMATCH in flags, region
+
 
 class TestFutureDate:
     def test_reasonable_future_date_ok(self):

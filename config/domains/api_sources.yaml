@@ -426,7 +426,7 @@ domains:
     base_url: "https://dadosabertos.camara.leg.br"
     region:
       - "brazil"
-      - "latam"
+      - "south_america"
     category: "legislation"
     tags:
       - "mandates"
