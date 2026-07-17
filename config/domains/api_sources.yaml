@@ -165,3 +165,90 @@ domains:
     notes: |
       Structured source added 2026-07-12, discovery expansion plan.
       Requires DIP_API_KEY; self-disables until set.
+
+  # ---------------------------------------------------------------------------
+  # Wave 1 keyless sources (added 2026-07-17). All live-verified on the day;
+  # none needs an API key. See 20260716_0136_Global_Policy_Source_Catalog.md.
+  # ---------------------------------------------------------------------------
+
+  - id: "eu_have_your_say"
+    name: "EU Have Your Say (Better Regulation portal)"
+    enabled: true
+    source_type: "eu_have_your_say"
+    base_url: "https://ec.europa.eu/info/law/better-regulation/have-your-say"
+    region:
+      - "eu"
+    category: "legislation"
+    tags:
+      - "consultation"
+      - "early-signal"
+    policy_types:
+      - "legislation"
+    notes: |
+      Earliest signal of any source: Commission initiatives with explicit
+      feedback windows. receivingFeedbackStatus=OPEN -> lifecycle
+      "consultation", i.e. input can still shape the act. The API is
+      undocumented/internal to the Commission portal and may change without
+      notice; the client degrades to empty rather than raising.
+      License: Decision 2011/833/EU (CC BY 4.0-aligned).
+
+  - id: "govuk_consultations"
+    name: "UK gov.uk consultations and policy papers"
+    enabled: true
+    source_type: "govuk"
+    base_url: "https://www.gov.uk"
+    region:
+      - "uk"
+    category: "legislation"
+    tags:
+      - "consultation"
+      - "early-signal"
+    policy_types:
+      - "legislation"
+    notes: |
+      Complements uk_bills: consultations and policy papers precede bills by
+      months. open_consultation / open_call_for_evidence -> lifecycle
+      "consultation"; the closing date is folded into the content so the
+      analysis model sees the deadline. License: Open Government Licence v3.0.
+
+  - id: "oireachtas_api"
+    name: "Oireachtas (Parliament of Ireland)"
+    enabled: true
+    source_type: "oireachtas"
+    base_url: "https://api.oireachtas.ie"
+    region:
+      - "ireland"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Ireland is a top EU data-centre market with no structured coverage
+      before this. The API has NO full-text search, so the client pages
+      bills by status and matches titles locally with deliberately BROAD
+      terms - measured on all 1024 live bills, "waste heat" and "data
+      centre" matched 0 while "energy" matched 24, including "Prevention of
+      Energy Wastage Bill 2026".
+
+  - id: "tweede_kamer_api"
+    name: "Tweede Kamer (Dutch House of Representatives)"
+    enabled: true
+    source_type: "tweede_kamer"
+    base_url: "https://gegevensmagazijn.tweedekamer.nl"
+    region:
+      - "netherlands"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Only keyless source with SERVER-SIDE keyword search (OData contains()),
+      so no local corpus scan needed. Dutch terms only: restwarmte,
+      warmtenet, datacenter, warmtewet. Defaults to law-changing Soorten
+      (Wetgeving/Motie/Amendement) because written questions and government
+      letters dominate raw results but are commentary, not policy.
+      License: CC0 per opendata.tweedekamer.nl.
