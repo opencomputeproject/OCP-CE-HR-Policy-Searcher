@@ -24,10 +24,12 @@
     "eject": "react-scripts eject"
   },
   "overrides": {
+    "@tootallnate/once": "^2.0.1",
     "nth-check": "^2.1.1",
     "postcss": "^8.4.31",
     "serialize-javascript": "^7.0.5",
-    "underscore": "^1.13.7"
+    "underscore": "^1.13.7",
+    "uuid": "^11.1.1"
   },
   "eslintConfig": {
     "extends": [
