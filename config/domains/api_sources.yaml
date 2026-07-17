@@ -322,3 +322,122 @@ domains:
       matched 7 and catches the Energy Act amendment. Dates are .NET WCF
       format and the trailing offset must be applied or late-evening cases
       report a day early. License: NLOD.
+
+  # ---------------------------------------------------------------------------
+  # Wave 2 completion + Wave 3 quick wins (added 2026-07-17, second batch).
+  # All keyless, all live-verified same day.
+  # ---------------------------------------------------------------------------
+
+  - id: "diavgeia_api"
+    name: "Diavgeia transparency register (Greece)"
+    enabled: true
+    source_type: "diavgeia"
+    base_url: "https://diavgeia.gov.gr"
+    region:
+      - "greece"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "early-signal"
+    policy_types:
+      - "regulation"
+    notes: |
+      Greece's statutory transparency register: by law every government act
+      is INVALID until posted here, which makes it same-day early by
+      statute (the Greek Parliament itself has no API). Access trap pinned
+      by a test: the plain /opendata/search `q` param is a NO-OP (nonsense
+      queries return all 3.1M acts) - only /opendata/search/advanced with
+      subject:"..." syntax filters. Greek search stems, so one grammatical
+      form per term suffices. Executive acts, not bills, so no lifecycle
+      stage is claimed.
+
+  - id: "riigikogu_api"
+    name: "Riigikogu (Parliament of Estonia)"
+    enabled: true
+    source_type: "riigikogu"
+    base_url: "https://api.riigikogu.ee"
+    region:
+      - "estonia"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Server-side title filter genuinely works (nonsense returns 0 - the
+      check Retsinformation failed). Estonian inflects, so defaults are
+      SUBSTRING STEMS: kaugküte matched 0 while the stem kaugküt matched
+      61 (titles use the genitive kaugkütte). The API 429s at 2 req/s, so
+      the client spaces requests 1s apart. Citations prefer the document's
+      PUBLIC PDF on riigikogu.ee.
+
+  - id: "sejm_api"
+    name: "Sejm (Parliament of Poland)"
+    enabled: true
+    source_type: "sejm"
+    base_url: "https://api.sejm.gov.pl"
+    region:
+      - "poland"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      No keyword search; the client fetches the term's full print list
+      (~3100 prints, one 1.7 MB request) and matches titles locally with
+      Polish STEMS - ciepł matched 19 prints, energ 97, klimat 64, while
+      the full phrase "centrum danych" matched 0 (declension). The list
+      arrives oldest-first, so the client walks it newest-first or the
+      document cap would spend itself on 2023 leftovers. Citation = the
+      print's official PDF on api.sejm.gov.pl.
+
+  - id: "pmg_api"
+    name: "PMG bills and comment windows (South Africa)"
+    enabled: true
+    source_type: "pmg"
+    base_url: "https://api.pmg.org.za"
+    region:
+      - "south_africa"
+      - "africa"
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "consultation"
+      - "early-signal"
+    policy_types:
+      - "legislation"
+    notes: |
+      First African source. The call-for-comment feed carries OPEN comment
+      windows (lifecycle "consultation" with the deadline folded into
+      content, same pattern as gov.uk). HONESTY NOTE: South Africa's
+      Parliament has no open API; PMG is a 30-year-old parliamentary
+      monitoring NGO whose record parliament itself references, and this
+      is the one source whose citation URLs are not on a government
+      domain. Its pages carry the official bill PDFs. License: CC BY.
+
+  - id: "camara_api"
+    name: "Câmara dos Deputados (Brazil)"
+    enabled: true
+    source_type: "camara"
+    base_url: "https://dadosabertos.camara.leg.br"
+    region:
+      - "brazil"
+      - "latam"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      First Latin American source; Brazil's data-centre build-out (the
+      Redata tax-incentive push) makes it worth watching. Server-side
+      keyword search verified real (nonsense returns 0 rows) but it
+      matches INDEXED keywords, not full text. Term evidence: eficiência
+      energética 17, centro de dados 2, datacenter 1; plain "calor" is
+      poisoned (workplace-heat allowance bills). The Senado's API is
+      deliberately excluded - its replacement endpoint ignored keyword
+      filters when probed. License: free with attribution.

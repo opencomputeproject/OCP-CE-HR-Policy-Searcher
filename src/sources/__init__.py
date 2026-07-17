@@ -51,6 +51,11 @@ from . import tweede_kamer  # noqa: E402, F401
 from . import egov_japan  # noqa: E402, F401
 from . import kokkai  # noqa: E402, F401
 from . import stortinget  # noqa: E402, F401
+from . import diavgeia  # noqa: E402, F401
+from . import riigikogu  # noqa: E402, F401
+from . import sejm  # noqa: E402, F401
+from . import pmg  # noqa: E402, F401
+from . import camara  # noqa: E402, F401
 
 # Client modules self-register via @register_source on import.
 from . import legiscan  # noqa: E402,F401
