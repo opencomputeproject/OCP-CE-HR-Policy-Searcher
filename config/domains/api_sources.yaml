@@ -441,3 +441,30 @@ domains:
       poisoned (workplace-heat allowance bills). The Senado's API is
       deliberately excluded - its replacement endpoint ignored keyword
       filters when probed. License: free with attribution.
+
+  - id: "nz_pco_api"
+    name: "PCO Legislation API (New Zealand)"
+    enabled: true
+    source_type: "nz_pco"
+    base_url: "https://api.legislation.govt.nz"
+    region:
+      - "new_zealand"
+      - "apac"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Keyed source (NZ_PCO_API_KEY, by email from contact@pco.govt.nz;
+      self-disables until set). The best-behaved API in the registry:
+      genuine full-text content search - so precise domain phrases work,
+      measured "waste heat" 6 / "data centre" 7 / "heat recovery" 5 -
+      with official legislation.govt.nz HTML/PDF/XML URLs per hit.
+      Bill "terminated" claims no stage (defeated, withdrawn and lapsed
+      look identical); acts claim "enacted" only while in force.
+      Caveat: the API is metadata-only and its format URLs sit behind
+      www.legislation.govt.nz's AWS WAF (empty 202 challenge to scripts),
+      so content is metadata plus an explicit "full-text search matched
+      <term> in this document" line - the server-side match is the signal.
+      NZ legislation is public domain. 10k requests/day limit.

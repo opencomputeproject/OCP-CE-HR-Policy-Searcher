@@ -100,6 +100,7 @@ class TestJurisdictionMismatch:
             ("poland", "Polska"),
             ("south_africa", "South Africa"),
             ("brazil", "Brasil"),
+            ("new_zealand", "New Zealand"),
         ]:
             flags = v.verify(
                 _make_policy(url=f"https://example.org/{region}", jurisdiction=native),

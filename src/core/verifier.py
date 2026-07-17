@@ -39,6 +39,7 @@ _REGION_JURISDICTIONS: dict[str, list[str]] = {
     "poland": ["poland", "polish", "polska", "rzeczpospolita"],
     "south_africa": ["south africa", "south african"],
     "brazil": ["brazil", "brazilian", "brasil"],
+    "new_zealand": ["new zealand", "aotearoa"],
     "eu": ["european union", "eu", "european"],
     "oregon": ["oregon"],
     "texas": ["texas"],
