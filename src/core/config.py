@@ -634,4 +634,19 @@ class ConfigLoader:
                         f"Domain '{d['id']}' has unrecognized region: {r}"
                     )
 
+        # Check region tags against the jurisdiction registry. A miss is a
+        # WARNING, never an error, and the check is skipped entirely if the
+        # registry file is absent — existing behavior must not break.
+        from . import jurisdictions
+
+        if jurisdictions._load():  # non-empty registry loaded
+            for d in all_domains.values():
+                source = d.get("_source_file", "?")
+                for r in d.get("region", []):
+                    if jurisdictions.get(r) is None:
+                        warnings.append(
+                            f"Region '{r}' (domain '{d['id']}', file "
+                            f"{source}.yaml) is not in the jurisdiction registry"
+                        )
+
         return warnings

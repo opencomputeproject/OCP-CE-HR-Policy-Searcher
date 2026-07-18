@@ -1,0 +1,1048 @@
+# Jurisdiction registry - canonical answer to 'what jurisdiction is
+# this, what is its ISO code, what does it roll up to'.
+#
+# One row per jurisdiction. Adding a new source's region = add one row
+# here, not vocabulary across config.py / verifier.py / tools.py.
+#
+# kind: country | us_state | subnational | supranational | group
+# iso3 / iso_numeric: countries only (iso_numeric is the world-atlas map key).
+# code: ISO 3166-2 for us_state / subnational (e.g. US-MN, DE-HE).
+# parent: slug this rolls up to (us_state/subnational -> country).
+# members: group/supranational only.
+# aliases: lowercase strings that resolve here (LLM free text, other langs).
+
+jurisdictions:
+- slug: eu
+  name: European Union
+  kind: supranational
+  parent: null
+  members:
+  - germany
+  - france
+  - netherlands
+  - denmark
+  - sweden
+  - ireland
+  - austria
+  - belgium
+  - spain
+  - italy
+  - poland
+  - portugal
+  - czech_republic
+  - greece
+  - hungary
+  - romania
+  - finland
+  - estonia
+  - luxembourg
+  aliases:
+  - eu-wide
+  - european union
+  - european union (analyzed by sweden)
+- slug: europe
+  name: Europe
+  kind: group
+  parent: null
+  members:
+  - germany
+  - france
+  - netherlands
+  - denmark
+  - sweden
+  - ireland
+  - austria
+  - belgium
+  - spain
+  - italy
+  - poland
+  - portugal
+  - czech_republic
+  - greece
+  - hungary
+  - romania
+  - finland
+  - estonia
+  - luxembourg
+  - norway
+  - switzerland
+  - iceland
+  - uk
+  aliases:
+  - european
+- slug: nordic
+  name: Nordic Countries
+  kind: group
+  parent: null
+  members:
+  - denmark
+  - sweden
+  - norway
+  - finland
+  - iceland
+  aliases: []
+- slug: eu_central
+  name: Central Europe
+  kind: group
+  parent: null
+  members:
+  - germany
+  - switzerland
+  - austria
+  - france
+  aliases:
+  - dach
+- slug: eu_west
+  name: Western Europe
+  kind: group
+  parent: null
+  members:
+  - netherlands
+  - belgium
+  - ireland
+  aliases: []
+- slug: eu_south
+  name: Southern Europe
+  kind: group
+  parent: null
+  members:
+  - spain
+  - italy
+  - portugal
+  - greece
+  aliases: []
+- slug: eu_east
+  name: Eastern Europe
+  kind: group
+  parent: null
+  members:
+  - poland
+  - czech_republic
+  - hungary
+  - romania
+  - estonia
+  aliases: []
+- slug: apac
+  name: Asia-Pacific
+  kind: group
+  parent: null
+  members:
+  - singapore
+  - japan
+  - south_korea
+  - australia
+  - india
+  aliases:
+  - asia pacific
+  - asia-pacific
+- slug: north_america
+  name: North America
+  kind: group
+  parent: null
+  members:
+  - us
+  - canada
+  - mexico
+  aliases: []
+- slug: south_america
+  name: South America
+  kind: group
+  parent: null
+  members:
+  - brazil
+  aliases: []
+- slug: middle_east
+  name: Middle East
+  kind: group
+  parent: null
+  members:
+  - uae
+  - saudi_arabia
+  aliases: []
+- slug: africa
+  name: Africa
+  kind: group
+  parent: null
+  members:
+  - south_africa
+  aliases: []
+- slug: us_states
+  name: US States
+  kind: group
+  parent: null
+  members:
+  - alabama
+  - alaska
+  - arizona
+  - arkansas
+  - california
+  - colorado
+  - connecticut
+  - delaware
+  - district_of_columbia
+  - florida
+  - georgia
+  - hawaii
+  - idaho
+  - illinois
+  - indiana
+  - iowa
+  - kansas
+  - kentucky
+  - louisiana
+  - maine
+  - maryland
+  - massachusetts
+  - michigan
+  - minnesota
+  - mississippi
+  - missouri
+  - montana
+  - nebraska
+  - nevada
+  - new_hampshire
+  - new_jersey
+  - new_mexico
+  - new_york
+  - north_carolina
+  - north_dakota
+  - ohio
+  - oklahoma
+  - oregon
+  - pennsylvania
+  - rhode_island
+  - south_carolina
+  - south_dakota
+  - tennessee
+  - texas
+  - utah
+  - vermont
+  - virginia
+  - washington
+  - west_virginia
+  - wisconsin
+  - wyoming
+  aliases:
+  - us state governments
+- slug: germany
+  name: Germany
+  kind: country
+  iso3: DEU
+  iso_numeric: '276'
+  parent: null
+  aliases:
+  - bundesrepublik
+  - deutsch
+  - deutschland
+  - german
+  - germany (federal)
+- slug: france
+  name: France
+  kind: country
+  iso3: FRA
+  iso_numeric: '250'
+  parent: null
+  aliases:
+  - français
+  - française
+  - french
+- slug: netherlands
+  name: Netherlands
+  kind: country
+  iso3: NLD
+  iso_numeric: '528'
+  parent: null
+  aliases:
+  - dutch
+  - nederland
+  - the netherlands
+- slug: denmark
+  name: Denmark
+  kind: country
+  iso3: DNK
+  iso_numeric: '208'
+  parent: null
+  aliases:
+  - danish
+  - danmark
+- slug: sweden
+  name: Sweden
+  kind: country
+  iso3: SWE
+  iso_numeric: '752'
+  parent: null
+  aliases:
+  - sverige
+  - sweden (eu)
+  - sweden (eu-wide directive)
+  - swedish
+- slug: ireland
+  name: Ireland
+  kind: country
+  iso3: IRL
+  iso_numeric: '372'
+  parent: null
+  aliases:
+  - irish
+  - republic of ireland
+  - éire
+- slug: austria
+  name: Austria
+  kind: country
+  iso3: AUT
+  iso_numeric: '040'
+  parent: null
+  aliases:
+  - austrian
+  - österreich
+- slug: belgium
+  name: Belgium
+  kind: country
+  iso3: BEL
+  iso_numeric: '056'
+  parent: null
+  aliases:
+  - belgian
+  - belgique
+  - belgium (flanders)
+  - belgië
+  - brussels
+  - brussels capital region
+  - brussels capital region, belgium
+  - brussels-capital region
+  - brussels-capital region, belgium
+  - flanders
+  - flanders, belgium
+  - wallonia
+  - wallonia, belgium
+- slug: spain
+  name: Spain
+  kind: country
+  iso3: ESP
+  iso_numeric: '724'
+  parent: null
+  aliases:
+  - españa
+  - spanish
+- slug: italy
+  name: Italy
+  kind: country
+  iso3: ITA
+  iso_numeric: '380'
+  parent: null
+  aliases:
+  - italia
+  - italian
+- slug: poland
+  name: Poland
+  kind: country
+  iso3: POL
+  iso_numeric: '616'
+  parent: null
+  aliases:
+  - polish
+  - polska
+- slug: portugal
+  name: Portugal
+  kind: country
+  iso3: PRT
+  iso_numeric: '620'
+  parent: null
+  aliases:
+  - portuguese
+- slug: czech_republic
+  name: Czech Republic
+  kind: country
+  iso3: CZE
+  iso_numeric: '203'
+  parent: null
+  aliases:
+  - czech
+  - czechia
+  - česko
+- slug: greece
+  name: Greece
+  kind: country
+  iso3: GRC
+  iso_numeric: '300'
+  parent: null
+  aliases:
+  - elláda
+  - greek
+  - hellas
+- slug: hungary
+  name: Hungary
+  kind: country
+  iso3: HUN
+  iso_numeric: '348'
+  parent: null
+  aliases:
+  - hungarian
+  - magyarország
+- slug: romania
+  name: Romania
+  kind: country
+  iso3: ROU
+  iso_numeric: '642'
+  parent: null
+  aliases:
+  - romanian
+  - românia
+- slug: finland
+  name: Finland
+  kind: country
+  iso3: FIN
+  iso_numeric: '246'
+  parent: null
+  aliases:
+  - finland (eu)
+  - finland (eu-wide regulation)
+  - finnish
+  - suomi
+- slug: estonia
+  name: Estonia
+  kind: country
+  iso3: EST
+  iso_numeric: '233'
+  parent: null
+  aliases:
+  - eesti
+  - estonian
+- slug: luxembourg
+  name: Luxembourg
+  kind: country
+  iso3: LUX
+  iso_numeric: '442'
+  parent: null
+  aliases:
+  - luxembourgish
+- slug: norway
+  name: Norway
+  kind: country
+  iso3: NOR
+  iso_numeric: '578'
+  parent: null
+  aliases:
+  - norge
+  - norwegian
+- slug: switzerland
+  name: Switzerland
+  kind: country
+  iso3: CHE
+  iso_numeric: '756'
+  parent: null
+  aliases:
+  - schweiz
+  - suisse
+  - svizzera
+  - swiss
+- slug: iceland
+  name: Iceland
+  kind: country
+  iso3: ISL
+  iso_numeric: '352'
+  parent: null
+  aliases:
+  - icelandic
+  - ísland
+- slug: uk
+  name: United Kingdom
+  kind: country
+  iso3: GBR
+  iso_numeric: '826'
+  parent: null
+  aliases:
+  - britain
+  - british
+  - england
+  - england (united kingdom)
+  - gbr
+  - great britain
+  - united kingdom
+- slug: singapore
+  name: Singapore
+  kind: country
+  iso3: SGP
+  iso_numeric: '702'
+  parent: null
+  aliases:
+  - singaporean
+- slug: japan
+  name: Japan
+  kind: country
+  iso3: JPN
+  iso_numeric: '392'
+  parent: null
+  aliases:
+  - japanese
+  - nippon
+- slug: south_korea
+  name: South Korea
+  kind: country
+  iso3: KOR
+  iso_numeric: '410'
+  parent: null
+  aliases:
+  - korea
+  - korean
+  - republic of korea
+- slug: australia
+  name: Australia
+  kind: country
+  iso3: AUS
+  iso_numeric: '036'
+  parent: null
+  aliases:
+  - australian
+- slug: india
+  name: India
+  kind: country
+  iso3: IND
+  iso_numeric: '356'
+  parent: null
+  aliases:
+  - bharat
+  - indian
+- slug: us
+  name: United States
+  kind: country
+  iso3: USA
+  iso_numeric: '840'
+  parent: null
+  aliases:
+  - america
+  - american
+  - u.s.
+  - u.s.a.
+  - united states
+  - united states (federal)
+  - united states of america
+  - us federal
+  - usa
+- slug: canada
+  name: Canada
+  kind: country
+  iso3: CAN
+  iso_numeric: '124'
+  parent: null
+  aliases:
+  - canada (federal)
+  - canadian
+- slug: brazil
+  name: Brazil
+  kind: country
+  iso3: BRA
+  iso_numeric: '076'
+  parent: null
+  aliases:
+  - brasil
+  - brazilian
+- slug: mexico
+  name: Mexico
+  kind: country
+  iso3: MEX
+  iso_numeric: '484'
+  parent: null
+  aliases:
+  - mexican
+  - méxico
+- slug: uae
+  name: United Arab Emirates
+  kind: country
+  iso3: ARE
+  iso_numeric: '784'
+  parent: null
+  aliases:
+  - emirates
+  - emirati
+  - united arab emirates
+- slug: saudi_arabia
+  name: Saudi Arabia
+  kind: country
+  iso3: SAU
+  iso_numeric: '682'
+  parent: null
+  aliases:
+  - ksa
+  - saudi
+  - saudi arabia
+- slug: south_africa
+  name: South Africa
+  kind: country
+  iso3: ZAF
+  iso_numeric: '710'
+  parent: null
+  aliases:
+  - south african
+- slug: scotland
+  name: Scotland
+  kind: subnational
+  code: GB-SCT
+  parent: uk
+  aliases:
+  - scottish
+- slug: wales
+  name: Wales
+  kind: subnational
+  code: GB-WLS
+  parent: uk
+  aliases:
+  - cymru
+  - welsh
+- slug: northern_ireland
+  name: Northern Ireland
+  kind: subnational
+  code: GB-NIR
+  parent: uk
+  aliases: []
+- slug: zurich
+  name: Zurich
+  kind: subnational
+  code: CH-ZH
+  parent: switzerland
+  aliases:
+  - canton of zurich
+  - zürich
+- slug: hessen
+  name: Hesse
+  kind: subnational
+  code: DE-HE
+  parent: germany
+  aliases:
+  - hesse
+- slug: bayern
+  name: Bavaria
+  kind: subnational
+  code: DE-BY
+  parent: germany
+  aliases:
+  - bavaria
+- slug: nordrhein_westfalen
+  name: North Rhine-Westphalia
+  kind: subnational
+  code: DE-NW
+  parent: germany
+  aliases:
+  - north rhine-westphalia
+  - nrw
+- slug: baden_wuerttemberg
+  name: Baden-Württemberg
+  kind: subnational
+  code: DE-BW
+  parent: germany
+  aliases:
+  - baden-wuerttemberg
+  - baden-württemberg
+- slug: berlin
+  name: Berlin
+  kind: subnational
+  code: DE-BE
+  parent: germany
+  aliases: []
+- slug: hamburg
+  name: Hamburg
+  kind: subnational
+  code: DE-HH
+  parent: germany
+  aliases: []
+- slug: niedersachsen
+  name: Lower Saxony
+  kind: subnational
+  code: DE-NI
+  parent: germany
+  aliases:
+  - lower saxony
+  - peine, lower saxony
+- slug: sachsen
+  name: Saxony
+  kind: subnational
+  code: DE-SN
+  parent: germany
+  aliases:
+  - saxony
+- slug: new_south_wales
+  name: New South Wales
+  kind: subnational
+  code: AU-NSW
+  parent: australia
+  aliases:
+  - nsw
+- slug: south_australia
+  name: South Australia
+  kind: subnational
+  code: AU-SA
+  parent: australia
+  aliases: []
+- slug: karnataka
+  name: Karnataka
+  kind: subnational
+  code: IN-KA
+  parent: india
+  aliases: []
+- slug: tamil_nadu
+  name: Tamil Nadu
+  kind: subnational
+  code: IN-TN
+  parent: india
+  aliases: []
+- slug: telangana
+  name: Telangana
+  kind: subnational
+  code: IN-TG
+  parent: india
+  aliases: []
+- slug: maharashtra
+  name: Maharashtra
+  kind: subnational
+  code: IN-MH
+  parent: india
+  aliases: []
+- slug: ontario
+  name: Ontario
+  kind: subnational
+  code: CA-ON
+  parent: canada
+  aliases: []
+- slug: british_columbia
+  name: British Columbia
+  kind: subnational
+  code: CA-BC
+  parent: canada
+  aliases:
+  - bc
+- slug: quebec
+  name: Quebec
+  kind: subnational
+  code: CA-QC
+  parent: canada
+  aliases:
+  - québec
+- slug: alberta
+  name: Alberta
+  kind: subnational
+  code: CA-AB
+  parent: canada
+  aliases: []
+- slug: abu_dhabi
+  name: Abu Dhabi
+  kind: subnational
+  code: AE-AZ
+  parent: uae
+  aliases: []
+- slug: dubai
+  name: Dubai
+  kind: subnational
+  code: AE-DU
+  parent: uae
+  aliases: []
+- slug: alabama
+  name: Alabama
+  kind: us_state
+  code: US-AL
+  parent: us
+  aliases: []
+- slug: alaska
+  name: Alaska
+  kind: us_state
+  code: US-AK
+  parent: us
+  aliases: []
+- slug: arizona
+  name: Arizona
+  kind: us_state
+  code: US-AZ
+  parent: us
+  aliases: []
+- slug: arkansas
+  name: Arkansas
+  kind: us_state
+  code: US-AR
+  parent: us
+  aliases: []
+- slug: california
+  name: California
+  kind: us_state
+  code: US-CA
+  parent: us
+  aliases: []
+- slug: colorado
+  name: Colorado
+  kind: us_state
+  code: US-CO
+  parent: us
+  aliases: []
+- slug: connecticut
+  name: Connecticut
+  kind: us_state
+  code: US-CT
+  parent: us
+  aliases: []
+- slug: delaware
+  name: Delaware
+  kind: us_state
+  code: US-DE
+  parent: us
+  aliases: []
+- slug: district_of_columbia
+  name: District Of Columbia
+  kind: us_state
+  code: US-DC
+  parent: us
+  aliases:
+  - dc
+  - washington dc
+  - washington, d.c.
+- slug: florida
+  name: Florida
+  kind: us_state
+  code: US-FL
+  parent: us
+  aliases: []
+- slug: georgia
+  name: Georgia
+  kind: us_state
+  code: US-GA
+  parent: us
+  aliases: []
+- slug: hawaii
+  name: Hawaii
+  kind: us_state
+  code: US-HI
+  parent: us
+  aliases: []
+- slug: idaho
+  name: Idaho
+  kind: us_state
+  code: US-ID
+  parent: us
+  aliases: []
+- slug: illinois
+  name: Illinois
+  kind: us_state
+  code: US-IL
+  parent: us
+  aliases: []
+- slug: indiana
+  name: Indiana
+  kind: us_state
+  code: US-IN
+  parent: us
+  aliases: []
+- slug: iowa
+  name: Iowa
+  kind: us_state
+  code: US-IA
+  parent: us
+  aliases: []
+- slug: kansas
+  name: Kansas
+  kind: us_state
+  code: US-KS
+  parent: us
+  aliases: []
+- slug: kentucky
+  name: Kentucky
+  kind: us_state
+  code: US-KY
+  parent: us
+  aliases: []
+- slug: louisiana
+  name: Louisiana
+  kind: us_state
+  code: US-LA
+  parent: us
+  aliases: []
+- slug: maine
+  name: Maine
+  kind: us_state
+  code: US-ME
+  parent: us
+  aliases: []
+- slug: maryland
+  name: Maryland
+  kind: us_state
+  code: US-MD
+  parent: us
+  aliases: []
+- slug: massachusetts
+  name: Massachusetts
+  kind: us_state
+  code: US-MA
+  parent: us
+  aliases: []
+- slug: michigan
+  name: Michigan
+  kind: us_state
+  code: US-MI
+  parent: us
+  aliases: []
+- slug: minnesota
+  name: Minnesota
+  kind: us_state
+  code: US-MN
+  parent: us
+  aliases: []
+- slug: mississippi
+  name: Mississippi
+  kind: us_state
+  code: US-MS
+  parent: us
+  aliases: []
+- slug: missouri
+  name: Missouri
+  kind: us_state
+  code: US-MO
+  parent: us
+  aliases: []
+- slug: montana
+  name: Montana
+  kind: us_state
+  code: US-MT
+  parent: us
+  aliases: []
+- slug: nebraska
+  name: Nebraska
+  kind: us_state
+  code: US-NE
+  parent: us
+  aliases: []
+- slug: nevada
+  name: Nevada
+  kind: us_state
+  code: US-NV
+  parent: us
+  aliases: []
+- slug: new_hampshire
+  name: New Hampshire
+  kind: us_state
+  code: US-NH
+  parent: us
+  aliases: []
+- slug: new_jersey
+  name: New Jersey
+  kind: us_state
+  code: US-NJ
+  parent: us
+  aliases: []
+- slug: new_mexico
+  name: New Mexico
+  kind: us_state
+  code: US-NM
+  parent: us
+  aliases: []
+- slug: new_york
+  name: New York
+  kind: us_state
+  code: US-NY
+  parent: us
+  aliases:
+  - new york state
+- slug: north_carolina
+  name: North Carolina
+  kind: us_state
+  code: US-NC
+  parent: us
+  aliases: []
+- slug: north_dakota
+  name: North Dakota
+  kind: us_state
+  code: US-ND
+  parent: us
+  aliases: []
+- slug: ohio
+  name: Ohio
+  kind: us_state
+  code: US-OH
+  parent: us
+  aliases: []
+- slug: oklahoma
+  name: Oklahoma
+  kind: us_state
+  code: US-OK
+  parent: us
+  aliases: []
+- slug: oregon
+  name: Oregon
+  kind: us_state
+  code: US-OR
+  parent: us
+  aliases: []
+- slug: pennsylvania
+  name: Pennsylvania
+  kind: us_state
+  code: US-PA
+  parent: us
+  aliases: []
+- slug: rhode_island
+  name: Rhode Island
+  kind: us_state
+  code: US-RI
+  parent: us
+  aliases: []
+- slug: south_carolina
+  name: South Carolina
+  kind: us_state
+  code: US-SC
+  parent: us
+  aliases: []
+- slug: south_dakota
+  name: South Dakota
+  kind: us_state
+  code: US-SD
+  parent: us
+  aliases: []
+- slug: tennessee
+  name: Tennessee
+  kind: us_state
+  code: US-TN
+  parent: us
+  aliases: []
+- slug: texas
+  name: Texas
+  kind: us_state
+  code: US-TX
+  parent: us
+  aliases: []
+- slug: utah
+  name: Utah
+  kind: us_state
+  code: US-UT
+  parent: us
+  aliases: []
+- slug: vermont
+  name: Vermont
+  kind: us_state
+  code: US-VT
+  parent: us
+  aliases: []
+- slug: virginia
+  name: Virginia
+  kind: us_state
+  code: US-VA
+  parent: us
+  aliases: []
+- slug: washington
+  name: Washington
+  kind: us_state
+  code: US-WA
+  parent: us
+  aliases:
+  - washington state
+- slug: west_virginia
+  name: West Virginia
+  kind: us_state
+  code: US-WV
+  parent: us
+  aliases: []
+- slug: wisconsin
+  name: Wisconsin
+  kind: us_state
+  code: US-WI
+  parent: us
+  aliases: []
+- slug: wyoming
+  name: Wyoming
+  kind: us_state
+  code: US-WY
+  parent: us
+  aliases: []
