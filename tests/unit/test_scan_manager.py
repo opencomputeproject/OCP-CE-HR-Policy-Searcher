@@ -138,6 +138,62 @@ class TestStartScanChannels:
         assert job.options["channels"] == ["news"]
 
 
+class TestStructuredSourcesRunFirst:
+    """Law APIs dispatch ahead of crawls.
+
+    Regression: a 165-domain "United States" scan left the three law APIs
+    at positions 40, 101 and 119, so the sources that produce most of the
+    policies did not start until most of the scan's time and budget was
+    already spent. Structured sources are fast, cheap and high-yield;
+    crawls are the long tail.
+    """
+
+    ALL_CHANNELS = ["crawl", "law_apis", "transposition"]
+
+    @pytest.mark.asyncio
+    async def test_structured_sources_dispatch_before_crawls(self):
+        domains = [
+            {"id": "crawl1", "name": "Crawl 1"},
+            {"id": "crawl2", "name": "Crawl 2"},
+            {"id": "api1", "name": "Api 1", "source_type": "legiscan"},
+            {"id": "crawl3", "name": "Crawl 3"},
+            {"id": "nim1", "name": "NIM", "source_type": "eurlex_nim"},
+        ]
+        manager = _manager_with_domains(domains)
+        job = await manager.start_scan(dry_run=True, channels=self.ALL_CHANNELS)
+
+        ids = [dp.domain_id for dp in job.progress.domains]
+        assert ids == ["api1", "nim1", "crawl1", "crawl2", "crawl3"]
+
+    @pytest.mark.asyncio
+    async def test_order_within_each_group_is_preserved(self):
+        """Stable sort: config order still decides ties inside a group."""
+        domains = [
+            {"id": "b_api", "name": "B", "source_type": "govinfo"},
+            {"id": "z_crawl", "name": "Z"},
+            {"id": "a_api", "name": "A", "source_type": "legiscan"},
+            {"id": "a_crawl", "name": "A crawl"},
+        ]
+        manager = _manager_with_domains(domains)
+        job = await manager.start_scan(dry_run=True, channels=self.ALL_CHANNELS)
+
+        ids = [dp.domain_id for dp in job.progress.domains]
+        assert ids == ["b_api", "a_api", "z_crawl", "a_crawl"]
+
+    @pytest.mark.asyncio
+    async def test_all_domains_still_present(self):
+        """Reordering must not drop or duplicate a domain."""
+        domains = [
+            {"id": f"crawl{i}", "name": f"Crawl {i}"} for i in range(5)
+        ] + [{"id": "api1", "name": "Api", "source_type": "uk_bills"}]
+        manager = _manager_with_domains(domains)
+        job = await manager.start_scan(dry_run=True, channels=self.ALL_CHANNELS)
+
+        ids = [dp.domain_id for dp in job.progress.domains]
+        assert job.domain_count == 6
+        assert sorted(ids) == sorted(d["id"] for d in domains)
+
+
 class TestSourceParamsOverride:
     """Per-request source_params reach structured sources, never crawl."""
 
