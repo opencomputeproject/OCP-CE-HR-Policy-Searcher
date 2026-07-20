@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../config/api';
-import { adminHeaders, getAdminToken, setAdminToken } from '../utils/adminAuth';
+import { adminHeaders } from '../utils/adminAuth';
 
 const styles = {
   backdrop: {
@@ -133,10 +133,9 @@ const COST_LEVEL_LABELS = {
   high: 'High — best quality, most expensive',
 };
 
-function ApiKeySettingsModal({ open, onClose, adminRequired = false, onAdminTokenChange }) {
+function ApiKeySettingsModal({ open, onClose }) {
   const [status, setStatus] = useState(null);
   const [apiKey, setApiKey] = useState('');
-  const [adminTokenValue, setAdminTokenValue] = useState('');
   const [message, setMessage] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -163,7 +162,6 @@ function ApiKeySettingsModal({ open, onClose, adminRequired = false, onAdminToke
     setMessage('');
     setCostMessage('');
     setApiKey('');
-    setAdminTokenValue(getAdminToken());
     setIsConfirmingDelete(false);
     loadStatus().catch((error) => setMessage(error.message));
     loadCostSettings().catch(() => {});
@@ -243,13 +241,6 @@ function ApiKeySettingsModal({ open, onClose, adminRequired = false, onAdminToke
     }
   };
 
-  const handleAdminTokenChange = (event) => {
-    const value = event.target.value;
-    setAdminTokenValue(value);
-    setAdminToken(value);
-    onAdminTokenChange?.();
-  };
-
   if (!open) return null;
 
   const saveDisabled = isBusy || !apiKey.trim();
@@ -258,14 +249,14 @@ function ApiKeySettingsModal({ open, onClose, adminRequired = false, onAdminToke
     <div style={styles.backdrop} role="presentation">
       <div style={styles.modal} role="dialog" aria-modal="true" aria-labelledby="api-key-title">
         <div style={styles.header}>
-          <h2 id="api-key-title" style={styles.title}>API key settings</h2>
-          
+          <h2 id="api-key-title" style={styles.title}>Anthropic API key</h2>
+
           <button type="button" style={styles.closeButton} onClick={onClose} aria-label="Close settings">
             x
           </button>
         </div>
         <div style={styles.label}>
-              An Anthropic API key is needed for the Policy Pulse agent to function.
+              Stored server-side in .env and used for scans and the ask service.
         </div>
 
         {status?.exists ? (
@@ -334,26 +325,6 @@ function ApiKeySettingsModal({ open, onClose, adminRequired = false, onAdminToke
             >
               Add an API key
             </button>
-          </div>
-        )}
-
-        {adminRequired && (
-          <div style={styles.body}>
-            <label style={styles.label} htmlFor="admin-token-input">
-              Administrator token
-            </label>
-            <input
-              id="admin-token-input"
-              type="password"
-              value={adminTokenValue}
-              onChange={handleAdminTokenChange}
-              placeholder="Admin token"
-              autoComplete="off"
-              style={styles.input}
-            />
-            <p style={styles.message}>
-              Required to run scans or use the chat on this server.
-            </p>
           </div>
         )}
 

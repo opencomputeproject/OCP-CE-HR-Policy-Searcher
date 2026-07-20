@@ -82,7 +82,9 @@ function PlanPreview({ plan }) {
     );
 }
 
-function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false }) {
+function SearchPanel({
+    hasApiKey, isBusy, onBusyChange, adminRequired = false, externalPlace = null,
+}) {
     const [place, setPlace] = useState('');
     const [topic, setTopic] = useState('');
     const [plan, setPlan] = useState(null);
@@ -109,6 +111,13 @@ function SearchPanel({ hasApiKey, isBusy, onBusyChange, adminRequired = false })
     }, []);
 
     useEffect(() => () => wsRef.current?.close(), []);
+
+    // The world map is a third way to say a place name - same resolve_place
+    // flow as typing it here. A fresh nonce (even for the same place name)
+    // is what makes a repeat click re-trigger this.
+    useEffect(() => {
+        if (externalPlace) setPlace(externalPlace.value);
+    }, [externalPlace]);
 
     useEffect(() => {
         const trimmed = place.trim();

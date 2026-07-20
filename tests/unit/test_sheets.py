@@ -7,6 +7,7 @@ first 13 columns match that tab exactly, followed by PolicyPulse extras.
 from datetime import date, datetime
 from unittest.mock import MagicMock
 
+import gspread
 import pytest
 
 from src.core.models import Policy, PolicyType, VerificationFlag
@@ -254,3 +255,42 @@ class TestSheetsClient:
 
         mock_sheet.col_values.assert_called_once_with(link_idx)
         assert urls == {"https://a.gov", "https://b.gov"}
+
+    def test_read_staging_rows_returns_records(self):
+        """read_staging_rows returns gspread's header-keyed records as-is."""
+        try:
+            from src.output.sheets import SheetsClient
+        except ImportError:
+            pytest.skip("gspread not installed")
+
+        client = SheetsClient.__new__(SheetsClient)
+
+        records = [
+            dict(zip(STAGING_HEADERS, ["Europe", "Germany", "National", "Test Act"] + [""] * 24)),
+        ]
+        mock_sheet = MagicMock()
+        mock_sheet.get_all_records.return_value = records
+        mock_spreadsheet = MagicMock()
+        mock_spreadsheet.worksheet.return_value = mock_sheet
+        client._spreadsheet = mock_spreadsheet
+
+        rows = client.read_staging_rows()
+
+        mock_spreadsheet.worksheet.assert_called_once_with("Staging")
+        mock_sheet.get_all_records.assert_called_once()
+        assert rows == records
+
+    def test_read_staging_rows_missing_sheet_returns_empty(self):
+        """A sheet that doesn't exist yet (brand-new spreadsheet) yields []."""
+        try:
+            from src.output.sheets import SheetsClient
+        except ImportError:
+            pytest.skip("gspread not installed")
+
+        client = SheetsClient.__new__(SheetsClient)
+
+        mock_spreadsheet = MagicMock()
+        mock_spreadsheet.worksheet.side_effect = gspread.WorksheetNotFound("Staging")
+        client._spreadsheet = mock_spreadsheet
+
+        assert client.read_staging_rows() == []

@@ -3,10 +3,10 @@ import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined';
 import './App.css';
 import AgentPanel from './components/AgentPanel';
 import AskPolicyBox from './components/AskPolicyBox';
-import LogoImage from './assets/ocp-logo.svg';
+import BackToTopButton from './components/BackToTopButton';
 import LeadsInbox from './components/LeadsInbox';
+import LogoImage from './assets/ocp-logo.svg';
 import PolicyList from './components/PolicyList';
-import ReviewInbox from './components/ReviewInbox';
 import HelpWindow from './components/HelpWindow';
 import { apiUrl } from './config/api';
 import { getAdminToken } from './utils/adminAuth';
@@ -18,6 +18,11 @@ function App() {
   const [isFirstRunHelpOpen, setIsFirstRunHelpOpen] = useState(false);
   const [adminRequired, setAdminRequired] = useState(false);
   const [hasAdminToken, setHasAdminToken] = useState(Boolean(getAdminToken()));
+  const [placePolicyRequest, setPlacePolicyRequest] = useState(null);
+
+  const handleViewPlacePolicies = useCallback(({ slug, name }) => {
+    setPlacePolicyRequest({ slug, name, nonce: Date.now() });
+  }, []);
 
   const refreshAdminTokenStatus = useCallback(() => {
     setHasAdminToken(Boolean(getAdminToken()));
@@ -95,15 +100,18 @@ function App() {
             adminRequired={adminRequired}
             hasAdminToken={hasAdminToken}
             onAdminTokenChange={refreshAdminTokenStatus}
+            onViewPlacePolicies={handleViewPlacePolicies}
           />
         </section>
-        <section className="app-stage" aria-label="Discovered policies">
-          <ReviewInbox isAdmin={!adminRequired || hasAdminToken} />
+        <section className="app-stage" aria-label="Ask about policies">
           <AskPolicyBox />
+        </section>
+        <section className="app-stage" aria-label="Discovered policies">
+          <PolicyList externalPlace={placePolicyRequest} />
           <LeadsInbox adminRequired={adminRequired} hasAdminToken={hasAdminToken} />
-          <PolicyList />
         </section>
       </main>
+      <BackToTopButton />
     </div>
   );
 }

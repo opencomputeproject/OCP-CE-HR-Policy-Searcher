@@ -304,17 +304,7 @@ jurisdictions:
   aliases:
   - belgian
   - belgique
-  - belgium (flanders)
   - belgië
-  - brussels
-  - brussels capital region
-  - brussels capital region, belgium
-  - brussels-capital region
-  - brussels-capital region, belgium
-  - flanders
-  - flanders, belgium
-  - wallonia
-  - wallonia, belgium
 - slug: spain
   name: Spain
   kind: country
@@ -1046,3 +1036,545 @@ jurisdictions:
   code: US-WY
   parent: us
   aliases: []
+- slug: manitoba
+  name: Manitoba
+  kind: subnational
+  code: CA-MB
+  parent: canada
+  aliases:
+  - manitoba
+  - province of manitoba
+- slug: global
+  name: Global / International
+  kind: group
+  iso_numeric: null
+  members: []
+  aliases:
+  - global
+  - supranational
+  - international
+  - worldwide
+  - world
+- slug: china
+  name: China
+  kind: country
+  iso3: CHN
+  iso_numeric: '156'
+  parent: null
+  aliases:
+  - china
+  - people's republic of china
+  - prc
+  - zhongguo
+- slug: mauritius
+  name: Mauritius
+  kind: country
+  iso3: MUS
+  iso_numeric: '480'
+  parent: null
+  aliases:
+  - republic of mauritius
+- slug: panama
+  name: Panama
+  kind: country
+  iso3: PAN
+  iso_numeric: '591'
+  parent: null
+  aliases:
+  - panama (republic of)
+  - panamanian
+- slug: trinidad_and_tobago
+  name: Trinidad and Tobago
+  kind: country
+  iso3: TTO
+  iso_numeric: '780'
+  parent: null
+  aliases:
+  - trinidad
+  - trinidad & tobago
+  - tobago
+- slug: turkmenistan
+  name: Turkmenistan
+  kind: country
+  iso3: TKM
+  iso_numeric: '795'
+  parent: null
+  aliases:
+  - turkmen
+- slug: papua_new_guinea
+  name: Papua New Guinea
+  kind: country
+  iso3: PNG
+  iso_numeric: '598'
+  parent: null
+  aliases:
+  - png
+  - papua new guinea (independent state of)
+- slug: fiji
+  name: Fiji
+  kind: country
+  iso3: FJI
+  iso_numeric: '242'
+  parent: null
+  aliases:
+  - republic of fiji
+  - fijian
+- slug: kyrgyzstan
+  name: Kyrgyzstan
+  kind: country
+  iso3: KGZ
+  iso_numeric: '417'
+  parent: null
+  aliases:
+  - kyrgyz republic
+  - kirghizia
+- slug: tajikistan
+  name: Tajikistan
+  kind: country
+  iso3: TJK
+  iso_numeric: '762'
+  parent: null
+  aliases:
+  - republic of tajikistan
+- slug: mongolia
+  name: Mongolia
+  kind: country
+  iso3: MNG
+  iso_numeric: '496'
+  parent: null
+  aliases:
+  - mongolian
+- slug: zimbabwe
+  name: Zimbabwe
+  kind: country
+  iso3: ZWE
+  iso_numeric: '716'
+  parent: null
+  aliases:
+  - republic of zimbabwe
+- slug: djibouti
+  name: Djibouti
+  kind: country
+  iso3: DJI
+  iso_numeric: '262'
+  parent: null
+  aliases:
+  - republic of djibouti
+- slug: belarus
+  name: Belarus
+  kind: country
+  iso3: BLR
+  iso_numeric: '112'
+  parent: null
+  aliases:
+  - belorussia
+  - byelorussia
+  - republic of belarus
+- slug: montenegro
+  name: Montenegro
+  kind: country
+  iso3: MNE
+  iso_numeric: '499'
+  parent: null
+  aliases:
+  - crna gora
+  - montenegrin
+- slug: brunei
+  name: Brunei
+  kind: country
+  iso3: BRN
+  iso_numeric: '096'
+  parent: null
+  aliases:
+  - brunei darussalam
+- slug: bhutan
+  name: Bhutan
+  kind: country
+  iso3: BTN
+  iso_numeric: '064'
+  parent: null
+  aliases:
+  - kingdom of bhutan
+  - druk yul
+- slug: maldives
+  name: Maldives
+  kind: country
+  iso3: MDV
+  iso_numeric: '462'
+  parent: null
+  aliases:
+  - republic of maldives
+  - dhivehi raajje
+- slug: mozambique
+  name: Mozambique
+  kind: country
+  iso3: MOZ
+  iso_numeric: '508'
+  parent: null
+  aliases:
+  - republic of mozambique
+  - mocambique
+- slug: cote_d_ivoire
+  name: Cote d'Ivoire
+  kind: country
+  iso3: CIV
+  iso_numeric: '384'
+  parent: null
+  aliases:
+  - ivory coast
+  - côte d'ivoire
+- slug: cameroon
+  name: Cameroon
+  kind: country
+  iso3: CMR
+  iso_numeric: '120'
+  parent: null
+  aliases:
+  - republic of cameroon
+  - cameroun
+- slug: malaysia
+  name: Malaysia
+  kind: country
+  iso3: MYS
+  iso_numeric: '458'
+  parent: null
+  aliases:
+  - malaysian
+- slug: oman
+  name: Oman
+  kind: country
+  iso3: OMN
+  iso_numeric: '512'
+  parent: null
+  aliases:
+  - sultanate of oman
+- slug: qatar
+  name: Qatar
+  kind: country
+  iso3: QAT
+  iso_numeric: '634'
+  parent: null
+  aliases:
+  - state of qatar
+  - qatari
+- slug: egypt
+  name: Egypt
+  kind: country
+  iso3: EGY
+  iso_numeric: '818'
+  parent: null
+  aliases:
+  - arab republic of egypt
+  - egyptian
+- slug: morocco
+  name: Morocco
+  kind: country
+  iso3: MAR
+  iso_numeric: '504'
+  parent: null
+  aliases:
+  - kingdom of morocco
+  - moroccan
+- slug: philippines
+  name: Philippines
+  kind: country
+  iso3: PHL
+  iso_numeric: '608'
+  parent: null
+  aliases:
+  - republic of the philippines
+  - filipino
+- slug: brandenburg
+  name: Brandenburg
+  kind: subnational
+  code: DE-BB
+  parent: germany
+  aliases: []
+- slug: rheinland_pfalz
+  name: Rhineland-Palatinate
+  kind: subnational
+  code: DE-RP
+  parent: germany
+  aliases:
+  - rheinland-pfalz
+  - rhineland-palatinate
+- slug: schleswig_holstein
+  name: Schleswig-Holstein
+  kind: subnational
+  code: DE-SH
+  parent: germany
+  aliases:
+  - schleswig-holstein
+- slug: thueringen
+  name: Thuringia
+  kind: subnational
+  code: DE-TH
+  parent: germany
+  aliases:
+  - thuringia
+  - thüringen
+- slug: sachsen_anhalt
+  name: Saxony-Anhalt
+  kind: subnational
+  code: DE-ST
+  parent: germany
+  aliases:
+  - sachsen-anhalt
+  - saxony-anhalt
+- slug: mecklenburg_vorpommern
+  name: Mecklenburg-Vorpommern
+  kind: subnational
+  code: DE-MV
+  parent: germany
+  aliases:
+  - mecklenburg-western pomerania
+- slug: ticino
+  name: Ticino
+  kind: subnational
+  code: CH-TI
+  parent: switzerland
+  aliases:
+  - canton of ticino
+- slug: aargau
+  name: Aargau
+  kind: subnational
+  code: CH-AG
+  parent: switzerland
+  aliases:
+  - canton of aargau
+- slug: basque_country
+  name: Basque Country
+  kind: subnational
+  code: ES-PV
+  parent: spain
+  aliases:
+  - euskadi
+  - pais vasco
+  - país vasco
+- slug: castilla_y_leon
+  name: Castile and Leon
+  kind: subnational
+  code: ES-CL
+  parent: spain
+  aliases:
+  - castilla y leon
+  - castilla y león
+  - castile and león
+- slug: valencia
+  name: Valencia
+  kind: subnational
+  code: ES-VC
+  parent: spain
+  aliases:
+  - comunidad valenciana
+  - comunitat valenciana
+  - valencian community
+- slug: lazio
+  name: Lazio
+  kind: subnational
+  code: IT-62
+  parent: italy
+  aliases: []
+- slug: piemonte
+  name: Piedmont
+  kind: subnational
+  code: IT-21
+  parent: italy
+  aliases:
+  - piedmont
+- slug: veneto
+  name: Veneto
+  kind: subnational
+  code: IT-34
+  parent: italy
+  aliases: []
+- slug: emilia_romagna
+  name: Emilia-Romagna
+  kind: subnational
+  code: IT-45
+  parent: italy
+  aliases:
+  - emilia romagna
+  - data valley
+- slug: wallonia
+  name: Wallonia
+  kind: subnational
+  code: BE-WAL
+  parent: belgium
+  aliases:
+  - region wallonne
+  - walloon region
+  - wallonia
+  - wallonia, belgium
+  - wallonie
+- slug: flanders
+  name: Flanders
+  kind: subnational
+  code: BE-VLG
+  parent: belgium
+  aliases:
+  - vlaanderen
+  - flemish region
+  - flanders
+  - flanders, belgium
+  - belgium (flanders)
+  - vlaanderen, belgium
+- slug: brussels
+  name: Brussels-Capital Region
+  kind: subnational
+  code: BE-BRU
+  parent: belgium
+  aliases:
+  - brussels-capital
+  - brussels-capital region
+  - region de bruxelles-capitale
+  - brussels hoofdstedelijk gewest
+  - brussels
+  - brussels capital region
+  - brussels capital region, belgium
+  - brussels-capital region, belgium
+- slug: western_australia
+  name: Western Australia
+  kind: subnational
+  code: AU-WA
+  parent: australia
+  aliases:
+  - wa
+  - perth
+- slug: queensland
+  name: Queensland
+  kind: subnational
+  code: AU-QLD
+  parent: australia
+  aliases:
+  - qld
+- slug: prince_edward_island
+  name: Prince Edward Island
+  kind: subnational
+  code: CA-PE
+  parent: canada
+  aliases:
+  - pei
+  - p.e.i.
+- slug: northwest_territories
+  name: Northwest Territories
+  kind: subnational
+  code: CA-NT
+  parent: canada
+  aliases:
+  - nwt
+- slug: guangdong
+  name: Guangdong
+  kind: subnational
+  code: CN-GD
+  parent: china
+  aliases: []
+- slug: beijing
+  name: Beijing
+  kind: subnational
+  code: CN-BJ
+  parent: china
+  aliases:
+  - peking
+- slug: shanghai
+  name: Shanghai
+  kind: subnational
+  code: CN-SH
+  parent: china
+  aliases: []
+- slug: hebei
+  name: Hebei
+  kind: subnational
+  code: CN-HE
+  parent: china
+  aliases:
+  - zhangjiakou
+- slug: gansu
+  name: Gansu
+  kind: subnational
+  code: CN-GS
+  parent: china
+  aliases:
+  - qingyang
+- slug: qinghai
+  name: Qinghai
+  kind: subnational
+  code: CN-QH
+  parent: china
+  aliases: []
+- slug: hokkaido
+  name: Hokkaido
+  kind: subnational
+  code: JP-01
+  parent: japan
+  aliases: []
+- slug: fukuoka
+  name: Fukuoka
+  kind: subnational
+  code: JP-40
+  parent: japan
+  aliases:
+  - kyushu (fukuoka prefecture)
+- slug: kanagawa
+  name: Kanagawa
+  kind: subnational
+  code: JP-14
+  parent: japan
+  aliases: []
+- slug: madhya_pradesh
+  name: Madhya Pradesh
+  kind: subnational
+  code: IN-MP
+  parent: india
+  aliases:
+  - mp (india)
+- slug: andhra_pradesh
+  name: Andhra Pradesh
+  kind: subnational
+  code: IN-AP
+  parent: india
+  aliases:
+  - ap (india)
+- slug: kerala
+  name: Kerala
+  kind: subnational
+  code: IN-KL
+  parent: india
+  aliases: []
+- slug: punjab
+  name: Punjab (India)
+  kind: subnational
+  code: IN-PB
+  parent: india
+  aliases:
+  - punjab, india
+- slug: bihar
+  name: Bihar
+  kind: subnational
+  code: IN-BR
+  parent: india
+  aliases: []
+- slug: kosovo
+  name: Kosovo
+  kind: country
+  iso3: XKX
+  iso_numeric: null
+  code: XK
+  parent: null
+  aliases:
+  - kosovo
+  - republic of kosovo
+- slug: saarland
+  name: Saarland
+  kind: subnational
+  code: DE-SL
+  parent: germany
+  aliases: []
+- slug: bremen
+  name: Bremen
+  kind: subnational
+  code: DE-HB
+  parent: germany
+  aliases:
+  - bremen (state)
+  - free hanseatic city of bremen

@@ -7,10 +7,28 @@ from pydantic import BaseModel
 
 from ..deps import get_scan_manager, get_policy_store
 from ...agent.tools import jurisdiction_matches
+from ...core import jurisdictions
 from ...orchestration.scan_manager import ScanManager
 from ...storage.store import PolicyStore
 
 router = APIRouter(prefix="/api", tags=["policies"])
+
+
+def _matches_place(place: "jurisdictions.Jurisdiction", jurisdiction_text: Optional[str]) -> bool:
+    """Whether a policy's free-text jurisdiction rolls up to ``place``.
+
+    Equality on the resolved slug covers subnational/supranational exactness
+    (place=california or place=eu match only themselves); the ``country_of``
+    check adds descendant-inclusion for a country place (place=us also
+    matches every US state).
+    """
+    jur = jurisdictions.resolve_text(jurisdiction_text)
+    if jur is None:
+        return False
+    if jur.slug == place.slug:
+        return True
+    country = jurisdictions.country_of(jur)
+    return country is not None and country.slug == place.slug
 
 
 @router.get("/policies")
@@ -20,10 +38,23 @@ def list_policies(
     min_score: Optional[int] = Query(None, ge=1, le=10),
     scan_id: Optional[str] = Query(None),
     review_status: Optional[str] = Query(None),
+    place: Optional[str] = Query(None),
     store: PolicyStore = Depends(get_policy_store),
     manager: ScanManager = Depends(get_scan_manager),
 ):
-    """Search policies with optional filters."""
+    """Search policies with optional filters.
+
+    ``place`` is a jurisdiction-registry slug (see ``src/core/jurisdictions.py``)
+    and composes with the other filters. Country slugs are descendant-inclusive
+    (place=us also returns federal + every US state policy); subnational and
+    supranational slugs match exactly.
+    """
+    place_jur = None
+    if place is not None:
+        place_jur = jurisdictions.get(place)
+        if place_jur is None:
+            raise HTTPException(status_code=404, detail=f"Unknown place '{place}'")
+
     # Merge stored policies with in-memory scan results
     stored = store.search(
         jurisdiction=jurisdiction,
@@ -55,6 +86,9 @@ def list_policies(
         if p["url"] not in seen_urls:
             stored.append(p)
             seen_urls.add(p["url"])
+
+    if place_jur is not None:
+        stored = [p for p in stored if _matches_place(place_jur, p.get("jurisdiction"))]
 
     return {"policies": stored, "count": len(stored)}
 

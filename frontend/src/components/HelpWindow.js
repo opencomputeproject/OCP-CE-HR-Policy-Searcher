@@ -119,6 +119,30 @@ const styles = {
     fontSize: 14,
     color: '#0f172a'
   },
+  adminSection: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTop: `1px solid ${OCP_GREEN_BORDER}`,
+  },
+  adminHeading: {
+    margin: '0 0 8px',
+    color: '#1f2937',
+    fontSize: 15,
+    fontWeight: 800,
+  },
+  adminList: {
+    display: 'grid',
+    gap: 6,
+    margin: 0,
+    padding: 0,
+    listStyle: 'none',
+  },
+  adminItem: {
+    margin: 0,
+    color: '#475569',
+    fontSize: 14,
+    lineHeight: 1.45,
+  },
   keyValue: {
     display: 'inline-block',
     padding: '8px 10px',
@@ -175,47 +199,60 @@ function HelpWindow({ open, onClose, title = 'Welcome to Policy Pulse' }) {
           </button>
         </div>
         <p style={styles.intro}>
-          Policy Pulse helps you find and review policies about data center heat reuse.
-          Start with the scanner for structured searches, or ask the AI agent directly in the chat.
+          Policy Pulse is free to browse for everyone - explore the map, view found policies
+          for any place, and ask questions in your own language. No account or API key needed.
         </p>
         <ol style={styles.steps}>
           <li style={styles.step}>
             <span style={styles.stepNumber}>1</span>
             <div>
-              <p style={styles.stepTitle}>Add your API key</p>
+              <p style={styles.stepTitle}>Explore the map</p>
               <p style={styles.stepText}>
-                Open API key settings and save an active Anthropic API key before running scans or using the agent.
+                Click a country to see its found policies. Double-click to drill into that
+                country&apos;s states or provinces.
               </p>
             </div>
           </li>
           <li style={styles.step}>
             <span style={styles.stepNumber}>2</span>
             <div>
-              <p style={styles.stepTitle}>Choose scan targets</p>
+              <p style={styles.stepTitle}>View found policies</p>
               <p style={styles.stepText}>
-                Select countries, regions, groups, categories, or tags in the Policy Scanner.
+                See the policies found for any place, and filter the list to narrow it down.
               </p>
             </div>
           </li>
           <li style={styles.step}>
             <span style={styles.stepNumber}>3</span>
             <div>
-              <p style={styles.stepTitle}>Pick a scan mode</p>
+              <p style={styles.stepTitle}>Ask questions in your own language</p>
               <p style={styles.stepText}>
-                Use Standard for configured sources, Discover for finding new coverage and sources, or Deep for a more expansive and thorough crawl at a higher cost.
-              </p>
-            </div>
-          </li>
-          <li style={styles.step}>
-            <span style={styles.stepNumber}>4</span>
-            <div>
-              <p style={styles.stepTitle}>Review results</p>
-              <p style={styles.stepText}>
-                Found policies appear in the policy list, where you can search, filter, sort, and expand each result.
+                Ask about what has been found, in any language. Answers come only from what
+                has already been discovered.
               </p>
             </div>
           </li>
         </ol>
+        <div style={styles.adminSection}>
+          <p style={styles.adminHeading}>For administrators</p>
+          <ul style={styles.adminList}>
+            <li style={styles.adminItem}>
+              Add an active Anthropic API key in API key settings before running scans or
+              using the agent chat.
+            </li>
+            <li style={styles.adminItem}>
+              Pick a scan mode: Standard for configured sources, Discover for finding new
+              coverage and sources, or Deep for a more expansive and thorough crawl at a
+              higher cost.
+            </li>
+            <li style={styles.adminItem}>
+              Set budgets and daily caps to bound scan and question spend.
+            </li>
+            <li style={styles.adminItem}>
+              Export staged results to Google Sheets for review before they go live.
+            </li>
+          </ul>
+        </div>
         <div style={styles.footer}>
           <button
             type="button"

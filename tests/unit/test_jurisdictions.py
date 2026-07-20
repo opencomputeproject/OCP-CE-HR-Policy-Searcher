@@ -34,19 +34,38 @@ class TestRealPolicyStrings:
         assert j is not None and j.slug == "sweden" and j.iso3 == "SWE"
 
     def test_wallonia_belgium(self):
+        # Drill-down: resolves to the region row now; still rolls up to Belgium.
         j = jurisdictions.resolve_text("Wallonia, Belgium")
-        assert j is not None and j.slug == "belgium" and j.iso3 == "BEL"
+        assert j is not None and j.slug == "wallonia" and j.kind == "subnational"
+        assert jurisdictions.country_of(j).iso3 == "BEL"
 
     def test_minnesota_usa(self):
         j = jurisdictions.resolve_text("Minnesota, USA")
         assert j is not None and j.slug == "minnesota" and j.kind == "us_state"
         assert jurisdictions.country_of(j).iso3 == "USA"
 
-    def test_germany_variants_same_jurisdiction(self):
-        a = jurisdictions.resolve_text("Germany (Federal)")
-        b = jurisdictions.resolve_text("Germany (Peine, Lower Saxony)")
-        assert a is not None and b is not None
-        assert a.slug == b.slug == "germany" and a.iso3 == "DEU"
+    def test_germany_federal_vs_land(self):
+        # 'Federal' stays at the country; a Land parenthetical drills to the Land.
+        fed = jurisdictions.resolve_text("Germany (Federal)")
+        assert fed is not None and fed.slug == "germany" and fed.iso3 == "DEU"
+        land = jurisdictions.resolve_text("Germany (Peine, Lower Saxony)")
+        assert land is not None and land.slug == "niedersachsen"
+        assert jurisdictions.country_of(land).iso3 == "DEU"
+
+    def test_belgian_regions_resolve_to_region_rows(self):
+        # Drill-down pins: every real variant resolves to its own region row,
+        # and all still roll up to Belgium for the world view.
+        cases = {
+            "Wallonia, Belgium": "wallonia",
+            "Flanders, Belgium": "flanders",
+            "Belgium (Flanders)": "flanders",
+            "Brussels-Capital Region, Belgium": "brussels",
+            "Brussels Capital Region, Belgium": "brussels",
+        }
+        for s, slug in cases.items():
+            j = jurisdictions.resolve_text(s)
+            assert j is not None and j.slug == slug and j.kind == "subnational", s
+            assert jurisdictions.country_of(j).slug == "belgium", s
 
     def test_us_three_strings_one_jurisdiction(self):
         for s in ("US", "United States", "United States (Federal)"):
@@ -67,7 +86,8 @@ class TestRealPolicyStrings:
         for s in ("Brussels Capital Region, Belgium",
                   "Brussels-Capital Region, Belgium"):
             j = jurisdictions.resolve_text(s)
-            assert j is not None and j.slug == "belgium" and j.iso3 == "BEL", s
+            assert j is not None and j.slug == "brussels" and j.kind == "subnational", s
+            assert jurisdictions.country_of(j).iso3 == "BEL", s
 
     @pytest.mark.parametrize("string, slug", [
         ("Denmark", "denmark"),
@@ -76,8 +96,8 @@ class TestRealPolicyStrings:
         ("New Jersey, United States", "new_jersey"),
         ("Washington State, USA", "washington"),
         ("Georgia, United States", "georgia"),
-        ("Belgium (Flanders)", "belgium"),
-        ("Flanders, Belgium", "belgium"),
+        ("Belgium (Flanders)", "flanders"),
+        ("Flanders, Belgium", "flanders"),
         ("Connecticut, United States", "connecticut"),
         ("California, USA", "california"),
         ("Canada (Federal)", "canada"),

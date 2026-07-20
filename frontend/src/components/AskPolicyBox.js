@@ -48,6 +48,7 @@ function AskPolicyBox() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [isAsking, setIsAsking] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const answerRef = useRef(null);
@@ -76,6 +77,7 @@ function AskPolicyBox() {
 
     setIsAsking(true);
     setError('');
+    setNotice('');
     setAnswer('');
 
     try {
@@ -87,9 +89,16 @@ function AskPolicyBox() {
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(
-          body.detail || 'The question could not be answered right now. Please try again.'
-        );
+        const detail = body.detail
+          || 'The question could not be answered right now. Please try again.';
+        if (response.status === 503) {
+          // Service not configured or temporarily disabled by the admin -
+          // not a failure, so this stays calm rather than reading as an error.
+          setNotice(`${detail} You can still browse every found policy below.`);
+        } else {
+          setError(detail);
+        }
+        return;
       }
 
       const data = await response.json();
@@ -137,6 +146,11 @@ function AskPolicyBox() {
           {/* The ticking counter is visual-only; inside the live region it
               would make screen readers re-announce every second. */}
           <span aria-hidden="true"> {elapsedSeconds}s</span>
+        </p>
+      ) : null}
+      {notice ? (
+        <p className="ask-box-info" role="status">
+          {notice}
         </p>
       ) : null}
       {error ? (

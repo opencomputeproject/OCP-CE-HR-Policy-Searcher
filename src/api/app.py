@@ -14,7 +14,8 @@ from starlette.responses import JSONResponse
 
 from ..core.log_setup import setup_logging
 from .routes import (
-    domains, scans, policies, analysis, agent, ask, leads, logs, search, settings,
+    domains, scans, policies, analysis, agent, ask, coverage, leads, logs,
+    search, settings,
 )
 
 # Resolve .env from project root (2 levels up from src/api/app.py)
@@ -64,6 +65,14 @@ def admin_token_configured() -> bool:
 # reader-facing app. /api/ask has its own rate and daily spend limits.
 _ADMIN_EXEMPT = {("POST", "/api/leads"), ("POST", "/api/ask")}
 
+# Loopback addresses trusted when ADMIN_TOKEN is unset.
+_LOOPBACK_HOSTS = {"127.0.0.1", "::1"}
+# Starlette's TestClient has no real socket and reports its own host as the
+# literal string "testclient" — nearly the whole unit test suite runs with
+# ADMIN_TOKEN stripped (see tests/conftest.py) and exercises non-GET routes
+# through it, so it must be trusted the same as a real loopback caller.
+_TESTCLIENT_HOST = "testclient"
+
 
 class AdminGateMiddleware(BaseHTTPMiddleware):
     """Shared-token gate for state-changing endpoints.
@@ -72,23 +81,50 @@ class AdminGateMiddleware(BaseHTTPMiddleware):
     exemptions) must carry a matching X-Admin-Token header. Reading stays
     open; scanning, chatting, settings, and review actions become
     admin-only — the access model agreed at the 2026-07-07 OCP call.
-    When ADMIN_TOKEN is unset (local single-user), nothing changes.
+
+    When ADMIN_TOKEN is unset, the server is assumed to be a local,
+    single-user deployment: non-GET /api requests are only accepted from
+    loopback clients. A public deploy that forgot to set ADMIN_TOKEN would
+    otherwise let any visitor start paid scans or replace the stored API
+    key; a remote caller instead gets a 403 telling the operator to set
+    ADMIN_TOKEN.
     """
 
     async def dispatch(self, request, call_next):
-        token = os.environ.get("ADMIN_TOKEN")
         if (
-            token
-            and request.url.path.startswith("/api")
+            request.url.path.startswith("/api")
             and request.method not in ("GET", "HEAD", "OPTIONS")
             and (request.method, request.url.path) not in _ADMIN_EXEMPT
         ):
-            provided = request.headers.get("x-admin-token", "")
-            if not hmac.compare_digest(provided, token):
-                return JSONResponse(
-                    status_code=401,
-                    content={"detail": "Administrator token required"},
+            token = os.environ.get("ADMIN_TOKEN")
+            if token:
+                provided = request.headers.get("x-admin-token", "")
+                if not hmac.compare_digest(provided, token):
+                    return JSONResponse(
+                        status_code=401,
+                        content={"detail": "Administrator token required"},
+                    )
+            else:
+                # A forwarded header means the request traversed a reverse
+                # proxy (the deployment runs behind Caddy), so a loopback TCP
+                # peer is the proxy itself, not the operator - treat it as
+                # remote. Same reasoning as _client_ip in routes/ask.py.
+                forwarded = request.headers.get("x-forwarded-for") or request.headers.get(
+                    "x-real-ip"
                 )
+                host = request.client.host if request.client else ""
+                if forwarded or (host not in _LOOPBACK_HOSTS and host != _TESTCLIENT_HOST):
+                    return JSONResponse(
+                        status_code=403,
+                        content={
+                            "detail": (
+                                "This server has no ADMIN_TOKEN configured, so "
+                                "admin actions are restricted to local requests. "
+                                "Set the ADMIN_TOKEN environment variable to "
+                                "allow this action remotely."
+                            ),
+                        },
+                    )
         return await call_next(request)
 
 
@@ -115,6 +151,7 @@ app.include_router(policies.router)
 app.include_router(analysis.router)
 app.include_router(agent.router)
 app.include_router(ask.router)
+app.include_router(coverage.router)
 app.include_router(leads.router)
 app.include_router(logs.router)
 app.include_router(search.router)

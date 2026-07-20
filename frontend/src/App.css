@@ -317,6 +317,31 @@ select,
   line-height: 1.5;
 }
 
+.admin-area {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 16px;
+}
+
+.admin-area-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-open-mode-note {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #d7dee8;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+}
+
+.admin-toggle-button {
+  min-height: 40px;
+}
+
 .channels-group {
   margin-top: 16px;
 }
@@ -542,6 +567,16 @@ select,
   border-radius: 6px;
   background-color: #fffbeb;
   color: #92400e;
+  font-size: 14px;
+}
+
+.ask-box-info {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #d7dee8;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: #475569;
   font-size: 14px;
 }
 
