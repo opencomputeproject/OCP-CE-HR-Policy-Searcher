@@ -105,4 +105,66 @@ describe('AskPolicyBox', () => {
     render(<AskPolicyBox />);
     expect(screen.getByRole('button', { name: /ask/i })).toBeDisabled();
   });
+
+  it('shows the multilingual hint alongside the ask box', () => {
+    render(<AskPolicyBox />);
+    expect(screen.getByText(/Ask in any/i)).toBeInTheDocument();
+  });
+
+  it('renders a calm info note (not an error) when the service is unconfigured (503)', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: async () => ({ detail: 'The question service is not configured yet.' }),
+    });
+
+    render(<AskPolicyBox />);
+    fireEvent.change(screen.getByPlaceholderText(/ask about discovered policies/i), {
+      target: { value: 'What does France require?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /ask/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/not configured yet/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/You can still browse every found policy below/i)).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('renders a calm info note when questions are temporarily disabled (503)', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: async () => ({ detail: 'Questions are temporarily disabled by the administrator.' }),
+    });
+
+    render(<AskPolicyBox />);
+    fireEvent.change(screen.getByPlaceholderText(/ask about discovered policies/i), {
+      target: { value: 'What does Japan require?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /ask/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/temporarily disabled/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('keeps error styling for a real failure (500)', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: 'Something went wrong answering your question.' }),
+    });
+
+    render(<AskPolicyBox />);
+    fireEvent.change(screen.getByPlaceholderText(/ask about discovered policies/i), {
+      target: { value: 'What does Brazil require?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /ask/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/went wrong/i);
+    });
+  });
 });

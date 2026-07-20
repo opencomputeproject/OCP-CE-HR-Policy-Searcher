@@ -57,8 +57,37 @@ Found 3 policies:
 
 ---
 
+## Using the App (Visitors)
+
+Anyone can browse the deployed web interface for free - no account, API key, or sign-in required:
+
+- **Explore the map** — click a country to see the policies found there; double-click to drill into its states or provinces.
+- **View found policies** — filter, search, and expand any result in the policy list below the map.
+- **Ask questions** — the "Ask about found policies" box answers in your own language, using only what has already been discovered.
+
+Scanning for *new* policies costs API credits (Anthropic + LegiScan) and lives behind the collapsible **Admin** area — that part is for operators running their own deployment. See [Quick Start](#quick-start) to set one up.
+
+---
+
+## World Map
+
+The map colors every tracked place by what's been found there — but there are two grays, deliberately: an **untracked** country (no coverage record — nobody has looked yet) never gets confused with a **tracked-empty** one (sources are watched there, but no qualifying policy has surfaced yet). Green depth then scales with how many policies were found, from a handful to a couple dozen. Micro-dot markers keep small countries (Singapore, the Benelux states) clickable even when their outline is too small to hit reliably, and off-map places (the EU, other supranational bodies) sit in a chip tray beside the map instead of a fill, since they have no shape of their own.
+
+Countries with subnational data drill down one level further: double-click (or use the panel's "Explore regions" action) to break the country out into its states or provinces, each shaded the same way. A federal/nationwide policy is kept visually and numerically distinct from a single-state one, and the two reconcile — national plus every region adds up to the country's total. Today that drill-down works for the US, Germany, and Belgium; it's data-driven, so a country lights up automatically once it has both admin-1 map geometry and state/province-level coverage.
+
+Clicking any tracked place opens a side panel with its top policies and a **"View found policies"** button that jumps straight to the existing results list — that's the free, no-credentials action every visitor gets. A **"Scan for new policies"** link sits alongside it, but that one spends API credits and is admin-only (see [Admin/reader mode](#key-features)).
+
+A stat strip above the map keeps the big picture honest at a glance: total tracked sources, how many places have any coverage at all, and how many policies have been found so far.
+
+![World map](docs/images/world-map.png)
+![Drill-down](docs/images/us-drilldown.png)
+
+---
+
 ## Table of Contents
 
+- [Using the App (Visitors)](#using-the-app-visitors)
+- [World Map](#world-map)
 - [Key Features](#key-features)
 - [Geographic Coverage](#geographic-coverage) — 40+ countries, coverage depth
 - [Architecture](#architecture)
@@ -86,6 +115,7 @@ Found 3 policies:
 
 ## Key Features
 
+- **Interactive world map** — a coverage choropleth (Equal Earth projection, no tiles or map-provider keys, ~130KB precomputed asset) shows what's tracked before anyone types a word. Click a country for its found policies; double-click to drill into states/provinces (US, Germany, Belgium today — drillability is data-driven, so more countries light up as subnational data arrives). Pan, zoom, and micro-dot markers keep small countries clickable
 - **Natural language AI agent** — ask questions in plain English, the agent handles scanning, discovery, and analysis
 - **Web interface** — React front end with chat, region-based scanning, a filterable policy list, and API key management (`npm run dev`)
 - **Web search + auto-discovery** — finds new government websites via web search and permanently adds them to the database
@@ -96,7 +126,7 @@ Found 3 policies:
 - **News tripwire** — `python -m src.agent --signals` sweeps GDELT, Google News, and trade feeds into a lead queue; leads are chased (full analysis) or dismissed by a human, so model spend stays deliberate. A weekly GitHub Actions workflow automates the sweep
 - **Lifecycle stages** — every policy is tagged proposed / consultation / in committee / passed / enacted / transposition notified, filterable in the UI as Upcoming vs Enacted
 - **Scan channels** — choose which source families a scan consults: website crawling (the main cost driver), law databases, EU transposition, news signals
-- **Admin/reader mode** — set ADMIN_TOKEN and scans, chat, and review actions require the token while browsing stays open to everyone; unset means unchanged single-user behavior
+- **Admin/reader mode** — set ADMIN_TOKEN and scans, chat, and review actions require the token while browsing stays open to everyone; unset restricts those actions to loopback clients (local single-user use). Public deployments must still set ADMIN_TOKEN: behind a same-host reverse proxy, remote traffic reaches the app from a local address, so the loopback restriction alone is not a substitute for the token
 - **Ask about policies (public natural language)** — every visitor gets an "Ask about policies" box that answers questions from the stored policy library in their own language, citing official URLs. It uses a restricted read-only agent (cannot scan, search the web, or add domains), and spend is bounded by per-IP rate limiting plus an admin-set daily question cap
 - **Cost levels** — the admin picks low / standard / high in Settings; it selects the models used by scans, discovery, and reader answers, and applies immediately to API-, chat-, and cron-triggered jobs
 - **Priority crawling** — law-like URLs are fetched first so the page budget reaches legislation instead of press pages
@@ -263,6 +293,10 @@ To export discovered policies to Google Sheets (in addition to `data/policies.js
 
 Without these variables, policies are saved to `data/policies.json` only.
 
+The Staging sheet doubles as the canonical cross-machine dataset: once it holds
+reviewed policies, a fresh deployment can seed its local store from it instead
+of re-scanning — see `python -m src.output.import_sheet` in [CLI Reference](#cli-reference).
+
 ### Run the AI Agent (recommended)
 
 ```bash
@@ -304,6 +338,17 @@ All agent modes and flags at a glance:
 | `python -m src.agent --logs audit` | View audit trail (scan starts, policy finds) |
 | `python -m src.agent --logs --level error` | View only errors |
 | `python -m src.agent --help` | Show full CLI help |
+| `python -m src.output.import_sheet` | Seed/refresh `data/policies.json` from the Google Sheets Staging worksheet |
+| `python -m src.output.import_sheet --dry-run` | Preview the import (map + summarize) without writing |
+| `python -m src.output.import_sheet --data-dir /path/to/data` | Import into a non-default data directory |
+
+`import_sheet` is the deployment-seeding path: a fresh install with the Staging
+sheet already populated runs it once and the store (and therefore the map/list
+UI) light up without a re-scan. It requires the same `GOOGLE_CREDENTIALS` /
+`SPREADSHEET_ID` as the writer and is idempotent — re-running only imports rows
+new since the last run (deduped by URL). Rows missing a URL or Name, or with
+values that fail Policy validation, are skipped and reported by row number
+rather than aborting the import.
 
 ### Deep Scanning Mode
 
@@ -752,6 +797,8 @@ curl http://localhost:8000/api/scans/a1b2c3d4
 curl "http://localhost:8000/api/policies?jurisdiction=Germany&policy_type=law&min_score=7"
 ```
 
+`place` is a jurisdiction-registry slug (see `src/core/jurisdictions.py`) and composes with the other filters. A country slug is descendant-inclusive — `place=us` also returns federal policies plus every US state's; a subnational or supranational slug (`place=california`, `place=eu`) matches exactly. An unknown slug 404s.
+
 **Response:**
 ```json
 {
@@ -771,6 +818,98 @@ curl "http://localhost:8000/api/policies?jurisdiction=Germany&policy_type=law&mi
   "count": 1
 }
 ```
+
+### Coverage (World Map)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/coverage` | Countries, supranational entries, and totals for the world map |
+| GET | `/api/coverage/children?parent=<slug>` | One country broken out by state/province |
+
+**Get the world coverage aggregate:**
+```bash
+curl "http://localhost:8000/api/coverage"
+```
+
+**Response:**
+```json
+{
+  "countries": [
+    {
+      "name": "Germany",
+      "slug": "germany",
+      "iso_numeric": "276",
+      "sources": 23,
+      "policies": 5,
+      "top_policy_names": ["Energy Efficiency Act (EnEfG)"],
+      "children_with_data": 3
+    }
+  ],
+  "supranational": [
+    {
+      "name": "European Union",
+      "slug": "eu",
+      "sources": 12,
+      "policies": 4,
+      "top_policy_names": ["EED Recast"]
+    }
+  ],
+  "totals": {"sources": 361, "policies": 42}
+}
+```
+
+`children_with_data` is the drill affordance: it counts the country's `us_state`/`subnational` children (per the jurisdiction registry) with at least one policy or source resolved directly to them, and drives whether the frontend offers "Explore this country's regions." The `supranational` bucket also carries jurisdictions the registry has no map shape for — group entities like the EU, and any country the registry tracks without an `iso_numeric` (e.g. Kosovo) — so nothing tracked is ever left off the response.
+
+**Break one country out by state/province:**
+```bash
+curl "http://localhost:8000/api/coverage/children?parent=us"
+```
+
+**Response:**
+```json
+{
+  "parent": {"slug": "us", "name": "United States", "iso_numeric": "840"},
+  "national": {"sources": 6, "policies": 2, "top_policy_names": ["..."]},
+  "children": [
+    {
+      "slug": "minnesota",
+      "name": "Minnesota",
+      "kind": "us_state",
+      "code": "US-MN",
+      "sources": 3,
+      "policies": 1,
+      "top_policy_names": ["..."]
+    }
+  ],
+  "totals": {"sources": 154, "policies": 7}
+}
+```
+
+Unlike the world view, nothing is rolled up here: a policy or source lands under `national` only when it resolves to the country itself, and under a child only when it resolves to that exact state/province — never both. `totals` reconciles with the country's entry in `/api/coverage`: policies sum exactly (`national + every child`), while `totals.sources` counts distinct domains (a domain tagged for both the country and one of its states can appear in both buckets, so per-bucket sums may exceed the total). A `parent` slug that isn't a known country jurisdiction 404s.
+
+### Ask (Public Q&A)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/ask` | Answer a reader's question from stored policies only |
+
+**Ask a question:**
+```bash
+curl -X POST http://localhost:8000/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What has Germany required for data center heat reuse?"}'
+```
+
+**Response:**
+```json
+{
+  "answer": "Germany's Energy Efficiency Act (EnEfG) requires...",
+  "tool_calls": 2,
+  "remaining_today": 187
+}
+```
+
+This endpoint is open to every visitor — no admin token required, even when `ADMIN_TOKEN` is set (it's one of two explicit exemptions in `AdminGateMiddleware`, alongside `POST /api/leads`). A small Haiku-powered reader agent answers strictly from stored policies, citing official URLs — it has no web search or scanning tools, so it can only report what's already been found. Spend is bounded three ways: the reader agent's own 5-iteration cap, a per-IP sliding-window rate limit (`429` with `Retry-After` when exceeded, default 5/minute), and a persisted daily question cap the admin controls in Settings (default 200/day, also `429` when exhausted). Returns `503` if the question service isn't configured (no `ANTHROPIC_API_KEY`) or if an admin has disabled it.
 
 ### Analysis
 
@@ -1216,7 +1355,7 @@ OCP-CE-HR-Policy-Searcher/
 │   │   └── server.py           # MCP server (11 tools, advanced)
 │   └── storage/
 │       └── store.py            # JSON persistence
-├── tests/                      # 579+ tests
+├── tests/                      # 1085+ tests (+ 3 skipped)
 │   ├── unit/
 │   │   ├── test_agent.py       # Agent tool + dispatch + rate limit tests
 │   │   ├── test_api.py         # FastAPI endpoint tests
@@ -1265,10 +1404,12 @@ ruff format src/
 ### Testing
 
 ```bash
-pytest                    # Run all 579+ tests
+pytest                    # Run all 1085+ backend tests (plus 3 skipped)
 pytest tests/unit/        # Unit tests only
 pytest tests/integration/ # Integration tests only
 pytest --cov=src          # With coverage report
+
+cd frontend && CI=true npx react-scripts test --watchAll=false  # 153 frontend tests across 18 suites
 ```
 
 ### Adding a New Domain
@@ -1437,7 +1578,7 @@ Contributions are welcome! See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the fu
 
 - Step-by-step instructions for adding a new country or region
 - Code style expectations (ruff, type hints, Pydantic models)
-- How to run the 579+-test suite and lint checks
+- How to run the 1085+-test backend suite, the 153-test frontend suite, and lint checks
 - Domain YAML format template
 - PR checklist
 
@@ -1456,3 +1597,9 @@ ruff check src/ tests/   # No lint errors
 ## License
 
 [MIT](LICENSE)
+
+### Map data
+
+The world map's boundaries come from three sources: [Natural Earth](https://www.naturalearthdata.com/) (public domain) for the base world atlas, the [US Census Bureau](https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html) cartographic boundary files (public domain) for US state geometry, and [geoBoundaries](https://www.geoboundaries.org/) for Germany's and Belgium's admin-1 geometry. geoBoundaries data is CC BY 4.0 — attribution is required:
+
+> Runfola, D. et al. (2020) geoBoundaries: A global database of political administrative boundaries. *PLoS ONE* 15(4): e0231866. [www.geoboundaries.org](https://www.geoboundaries.org/)

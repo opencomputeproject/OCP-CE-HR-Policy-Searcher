@@ -11,6 +11,7 @@ core.models can delegate to it without a layering inversion.
 """
 
 import re
+from datetime import datetime
 
 from src.agent.domain_generator import US_STATE_ABBREVS
 
@@ -250,6 +251,98 @@ def type_label(policy_type_value: str) -> str:
 def status_label(lifecycle_stage: str) -> str:
     """Map a lifecycle stage to the master database's Status vocabulary."""
     return _STATUS_LABELS.get(lifecycle_stage or "", "")
+
+
+def _join_jurisdiction(geo_area: str, country: str, region: str) -> str:
+    """Best-effort inverse of split_jurisdiction().
+
+    split_jurisdiction() discards precision (e.g. "US" and "United States"
+    both normalize to the same place), so this cannot recover the original
+    free-text jurisdiction exactly. It recovers enough to re-scope a policy
+    on import: the region name when it identifies a specific place (a US
+    state, a UK nation), otherwise the country.
+    """
+    region = (region or "").strip()
+    country = (country or "").strip()
+    if region and region not in {"National", "Regional"}:
+        return region
+    return country
+
+
+def _split_list(value: str, sep: str) -> list[str]:
+    """Inverse of "sep.join(...)": split and drop empty/whitespace entries."""
+    return [v.strip() for v in (value or "").split(sep) if v.strip()]
+
+
+def _parse_sheet_datetime(value: str) -> str | datetime:
+    """Normalize a datetime string as Google Sheets renders it.
+
+    Values are written as ISO (USER_ENTERED), but Sheets re-renders them on
+    read as e.g. "2026-07-07 6:28:07" - a single-digit hour that strict ISO
+    parsing rejects. strptime tolerates the missing zero-padding; anything
+    else passes through unchanged for pydantic to parse.
+    """
+    try:
+        return datetime.strptime(value.strip(), "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return value
+
+
+def from_staging_row(row: dict) -> dict:
+    """Map a Staging sheet row (header-keyed dict) into Policy constructor kwargs.
+
+    Best-effort inverse of to_staging_row(). The human-curation columns
+    ("Incentive, Standard, or Enabler?", "Exclusive to Data Centers?", "Notes",
+    "Person Who Added it to the Database") carry no Policy field and are
+    ignored. Unknown/extra columns in `row` are likewise ignored — only the
+    headers this function looks up are read.
+
+    This is pure reshaping, not validation: it never raises. Missing/blank
+    values fall back to the same defaults Policy() itself would use, except
+    url/policy_name which are passed through as empty strings for the caller
+    to reject. Callers should pass the result to Policy(**kwargs) and handle
+    any pydantic ValidationError.
+    """
+
+    def g(header: str) -> str:
+        value = row.get(header, "")
+        return "" if value is None else str(value).strip()
+
+    jurisdiction = _join_jurisdiction(
+        g("Geographical Area"), g("Country"), g("Region"),
+    )
+
+    kwargs: dict = {
+        "url": g("Link"),
+        "policy_name": g("Name"),
+        "jurisdiction": jurisdiction,
+        "policy_type": g("Policy Type (raw)") or "unknown",
+        "summary": g("Description"),
+        "relevance_score": g("Relevance Score") or 0,
+        "source_language": g("Source Language") or "English",
+        "bill_number": g("Bill Number") or None,
+        "key_requirements": g("Key Requirements") or None,
+        "crawl_status": g("Crawl Status") or "success",
+        "error_details": g("Error Details") or None,
+        "review_status": g("Review Status") or "new",
+        "scan_id": g("Scan ID") or None,
+        "domain_id": g("Domain ID") or None,
+        "verification_flags": _split_list(g("Verification Flags"), ","),
+        "referenced_policies": _split_list(g("Referenced Policies"), ";"),
+        "referenced_urls": _split_list(g("Referenced URLs"), ";"),
+        "lifecycle_stage": g("Lifecycle Stage") or "unknown",
+    }
+
+    # Optional date/datetime fields: omit entirely when blank so Policy's own
+    # defaults (None / discovered_at=now) apply, rather than passing "".
+    effective_date = g("Date Issued (newest version)")
+    if effective_date:
+        kwargs["effective_date"] = effective_date
+    discovered_at = g("Discovered At")
+    if discovered_at:
+        kwargs["discovered_at"] = _parse_sheet_datetime(discovered_at)
+
+    return kwargs
 
 
 def to_staging_row(policy) -> list:

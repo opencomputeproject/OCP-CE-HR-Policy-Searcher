@@ -256,7 +256,9 @@ class TestScanRoutes:
         )
         mock_manager.start_scan = AsyncMock(return_value=job)
 
-        response = client.post("/api/scans", json={"domains": "quick", "deep": True})
+        response = client.post(
+            "/api/scans", json={"domains": "quick", "deep": True, "skip_llm": True}
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -314,7 +316,7 @@ class TestScanRoutes:
         )
         mock_manager.start_scan = AsyncMock(return_value=job)
 
-        response = client.post("/api/scans", json={"domains": "quick"})
+        response = client.post("/api/scans", json={"domains": "quick", "skip_llm": True})
 
         assert response.status_code == 200
         mock_manager.start_scan.assert_awaited_once()
@@ -330,7 +332,8 @@ class TestScanRoutes:
         mock_manager.start_scan = AsyncMock(return_value=job)
 
         response = client.post(
-            "/api/scans", json={"domains": "quick", "channels": ["law_apis"]}
+            "/api/scans",
+            json={"domains": "quick", "channels": ["law_apis"], "skip_llm": True},
         )
 
         assert response.status_code == 200

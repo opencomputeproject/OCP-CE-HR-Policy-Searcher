@@ -4,22 +4,34 @@ import useAgentSocket from '../hooks/useAgentSocket';
 import useCostEstimate from '../hooks/useCostEstimate';
 import useScanQueue from '../hooks/useScanQueue';
 import { DEFAULT_CHANNELS, buildScanRequests } from '../utils/scanTargets';
+import AdminSignInDialog from './AdminSignInDialog';
 import AgentChatPanel from './AgentChatPanel';
 import ApiKeySettingsModal from './ApiKeySettingsModal';
 import DomainScanPanel from './DomainScanPanel';
 import PolicyScannerHeader from './PolicyScannerHeader';
+import ReviewInbox from './ReviewInbox';
 import SearchPanel from './SearchPanel';
+import WorldMap from './WorldMap';
 
-function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminTokenChange }) {
+function AgentPanel({
+    adminRequired = false, hasAdminToken = false, onAdminTokenChange,
+    onViewPlacePolicies,
+}) {
     const [selectedRegions, setSelectedRegions] = useState([]);
     const [mode, setMode] = useState('standard');
     const [channels, setChannels] = useState(DEFAULT_CHANNELS);
     const [chatNotice, setChatNotice] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isAdminSignInOpen, setIsAdminSignInOpen] = useState(false);
     const [hasApiKey, setHasApiKey] = useState(false);
     const [isSearchBusy, setIsSearchBusy] = useState(false);
+    const [placeRequest, setPlaceRequest] = useState(null);
+    const [adminOpen, setAdminOpen] = useState(false);
     const isStandardMode = mode === 'standard';
-    const isReadOnly = adminRequired && !hasAdminToken;
+    // Scanning and other admin tools are gated on a token only when the
+    // server has ADMIN_TOKEN set; a local single-user deployment unlocks
+    // immediately.
+    const adminUnlocked = !adminRequired || hasAdminToken;
     const scanOptions = {
         discover: mode === 'discover',
         deep: mode === 'deep',
@@ -32,6 +44,10 @@ function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminToken
             type,
             text,
         });
+    }, []);
+
+    const handleSelectPlace = useCallback((place) => {
+        setPlaceRequest({ value: place, nonce: Date.now() });
     }, []);
 
     const { wsRef, isChatRunning, setIsChatRunning } = useAgentSocket({
@@ -88,29 +104,60 @@ function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminToken
         fetchApiKeyStatus();
     }, [fetchApiKeyStatus]);
 
+    const handleToggleAdmin = () => {
+        setAdminOpen((prev) => {
+            const next = !prev;
+            // Locked and just opened: prompt for the admin passphrase via
+            // its own dialog, kept separate from the Anthropic API key modal.
+            if (next && !adminUnlocked) {
+                setIsAdminSignInOpen(true);
+            }
+            return next;
+        });
+    };
+
     return (
         <section className="Policy-scanner" aria-label="Policy Scanner">
-            <PolicyScannerHeader onOpenSettings={() => setIsSettingsOpen(true)} />
+            <PolicyScannerHeader onToggleAdmin={handleToggleAdmin} adminOpen={adminOpen} />
+            <WorldMap
+                onSelectPlace={handleSelectPlace}
+                onViewPlacePolicies={onViewPlacePolicies}
+                showScanAction={adminOpen && adminUnlocked}
+            />
             <ApiKeySettingsModal
                 open={isSettingsOpen}
                 onClose={() => {
                     setIsSettingsOpen(false);
                     fetchApiKeyStatus();
                 }}
-                adminRequired={adminRequired}
+            />
+            <AdminSignInDialog
+                open={isAdminSignInOpen}
+                onClose={() => setIsAdminSignInOpen(false)}
                 onAdminTokenChange={onAdminTokenChange}
             />
-            {isReadOnly ? (
-                <p className="admin-readonly-note" role="status">
-                    This is a read-only view of the policy library. Administrators can sign in from Settings.
-                </p>
-            ) : (
-                <>
+            {adminOpen && (adminUnlocked ? (
+                <div className="admin-area">
+                    {!adminRequired && (
+                        <p className="admin-open-mode-note" role="note">
+                            Local open mode - set ADMIN_TOKEN for public deployments.
+                        </p>
+                    )}
+                    <div className="admin-area-actions">
+                        <button
+                            type="button"
+                            className="button"
+                            onClick={() => setIsSettingsOpen(true)}
+                        >
+                            API key settings
+                        </button>
+                    </div>
                     <SearchPanel
                         hasApiKey={hasApiKey}
                         isBusy={isBusy}
                         onBusyChange={setIsSearchBusy}
                         adminRequired={adminRequired}
+                        externalPlace={placeRequest}
                     />
                     <details className="advanced-scan">
                         <summary className="advanced-scan-summary">
@@ -141,8 +188,13 @@ function AgentPanel({ adminRequired = false, hasAdminToken = false, onAdminToken
                         onRunningChange={setIsChatRunning}
                         isRunning={isChatRunning}
                     />
-                </>
-            )}
+                    <ReviewInbox isAdmin={adminUnlocked} />
+                </div>
+            ) : (
+                <p className="admin-readonly-note" role="status">
+                    This is a read-only view of the policy library. Click Admin again to sign in.
+                </p>
+            ))}
         </section>
     );
 }

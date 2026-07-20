@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
@@ -42,7 +42,7 @@ function compareText(firstValue, secondValue) {
   return String(firstValue || '').localeCompare(String(secondValue || ''));
 }
 
-function PolicyList() {
+function PolicyList({ externalPlace = null }) {
   const [policies, setPolicies] = useState([]);
   const [tags, setTags] = useState({});
   const [selectedJurisdictions, setSelectedJurisdictions] = useState([]);
@@ -52,6 +52,17 @@ function PolicyList() {
   const [lifecycleMode, setLifecycleMode] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Place-filter mode: WorldMap/CountryView's "View {n} found policies"
+  // buttons feed a place request here (mirrors SearchPanel's externalPlace
+  // pattern - {slug, name, nonce}, a fresh nonce re-triggers even the same
+  // place). `null` means the normal all-policies view; set means the list
+  // is scoped to that place's own /api/policies?place=<slug> fetch, with
+  // client-side filters (name/jurisdiction/tag/lifecycle/sort) still applied
+  // on top and left intact when the filter is cleared.
+  const [placeFilter, setPlaceFilter] = useState(null);
+  const [isPlaceFilterLoading, setIsPlaceFilterLoading] = useState(false);
+  const [placeFilterError, setPlaceFilterError] = useState(null);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
     const loadSavedPolicies = async () => {
@@ -91,12 +102,68 @@ function PolicyList() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!externalPlace) return undefined;
+    let cancelled = false;
+
+    setIsPlaceFilterLoading(true);
+    setPlaceFilterError(null);
+
+    const loadPlacePolicies = async () => {
+      try {
+        const params = new URLSearchParams({ place: externalPlace.slug });
+        const response = await fetch(apiUrl(`/api/policies?${params.toString()}`));
+        if (!response.ok) {
+          throw new Error(`Failed to load policies for ${externalPlace.name} (${response.status})`);
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setPlaceFilter({
+            slug: externalPlace.slug,
+            name: externalPlace.name,
+            policies: Array.isArray(data.policies) ? data.policies : [],
+          });
+        }
+      } catch (loadError) {
+        console.error(loadError);
+        if (!cancelled) setPlaceFilterError(`Could not load policies for ${externalPlace.name}.`);
+      } finally {
+        if (!cancelled) setIsPlaceFilterLoading(false);
+      }
+    };
+
+    loadPlacePolicies();
+    return () => {
+      cancelled = true;
+    };
+  }, [externalPlace]);
+
+  // Scrolling requires the real list markup to be mounted (not the "Loading
+  // policies..." placeholder returned while the baseline fetch is still in
+  // flight), so this waits on both the place fetch landing AND isLoading
+  // clearing, rather than firing the moment the place request arrives.
+  useEffect(() => {
+    if (placeFilter && !isLoading) {
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [placeFilter, isLoading]);
+
+  const clearPlaceFilter = () => {
+    setPlaceFilter(null);
+    setPlaceFilterError(null);
+  };
+
+  // The place-filter fetch's own results when active, otherwise the normal
+  // all-policies view - everything downstream (tag map, name/jurisdiction/tag/
+  // lifecycle filters, sort) runs the same either way.
+  const sourcePolicies = placeFilter ? placeFilter.policies : policies;
+
   const policyTagsByKey = useMemo(() => {
-    return policies.reduce((tagMap, policy, index) => {
+    return sourcePolicies.reduce((tagMap, policy, index) => {
       tagMap.set(getPolicyKey(policy, index), getPolicyTags(policy, tags));
       return tagMap;
     }, new Map());
-  }, [policies, tags]);
+  }, [sourcePolicies, tags]);
 
   const tagOptions = useMemo(() => {
     const optionSet = new Set(Object.keys(tags));
@@ -118,14 +185,14 @@ function PolicyList() {
   }, [policies]);
 
   const lifecycleAllowedPolicies = useMemo(
-    () => new Set(filterByLifecycle(policies, lifecycleMode)),
-    [policies, lifecycleMode],
+    () => new Set(filterByLifecycle(sourcePolicies, lifecycleMode)),
+    [sourcePolicies, lifecycleMode],
   );
 
   const filteredPolicyEntries = useMemo(() => {
     const normalizedNameQuery = nameQuery.trim().toLowerCase();
 
-    return policies
+    return sourcePolicies
       .map((policy, index) => ({ policy, policyKey: getPolicyKey(policy, index) }))
       .filter(({ policy, policyKey }) => {
         const matchesLifecycle = lifecycleAllowedPolicies.has(policy);
@@ -158,7 +225,7 @@ function PolicyList() {
         return getPolicyDateValue(secondPolicy) - getPolicyDateValue(firstPolicy);
       });
   }, [
-    policies,
+    sourcePolicies,
     policyTagsByKey,
     lifecycleAllowedPolicies,
     selectedJurisdictions,
@@ -184,12 +251,12 @@ function PolicyList() {
   }
 
   return (
-    <section className="policy-list">
+    <section className="policy-list" ref={sectionRef}>
       <div className="policy-list-header">
         <div className="policy-list-title">
           <h2>Discovered Policies</h2>
           <p className="policy-list-count">
-            Showing {filteredPolicyEntries.length} of {policies.length} policies
+            Showing {filteredPolicyEntries.length} of {sourcePolicies.length} policies
           </p>
         </div>
         <div className="policy-list-filters">
@@ -265,6 +332,28 @@ function PolicyList() {
           </button>
         </div>
       </div>
+      {isPlaceFilterLoading && (
+        <p role="status">Loading policies for {externalPlace?.name}...</p>
+      )}
+      {placeFilterError && (
+        <p className="ask-box-error" role="alert">{placeFilterError}</p>
+      )}
+      {placeFilter && !isPlaceFilterLoading && (
+        <div className="policy-list-place-filter">
+          <span className="policy-place-chip">
+            {placeFilter.name} - {placeFilter.policies.length}{' '}
+            {placeFilter.policies.length === 1 ? 'policy' : 'policies'}
+            <button
+              type="button"
+              className="policy-place-chip-clear"
+              aria-label={`Clear ${placeFilter.name} filter`}
+              onClick={clearPlaceFilter}
+            >
+              &times;
+            </button>
+          </span>
+        </div>
+      )}
       <div className="lifecycle-filter-chips" role="group" aria-label="Lifecycle stage filter">
         {LIFECYCLE_FILTER_MODES.map((modeOption) => (
           <button
@@ -278,7 +367,7 @@ function PolicyList() {
           </button>
         ))}
       </div>
-      {policies.length === 0 ? (
+      {sourcePolicies.length === 0 ? (
         <p>No policies discovered yet. Select a region in the scanner and press Scan, or ask the agent in the chat.</p>
       ) : filteredPolicyEntries.length === 0 ? (
         <p className="text-block">

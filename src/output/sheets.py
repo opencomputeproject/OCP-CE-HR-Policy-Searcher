@@ -82,6 +82,19 @@ class SheetsClient:
             return set()
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=2, max=20))
+    def read_staging_rows(self, sheet_name: str = "Staging") -> list[dict]:
+        """Read every data row of the Staging sheet as header-keyed dicts.
+
+        Returns [] if the sheet doesn't exist yet — nothing to seed a fresh
+        deployment from until the sheet has been written to at least once.
+        """
+        try:
+            sheet = self._spreadsheet.worksheet(sheet_name)
+        except gspread.WorksheetNotFound:
+            return []
+        return sheet.get_all_records()
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=2, max=20))
     def append_policies(self, policies: list[Policy], sheet_name: str = "Staging") -> int:
         if not policies:
             return 0

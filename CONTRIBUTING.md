@@ -19,7 +19,7 @@ This installs all dependencies including dev tools (pytest, ruff).
 3. **Make your changes**
 4. **Run tests and lint**:
    ```bash
-   pytest                    # All 432 tests must pass
+   pytest                    # All 1085+ tests must pass (plus 3 skipped)
    ruff check src/ tests/    # No lint errors
    ```
 5. **Commit** with a clear message (e.g., `feat: add Bulgarian keyword support`)
@@ -37,7 +37,8 @@ This is the most impactful contribution. Follow these steps:
 4. **Add the region** to `VALID_REGIONS` in `src/core/config.py`
 5. **Add TLD mappings** to `TLD_REGION_MAP` in `src/agent/domain_generator.py`
 6. **Update groups** in `config/groups.yaml` with the new domain IDs
-7. **Add tests** to `tests/unit/test_keywords.py` — see `TestEuropeanExpansionLanguages` for examples
+7. **Add a registry row** in `config/jurisdictions.yaml` for any new place your domains reference (kind, aliases, iso codes) — `tests/unit/test_jurisdictions.py::test_every_domain_slug_resolves` fails CI if a domain's `region` slug has no registry row
+8. **Add tests** to `tests/unit/test_keywords.py` — see `TestEuropeanExpansionLanguages` for examples
 
 ### Improve Keyword Accuracy
 

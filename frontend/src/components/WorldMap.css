@@ -1,0 +1,734 @@
+/* World map - ported from the design mockup's inline SVG choropleth.
+   Scoped entirely under .world-map so it never leaks into the rest of the
+   app's (currently light-only) styling; dark mode here follows the OS/
+   browser preference, same as the mockup carried before an app-wide toggle
+   exists (that toggle is a later phase). */
+
+.world-map {
+  --wm-card: #ffffff;
+  --wm-panel: #f3f6ef;
+  --wm-ink: #1f2937;
+  --wm-muted: #7e8084;
+  --wm-line: #d7dee8;
+  --wm-accent: #8dc63f;
+  --wm-accent-deep: #43701a;
+  --wm-accent-ink: #2e4d12;
+  --wm-map-untracked: #e5e8e2;
+  --wm-map-tracked0: #d6e4bf;
+  --wm-map-bin1: #aed579;
+  --wm-map-bin2: #8dc63f;
+  --wm-map-bin3: #55831f;
+  --wm-map-stroke: #ffffff;
+  --wm-map-hover-stroke: #1c2318;
+  --wm-tooltip-bg: #1c2318;
+  --wm-tooltip-ink: #f2f5ee;
+  /* Federal/nationwide: deliberately a different hue (indigo) from the
+     green choropleth bins, so a federal law can never be mistaken for a
+     single-region color at a glance. */
+  --wm-federal-bg: #eef2ff;
+  --wm-federal-border: #6366f1;
+  --wm-federal-ink: #3730a3;
+
+  grid-column: 1 / -1;
+  text-align: left;
+  margin-bottom: 8px;
+  padding: 16px;
+  background: var(--wm-card);
+  border: 1px solid var(--wm-line);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: var(--wm-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  .world-map {
+    --wm-card: #1b211a;
+    --wm-panel: #161c13;
+    --wm-ink: #e8ece3;
+    --wm-muted: #9aa78e;
+    --wm-line: #2a3226;
+    --wm-accent-deep: #a5d55f;
+    --wm-accent-ink: #c4e394;
+    --wm-map-untracked: #232a1f;
+    --wm-map-tracked0: #33431f;
+    --wm-map-bin1: #4d7220;
+    --wm-map-bin2: #6ca32c;
+    --wm-map-bin3: #9bd44a;
+    --wm-map-stroke: #141812;
+    --wm-map-hover-stroke: #e8ece3;
+    --wm-tooltip-bg: #e8ece3;
+    --wm-tooltip-ink: #1c2318;
+    --wm-federal-bg: #23264a;
+    --wm-federal-border: #818cf8;
+    --wm-federal-ink: #c7d2fe;
+  }
+}
+
+.wm-error {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #fdf6e3;
+  border: 1px solid #eadfbc;
+  font-size: 13.5px;
+  color: var(--wm-ink);
+}
+
+.wm-stat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.wm-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.wm-stat b {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wm-ink);
+}
+
+.wm-stat span {
+  font-size: 13px;
+  color: var(--wm-muted);
+}
+
+.wm-note {
+  font-size: 13px;
+  color: var(--wm-muted);
+  margin: 2px 0 14px;
+  max-width: 70ch;
+}
+
+.wm-searchrow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.wm-quickfilter {
+  flex: 1 1 240px;
+  max-width: 400px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--wm-ink);
+  background: var(--wm-card);
+  border: 1px solid var(--wm-line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.wm-quickfilter:focus {
+  border-color: var(--wm-accent);
+  box-shadow: 0 0 0 3px rgba(141, 198, 63, 0.25);
+}
+
+.wm-searchrow-hint {
+  font-size: 12px;
+  color: var(--wm-muted);
+}
+
+.wm-stage {
+  position: relative;
+  background: var(--wm-panel);
+  border: 1px solid var(--wm-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.wm-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+.wm-svg:active {
+  cursor: grabbing;
+}
+
+.wm-controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  display: flex;
+  gap: 4px;
+  background: var(--wm-card);
+  border: 1px solid var(--wm-line);
+  border-radius: 8px;
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+.wm-control-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--wm-ink);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.wm-control-btn:hover:not(:disabled) {
+  background: var(--wm-panel);
+}
+
+.wm-control-btn:focus-visible {
+  outline: 2px solid var(--wm-accent-deep);
+  outline-offset: 1px;
+}
+
+.wm-control-btn:disabled {
+  color: var(--wm-muted);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.wm-control-reset {
+  width: auto;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.wm-country {
+  fill: var(--wm-map-untracked);
+  stroke: var(--wm-map-stroke);
+  stroke-width: 0.5;
+  transition: fill 0.15s ease, opacity 0.15s ease;
+  cursor: default;
+  outline: none;
+}
+
+.wm-country.wm-bin-t0,
+.wm-country.wm-bin-b1,
+.wm-country.wm-bin-b2,
+.wm-country.wm-bin-b3 {
+  cursor: pointer;
+}
+
+/* Drillable countries get their own cursor so the double-click affordance
+   reads as "opens into more detail," distinct from the plain-click "open
+   panel" cursor above. Declared after the bin rules (same specificity) so
+   it wins on a drillable + tracked country. */
+.wm-country.wm-drillable {
+  cursor: zoom-in;
+}
+
+.wm-bin-t0 { fill: var(--wm-map-tracked0); }
+.wm-bin-b1 { fill: var(--wm-map-bin1); }
+.wm-bin-b2 { fill: var(--wm-map-bin2); }
+.wm-bin-b3 { fill: var(--wm-map-bin3); }
+
+.wm-country:hover,
+.wm-country:focus-visible,
+.wm-country.wm-hit {
+  stroke: var(--wm-map-hover-stroke);
+  stroke-width: 1.1;
+}
+
+.wm-country.wm-dim,
+.wm-micro.wm-dim {
+  opacity: 0.28;
+}
+
+.wm-micro {
+  fill: var(--wm-map-bin2);
+  stroke: var(--wm-map-stroke);
+  stroke-width: 1.2;
+  cursor: pointer;
+}
+
+.wm-micro.wm-bin-t0 { fill: var(--wm-map-tracked0); }
+.wm-micro.wm-bin-b1 { fill: var(--wm-map-bin1); }
+.wm-micro.wm-bin-b3 { fill: var(--wm-map-bin3); }
+
+.wm-micro:hover,
+.wm-micro:focus-visible,
+.wm-micro.wm-hit {
+  stroke: var(--wm-map-hover-stroke);
+  stroke-width: 2;
+}
+
+.wm-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  background: var(--wm-tooltip-bg);
+  color: var(--wm-tooltip-ink);
+  border-radius: 8px;
+  padding: 9px 12px;
+  max-width: 240px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+}
+
+.wm-tooltip-name {
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.wm-tooltip-stats {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.wm-tooltip-sample {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.wm-tooltip-drill {
+  margin-top: 5px;
+  font-size: 11.5px;
+  opacity: 0.85;
+}
+
+.wm-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(340px, 92%);
+  background: var(--wm-card);
+  border-left: 1px solid var(--wm-line);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.1);
+  padding: 18px 20px;
+  overflow-y: auto;
+  transform: translateX(105%);
+  transition: transform 0.25s ease;
+  z-index: 6;
+}
+
+.wm-panel-open {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-panel { transition: none; }
+  .wm-country { transition: none; }
+}
+
+.wm-panel-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: none;
+  color: var(--wm-muted);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.wm-panel-close:focus-visible {
+  outline: 2px solid var(--wm-accent-deep);
+}
+
+.wm-panel-body h3 {
+  margin: 2px 0 2px;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+}
+
+.wm-panel-stats {
+  color: var(--wm-muted);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.wm-panel-policy {
+  border: 1px solid var(--wm-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+.wm-panel-cta {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: #ffffff;
+  background: var(--wm-accent-deep);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.wm-panel-cta:hover {
+  filter: brightness(1.08);
+}
+
+.wm-panel-note,
+.wm-panel-empty {
+  font-size: 12.5px;
+  color: var(--wm-muted);
+}
+
+.wm-panel-note {
+  margin-top: 10px;
+}
+
+.wm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  align-items: center;
+}
+
+.wm-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--wm-muted);
+  background: none;
+  border: 1px solid var(--wm-line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.wm-legend-item[aria-pressed="true"] {
+  border-color: var(--wm-accent-deep);
+  color: var(--wm-ink);
+  background: rgba(141, 198, 63, 0.12);
+}
+
+.wm-legend-item:focus-visible {
+  outline: 2px solid var(--wm-accent-deep);
+  outline-offset: 2px;
+}
+
+.wm-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.wm-swatch-untracked { background: var(--wm-map-untracked); }
+.wm-swatch-t0 { background: var(--wm-map-tracked0); }
+.wm-swatch-b1 { background: var(--wm-map-bin1); }
+.wm-swatch-b2 { background: var(--wm-map-bin2); }
+.wm-swatch-b3 { background: var(--wm-map-bin3); }
+
+.wm-offmap-tray {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+}
+
+.wm-offmap-label {
+  font-size: 12px;
+  color: var(--wm-muted);
+}
+
+.wm-offmap-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wm-offmap-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wm-ink);
+  background: var(--wm-panel);
+  border: 1px solid var(--wm-line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.wm-offmap-chip.wm-dim {
+  opacity: 0.35;
+}
+
+.wm-offmap-chip.wm-hit,
+.wm-offmap-chip[aria-pressed="true"] {
+  border-color: var(--wm-accent-deep);
+}
+
+.wm-offmap-chip:focus-visible {
+  outline: 2px solid var(--wm-accent-deep);
+  outline-offset: 2px;
+}
+
+.wm-offmap-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--wm-muted);
+}
+
+.wm-browse-list {
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+.wm-browse-list summary {
+  cursor: pointer;
+  color: var(--wm-accent-deep);
+  font-weight: 600;
+}
+
+.wm-browse-list ul {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--wm-line);
+  border-radius: 8px;
+}
+
+.wm-browse-list li + li {
+  border-top: 1px solid var(--wm-line);
+}
+
+.wm-browse-list li button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  color: var(--wm-ink);
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.wm-browse-list li button:hover,
+.wm-browse-list li button:focus-visible {
+  background: var(--wm-panel);
+}
+
+.wm-browse-count {
+  margin-left: auto;
+  color: var(--wm-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.wm-panel-cta-secondary {
+  background: transparent;
+  color: var(--wm-accent-deep);
+  border: 1px solid var(--wm-accent-deep);
+}
+
+.wm-panel-cta-secondary:hover {
+  background: var(--wm-panel);
+  filter: none;
+}
+
+/* Demoted scan action ("Scan {name} for new policies") - a link, not a
+   button, so "View found policies" reads as the one obvious next step. */
+.wm-panel-cta-link {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--wm-muted);
+  background: none;
+  border: none;
+  padding: 4px 0;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.wm-panel-cta-link:hover {
+  color: var(--wm-accent-deep);
+}
+
+.wm-attribution {
+  margin: 14px 0 0;
+  font-size: 11px;
+  color: var(--wm-muted);
+}
+
+/* Country drill-down view */
+
+.wm-breadcrumb {
+  margin: 2px 0 12px;
+  font-size: 13px;
+  color: var(--wm-muted);
+}
+
+.wm-breadcrumb-world {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wm-accent-deep);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.wm-breadcrumb-world:focus-visible {
+  outline: 2px solid var(--wm-accent-deep);
+  outline-offset: 2px;
+}
+
+.wm-reconcile {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--wm-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.wm-country-view-message {
+  padding: 8px 0 24px;
+}
+
+.wm-loading {
+  font-size: 13.5px;
+  color: var(--wm-muted);
+}
+
+/* The world map's .wm-svg is width:100%/height:auto - fine for the fixed
+   960x421.5 world atlas. Admin-1 geometry varies from landscape (US,
+   960x561.6) to portrait (Germany, 960x1299.5); constraining by max-height
+   as well (and letting the intrinsic viewBox aspect ratio drive the rest)
+   keeps a portrait country from blowing past a sensible height and shifting
+   the rest of the page, without needing per-country CSS. */
+.wm-country-view .wm-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+}
+
+.wm-country-view .wm-svg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 70vh;
+  margin: 0 auto;
+}
+
+.wm-federal-chip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font: inherit;
+  text-align: left;
+  color: var(--wm-federal-ink);
+  background: var(--wm-federal-bg);
+  border: 1.5px dashed var(--wm-federal-border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+.wm-federal-chip[aria-pressed="true"] {
+  border-style: solid;
+}
+
+.wm-federal-chip:focus-visible {
+  outline: 2px solid var(--wm-federal-border);
+  outline-offset: 2px;
+}
+
+.wm-federal-chip-label {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.wm-federal-chip-count {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.wm-federal-badge {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--wm-federal-ink);
+  background: var(--wm-federal-bg);
+  border: 1px solid var(--wm-federal-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.wm-panel-federal {
+  border-left: 3px solid var(--wm-federal-border);
+}
+
+.wm-city-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 6px;
+}
+
+.wm-city-chip {
+  font-size: 11.5px;
+  color: var(--wm-ink);
+  background: var(--wm-panel);
+  border: 1px solid var(--wm-line);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+@media (max-width: 640px) {
+  .world-map { padding: 12px; }
+  .wm-stat b { font-size: 20px; }
+  .wm-panel { width: 100%; }
+  .wm-country-view .wm-svg { max-height: 50vh; }
+}
