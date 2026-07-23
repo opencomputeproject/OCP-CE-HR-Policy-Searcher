@@ -151,6 +151,7 @@ REGION_TO_GROUPS: dict[str, list[str]] = {
     "japan": ["apac"],
     "south_korea": ["apac"],
     "australia": ["apac"],
+    "new_zealand": ["apac"],
     "india": ["apac"],
     "new_south_wales": ["australia", "apac"],
     "south_australia": ["australia", "apac"],

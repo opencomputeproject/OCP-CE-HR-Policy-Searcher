@@ -165,3 +165,306 @@ domains:
     notes: |
       Structured source added 2026-07-12, discovery expansion plan.
       Requires DIP_API_KEY; self-disables until set.
+
+  # ---------------------------------------------------------------------------
+  # Wave 1 keyless sources (added 2026-07-17). All live-verified on the day;
+  # none needs an API key. See 20260716_0136_Global_Policy_Source_Catalog.md.
+  # ---------------------------------------------------------------------------
+
+  - id: "eu_have_your_say"
+    name: "EU Have Your Say (Better Regulation portal)"
+    enabled: true
+    source_type: "eu_have_your_say"
+    base_url: "https://ec.europa.eu/info/law/better-regulation/have-your-say"
+    region:
+      - "eu"
+    category: "legislation"
+    tags:
+      - "consultation"
+      - "early-signal"
+    policy_types:
+      - "legislation"
+    notes: |
+      Earliest signal of any source: Commission initiatives with explicit
+      feedback windows. receivingFeedbackStatus=OPEN -> lifecycle
+      "consultation", i.e. input can still shape the act. The API is
+      undocumented/internal to the Commission portal and may change without
+      notice; the client degrades to empty rather than raising.
+      License: Decision 2011/833/EU (CC BY 4.0-aligned).
+
+  - id: "govuk_consultations"
+    name: "UK gov.uk consultations and policy papers"
+    enabled: true
+    source_type: "govuk"
+    base_url: "https://www.gov.uk"
+    region:
+      - "uk"
+    category: "legislation"
+    tags:
+      - "consultation"
+      - "early-signal"
+    policy_types:
+      - "legislation"
+    notes: |
+      Complements uk_bills: consultations and policy papers precede bills by
+      months. open_consultation / open_call_for_evidence -> lifecycle
+      "consultation"; the closing date is folded into the content so the
+      analysis model sees the deadline. License: Open Government Licence v3.0.
+
+  - id: "oireachtas_api"
+    name: "Oireachtas (Parliament of Ireland)"
+    enabled: true
+    source_type: "oireachtas"
+    base_url: "https://api.oireachtas.ie"
+    region:
+      - "ireland"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Ireland is a top EU data-centre market with no structured coverage
+      before this. The API has NO full-text search, so the client pages
+      bills by status and matches titles locally with deliberately BROAD
+      terms - measured on all 1024 live bills, "waste heat" and "data
+      centre" matched 0 while "energy" matched 24, including "Prevention of
+      Energy Wastage Bill 2026".
+
+  - id: "tweede_kamer_api"
+    name: "Tweede Kamer (Dutch House of Representatives)"
+    enabled: true
+    source_type: "tweede_kamer"
+    base_url: "https://gegevensmagazijn.tweedekamer.nl"
+    region:
+      - "netherlands"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Only keyless source with SERVER-SIDE keyword search (OData contains()),
+      so no local corpus scan needed. Dutch terms only: restwarmte,
+      warmtenet, datacenter, warmtewet. Defaults to law-changing Soorten
+      (Wetgeving/Motie/Amendement) because written questions and government
+      letters dominate raw results but are commentary, not policy.
+      License: CC0 per opendata.tweedekamer.nl.
+
+  # ---------------------------------------------------------------------------
+  # Wave 2 keyless sources (added 2026-07-17). All live-verified.
+  # ---------------------------------------------------------------------------
+
+  - id: "egov_japan_api"
+    name: "e-Gov Law API (Japan, enacted law)"
+    enabled: true
+    source_type: "egov_japan"
+    base_url: "https://laws.e-gov.go.jp"
+    region:
+      - "japan"
+      - "apac"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Enacted Japanese law with real full-text search. Pairs with kokkai_api:
+      Kokkai shows what the Diet is discussing, e-Gov shows what became law.
+      Catalog corrections found at build: the result key is `items` (not
+      `laws`), and Japanese writes waste heat two ways with very different
+      yields (排熱 -> 1 law, 廃熱 -> 10). Both are in DEFAULT_TERMS.
+      License: Government Standard Terms of Use v2.0 (CC BY 4.0 compatible).
+
+  - id: "kokkai_api"
+    name: "NDL Kokkai (Japanese Diet proceedings)"
+    enabled: true
+    source_type: "kokkai"
+    base_url: "https://kokkai.ndl.go.jp"
+    region:
+      - "japan"
+      - "apac"
+    category: "legislation"
+    tags:
+      - "early-signal"
+    policy_types:
+      - "legislation"
+    notes: |
+      LEADING INDICATOR, not a law register. Documents are speeches, so most
+      will correctly fail the screening gate - low yield is expected and
+      correct. Earns its place on the day a minister first signals intent.
+      Evidence it works: on 2026-06-12 an Environment Ministry official told
+      the House Environment Committee that Japanese environmental law has NO
+      framework regulating waste heat, while acknowledging the data-centre
+      build-out. NDL asks for no bursts and no parallel calls; the client
+      sleeps 2s between requests.
+
+  - id: "stortinget_api"
+    name: "Stortinget (Parliament of Norway)"
+    enabled: true
+    source_type: "stortinget"
+    base_url: "https://data.stortinget.no"
+    region:
+      - "norway"
+      - "nordic"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Norway is amending the Energy Act to cover surplus heat from data
+      centres. Two catalog corrections found by measuring all 650 saker of
+      session 2025-2026: the suggested terms "spillvarme" and "fjernvarme"
+      matched ZERO - Norwegian says **overskuddsvarme** - while "energi"
+      matched 7 and catches the Energy Act amendment. Dates are .NET WCF
+      format and the trailing offset must be applied or late-evening cases
+      report a day early. License: NLOD.
+
+  # ---------------------------------------------------------------------------
+  # Wave 2 completion + Wave 3 quick wins (added 2026-07-17, second batch).
+  # All keyless, all live-verified same day.
+  # ---------------------------------------------------------------------------
+
+  - id: "diavgeia_api"
+    name: "Diavgeia transparency register (Greece)"
+    enabled: true
+    source_type: "diavgeia"
+    base_url: "https://diavgeia.gov.gr"
+    region:
+      - "greece"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "early-signal"
+    policy_types:
+      - "regulation"
+    notes: |
+      Greece's statutory transparency register: by law every government act
+      is INVALID until posted here, which makes it same-day early by
+      statute (the Greek Parliament itself has no API). Access trap pinned
+      by a test: the plain /opendata/search `q` param is a NO-OP (nonsense
+      queries return all 3.1M acts) - only /opendata/search/advanced with
+      subject:"..." syntax filters. Greek search stems, so one grammatical
+      form per term suffices. Executive acts, not bills, so no lifecycle
+      stage is claimed.
+
+  - id: "riigikogu_api"
+    name: "Riigikogu (Parliament of Estonia)"
+    enabled: true
+    source_type: "riigikogu"
+    base_url: "https://api.riigikogu.ee"
+    region:
+      - "estonia"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Server-side title filter genuinely works (nonsense returns 0 - the
+      check Retsinformation failed). Estonian inflects, so defaults are
+      SUBSTRING STEMS: kaugküte matched 0 while the stem kaugküt matched
+      61 (titles use the genitive kaugkütte). The API 429s at 2 req/s, so
+      the client spaces requests 1s apart. Citations prefer the document's
+      PUBLIC PDF on riigikogu.ee.
+
+  - id: "sejm_api"
+    name: "Sejm (Parliament of Poland)"
+    enabled: true
+    source_type: "sejm"
+    base_url: "https://api.sejm.gov.pl"
+    region:
+      - "poland"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      No keyword search; the client fetches the term's full print list
+      (~3100 prints, one 1.7 MB request) and matches titles locally with
+      Polish STEMS - ciepł matched 19 prints, energ 97, klimat 64, while
+      the full phrase "centrum danych" matched 0 (declension). The list
+      arrives oldest-first, so the client walks it newest-first or the
+      document cap would spend itself on 2023 leftovers. Citation = the
+      print's official PDF on api.sejm.gov.pl.
+
+  - id: "pmg_api"
+    name: "PMG bills and comment windows (South Africa)"
+    enabled: true
+    source_type: "pmg"
+    base_url: "https://api.pmg.org.za"
+    region:
+      - "south_africa"
+      - "africa"
+    category: "legislation"
+    tags:
+      - "mandates"
+      - "consultation"
+      - "early-signal"
+    policy_types:
+      - "legislation"
+    notes: |
+      First African source. The call-for-comment feed carries OPEN comment
+      windows (lifecycle "consultation" with the deadline folded into
+      content, same pattern as gov.uk). HONESTY NOTE: South Africa's
+      Parliament has no open API; PMG is a 30-year-old parliamentary
+      monitoring NGO whose record parliament itself references, and this
+      is the one source whose citation URLs are not on a government
+      domain. Its pages carry the official bill PDFs. License: CC BY.
+
+  - id: "camara_api"
+    name: "Câmara dos Deputados (Brazil)"
+    enabled: true
+    source_type: "camara"
+    base_url: "https://dadosabertos.camara.leg.br"
+    region:
+      - "brazil"
+      - "south_america"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      First Latin American source; Brazil's data-centre build-out (the
+      Redata tax-incentive push) makes it worth watching. Server-side
+      keyword search verified real (nonsense returns 0 rows) but it
+      matches INDEXED keywords, not full text. Term evidence: eficiência
+      energética 17, centro de dados 2, datacenter 1; plain "calor" is
+      poisoned (workplace-heat allowance bills). The Senado's API is
+      deliberately excluded - its replacement endpoint ignored keyword
+      filters when probed. License: free with attribution.
+
+  - id: "nz_pco_api"
+    name: "PCO Legislation API (New Zealand)"
+    enabled: true
+    source_type: "nz_pco"
+    base_url: "https://api.legislation.govt.nz"
+    region:
+      - "new_zealand"
+      - "apac"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      Keyed source (NZ_PCO_API_KEY, by email from contact@pco.govt.nz;
+      self-disables until set). The best-behaved API in the registry:
+      genuine full-text content search - so precise domain phrases work,
+      measured "waste heat" 6 / "data centre" 7 / "heat recovery" 5 -
+      with official legislation.govt.nz HTML/PDF/XML URLs per hit.
+      Bill "terminated" claims no stage (defeated, withdrawn and lapsed
+      look identical); acts claim "enacted" only while in force.
+      Caveat: the API is metadata-only and its format URLs sit behind
+      www.legislation.govt.nz's AWS WAF (empty 202 challenge to scripts),
+      so content is metadata plus an explicit "full-text search matched
+      <term> in this document" line - the server-side match is the signal.
+      NZ legislation is public domain. 10k requests/day limit.

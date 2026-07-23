@@ -484,6 +484,15 @@ jurisdictions:
   parent: null
   aliases:
   - australian
+- slug: new_zealand
+  name: New Zealand
+  kind: country
+  iso3: NZL
+  iso_numeric: '554'
+  parent: null
+  aliases:
+  - nz
+  - aotearoa
 - slug: india
   name: India
   kind: country
