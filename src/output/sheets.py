@@ -98,7 +98,25 @@ class SheetsClient:
     def append_policies(self, policies: list[Policy], sheet_name: str = "Staging") -> int:
         if not policies:
             return 0
+
+        # Dedupe within the batch by URL (keep first occurrence) — multi-policy
+        # extraction can pass several policies sharing one source URL.
+        seen_urls: set[str] = set()
+        deduped = []
+        for p in policies:
+            if p.url in seen_urls:
+                continue
+            seen_urls.add(p.url)
+            deduped.append(p)
+
+        # Skip policies already on the sheet — re-exports can pass URLs that
+        # were already appended in a prior run.
+        existing_urls = self.get_existing_urls(sheet_name)
+        new_policies = [p for p in deduped if p.url not in existing_urls]
+        if not new_policies:
+            return 0
+
         sheet = self.get_staging_sheet(sheet_name)
-        rows = [p.to_sheet_row() for p in policies]
+        rows = [p.to_sheet_row() for p in new_policies]
         sheet.append_rows(rows, value_input_option="USER_ENTERED")
         return len(rows)

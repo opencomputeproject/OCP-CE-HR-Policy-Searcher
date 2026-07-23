@@ -190,6 +190,8 @@ class TestSheetsClient:
         client.spreadsheet_id = "test-id"
 
         mock_sheet = MagicMock()
+        mock_sheet.row_values.return_value = list(STAGING_HEADERS)
+        mock_sheet.col_values.return_value = ["Link"]  # no existing URLs
         mock_spreadsheet = MagicMock()
         mock_spreadsheet.worksheet.return_value = mock_sheet
         client._spreadsheet = mock_spreadsheet
@@ -233,6 +235,135 @@ class TestSheetsClient:
 
         client = SheetsClient.__new__(SheetsClient)
         assert client.append_policies([]) == 0
+
+    def test_append_policies_dedupes_within_batch(self):
+        """Multiple policies sharing one source URL: only the first is kept."""
+        try:
+            from src.output.sheets import SheetsClient
+        except ImportError:
+            pytest.skip("gspread not installed")
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+
+        mock_sheet = MagicMock()
+        mock_sheet.row_values.return_value = list(STAGING_HEADERS)
+        mock_sheet.col_values.return_value = ["Link"]  # no existing URLs
+        mock_spreadsheet = MagicMock()
+        mock_spreadsheet.worksheet.return_value = mock_sheet
+        client._spreadsheet = mock_spreadsheet
+
+        policies = [
+            Policy(
+                url="https://a.gov/p1",
+                policy_name="Policy A (first)",
+                jurisdiction="US",
+                policy_type=PolicyType.LAW,
+                summary="Summary A",
+                relevance_score=8,
+            ),
+            Policy(
+                url="https://a.gov/p1",
+                policy_name="Policy A (duplicate)",
+                jurisdiction="US",
+                policy_type=PolicyType.LAW,
+                summary="Summary A dup",
+                relevance_score=7,
+            ),
+            Policy(
+                url="https://b.gov/p2",
+                policy_name="Policy B",
+                jurisdiction="Germany",
+                policy_type=PolicyType.REGULATION,
+                summary="Summary B",
+                relevance_score=6,
+            ),
+        ]
+
+        count = client.append_policies(policies)
+
+        assert count == 2
+        rows = mock_sheet.append_rows.call_args[0][0]
+        assert len(rows) == 2
+        name_col = STAGING_HEADERS.index("Name")
+        assert rows[0][name_col] == "Policy A (first)"
+
+    def test_append_policies_skips_existing_urls(self):
+        """Policies whose URL is already on the sheet are not re-appended."""
+        try:
+            from src.output.sheets import SheetsClient
+        except ImportError:
+            pytest.skip("gspread not installed")
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+
+        mock_sheet = MagicMock()
+        mock_sheet.row_values.return_value = list(STAGING_HEADERS)
+        mock_sheet.col_values.return_value = ["Link", "https://a.gov/p1"]
+        mock_spreadsheet = MagicMock()
+        mock_spreadsheet.worksheet.return_value = mock_sheet
+        client._spreadsheet = mock_spreadsheet
+
+        policies = [
+            Policy(
+                url="https://a.gov/p1",
+                policy_name="Already Staged",
+                jurisdiction="US",
+                policy_type=PolicyType.LAW,
+                summary="Summary A",
+                relevance_score=8,
+            ),
+            Policy(
+                url="https://b.gov/p2",
+                policy_name="Policy B",
+                jurisdiction="Germany",
+                policy_type=PolicyType.REGULATION,
+                summary="Summary B",
+                relevance_score=6,
+            ),
+        ]
+
+        count = client.append_policies(policies)
+
+        assert count == 1
+        rows = mock_sheet.append_rows.call_args[0][0]
+        assert len(rows) == 1
+        link_col = STAGING_HEADERS.index("Link")
+        assert rows[0][link_col] == "https://b.gov/p2"
+
+    def test_append_policies_all_duplicates_skips_append_call(self):
+        """If every policy is already staged, append_rows is never called."""
+        try:
+            from src.output.sheets import SheetsClient
+        except ImportError:
+            pytest.skip("gspread not installed")
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+
+        mock_sheet = MagicMock()
+        mock_sheet.row_values.return_value = list(STAGING_HEADERS)
+        mock_sheet.col_values.return_value = ["Link", "https://a.gov/p1"]
+        mock_spreadsheet = MagicMock()
+        mock_spreadsheet.worksheet.return_value = mock_sheet
+        client._spreadsheet = mock_spreadsheet
+
+        policies = [
+            Policy(
+                url="https://a.gov/p1",
+                policy_name="Already Staged",
+                jurisdiction="US",
+                policy_type=PolicyType.LAW,
+                summary="Summary A",
+                relevance_score=8,
+            ),
+        ]
+
+        count = client.append_policies(policies)
+
+        assert count == 0
+        mock_sheet.append_rows.assert_not_called()
 
     def test_get_existing_urls_reads_link_column(self):
         """get_existing_urls locates the Link column by header, not column A."""
