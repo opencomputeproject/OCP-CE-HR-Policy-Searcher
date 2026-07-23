@@ -17,7 +17,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: weekly-signals
@@ -52,3 +52,30 @@ jobs:
           path: data/leads.json
           if-no-files-found: warn
           retention-days: 90
+
+      # Artifacts expire and nobody reliably downloads them — persist the
+      # actual output to a dedicated branch so leads survive past retention.
+      - name: Persist leads to ci-data branch
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          DATE=$(date -u +%Y-%m-%d)
+          DEST="signals/${DATE}-leads.json"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          REMOTE="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          WORKDIR=$(mktemp -d)
+          if git ls-remote --exit-code --heads "$REMOTE" ci-data > /dev/null 2>&1; then
+            git clone --branch ci-data --depth 1 "$REMOTE" "$WORKDIR"
+          else
+            git clone --no-checkout "$REMOTE" "$WORKDIR"
+            git -C "$WORKDIR" checkout --orphan ci-data
+            git -C "$WORKDIR" rm -rf . > /dev/null 2>&1 || true
+          fi
+          mkdir -p "$WORKDIR/$(dirname "$DEST")"
+          cp data/leads.json "$WORKDIR/$DEST"
+          git -C "$WORKDIR" add "$DEST"
+          git -C "$WORKDIR" commit -m "chore(ci-data): add ${DEST} from run ${GITHUB_RUN_ID}" || echo "Nothing to commit"
+          git -C "$WORKDIR" push origin ci-data
