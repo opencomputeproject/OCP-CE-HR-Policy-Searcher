@@ -1,4 +1,5 @@
-"""Tests for PolicyStore — JSON file persistence."""
+"""Tests for PolicyStore — SQLite-backed persistence (see test_db.py for
+migration-specific coverage)."""
 
 import json
 
@@ -185,4 +186,5 @@ class TestSave:
         data_dir = tmp_path / "sub" / "dir"
         store = PolicyStore(data_dir=str(data_dir))
         store.add_policies([_make_policy()])
-        assert (data_dir / "policies.json").exists()
+        assert (data_dir / "policypulse.db").exists()
+        assert len(PolicyStore(data_dir=str(data_dir)).get_all()) == 1

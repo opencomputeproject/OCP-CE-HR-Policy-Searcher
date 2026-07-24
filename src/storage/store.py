@@ -1,10 +1,17 @@
-"""JSON file store with atomic writes for policies and scan results."""
+"""SQLite-backed store for policies and scan results.
+
+Schema, connection handling, and the JSON -> SQLite migration live in
+``src/storage/db.py``. This module keeps the same public interface the
+JSON-file version had (same constructor, same method signatures and
+result shapes) so callers never notice the storage swap.
+"""
 
 import json
 import logging
 from pathlib import Path
 from typing import Optional
 
+from . import db as storage_db
 from ..core.models import Policy
 
 logger = logging.getLogger(__name__)
@@ -16,39 +23,41 @@ class PolicyStore:
     def __init__(self, data_dir: str = "data"):
         self.data_dir = Path(data_dir)
         self.policies_file = self.data_dir / "policies.json"
-        self._policies: list[dict] = []
-        self._load()
+        self._presanitize_legacy_json()
+        self._conn = storage_db.connect(self.data_dir)
 
-    def _load(self) -> None:
-        if self.policies_file.exists():
-            try:
-                with open(self.policies_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                if not isinstance(data, list):
-                    logger.error(
-                        "policies.json contains %s instead of a list — "
-                        "backing up to policies.json.corrupt and starting fresh",
-                        type(data).__name__,
-                    )
-                    self._backup_corrupt_file()
-                    self._policies = []
-                else:
-                    self._policies = data
-            except json.JSONDecodeError as e:
+    def _presanitize_legacy_json(self) -> None:
+        """Back up a corrupt legacy policies.json before migration runs.
+
+        Preserves the pre-SQLite behavior: a corrupt or wrong-shaped
+        policies.json never blocks startup or loses data — it's renamed to
+        ``.corrupt`` and migration proceeds as if it were never there.
+        """
+        db_path = self.data_dir / storage_db.DB_FILENAME
+        if db_path.exists() or not self.policies_file.exists():
+            return
+        try:
+            data = json.loads(self.policies_file.read_text(encoding="utf-8"))
+            if not isinstance(data, list):
                 logger.error(
-                    "policies.json is corrupted (JSON parse error: %s) — "
-                    "backing up to policies.json.corrupt so data is not lost",
-                    e,
+                    "policies.json contains %s instead of a list — "
+                    "backing up to policies.json.corrupt and starting fresh",
+                    type(data).__name__,
                 )
                 self._backup_corrupt_file()
-                self._policies = []
-            except Exception as e:
-                logger.error(
-                    "Failed to read policies.json: %s — "
-                    "file preserved, starting with empty policy list",
-                    e,
-                )
-                self._policies = []
+        except json.JSONDecodeError as e:
+            logger.error(
+                "policies.json is corrupted (JSON parse error: %s) — "
+                "backing up to policies.json.corrupt so data is not lost",
+                e,
+            )
+            self._backup_corrupt_file()
+        except Exception as e:
+            logger.error(
+                "Failed to read policies.json: %s — "
+                "file preserved, starting with empty policy list",
+                e,
+            )
 
     def _backup_corrupt_file(self) -> None:
         """Move corrupt policies.json to .corrupt so the user can recover data."""
@@ -60,13 +69,9 @@ class PolicyStore:
             logger.error("Failed to backup corrupt file: %s", e)
 
     def save(self) -> bool:
-        """Save policies to disk with atomic write."""
-        self.data_dir.mkdir(parents=True, exist_ok=True)
+        """Commit pending writes. Kept for interface compatibility."""
         try:
-            tmp = self.policies_file.with_suffix(".tmp")
-            with open(tmp, "w", encoding="utf-8") as f:
-                json.dump(self._policies, f, indent=2, default=str)
-            tmp.replace(self.policies_file)
+            self._conn.commit()
             return True
         except Exception as e:
             logger.error(f"Failed to save policies: {e}")
@@ -74,28 +79,56 @@ class PolicyStore:
 
     def add_policies(self, policies: list[Policy]) -> int:
         """Add policies, deduplicating by URL. Returns count added."""
-        existing_urls = {p["url"] for p in self._policies}
         added = 0
         for policy in policies:
-            if policy.url not in existing_urls:
-                self._policies.append(policy.model_dump(mode="json"))
-                existing_urls.add(policy.url)
+            record = policy.model_dump(mode="json")
+            cur = self._conn.execute(
+                """
+                INSERT OR IGNORE INTO policies (
+                    url, policy_name, jurisdiction, policy_type, lifecycle_stage,
+                    review_status, relevance_score, scan_id, domain_id,
+                    source_language, raw
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    record.get("url"),
+                    record.get("policy_name"),
+                    record.get("jurisdiction"),
+                    record.get("policy_type"),
+                    record.get("lifecycle_stage"),
+                    record.get("review_status"),
+                    record.get("relevance_score"),
+                    record.get("scan_id"),
+                    record.get("domain_id"),
+                    record.get("source_language"),
+                    json.dumps(record, ensure_ascii=False, default=str),
+                ),
+            )
+            if cur.rowcount:
                 added += 1
-        if added:
-            self.save()
+        # Commit unconditionally: even a batch that turns out to be all
+        # duplicates still ran INSERT OR IGNORE statements, which open an
+        # implicit transaction that must be closed out — otherwise it's
+        # left open on this connection and blocks the next writer.
+        self._conn.commit()
         return added
 
     def get_all(self) -> list[dict]:
-        return self._policies.copy()
+        rows = self._conn.execute("SELECT raw FROM policies ORDER BY rowid").fetchall()
+        return [json.loads(row[0]) for row in rows]
 
     def update_review_status(self, url: str, review_status: str) -> bool:
         """Set a policy's review status by URL. Returns False if not found."""
-        for policy in self._policies:
-            if policy.get("url") == url:
-                policy["review_status"] = review_status
-                self.save()
-                return True
-        return False
+        cur = self._conn.execute(
+            "UPDATE policies SET review_status = ?, "
+            "raw = json_set(raw, '$.review_status', ?) WHERE url = ?",
+            (review_status, review_status, url),
+        )
+        # Commit unconditionally — the UPDATE opened a transaction whether
+        # or not it matched a row, and an unmatched url must not leave it
+        # open on this connection.
+        self._conn.commit()
+        return cur.rowcount > 0
 
     def search(
         self,
@@ -105,39 +138,54 @@ class PolicyStore:
         scan_id: Optional[str] = None,
         review_status: Optional[str] = None,
     ) -> list[dict]:
-        """Search policies with filters."""
-        results = self._policies
+        """Search policies with filters.
+
+        The jurisdiction filter is a case-insensitive substring match, same
+        as before. It runs through FTS5 (prefix match on the jurisdiction
+        column) when the local SQLite build supports it, and falls back to
+        a plain LIKE otherwise — same result shape either way.
+        """
+        conditions: list[str] = []
+        params: list = []
+
+        use_fts = bool(jurisdiction) and storage_db.fts5_enabled(self._conn)
+        if use_fts:
+            query = (
+                "SELECT DISTINCT policies.raw, policies.rowid FROM policies "
+                "JOIN policies_fts ON policies.rowid = policies_fts.rowid"
+            )
+            escaped = jurisdiction.replace('"', '""')
+            conditions.append("policies_fts MATCH ?")
+            params.append(f'jurisdiction:"{escaped}"*')
+        else:
+            query = "SELECT raw, rowid FROM policies"
+            if jurisdiction:
+                conditions.append("LOWER(jurisdiction) LIKE ? ESCAPE '\\'")
+                params.append(f"%{storage_db.escape_like(jurisdiction.lower())}%")
+
         if review_status:
-            results = [
-                p for p in results
-                if p.get("review_status", "new") == review_status
-            ]
-        if jurisdiction:
-            j_lower = jurisdiction.lower()
-            results = [
-                p for p in results
-                if j_lower in (p.get("jurisdiction", "") or "").lower()
-            ]
+            conditions.append("review_status = ?")
+            params.append(review_status)
         if policy_type:
-            results = [
-                p for p in results
-                if p.get("policy_type") == policy_type
-            ]
+            conditions.append("policy_type = ?")
+            params.append(policy_type)
         if min_score is not None:
-            results = [
-                p for p in results
-                if (p.get("relevance_score", 0) or 0) >= min_score
-            ]
+            conditions.append("COALESCE(relevance_score, 0) >= ?")
+            params.append(min_score)
         if scan_id:
-            results = [
-                p for p in results
-                if p.get("scan_id") == scan_id
-            ]
-        return results
+            conditions.append("scan_id = ?")
+            params.append(scan_id)
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        query += " ORDER BY policies.rowid" if use_fts else " ORDER BY rowid"
+
+        rows = self._conn.execute(query, params).fetchall()
+        return [json.loads(row[0]) for row in rows]
 
     def get_stats(self) -> dict:
         """Get aggregate policy statistics."""
-        policies = self._policies
+        policies = self.get_all()
         by_jurisdiction: dict[str, int] = {}
         by_type: dict[str, int] = {}
         by_score: dict[str, int] = {"1-3": 0, "4-6": 0, "7-8": 0, "9-10": 0}

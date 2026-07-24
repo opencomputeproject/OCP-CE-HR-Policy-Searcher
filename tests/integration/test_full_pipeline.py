@@ -1720,7 +1720,7 @@ class TestPolicyPersistence:
 
     @pytest.mark.asyncio
     async def test_policy_store_saves_to_disk(self, tmp_path):
-        """PolicyStore.add_policies writes to data/policies.json atomically."""
+        """PolicyStore.add_policies persists to policypulse.db durably."""
         from src.storage.store import PolicyStore
 
         store = PolicyStore(data_dir=str(tmp_path))
@@ -1737,12 +1737,11 @@ class TestPolicyPersistence:
         added = store.add_policies(policies)
         assert added == 1
 
-        # File should exist on disk now
-        policies_file = tmp_path / "policies.json"
-        assert policies_file.exists()
+        # Db should exist on disk now
+        assert (tmp_path / "policypulse.db").exists()
 
-        import json
-        data = json.loads(policies_file.read_text(encoding="utf-8"))
+        # And a fresh store instance (simulating a restart) sees the write
+        data = PolicyStore(data_dir=str(tmp_path)).get_all()
         assert len(data) == 1
         assert data[0]["url"] == "https://test.gov/p1"
 
@@ -1817,12 +1816,9 @@ class TestPolicyPersistence:
         )
         store.add_policies([policy])
 
-        # Verify it's on disk
-        policies_file = tmp_path / "policies.json"
-        assert policies_file.exists()
-
-        import json
-        data = json.loads(policies_file.read_text(encoding="utf-8"))
+        # Verify it's durably persisted, visible to a fresh store instance
+        assert (tmp_path / "policypulse.db").exists()
+        data = PolicyStore(data_dir=str(tmp_path)).get_all()
         assert any(p["url"] == "https://test.gov/from-scan" for p in data)
 
 
@@ -2128,15 +2124,13 @@ class TestEdgeCases:
 
     @pytest.mark.asyncio
     async def test_empty_scan_no_persistence(self, tmp_path):
-        """Scan with 0 policies doesn't create an empty policies.json."""
+        """Scan with 0 policies commits nothing and adds no rows."""
         from src.storage.store import PolicyStore
 
         store = PolicyStore(data_dir=str(tmp_path))
         added = store.add_policies([])  # No policies to add
         assert added == 0
-
-        # add_policies returns early when added == 0, so save() is
-        # not called and no file is created for empty writes.
+        assert store.get_all() == []
 
     @pytest.mark.asyncio
     async def test_policy_store_handles_corrupt_json(self, tmp_path):

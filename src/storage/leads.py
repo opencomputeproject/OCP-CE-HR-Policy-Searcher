@@ -4,6 +4,9 @@ News signals and community submissions produce leads, not policies.
 A lead holds a URL and enough context to decide whether to "chase" it
 (run the full analysis pipeline against it) or dismiss it. This keeps
 expensive model spend human-gated and capped.
+
+Persistence is SQLite-backed (see ``src/storage/db.py``); this module
+keeps the same public interface the JSON-file version had.
 """
 
 import json
@@ -14,6 +17,8 @@ from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+from . import db as storage_db
 
 logger = logging.getLogger(__name__)
 
@@ -35,22 +40,23 @@ class Lead(BaseModel):
 
 
 class LeadStore:
-    """Atomic JSON persistence for leads, deduplicated by source_url."""
+    """SQLite-backed persistence for leads, deduplicated by source_url."""
 
     def __init__(self, data_dir: str = "data"):
         self.data_dir = Path(data_dir)
         self.leads_file = self.data_dir / "leads.json"
-        self._leads: dict[str, Lead] = {}
-        self._load()
+        self._presanitize_legacy_json()
+        self._conn = storage_db.connect(self.data_dir)
 
-    def _load(self) -> None:
-        if not self.leads_file.exists():
+    def _presanitize_legacy_json(self) -> None:
+        """Back up a corrupt legacy leads.json before migration runs."""
+        db_path = self.data_dir / storage_db.DB_FILENAME
+        if db_path.exists() or not self.leads_file.exists():
             return
         try:
-            raw = json.loads(self.leads_file.read_text(encoding="utf-8"))
-            for item in raw:
-                lead = Lead(**item)
-                self._leads[lead.lead_id] = lead
+            data = json.loads(self.leads_file.read_text(encoding="utf-8"))
+            if not isinstance(data, list):
+                raise ValueError(f"leads.json contains {type(data).__name__} instead of a list")
         except Exception as e:
             backup = self.leads_file.with_suffix(".json.corrupt")
             logger.error("Failed to load leads (%s); backing up to %s", e, backup)
@@ -60,35 +66,48 @@ class LeadStore:
                 pass
 
     def save(self) -> None:
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        tmp = self.leads_file.with_suffix(".json.tmp")
-        payload = [lead.model_dump(mode="json") for lead in self._leads.values()]
-        tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        tmp.replace(self.leads_file)
+        """Commit pending writes. Kept for interface compatibility."""
+        self._conn.commit()
 
     def add_leads(self, leads: list[Lead]) -> int:
         """Add leads, skipping source URLs already present. Returns added count."""
-        existing_urls = {lead.source_url for lead in self._leads.values()}
         added = 0
         for lead in leads:
-            if lead.source_url in existing_urls:
-                continue
-            self._leads[lead.lead_id] = lead
-            existing_urls.add(lead.source_url)
-            added += 1
-        if added:
-            self.save()
+            record = lead.model_dump(mode="json")
+            cur = self._conn.execute(
+                "INSERT OR IGNORE INTO leads (lead_id, source_url, status, raw) "
+                "VALUES (?, ?, ?, ?)",
+                (
+                    record["lead_id"],
+                    record["source_url"],
+                    record["status"],
+                    json.dumps(record, ensure_ascii=False, default=str),
+                ),
+            )
+            if cur.rowcount:
+                added += 1
+        # Commit unconditionally: even an all-duplicates batch ran INSERT OR
+        # IGNORE statements, which open an implicit transaction that must be
+        # closed out — otherwise it's left open on this connection and
+        # blocks the next writer.
+        self._conn.commit()
         return added
 
     def get(self, lead_id: str) -> Optional[Lead]:
-        return self._leads.get(lead_id)
+        row = self._conn.execute(
+            "SELECT raw FROM leads WHERE lead_id = ?", (lead_id,)
+        ).fetchone()
+        return Lead(**json.loads(row[0])) if row else None
 
     def list(self, status: Optional[str] = None) -> list[Lead]:
-        leads = sorted(
-            self._leads.values(), key=lambda lead: lead.found_at, reverse=True,
-        )
+        query = "SELECT raw FROM leads"
+        params: list = []
         if status:
-            leads = [lead for lead in leads if lead.status == status]
+            query += " WHERE status = ?"
+            params.append(status)
+        rows = self._conn.execute(query, params).fetchall()
+        leads = [Lead(**json.loads(row[0])) for row in rows]
+        leads.sort(key=lambda lead: lead.found_at, reverse=True)
         return leads
 
     def update_status(
@@ -96,11 +115,18 @@ class LeadStore:
     ) -> Optional[Lead]:
         if status not in LEAD_STATUSES:
             raise ValueError(f"Invalid lead status '{status}'")
-        lead = self._leads.get(lead_id)
-        if lead is None:
+        row = self._conn.execute(
+            "SELECT raw FROM leads WHERE lead_id = ?", (lead_id,)
+        ).fetchone()
+        if row is None:
             return None
-        lead.status = status
+        record = json.loads(row[0])
+        record["status"] = status
         if policy_url:
-            lead.policy_url = policy_url
-        self.save()
-        return lead
+            record["policy_url"] = policy_url
+        self._conn.execute(
+            "UPDATE leads SET status = ?, raw = ? WHERE lead_id = ?",
+            (status, json.dumps(record, ensure_ascii=False, default=str), lead_id),
+        )
+        self._conn.commit()
+        return Lead(**record)
