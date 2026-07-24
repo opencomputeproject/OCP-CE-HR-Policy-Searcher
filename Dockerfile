@@ -25,7 +25,11 @@ RUN npm run build
 FROM python:3.12-slim AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    # Browsers install system-wide (as root, below) but must be usable by
+    # the non-root runtime user — without this, Playwright looks in the
+    # runtime user's home cache and finds nothing.
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 WORKDIR /app
 
@@ -43,7 +47,8 @@ COPY config/ ./config/
 # src/core/crawler.py); scans run inside this container, so the image
 # accepts the Chromium size cost rather than requiring a host install.
 RUN pip install --no-cache-dir ".[browser]" \
-    && playwright install --with-deps chromium
+    && playwright install --with-deps chromium \
+    && chmod -R a+rX /ms-playwright
 
 COPY --from=frontend-build /app/frontend/build ./frontend/build
 
