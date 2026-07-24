@@ -29,7 +29,6 @@ function AgentPanel({
     const [isSearchBusy, setIsSearchBusy] = useState(false);
     const [placeRequest, setPlaceRequest] = useState(null);
     const [adminOpen, setAdminOpen] = useState(false);
-    const isStandardMode = mode === 'standard';
     // Scanning and other admin tools are gated on a token only when the
     // server has ADMIN_TOKEN set; a local single-user deployment unlocks
     // immediately.
@@ -57,7 +56,7 @@ function AgentPanel({
     });
     const { costStatus, costEstimateText } = useCostEstimate({
         selectedRegions,
-        isStandardMode,
+        mode,
     });
     const {
         isScanRequestRunning,
