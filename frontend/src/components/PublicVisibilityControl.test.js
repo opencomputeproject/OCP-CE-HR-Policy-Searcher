@@ -67,7 +67,7 @@ describe('PublicVisibilityControl', () => {
             expect(screen.getByRole('radio', { name: /all finds by default/i })).toBeChecked();
         });
 
-        fireEvent.click(screen.getByRole('radio', { name: /reviewed only, visitors can switch/i }));
+        fireEvent.click(screen.getByRole('radio', { name: /reviewed only by default, visitors can switch/i }));
 
         expect(await screen.findByRole('alert')).toHaveTextContent(/could not save/i);
     });

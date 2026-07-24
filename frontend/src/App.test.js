@@ -69,7 +69,7 @@ describe('App public view toggle initial position', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Policy Pulse/)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /Policy Pulse/i })).toBeInTheDocument();
     });
     expect(screen.queryByRole('button', { name: 'All finds' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Reviewed only' })).not.toBeInTheDocument();
