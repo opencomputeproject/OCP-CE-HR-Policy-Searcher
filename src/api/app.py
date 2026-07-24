@@ -17,6 +17,7 @@ from .routes import (
     domains, scans, policies, analysis, agent, ask, coverage, leads, logs,
     search, settings,
 )
+from .static_site import mount_frontend
 
 # Resolve .env from project root (2 levels up from src/api/app.py)
 # so credentials load regardless of the process working directory.
@@ -179,3 +180,12 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok", "admin_required": admin_token_configured()}
+
+
+# Serve the built React app (frontend/build) from this same process, if it
+# exists. In every current dev/test setup it doesn't, so this is a no-op —
+# behavior above is unchanged.
+mount_frontend(
+    app,
+    os.environ.get("OCP_STATIC_DIR", str(_project_root / "frontend" / "build")),
+)

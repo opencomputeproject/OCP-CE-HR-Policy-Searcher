@@ -1,0 +1,15 @@
+services:
+  policypulse:
+    build: .
+    image: policypulse:latest
+    container_name: policypulse
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Bind to loopback only — the host's reverse proxy (Caddy) is the
+      # only thing that should reach this port. See docs/OPERATIONS.md.
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # The SQLite record (data/policypulse.db) and logs live on the host,
+      # outside the container, so they survive rebuilds/redeploys.
+      - ./data:/app/data
