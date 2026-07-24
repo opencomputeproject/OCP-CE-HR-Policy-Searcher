@@ -81,7 +81,7 @@ class TestPoliciesClampMatrix:
     """review_status counts: new, reviewed, promoted, rejected = 1 each."""
 
     @pytest.mark.parametrize("posture", POSTURES)
-    @pytest.mark.parametrize("review_param", [None, "reviewed", "all"])
+    @pytest.mark.parametrize("review_param", [None, "all"])
     def test_admin_always_sees_all_four(self, store, visibility_store, posture, review_param):
         _set_posture(visibility_store, posture)
         _, client = _make_client(store, visibility_store, remote=False)  # testclient == admin
@@ -89,6 +89,18 @@ class TestPoliciesClampMatrix:
         resp = client.get("/api/policies", params=params)
         assert resp.status_code == 200
         assert resp.json()["count"] == 4
+
+    @pytest.mark.parametrize("posture", POSTURES)
+    def test_admin_explicit_reviewed_narrows_to_promoted(self, store, visibility_store, posture):
+        # An explicit review=reviewed is an intentional narrowing and is
+        # honored even for admins — the public toggle must behave the same
+        # in open-mode loopback demos, where every request counts as admin.
+        _set_posture(visibility_store, posture)
+        _, client = _make_client(store, visibility_store, remote=False)
+        resp = client.get("/api/policies", params={"review": "reviewed"})
+        assert resp.status_code == 200
+        assert resp.json()["count"] == 1
+        assert resp.json()["policies"][0]["review_status"] == "promoted"
 
     @pytest.mark.parametrize("posture", ["default_all", "default_reviewed"])
     def test_non_admin_absent_param_excludes_only_rejected(self, store, visibility_store, posture):

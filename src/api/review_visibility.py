@@ -32,12 +32,17 @@ def effective_review_view(review: Optional[str], posture: str) -> str:
 def visibility_filter_kwargs(request: Request, review: Optional[str], posture: str) -> dict:
     """PolicyStore.get_all/search/search_text kwargs enforcing the posture.
 
-    Admins get back an empty dict — fully unclamped. Non-admins always
-    exclude rejected; a 'reviewed' effective view narrows further to
-    promoted-only. Never both keys at once, so this always safely combines
-    with a store call via ``**kwargs``.
+    Admins are never *forced* into a clamp — no param means fully unclamped,
+    exactly as before this feature — but an explicit ``review=reviewed`` is
+    an intentional narrowing and is honored for everyone, so the public
+    toggle behaves identically whether or not the caller counts as admin
+    (open-mode loopback demos included). Non-admins always exclude rejected;
+    a 'reviewed' effective view narrows to promoted-only. Never both keys at
+    once, so this always safely combines with a store call via ``**kwargs``.
     """
     if request_is_admin(request):
+        if review == "reviewed":
+            return {"review_status_in": ["promoted"]}
         return {}
     if effective_review_view(review, posture) == "reviewed":
         return {"review_status_in": ["promoted"]}
