@@ -100,6 +100,7 @@ A stat strip above the map keeps the big picture honest at a glance: total track
 - [Domain Groups](#domain-groups)
 - [Keyword System](#keyword-system)
 - [Running the Server](#running-the-server)
+- [Production Deployment](#production-deployment)
 - [API Reference](#api-reference)
 - [WebSocket Events](#websocket-events)
 - [Cost Estimation](#cost-estimation)
@@ -658,6 +659,24 @@ The server provides:
 - Interactive API docs at `/docs` (Swagger UI)
 - Alternative docs at `/redoc`
 - Health check at `/health`
+
+---
+
+## Production Deployment
+
+The Dockerfile builds the React frontend and the API into one image; one
+FastAPI process serves both `/api/*` and the built app on port 8000.
+
+```bash
+cp config/example.env .env    # fill in ANTHROPIC_API_KEY, ADMIN_TOKEN, etc.
+docker compose up -d
+```
+
+`docker-compose.yml` binds the container to `127.0.0.1:8000` — put a
+reverse proxy (Caddy) in front of it for TLS and the public hostname. The
+full operator runbook — every environment variable, backups, the
+signals/scan schedule, cost controls, and the OCP ownership-transfer
+checklist — is in **[docs/OPERATIONS.md](docs/OPERATIONS.md)**.
 
 ---
 

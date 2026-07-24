@@ -1,0 +1,43 @@
+# Version control
+.git/
+.github/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / frontend (rebuilt inside the frontend-build stage)
+frontend/node_modules/
+frontend/build/
+frontend/e2e/
+frontend/playwright-report/
+frontend/test-results/
+node_modules/
+
+# Runtime data, secrets, and local-only files
+data/
+.env
+.env.*
+credentials.json
+credentials.yaml
+config/credentials.yaml
+*.pem
+
+# Docs and tests (not needed in the image)
+docs/
+tests/
+*.md
+
+# Misc
+.vscode/
+.idea/
+*.log
+Thumbs.db
+desktop.ini
