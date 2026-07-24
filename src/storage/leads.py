@@ -9,6 +9,7 @@ Persistence is SQLite-backed (see ``src/storage/db.py``); this module
 keeps the same public interface the JSON-file version had.
 """
 
+import hashlib
 import json
 import logging
 import uuid
@@ -25,10 +26,26 @@ logger = logging.getLogger(__name__)
 LEAD_STATUSES = ("new", "chased", "dismissed")
 
 
+def _dedupe_key(source_url: str, snippet: str) -> str:
+    """Uniqueness key for the leads.source_url column.
+
+    A real source_url is used as-is. A note-only tip has no URL — every
+    such tip would otherwise store "" and collide under the column's
+    UNIQUE index, silently dropping every note-only submission after the
+    first. Falling back to a hash of the note text keeps distinct notes
+    distinct while still deduping an identical note resubmitted twice.
+    """
+    if source_url:
+        return source_url
+    return "note:" + hashlib.sha256(snippet.encode("utf-8")).hexdigest()
+
+
 class Lead(BaseModel):
     lead_id: str = Field(default_factory=lambda: uuid.uuid4().hex[:12])
     title: str
-    source_url: str
+    # "" for a note-only tip (no URL) — see _dedupe_key() for how these
+    # avoid colliding with each other under the source_url UNIQUE index.
+    source_url: str = ""
     snippet: str = ""
     jurisdiction_guess: str = ""
     origin: str = "news"  # news | community | curated
@@ -70,16 +87,24 @@ class LeadStore:
         self._conn.commit()
 
     def add_leads(self, leads: list[Lead]) -> int:
-        """Add leads, skipping source URLs already present. Returns added count."""
+        """Add leads, skipping duplicates. Returns added count.
+
+        Deduplication key: source_url when present, otherwise a hash of the
+        note text (see _dedupe_key) — the source_url column carries this key
+        for uniqueness only; the stored ``raw`` record keeps the lead's real
+        source_url ("" for a note-only tip), so callers reading a lead back
+        never see the substituted key.
+        """
         added = 0
         for lead in leads:
             record = lead.model_dump(mode="json")
+            dedupe_key = _dedupe_key(record["source_url"], record.get("snippet", ""))
             cur = self._conn.execute(
                 "INSERT OR IGNORE INTO leads (lead_id, source_url, status, raw) "
                 "VALUES (?, ?, ?, ?)",
                 (
                     record["lead_id"],
-                    record["source_url"],
+                    dedupe_key,
                     record["status"],
                     json.dumps(record, ensure_ascii=False, default=str),
                 ),

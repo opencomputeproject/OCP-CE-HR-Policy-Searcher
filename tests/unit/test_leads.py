@@ -63,3 +63,34 @@ class TestLeadStore:
         store = LeadStore(data_dir=str(tmp_path))
         assert store.list() == []
         assert (tmp_path / "leads.json.corrupt").exists()
+
+
+class TestNoteOnlyLeadDedupe:
+    """Note-only leads (no URL) must not collide on an empty source_url."""
+
+    def _note_lead(self, title, snippet):
+        return Lead(title=title, source_url="", snippet=snippet)
+
+    def test_source_url_defaults_to_empty_string(self):
+        lead = Lead(title="t")
+        assert lead.source_url == ""
+
+    def test_distinct_note_only_leads_both_added(self, store):
+        added = store.add_leads([
+            self._note_lead("Rumor A", "First rumor"),
+            self._note_lead("Rumor B", "Second, unrelated rumor"),
+        ])
+        assert added == 2
+        assert len(store.list()) == 2
+
+    def test_identical_note_text_dedupes(self, store):
+        store.add_leads([self._note_lead("Rumor", "Same text")])
+        added = store.add_leads([self._note_lead("Rumor again", "Same text")])
+        assert added == 0
+        assert len(store.list()) == 1
+
+    def test_note_only_lead_does_not_collide_with_url_lead(self, store):
+        store.add_leads([_lead()])  # has a real source_url
+        added = store.add_leads([self._note_lead("Rumor", "Some note")])
+        assert added == 1
+        assert len(store.list()) == 2

@@ -148,7 +148,7 @@ class TestUngatedModeLoopbackOnly:
 
         with TestClient(app, client=("127.0.0.1", 12345)) as c:
             resp = c.post(
-                "/api/leads",
+                "/api/tips",
                 json={"url": "https://8.8.8.8/heat-law"},
                 headers={"X-Forwarded-For": "203.0.113.5"},
             )
@@ -168,7 +168,7 @@ class TestUngatedModeLoopbackOnly:
         from src.api.app import app
 
         with TestClient(app, client=("203.0.113.5", 12345)) as c:
-            resp = c.post("/api/leads", json={"url": "https://8.8.8.8/heat-law"})
+            resp = c.post("/api/tips", json={"url": "https://8.8.8.8/heat-law"})
         assert resp.status_code == 200
 
     def test_get_routes_stay_open_for_remote_client(self, monkeypatch):

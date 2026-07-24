@@ -61,9 +61,10 @@ def admin_token_configured() -> bool:
 
 
 # Non-GET routes that stay open when admin mode is active:
-# community lead submission and reader questions are the point of the
-# reader-facing app. /api/ask has its own rate and daily spend limits.
-_ADMIN_EXEMPT = {("POST", "/api/leads"), ("POST", "/api/ask")}
+# community tip submission and reader questions are the point of the
+# reader-facing app. Both have their own rate and daily spend limits
+# (/api/tips: TIPS_RATE_PER_MINUTE/TIPS_DAILY_LIMIT; /api/ask: cost settings).
+_ADMIN_EXEMPT = {("POST", "/api/tips"), ("POST", "/api/ask")}
 
 # Loopback addresses trusted when ADMIN_TOKEN is unset.
 _LOOPBACK_HOSTS = {"127.0.0.1", "::1"}
@@ -170,7 +171,7 @@ def root():
             "policies": "/api/policies",
             "analyze": "/api/analyze",
             "agent": "/api/agent",
-            "leads": "/api/leads",
+            "tips": "/api/tips",
             "logs": "/api/logs",
         },
     }
