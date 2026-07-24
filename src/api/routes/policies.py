@@ -170,6 +170,43 @@ def search_policies_text(
     return {"policies": results, "total": len(results), "query": q}
 
 
+@router.get("/policies/library")
+def library(
+    request: Request,
+    review_status: Optional[str] = Query(None),
+    lifecycle_stage: Optional[str] = Query(None),
+    jurisdiction: Optional[str] = Query(None),
+    sort: Optional[str] = Query(None),
+    sort_dir: Optional[str] = Query(None),
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    store: PolicyStore = Depends(get_policy_store),
+):
+    """The full persisted policy record, paginated — an admin review surface.
+
+    Unlike GET /api/policies, this never merges in-memory scan results and
+    is never clamped by the public visibility posture: it's the database as
+    it actually is, including rejected policies, for a human doing review.
+    Because it's a GET, ``AdminGateMiddleware`` doesn't gate it (that
+    middleware only covers non-GET requests), so the admin check happens
+    here instead — a non-admin caller gets 403 rather than a filtered view.
+    """
+    if not request_is_admin(request):
+        raise HTTPException(status_code=403, detail="Administrator access required")
+    _validate_lifecycle_stage(lifecycle_stage)
+
+    filters = dict(
+        review_status=review_status,
+        lifecycle_stage=lifecycle_stage,
+        jurisdiction=jurisdiction,
+    )
+    policies = store.search(
+        sort=sort, sort_dir=sort_dir, limit=limit, offset=offset, **filters,
+    )
+    total = store.count(**filters)
+    return {"policies": policies, "total": total, "limit": limit, "offset": offset}
+
+
 class ReviewUpdate(BaseModel):
     url: str
     review_status: Literal["new", "reviewed", "promoted", "rejected"]
