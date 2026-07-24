@@ -142,6 +142,10 @@ function AgentPanel({
             />
             {adminOpen && (adminUnlocked ? (
                 <div className="admin-area">
+                    <p className="admin-mode-banner" role="status">
+                        Administrator mode - actions here can spend money and change what the
+                        public sees.
+                    </p>
                     {!adminRequired && (
                         <p className="admin-open-mode-note" role="note">
                             Local open mode - set ADMIN_TOKEN for public deployments.
