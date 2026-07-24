@@ -54,6 +54,10 @@ class Lead(BaseModel):
     )
     status: str = "new"
     policy_url: Optional[str] = None  # set when a chase produced a policy
+    chased_at: Optional[datetime] = None
+    # policy_found | no_policy | fetch_failed — see LeadStore.record_chase
+    chase_outcome: Optional[str] = None
+    chase_error: Optional[str] = None  # reason text, only set for fetch_failed
 
 
 class LeadStore:
@@ -152,6 +156,41 @@ class LeadStore:
         self._conn.execute(
             "UPDATE leads SET status = ?, raw = ? WHERE lead_id = ?",
             (status, json.dumps(record, ensure_ascii=False, default=str), lead_id),
+        )
+        self._conn.commit()
+        return Lead(**record)
+
+    def record_chase(
+        self,
+        lead_id: str,
+        *,
+        outcome: str,
+        mark_chased: bool,
+        policy_url: Optional[str] = None,
+        error: Optional[str] = None,
+    ) -> Optional[Lead]:
+        """Record a chase attempt's outcome (policy_found | no_policy | fetch_failed).
+
+        mark_chased=False keeps the lead's current status unchanged — used
+        for fetch failures, which must not remove the tip from further
+        chase attempts (see the /tips/{id}/chase route).
+        """
+        row = self._conn.execute(
+            "SELECT raw FROM leads WHERE lead_id = ?", (lead_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        record = json.loads(row[0])
+        if mark_chased:
+            record["status"] = "chased"
+        if policy_url:
+            record["policy_url"] = policy_url
+        record["chase_outcome"] = outcome
+        record["chase_error"] = error
+        record["chased_at"] = datetime.now(timezone.utc).isoformat()
+        self._conn.execute(
+            "UPDATE leads SET status = ?, raw = ? WHERE lead_id = ?",
+            (record["status"], json.dumps(record, ensure_ascii=False, default=str), lead_id),
         )
         self._conn.commit()
         return Lead(**record)

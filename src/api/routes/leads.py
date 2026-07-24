@@ -173,11 +173,31 @@ async def chase_tip(
             detail="Lead URL is not a public http(s) address; refusing to fetch.",
         )
 
-    result = await run_url_analysis(lead.source_url, config, policy_store)
+    try:
+        result = await run_url_analysis(lead.source_url, config, policy_store)
+    except Exception as e:
+        # Some URLs the fetcher cannot process (e.g. news.google.com
+        # redirect wrappers) raise instead of returning an unsuccessful
+        # crawl result. Report it as a clean chase outcome rather than
+        # letting it surface as an unhandled 500 — and don't mark the tip
+        # chased, so it stays available to retry.
+        logger.error(
+            "Chase fetch failed for lead %s (%s): %s: %s",
+            lead_id, lead.source_url, type(e).__name__, e,
+        )
+        lead_store.record_chase(
+            lead_id, outcome="fetch_failed", mark_chased=False, error=str(e),
+        )
+        return {
+            "lead_id": lead_id,
+            "status": "new",
+            "analysis": {"policy": None, "outcome": "fetch_failed", "error": str(e)},
+        }
 
     policy_url = None
     if result.get("policy"):
         policy_url = result["policy"].get("url")
-    lead_store.update_status(lead_id, "chased", policy_url=policy_url)
+    outcome = "policy_found" if policy_url else "no_policy"
+    lead_store.record_chase(lead_id, outcome=outcome, mark_chased=True, policy_url=policy_url)
 
     return {"lead_id": lead_id, "status": "chased", "analysis": result}

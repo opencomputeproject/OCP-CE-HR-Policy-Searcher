@@ -12,6 +12,7 @@ import pytest
 
 from src.core.models import Policy, PolicyType, VerificationFlag
 from src.core.policy_schema import STAGING_HEADERS
+from src.storage.leads import Lead
 
 
 class TestPolicySheetHeaders:
@@ -425,3 +426,169 @@ class TestSheetsClient:
         client._spreadsheet = mock_spreadsheet
 
         assert client.read_staging_rows() == []
+
+
+class TestSheetsClientExportTips:
+    """SheetsClient.export_tips — one-way batch export to the Tips worksheet."""
+
+    def _client_with_sheet(self, existing=True):
+        from src.output.sheets import SheetsClient
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+        mock_sheet = MagicMock()
+        mock_spreadsheet = MagicMock()
+        if existing:
+            mock_spreadsheet.worksheet.return_value = mock_sheet
+        else:
+            mock_spreadsheet.worksheet.side_effect = gspread.WorksheetNotFound("Tips")
+            mock_spreadsheet.add_worksheet.return_value = mock_sheet
+        client._spreadsheet = mock_spreadsheet
+        return client, mock_sheet, mock_spreadsheet
+
+    def test_creates_worksheet_when_absent(self):
+        try:
+            from src.output.sheets import TIP_HEADERS
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, mock_spreadsheet = self._client_with_sheet(existing=False)
+
+        client.export_tips([])
+
+        mock_spreadsheet.add_worksheet.assert_called_once()
+        _, kwargs = mock_spreadsheet.add_worksheet.call_args
+        assert kwargs["cols"] == len(TIP_HEADERS)
+
+    def test_reuses_existing_worksheet(self):
+        try:
+            from src.output.sheets import SheetsClient  # noqa: F401
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, mock_spreadsheet = self._client_with_sheet(existing=True)
+
+        client.export_tips([])
+
+        mock_spreadsheet.add_worksheet.assert_not_called()
+        mock_spreadsheet.worksheet.assert_called_with("Tips")
+
+    def test_exports_expected_columns(self):
+        try:
+            from src.output.sheets import TIP_HEADERS
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, _ = self._client_with_sheet(existing=True)
+
+        lead = Lead(
+            title="Denmark heat mandate",
+            source_url="https://news.example/article",
+            snippet="A note",
+            origin="community",
+            status="new",
+            found_at=datetime(2026, 7, 20, 9, 0, 0),
+        )
+
+        count = client.export_tips([lead])
+
+        assert count == 1
+        mock_sheet.update.assert_called_once()
+        values, _range = mock_sheet.update.call_args[0]
+        assert values[0] == TIP_HEADERS
+        row = values[1]
+        assert row[TIP_HEADERS.index("Submitted At")] == "2026-07-20T09:00:00"
+        assert row[TIP_HEADERS.index("Origin")] == "community"
+        assert row[TIP_HEADERS.index("Title/Note")] == "Denmark heat mandate"
+        assert row[TIP_HEADERS.index("URL")] == "https://news.example/article"
+        assert row[TIP_HEADERS.index("Status")] == "new"
+        assert row[TIP_HEADERS.index("Chase Outcome")] == ""
+
+    def test_chase_outcome_no_policy(self):
+        try:
+            from src.output.sheets import TIP_HEADERS
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, _ = self._client_with_sheet(existing=True)
+
+        lead = Lead(
+            title="t", source_url="https://a.gov/x", status="chased",
+            chase_outcome="no_policy",
+        )
+        client.export_tips([lead])
+
+        row = mock_sheet.update.call_args[0][0][1]
+        assert "nothing found" in row[TIP_HEADERS.index("Chase Outcome")].lower()
+
+    def test_chase_outcome_policy_found_links_the_policy(self):
+        try:
+            from src.output.sheets import TIP_HEADERS
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, _ = self._client_with_sheet(existing=True)
+
+        lead = Lead(
+            title="t", source_url="https://a.gov/x", status="chased",
+            policy_url="https://a.gov/x-final", chase_outcome="policy_found",
+        )
+        client.export_tips([lead])
+
+        row = mock_sheet.update.call_args[0][0][1]
+        assert "https://a.gov/x-final" in row[TIP_HEADERS.index("Chase Outcome")]
+
+    def test_chase_outcome_fetch_failed(self):
+        try:
+            from src.output.sheets import TIP_HEADERS
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, _ = self._client_with_sheet(existing=True)
+
+        lead = Lead(
+            title="t", source_url="https://a.gov/x", status="new",
+            chase_outcome="fetch_failed", chase_error="too many redirects",
+        )
+        client.export_tips([lead])
+
+        row = mock_sheet.update.call_args[0][0][1]
+        assert "too many redirects" in row[TIP_HEADERS.index("Chase Outcome")]
+
+    def test_note_only_tip_url_column_empty(self):
+        try:
+            from src.output.sheets import TIP_HEADERS
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, _ = self._client_with_sheet(existing=True)
+
+        lead = Lead(title="Rumor", source_url="", snippet="Heard something", origin="community")
+        client.export_tips([lead])
+
+        row = mock_sheet.update.call_args[0][0][1]
+        assert row[TIP_HEADERS.index("URL")] == ""
+        assert row[TIP_HEADERS.index("Title/Note")] == "Rumor"
+
+    def test_empty_queue_clears_sheet_to_just_headers(self):
+        try:
+            from src.output.sheets import TIP_HEADERS
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, _ = self._client_with_sheet(existing=True)
+
+        count = client.export_tips([])
+
+        assert count == 0
+        mock_sheet.clear.assert_called_once()
+        values, _range = mock_sheet.update.call_args[0]
+        assert values == [TIP_HEADERS]
+
+    def test_export_is_full_snapshot_not_append(self):
+        """Re-export must not accumulate duplicate rows from prior calls —
+        it clears and rewrites the whole sheet every time."""
+        try:
+            from src.output.sheets import SheetsClient  # noqa: F401
+        except ImportError:
+            pytest.skip("gspread not installed")
+        client, mock_sheet, _ = self._client_with_sheet(existing=True)
+
+        lead = Lead(title="t", source_url="https://a.gov/x")
+        client.export_tips([lead])
+        client.export_tips([lead])
+
+        assert mock_sheet.clear.call_count == 2
+        mock_sheet.append_rows.assert_not_called()

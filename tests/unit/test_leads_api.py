@@ -150,6 +150,62 @@ class TestNoteOnlyTips:
         assert "note" in chase.json()["detail"].lower()
 
 
+class TestChaseOutcomes:
+    """Chase outcomes are visible: no-policy, policy-found, and fetch-failed."""
+
+    def test_no_policy_found_records_outcome(self, client, lead_store):
+        lead = Lead(title="t", source_url="https://8.8.8.8/no-policy")
+        lead_store.add_leads([lead])
+        with patch(
+            "src.api.routes.leads.run_url_analysis",
+            AsyncMock(return_value={"policy": None}),
+        ):
+            response = client.post(f"/api/tips/{lead.lead_id}/chase")
+        assert response.status_code == 200
+        chased = lead_store.get(lead.lead_id)
+        assert chased.status == "chased"
+        assert chased.chase_outcome == "no_policy"
+        assert chased.chased_at is not None
+
+    def test_fetch_raising_exception_returns_structured_outcome_not_500(self, client, lead_store):
+        """Regression: news.google.com-style redirect wrappers used to raise
+        an unhandled exception through run_url_analysis, surfacing a raw 500.
+        The chase must instead succeed with a clean fetch_failed outcome."""
+        lead = Lead(title="t", source_url="https://8.8.8.8/google-news-wrapper")
+        lead_store.add_leads([lead])
+        with patch(
+            "src.api.routes.leads.run_url_analysis",
+            AsyncMock(side_effect=RuntimeError("too many redirects")),
+        ):
+            response = client.post(f"/api/tips/{lead.lead_id}/chase")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["analysis"]["outcome"] == "fetch_failed"
+        assert "too many redirects" in body["analysis"]["error"]
+
+        stored = lead_store.get(lead.lead_id)
+        assert stored.chase_outcome == "fetch_failed"
+        assert stored.status == "new"  # stays chaseable
+
+    def test_tip_stays_chaseable_after_fetch_failure(self, client, lead_store):
+        lead = Lead(title="t", source_url="https://8.8.8.8/retry-me")
+        lead_store.add_leads([lead])
+        with patch(
+            "src.api.routes.leads.run_url_analysis",
+            AsyncMock(side_effect=RuntimeError("boom")),
+        ):
+            first = client.post(f"/api/tips/{lead.lead_id}/chase")
+        assert first.status_code == 200
+
+        with patch(
+            "src.api.routes.leads.run_url_analysis",
+            AsyncMock(return_value={"policy": {"url": "https://8.8.8.8/retry-me"}}),
+        ):
+            second = client.post(f"/api/tips/{lead.lead_id}/chase")
+        assert second.status_code == 200
+        assert lead_store.get(lead.lead_id).status == "chased"
+
+
 class TestTipSubmissionRateLimit:
     def test_burst_limit_returns_429_with_retry_after(self, client, monkeypatch):
         from src.api.routes import leads as tips_route

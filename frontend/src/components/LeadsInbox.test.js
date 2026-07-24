@@ -45,12 +45,18 @@ afterEach(() => {
 });
 
 describe('LeadsInbox uses Tips vocabulary and /api/tips', () => {
-  it('fetches from /api/tips on mount', async () => {
+  it('fetches from /api/tips on mount (all non-dismissed tips, not just new)', async () => {
     global.fetch = mockFetch();
     render(<LeadsInbox />);
 
     await screen.findByText('Denmark heat mandate');
-    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/tips?status=new'));
+    const getCall = global.fetch.mock.calls.find((call) => String(call[0]).includes('/api/tips')
+      && !String(call[0]).includes('chase') && !String(call[0]).includes('dismiss')
+      && (call[1] === undefined || (call[1].method || 'GET') === 'GET'));
+    expect(getCall).toBeDefined();
+    // Not filtered to status=new — chased tips must still load so their
+    // outcome can be shown (see "LeadsInbox chase outcomes" below).
+    expect(String(getCall[0])).not.toContain('status=new');
   });
 
   it('shows "Tips" in the header, not "Leads"', async () => {
@@ -134,5 +140,91 @@ describe('LeadsInbox note-only tips (hearsay)', () => {
     await screen.findByText('Denmark heat mandate');
     const urlCard = screen.getByText('Denmark heat mandate').closest('li');
     expect(within(urlCard).getByRole('button', { name: /Chase/ })).toBeInTheDocument();
+  });
+});
+
+describe('LeadsInbox chase outcomes', () => {
+  const POLICY_FOUND_TIP = {
+    lead_id: 'tip-found',
+    title: 'Sweden Heat Rule',
+    source_url: 'https://gov.example/sweden-law',
+    snippet: '',
+    origin: 'news',
+    status: 'chased',
+    policy_url: 'https://gov.example/sweden-law-final',
+    chase_outcome: 'policy_found',
+    chased_at: '2026-07-20T10:00:00Z',
+  };
+
+  const NO_POLICY_TIP = {
+    lead_id: 'tip-no-policy',
+    title: 'Norway Rumor',
+    source_url: 'https://gov.example/norway',
+    snippet: '',
+    origin: 'community',
+    status: 'chased',
+    policy_url: null,
+    chase_outcome: 'no_policy',
+    chased_at: '2026-07-21T09:00:00Z',
+  };
+
+  const FETCH_FAILED_TIP = {
+    lead_id: 'tip-failed',
+    title: 'Google News Wrapper',
+    source_url: 'https://news.google.com/rss/articles/xyz',
+    snippet: '',
+    origin: 'news',
+    status: 'new',
+    policy_url: null,
+    chase_outcome: 'fetch_failed',
+    chase_error: 'too many redirects',
+    chased_at: '2026-07-22T08:00:00Z',
+  };
+
+  const DISMISSED_TIP = {
+    lead_id: 'tip-dismissed',
+    title: 'Should not appear',
+    source_url: 'https://gov.example/dismissed',
+    snippet: '',
+    origin: 'community',
+    status: 'dismissed',
+  };
+
+  it('shows a link to the found policy with when it was chased', async () => {
+    global.fetch = mockFetch([POLICY_FOUND_TIP]);
+    render(<LeadsInbox />);
+
+    const card = (await screen.findByText('Sweden Heat Rule')).closest('li');
+    expect(within(card).getByText(/found/i)).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: /sweden-law-final/ })).toHaveAttribute(
+      'href', 'https://gov.example/sweden-law-final',
+    );
+  });
+
+  it('shows "checked - nothing found" with when for a no-policy outcome', async () => {
+    global.fetch = mockFetch([NO_POLICY_TIP]);
+    render(<LeadsInbox />);
+
+    const card = (await screen.findByText('Norway Rumor')).closest('li');
+    expect(within(card)).toBeTruthy();
+    expect(card).toHaveTextContent(/checked.*nothing found/i);
+  });
+
+  it('shows a fetch-failed outcome with the reason and keeps the tip chaseable', async () => {
+    global.fetch = mockFetch([FETCH_FAILED_TIP]);
+    render(<LeadsInbox />);
+
+    const card = (await screen.findByText('Google News Wrapper')).closest('li');
+    expect(card).toHaveTextContent(/failed/i);
+    expect(card).toHaveTextContent(/too many redirects/i);
+    expect(within(card).getByRole('button', { name: /Chase/ })).toBeInTheDocument();
+  });
+
+  it('never shows a dismissed tip', async () => {
+    global.fetch = mockFetch([POLICY_FOUND_TIP, DISMISSED_TIP]);
+    render(<LeadsInbox />);
+
+    await screen.findByText('Sweden Heat Rule');
+    expect(screen.queryByText('Should not appear')).not.toBeInTheDocument();
   });
 });

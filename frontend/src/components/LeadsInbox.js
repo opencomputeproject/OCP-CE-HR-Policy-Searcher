@@ -3,6 +3,12 @@ import Tooltip from '@mui/material/Tooltip';
 import { apiUrl } from '../config/api';
 import { adminHeaders } from '../utils/adminAuth';
 
+function formatWhen(isoString) {
+    if (!isoString) return '';
+    const parsed = new Date(isoString);
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toLocaleString();
+}
+
 // User-facing vocabulary is "Tips" (this file keeps its LeadsInbox name and
 // talks to /api/tips — see src/api/routes/leads.py for the API-side mapping
 // between the public "tip" vocabulary and the internal Lead/LeadStore
@@ -23,12 +29,16 @@ function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
     const loadLeads = useCallback(async () => {
         setError(null);
         try {
-            const response = await fetch(apiUrl('/api/tips?status=new'));
+            const response = await fetch(apiUrl('/api/tips'));
             if (!response.ok) {
                 throw new Error(`Failed to load tips (${response.status})`);
             }
             const data = await response.json();
-            setLeads(Array.isArray(data.leads) ? data.leads : []);
+            const all = Array.isArray(data.leads) ? data.leads : [];
+            // Dismissed tips are gone for good; everything else (new,
+            // including a fetch-failed retry candidate, and chased, so its
+            // outcome stays visible) stays in view.
+            setLeads(all.filter((lead) => lead.status !== 'dismissed'));
         } catch (loadError) {
             console.error(loadError);
             setError('Could not load tips. Check that the backend is running, then refresh.');
@@ -99,7 +109,10 @@ function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
             if (!response.ok) {
                 throw new Error(`Chase failed (${response.status})`);
             }
-            setLeads((current) => current.filter((lead) => lead.lead_id !== leadId));
+            // Reload rather than removing the card locally: a chase can
+            // succeed (found/not-found) or fail-to-fetch, and either way the
+            // outcome stays visible on the card instead of disappearing.
+            await loadLeads();
             window.dispatchEvent(new Event('policy-data-changed'));
         } catch (chaseError) {
             console.error(chaseError);
@@ -210,6 +223,29 @@ function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
                                         </div>
                                         {!isNoteOnly && lead.snippet && (
                                             <p className="leads-snippet">{lead.snippet}</p>
+                                        )}
+                                        {lead.status === 'chased' && (
+                                            lead.policy_url ? (
+                                                <p className="leads-outcome leads-outcome-found">
+                                                    Found a policy:{' '}
+                                                    <a href={lead.policy_url} target="_blank" rel="noopener noreferrer">
+                                                        {lead.policy_url}
+                                                    </a>
+                                                    {lead.chased_at && ` (chased ${formatWhen(lead.chased_at)})`}
+                                                </p>
+                                            ) : (
+                                                <p className="leads-outcome leads-outcome-none">
+                                                    Checked - nothing found
+                                                    {lead.chased_at && ` (on ${formatWhen(lead.chased_at)})`}
+                                                </p>
+                                            )
+                                        )}
+                                        {lead.chase_outcome === 'fetch_failed' && (
+                                            <p className="leads-outcome leads-outcome-failed">
+                                                Chase attempt failed
+                                                {lead.chased_at && ` (on ${formatWhen(lead.chased_at)})`}:{' '}
+                                                {lead.chase_error || 'unknown error'} — still chaseable.
+                                            </p>
                                         )}
                                         <div className="leads-actions">
                                             {!isNoteOnly && (
