@@ -21,6 +21,7 @@ from src.core.models import (
 )
 from src.orchestration.events import EventBroadcaster
 from src.orchestration.scan_manager import ScanManager
+from src.storage.store import PolicyStore
 
 
 # ---------------------------------------------------------------------------
@@ -1081,6 +1082,117 @@ class TestSearchPoliciesWithData:
         assert result["by_jurisdiction"]["France"] == 1
         assert result["by_type"]["law"] == 1
         assert result["by_type"]["regulation"] == 1
+
+
+class TestSearchPoliciesFullTextQuery:
+    """A ``query`` argument now routes through PolicyStore.search_text
+    (full-text over name/summary/key_requirements/jurisdiction) instead of
+    the old Python substring loop over name+summary only."""
+
+    @pytest.mark.asyncio
+    async def test_query_matches_key_requirements_not_just_name_and_summary(
+        self, real_config, scan_manager
+    ):
+        # The old substring loop only ever looked at policy_name + summary,
+        # so a term that lives only in key_requirements proves the new path
+        # is actually hitting the FTS index, not just the same old fields.
+        store = PolicyStore(data_dir=scan_manager.data_dir)
+        store.add_policies([
+            Policy(
+                url="https://a.gov/p1", policy_name="Heat Act", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="A short summary.",
+                key_requirements="Operators must file a widgetronic-plan annually.",
+                relevance_score=8,
+            ),
+            Policy(
+                url="https://b.gov/p2", policy_name="Other Act", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="Unrelated.",
+                key_requirements="Nothing special here.",
+                relevance_score=8,
+            ),
+        ])
+
+        result = await execute_tool(
+            "search_policies", {"query": "widgetronic-plan"}, real_config, scan_manager,
+        )
+        assert result["count"] == 1
+        assert result["policies"][0]["url"] == "https://a.gov/p1"
+
+    @pytest.mark.asyncio
+    async def test_query_composes_with_jurisdiction_filter(self, real_config, scan_manager):
+        store = PolicyStore(data_dir=scan_manager.data_dir)
+        store.add_policies([
+            Policy(
+                url="https://a.gov/p1", policy_name="Heat Reuse Rule", jurisdiction="Germany",
+                policy_type=PolicyType.LAW, summary="Mandates heat reuse.", relevance_score=8,
+            ),
+            Policy(
+                url="https://b.gov/p2", policy_name="Heat Reuse Rule", jurisdiction="France",
+                policy_type=PolicyType.LAW, summary="Mandates heat reuse.", relevance_score=8,
+            ),
+        ])
+
+        result = await execute_tool(
+            "search_policies",
+            {"query": "heat reuse", "jurisdiction": "Germany"},
+            real_config, scan_manager,
+        )
+        assert result["count"] == 1
+        assert result["policies"][0]["url"] == "https://a.gov/p1"
+
+    @pytest.mark.asyncio
+    async def test_query_composes_with_min_score_filter(self, real_config, scan_manager):
+        store = PolicyStore(data_dir=scan_manager.data_dir)
+        store.add_policies([
+            Policy(
+                url="https://a.gov/p1", policy_name="Heat Reuse Rule High", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="Mandates heat reuse.", relevance_score=9,
+            ),
+            Policy(
+                url="https://b.gov/p2", policy_name="Heat Reuse Rule Low", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="Mandates heat reuse.", relevance_score=2,
+            ),
+        ])
+
+        result = await execute_tool(
+            "search_policies", {"query": "heat reuse", "min_score": 5}, real_config, scan_manager,
+        )
+        assert result["count"] == 1
+        assert result["policies"][0]["url"] == "https://a.gov/p1"
+
+    @pytest.mark.asyncio
+    async def test_no_query_keeps_old_filter_behavior_over_in_memory_policies(
+        self, real_config, scan_manager
+    ):
+        # Without a query, in-memory (not-yet-persisted) scan results must
+        # still be searchable, exactly as before search_text existed.
+        scan_manager._policies["test"] = [
+            Policy(
+                url="https://c.gov/p3", policy_name="In-memory Only", jurisdiction="Germany",
+                policy_type=PolicyType.LAW, summary="Not in the store.", relevance_score=8,
+            ),
+        ]
+
+        result = await execute_tool(
+            "search_policies", {"jurisdiction": "Germany"}, real_config, scan_manager,
+        )
+        assert result["count"] == 1
+        assert result["policies"][0]["url"] == "https://c.gov/p3"
+
+    @pytest.mark.asyncio
+    async def test_empty_query_string_is_treated_as_no_query(self, real_config, scan_manager):
+        scan_manager._policies["test"] = [
+            Policy(
+                url="https://d.gov/p4", policy_name="In-memory Only", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="Not in the store.", relevance_score=8,
+            ),
+        ]
+
+        result = await execute_tool(
+            "search_policies", {"query": ""}, real_config, scan_manager,
+        )
+        assert result["count"] == 1
+        assert result["policies"][0]["url"] == "https://d.gov/p4"
 
 
 # ---------------------------------------------------------------------------

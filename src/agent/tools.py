@@ -305,7 +305,14 @@ POLICY_TOOLS: list[dict[str, Any]] = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Search keywords"},
+                "query": {
+                    "type": "string",
+                    "description": (
+                        "Full-text search keywords, matched against policy name, "
+                        "summary, key requirements, and jurisdiction. All words "
+                        "must match (AND); the last word also matches as a prefix."
+                    ),
+                },
                 "jurisdiction": {"type": "string", "description": "Country or jurisdiction (e.g. 'Germany', 'Denmark')"},
                 "policy_type": {"type": "string", "description": "Type: 'law', 'regulation', 'directive', 'incentive', 'grant', 'plan', 'standard'"},
                 "min_score": {"type": "integer", "description": "Minimum relevance score (1-10)"},
@@ -619,33 +626,41 @@ async def execute_tool(
 
         elif name == "search_policies":
             store = PolicyStore(data_dir=scan_manager.data_dir)
-            policies = store.get_all()
-            seen_urls = {p.get("url") for p in policies}
-            for policy in scan_manager.get_all_policies():
-                p_dict = policy.model_dump(mode="json")
-                if p_dict.get("url") not in seen_urls:
-                    policies.append(p_dict)
-                    seen_urls.add(p_dict.get("url"))
-
             jurisdiction = arguments.get("jurisdiction")
             policy_type = arguments.get("policy_type")
             min_score = arguments.get("min_score")
-            query = arguments.get("query", "").lower()
+            query = arguments.get("query", "")
 
-            filtered = []
-            for p in policies:
-                if jurisdiction and not jurisdiction_matches(
-                    jurisdiction, p.get("jurisdiction", "")
-                ):
-                    continue
-                if policy_type and p.get("policy_type") != policy_type:
-                    continue
-                if min_score and (p.get("relevance_score", 0) or 0) < min_score:
-                    continue
-                searchable_text = f"{p.get('policy_name', '')} {p.get('summary', '')}".lower()
-                if query and query not in searchable_text:
-                    continue
-                filtered.append(p)
+            if query:
+                # Full-text search (name, summary, key requirements,
+                # jurisdiction) over persisted policies only — in-memory
+                # scan-in-progress results aren't in the FTS index.
+                filtered = store.search_text(
+                    query,
+                    jurisdiction=jurisdiction,
+                    policy_type=policy_type,
+                    min_score=min_score,
+                )
+            else:
+                policies = store.get_all()
+                seen_urls = {p.get("url") for p in policies}
+                for policy in scan_manager.get_all_policies():
+                    p_dict = policy.model_dump(mode="json")
+                    if p_dict.get("url") not in seen_urls:
+                        policies.append(p_dict)
+                        seen_urls.add(p_dict.get("url"))
+
+                filtered = []
+                for p in policies:
+                    if jurisdiction and not jurisdiction_matches(
+                        jurisdiction, p.get("jurisdiction", "")
+                    ):
+                        continue
+                    if policy_type and p.get("policy_type") != policy_type:
+                        continue
+                    if min_score and (p.get("relevance_score", 0) or 0) < min_score:
+                        continue
+                    filtered.append(p)
 
             return {
                 "policies": filtered,

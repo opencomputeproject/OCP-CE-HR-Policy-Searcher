@@ -271,6 +271,214 @@ class TestLikeFallback:
         assert {p["url"] for p in store.search()} == {"https://a.gov", "https://b.gov"}
 
 
+def _seed_search_fixture(tmp_path):
+    """Four policies in four languages/scripts, chosen so each free-text
+    test case below has an unambiguous expected match set."""
+    store = PolicyStore(data_dir=str(tmp_path))
+    store.add_policies([
+        Policy(
+            url="https://heat.gov", policy_name="Heat Reuse Mandate", jurisdiction="US",
+            policy_type=PolicyType.LAW, summary="Requires heat reuse for data centres.",
+            relevance_score=7, review_status="new",
+        ),
+        Policy(
+            url="https://de.gov", policy_name="Abwaermegesetz", jurisdiction="Germany",
+            policy_type=PolicyType.LAW, summary="Regelt die Nutzung von Abwärme.",
+            relevance_score=6, review_status="reviewed",
+        ),
+        Policy(
+            url="https://fr.gov", policy_name="Loi chaleur fatale", jurisdiction="France",
+            policy_type=PolicyType.REGULATION,
+            summary="Encadre la chaleur fatale des centres de donnees.",
+            key_requirements="Operators must submit a chaleur fatale plan.",
+            relevance_score=9, review_status="new",
+        ),
+        Policy(
+            url="https://jp.gov", policy_name="熱回収規則", jurisdiction="Japan",
+            policy_type=PolicyType.REGULATION,
+            summary="データセンターの排熱利用に関する規則。日本語の要約。",
+            relevance_score=7, review_status="new",
+        ),
+    ])
+    return store
+
+
+class TestSearchText:
+    """PolicyStore.search_text(): FTS5-backed free-text search with a
+    LIKE-based fallback when FTS5 is unavailable."""
+
+    def test_multiword_query_is_anded(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        results = store.search_text("heat reuse")
+        assert {r["url"] for r in results} == {"https://heat.gov"}
+
+    def test_prefix_match_on_last_token(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        results = store.search_text("chal")
+        assert {r["url"] for r in results} == {"https://fr.gov"}
+
+    def test_unicode_german_token(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        results = store.search_text("Abwärme")
+        assert {r["url"] for r in results} == {"https://de.gov"}
+
+    def test_unicode_japanese_token(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        results = store.search_text("日本語")
+        assert {r["url"] for r in results} == {"https://jp.gov"}
+
+    def test_quote_and_operator_injection_is_neutralized(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        malicious_queries = [
+            '" OR "1"="1',
+            "heat) OR (1=1",
+            "heat OR reuse",
+            "heat AND NOT reuse",
+            "heat*",
+            "juris:Germany",
+            '"""',
+            "(((",
+            "heat -reuse",
+            "NEAR(heat reuse)",
+        ]
+        for query in malicious_queries:
+            results = store.search_text(query)  # must never raise
+            assert isinstance(results, list)
+
+    def test_jurisdiction_filter_combines_with_query(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        # "centres" hits both heat.gov (English) and fr.gov (French); the
+        # jurisdiction filter must narrow that down to just one.
+        results = store.search_text("centres", jurisdiction="france")
+        assert {r["url"] for r in results} == {"https://fr.gov"}
+
+    def test_policy_type_filter_combines_with_query(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        assert {r["url"] for r in store.search_text("centres", policy_type="regulation")} == {
+            "https://fr.gov"
+        }
+        assert {r["url"] for r in store.search_text("centres", policy_type="law")} == {
+            "https://heat.gov"
+        }
+
+    def test_min_score_filter_combines_with_query(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        results = store.search_text("centres", min_score=8)
+        assert {r["url"] for r in results} == {"https://fr.gov"}
+
+    def test_review_status_filter_combines_with_query(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        assert {r["url"] for r in store.search_text("Regelt", review_status="reviewed")} == {
+            "https://de.gov"
+        }
+        assert store.search_text("Regelt", review_status="new") == []
+
+    def test_all_filters_together(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        results = store.search_text(
+            "centres", jurisdiction="france", policy_type="regulation",
+            min_score=5, review_status="new",
+        )
+        assert {r["url"] for r in results} == {"https://fr.gov"}
+
+    def test_limit_clamps_to_100(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([
+            Policy(
+                url=f"https://a.gov/{i}", policy_name=f"Heat Policy {i}", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="heat reuse", relevance_score=5,
+            )
+            for i in range(150)
+        ])
+        assert len(store.search_text("heat", limit=1000)) == 100
+
+    def test_limit_clamps_to_1_minimum(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([
+            Policy(url="https://a.gov/1", policy_name="Heat Policy A", jurisdiction="US",
+                   policy_type=PolicyType.LAW, summary="heat reuse", relevance_score=5),
+            Policy(url="https://a.gov/2", policy_name="Heat Policy B", jurisdiction="US",
+                   policy_type=PolicyType.LAW, summary="heat reuse", relevance_score=5),
+        ])
+        assert len(store.search_text("heat", limit=0)) == 1
+        assert len(store.search_text("heat", limit=-5)) == 1
+
+    def test_empty_or_whitespace_query_returns_empty(self, tmp_path):
+        store = _seed_search_fixture(tmp_path)
+        assert store.search_text("") == []
+        assert store.search_text("   ") == []
+
+    def test_ranked_by_relevance_name_hit_first(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([
+            Policy(
+                url="https://buried.gov", policy_name="Some Policy", jurisdiction="US",
+                policy_type=PolicyType.LAW,
+                summary=(
+                    "This regulation, deep within a long paragraph about many other "
+                    "unrelated administrative matters and general provisions, "
+                    "eventually gets to mandating waste heat reuse for facilities."
+                ),
+                relevance_score=5,
+            ),
+            Policy(
+                url="https://named.gov", policy_name="Waste Heat Reuse Act", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="A short act.", relevance_score=5,
+            ),
+        ])
+        results = store.search_text("waste heat reuse")
+        assert [r["url"] for r in results] == ["https://named.gov", "https://buried.gov"]
+
+
+class TestSearchTextLikeFallback:
+    """Same fixture and assertions as TestSearchText, forced onto the LIKE
+    fallback path (fts5_supported() -> False) to prove parity."""
+
+    def test_multiword_query_is_anded(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
+        store = _seed_search_fixture(tmp_path)
+        assert not storage_db.fts5_enabled(store._conn)
+        results = store.search_text("heat reuse")
+        assert {r["url"] for r in results} == {"https://heat.gov"}
+
+    def test_unicode_german_token(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
+        store = _seed_search_fixture(tmp_path)
+        results = store.search_text("Abwärme")
+        assert {r["url"] for r in results} == {"https://de.gov"}
+
+    def test_jurisdiction_filter_combines_with_query(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
+        store = _seed_search_fixture(tmp_path)
+        results = store.search_text("centres", jurisdiction="france")
+        assert {r["url"] for r in results} == {"https://fr.gov"}
+
+    def test_quote_and_operator_injection_is_neutralized(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
+        store = _seed_search_fixture(tmp_path)
+        for query in ['" OR "1"="1', "heat) OR (1=1", "100%", "heat*", "under_score"]:
+            results = store.search_text(query)  # must never raise
+            assert isinstance(results, list)
+
+    def test_empty_or_whitespace_query_returns_empty(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
+        store = _seed_search_fixture(tmp_path)
+        assert store.search_text("") == []
+        assert store.search_text("   ") == []
+
+    def test_limit_clamps_to_100(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([
+            Policy(
+                url=f"https://a.gov/{i}", policy_name=f"Heat Policy {i}", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="heat reuse", relevance_score=5,
+            )
+            for i in range(150)
+        ])
+        assert len(store.search_text("heat", limit=1000)) == 100
+
+
 class TestConcurrentAccess:
     def test_two_policy_stores_see_committed_writes(self, tmp_path):
         store1 = PolicyStore(data_dir=str(tmp_path))

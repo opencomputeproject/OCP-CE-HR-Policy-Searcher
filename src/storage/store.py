@@ -174,6 +174,88 @@ class PolicyStore:
         rows = self._conn.execute(query, params).fetchall()
         return [json.loads(row[0]) for row in rows]
 
+    def search_text(
+        self,
+        query: str,
+        jurisdiction: Optional[str] = None,
+        policy_type: Optional[str] = None,
+        min_score: Optional[int] = None,
+        review_status: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict]:
+        """Free-text search across policy name, summary, key requirements,
+        and jurisdiction, ANDing every whitespace-separated token of
+        ``query`` and treating the last token as a prefix.
+
+        Uses the ``policies_fts`` FTS5 index (ranked by ``bm25``, name
+        matches weighted highest) when available, and falls back to a
+        per-token, per-column case-insensitive substring scan otherwise —
+        same filters, same result shape either way. Malicious or malformed
+        query text (quotes, parentheses, boolean operators) is neutralized
+        by quoting, never raised.
+        """
+        query = (query or "").strip()
+        if not query:
+            return []
+
+        limit = max(1, min(int(limit), 100))
+
+        conditions: list[str] = []
+        params: list = []
+        if jurisdiction:
+            conditions.append("LOWER(policies.jurisdiction) LIKE ? ESCAPE '\\'")
+            params.append(f"%{storage_db.escape_like(jurisdiction.lower())}%")
+        if review_status:
+            conditions.append("policies.review_status = ?")
+            params.append(review_status)
+        if policy_type:
+            conditions.append("policies.policy_type = ?")
+            params.append(policy_type)
+        if min_score is not None:
+            conditions.append("COALESCE(policies.relevance_score, 0) >= ?")
+            params.append(min_score)
+
+        if storage_db.fts5_enabled(self._conn):
+            match_query = storage_db.build_fts_match_query(query)
+            sql = (
+                "SELECT policies.raw FROM policies "
+                "JOIN policies_fts ON policies.rowid = policies_fts.rowid "
+                "WHERE policies_fts MATCH ?"
+            )
+            all_params = [match_query, *params]
+            if conditions:
+                sql += " AND " + " AND ".join(conditions)
+            # Name matches rank far above summary/requirements/jurisdiction hits.
+            sql += " ORDER BY bm25(policies_fts, 10.0, 1.0, 1.0, 1.0) LIMIT ?"
+            all_params.append(limit)
+            rows = self._conn.execute(sql, all_params).fetchall()
+            return [json.loads(row[0]) for row in rows]
+
+        # LIKE fallback: every token must substring-match at least one of
+        # the four indexed fields, case-insensitively.
+        like_conditions = []
+        like_params: list = []
+        for token in query.split():
+            escaped = f"%{storage_db.escape_like(token.lower())}%"
+            like_conditions.append(
+                "(LOWER(policies.policy_name) LIKE ? ESCAPE '\\' "
+                "OR LOWER(COALESCE(json_extract(policies.raw, '$.summary'), '')) LIKE ? ESCAPE '\\' "
+                "OR LOWER(COALESCE(json_extract(policies.raw, '$.key_requirements'), '')) "
+                "LIKE ? ESCAPE '\\' "
+                "OR LOWER(policies.jurisdiction) LIKE ? ESCAPE '\\')"
+            )
+            like_params.extend([escaped] * 4)
+
+        sql = "SELECT policies.raw FROM policies"
+        all_conditions = conditions + like_conditions
+        all_params = params + like_params
+        if all_conditions:
+            sql += " WHERE " + " AND ".join(all_conditions)
+        sql += " ORDER BY policies.rowid LIMIT ?"
+        all_params.append(limit)
+        rows = self._conn.execute(sql, all_params).fetchall()
+        return [json.loads(row[0]) for row in rows]
+
     def get_stats(self) -> dict:
         """Get aggregate policy statistics."""
         policies = self.get_all()
