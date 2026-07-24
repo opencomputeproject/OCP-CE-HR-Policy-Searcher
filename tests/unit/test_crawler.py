@@ -720,3 +720,35 @@ class TestPlaywrightDomainConfig:
         source = (Path(__file__).resolve().parents[2] / "src" / "core" / "scanner.py")
         text = source.read_text(encoding="utf-8")
         assert "requires_playwright=self.domain.get(\"requires_playwright\"" in text
+
+
+class TestContainerBrowserLaunch:
+    """Chromium in containers with default 64MB /dev/shm wedges silently;
+    the launch args must opt out of /dev/shm (observed live: scan a4cd43f6
+    stalled 10/18 domains at zero pages on the production container)."""
+
+    @pytest.mark.asyncio
+    async def test_launch_disables_dev_shm(self, monkeypatch):
+        from src.core.crawler import AsyncCrawler
+
+        captured = {}
+
+        class FakeChromium:
+            async def launch(self, **kwargs):
+                captured.update(kwargs)
+                return _mock_pw_browser()
+
+        class FakePlaywright:
+            chromium = FakeChromium()
+
+            async def start(self):
+                return self
+
+        import playwright.async_api as pa
+        monkeypatch.setattr(pa, "async_playwright", lambda: FakePlaywright())
+
+        crawler = AsyncCrawler.__new__(AsyncCrawler)
+        crawler._pw_browser = None
+        crawler._playwright = None
+        await crawler._ensure_playwright()
+        assert "--disable-dev-shm-usage" in captured.get("args", [])

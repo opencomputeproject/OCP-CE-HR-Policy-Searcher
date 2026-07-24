@@ -4,6 +4,9 @@ services:
     image: policypulse:latest
     container_name: policypulse
     restart: unless-stopped
+    # Chromium needs more shared memory than Docker's 64MB default; the
+    # crawler also passes --disable-dev-shm-usage (belt and braces).
+    shm_size: "512mb"
     env_file: .env
     ports:
       # Bind to loopback only — the host's reverse proxy (Caddy) is the

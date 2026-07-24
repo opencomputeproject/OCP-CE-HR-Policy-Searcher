@@ -136,7 +136,13 @@ class AsyncCrawler:
                 "Install with: pip install '.[browser]' && playwright install chromium"
             )
         self._playwright = await async_playwright().start()
-        self._pw_browser = await self._playwright.chromium.launch(headless=True)
+        # --disable-dev-shm-usage: containers default /dev/shm to 64MB, which
+        # silently wedges Chromium renderers mid-crawl (observed in production:
+        # scan a4cd43f6 stalled 10/18 domains at zero pages). Harmless outside
+        # containers; Chromium falls back to /tmp for shared memory.
+        self._pw_browser = await self._playwright.chromium.launch(
+            headless=True, args=["--disable-dev-shm-usage"]
+        )
         logger.info("Playwright Chromium launched for JS rendering")
         return self._pw_browser
 
