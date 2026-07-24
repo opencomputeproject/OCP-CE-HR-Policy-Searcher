@@ -136,7 +136,7 @@ describe('PolicyList place-filter mode', () => {
 
     await screen.findByText('United States - 2 policies');
 
-    fireEvent.change(screen.getByLabelText('Filter by name'), { target: { value: 'Minnesota' } });
+    fireEvent.change(screen.getByLabelText('Search policies'), { target: { value: 'Minnesota' } });
     await waitFor(
       () => expect(screen.getByText('Showing 1 of 1 policies')).toBeInTheDocument(),
       { timeout: 2000 },
@@ -202,7 +202,7 @@ describe('PolicyList server-backed search', () => {
     await screen.findByText('Federal Heat Reuse Act');
 
     jest.useFakeTimers();
-    const input = screen.getByLabelText('Filter by name');
+    const input = screen.getByLabelText('Search policies');
     fireEvent.change(input, { target: { value: 's' } });
     fireEvent.change(input, { target: { value: 'sw' } });
     fireEvent.change(input, { target: { value: 'swe' } });
@@ -231,7 +231,7 @@ describe('PolicyList server-backed search', () => {
     render(<PolicyList />);
     await screen.findByText('Federal Heat Reuse Act');
 
-    fireEvent.change(screen.getByLabelText('Filter by name'), { target: { value: 'Abwärme' } });
+    fireEvent.change(screen.getByLabelText('Search policies'), { target: { value: 'Abwärme' } });
 
     await waitFor(
       () => {
@@ -250,7 +250,7 @@ describe('PolicyList server-backed search', () => {
     render(<PolicyList />);
     await screen.findByText('Federal Heat Reuse Act');
 
-    fireEvent.change(screen.getByLabelText('Filter by name'), { target: { value: 'sw' } });
+    fireEvent.change(screen.getByLabelText('Search policies'), { target: { value: 'sw' } });
 
     // "Sweden Heat Rule" is already in the baseline list, so the narrowing
     // signal is the OTHER policies disappearing once search results land.
@@ -273,13 +273,13 @@ describe('PolicyList server-backed search', () => {
       ).length;
     const baselineCallsBefore = baselineCallCount();
 
-    fireEvent.change(screen.getByLabelText('Filter by name'), { target: { value: 'sw' } });
+    fireEvent.change(screen.getByLabelText('Search policies'), { target: { value: 'sw' } });
     await waitFor(
       () => expect(screen.queryByText('Federal Heat Reuse Act')).not.toBeInTheDocument(),
       { timeout: 2000 },
     );
 
-    fireEvent.change(screen.getByLabelText('Filter by name'), { target: { value: 's' } });
+    fireEvent.change(screen.getByLabelText('Search policies'), { target: { value: 's' } });
 
     await waitFor(() => {
       expect(screen.getByText('Federal Heat Reuse Act')).toBeInTheDocument();
@@ -294,7 +294,7 @@ describe('PolicyList server-backed search', () => {
     render(<PolicyList />);
     await screen.findByText('Federal Heat Reuse Act');
 
-    fireEvent.change(screen.getByLabelText('Filter by name'), { target: { value: 'sw' } });
+    fireEvent.change(screen.getByLabelText('Search policies'), { target: { value: 'sw' } });
 
     await waitFor(
       () => {

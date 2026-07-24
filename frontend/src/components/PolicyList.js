@@ -303,7 +303,7 @@ function PolicyList({ externalPlace = null }) {
           </div>
           <TextField
             className="policy-list-filter policy-list-search"
-            label="Filter by name"
+            label="Search policies"
             placeholder="Search policies..."
             size="small"
             value={nameQuery}
