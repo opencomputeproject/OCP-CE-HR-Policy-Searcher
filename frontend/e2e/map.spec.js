@@ -58,6 +58,11 @@ test.describe('world map real-pointer flows', () => {
     ).toBeVisible();
   });
 
+  test('searching for a native-language term surfaces a matching policy card', async ({ page }) => {
+    await page.getByPlaceholder('Search policies...').fill('Abwärme');
+    await expect(page.locator('.saved-policy-name').first()).toBeVisible();
+  });
+
   test('admin area toggles and hides operator tools by default', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Find new policies' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Admin', exact: true }).click();
