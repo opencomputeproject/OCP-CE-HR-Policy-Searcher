@@ -158,13 +158,31 @@ class PolicyStore:
         rows = self._conn.execute(query, params).fetchall()
         return [json.loads(row[0]) for row in rows]
 
-    def update_review_status(self, url: str, review_status: str) -> bool:
-        """Set a policy's review status by URL. Returns False if not found."""
-        cur = self._conn.execute(
-            "UPDATE policies SET review_status = ?, "
-            "raw = json_set(raw, '$.review_status', ?) WHERE url = ?",
-            (review_status, review_status, url),
-        )
+    def update_review_status(
+        self, url: str, review_status: str, note: Optional[str] = None
+    ) -> bool:
+        """Set a policy's review status by URL. Returns False if not found.
+
+        ``note`` is the optional reject reason (WP-4 Library): it lives only
+        in the raw JSON as ``review_note``, no typed column. It is stored
+        when rejecting with a reason; any other status — including a bare
+        "rejected" with no reason — clears it, so a stale reason never
+        survives a status change it doesn't belong to.
+        """
+        if review_status == "rejected" and note:
+            cur = self._conn.execute(
+                "UPDATE policies SET review_status = ?, "
+                "raw = json_set(json_set(raw, '$.review_status', ?), "
+                "'$.review_note', ?) WHERE url = ?",
+                (review_status, review_status, note, url),
+            )
+        else:
+            cur = self._conn.execute(
+                "UPDATE policies SET review_status = ?, "
+                "raw = json_remove(json_set(raw, '$.review_status', ?), "
+                "'$.review_note') WHERE url = ?",
+                (review_status, review_status, url),
+            )
         # Commit unconditionally — the UPDATE opened a transaction whether
         # or not it matched a row, and an unmatched url must not leave it
         # open on this connection.

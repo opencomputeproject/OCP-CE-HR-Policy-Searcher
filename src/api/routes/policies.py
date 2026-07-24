@@ -3,7 +3,7 @@
 from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..deps import (
     get_policy_store, get_public_visibility_store, get_scan_manager, request_is_admin,
@@ -11,6 +11,7 @@ from ..deps import (
 from ..review_visibility import passes_visibility, visibility_filter_kwargs
 from ...agent.tools import jurisdiction_matches
 from ...core import jurisdictions
+from ...core.log_setup import log_audit_event
 from ...core.models import LIFECYCLE_STAGES
 from ...orchestration.scan_manager import ScanManager
 from ...storage.store import PolicyStore
@@ -172,6 +173,7 @@ def search_policies_text(
 class ReviewUpdate(BaseModel):
     url: str
     review_status: Literal["new", "reviewed", "promoted", "rejected"]
+    reason: Optional[str] = Field(None, max_length=500)
 
 
 @router.patch("/policies/review")
@@ -180,8 +182,20 @@ def update_review_status(
     store: PolicyStore = Depends(get_policy_store),
     manager: ScanManager = Depends(get_scan_manager),
 ):
-    """Set a policy's review status (admin action via the gate middleware)."""
-    updated = store.update_review_status(update.url, update.review_status)
+    """Set a policy's review status (admin action via the gate middleware).
+
+    ``reason`` (max 500 chars) is only meaningful alongside
+    ``review_status="rejected"`` — it's stored as ``review_note`` in the
+    policy's raw JSON (see ``PolicyStore.update_review_status``) and cleared
+    the moment the status moves away from "rejected". Every status change is
+    audited (url, old/new status, whether a reason was given — never the
+    reason text itself).
+    """
+    old_status = next(
+        (p.get("review_status", "new") for p in store.get_all() if p.get("url") == update.url),
+        None,
+    )
+    updated = store.update_review_status(update.url, update.review_status, note=update.reason)
 
     # Policies also live in ScanManager's in-memory results for the life of
     # the process; without this, a reviewed policy resurrects in the "new"
@@ -195,6 +209,15 @@ def update_review_status(
         raise HTTPException(
             status_code=404, detail=f"No policy with URL: {update.url}",
         )
+
+    log_audit_event(
+        data_dir=str(store.data_dir),
+        event="review_status_changed",
+        url=update.url,
+        old_status=old_status or "new",
+        new_status=update.review_status,
+        has_reason=bool(update.reason),
+    )
     return {"url": update.url, "review_status": update.review_status}
 
 
