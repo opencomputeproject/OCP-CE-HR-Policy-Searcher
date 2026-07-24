@@ -29,7 +29,9 @@ search returns nothing, retry with synonyms, broader terms, or the country's \
 native-language keywords (e.g. "Abwärme" for Germany) before giving up.
 - For a region group (Nordics, EU, DACH, Benelux...), search each member \
 country separately with the jurisdiction filter and NO query keywords first, \
-so you see everything stored for that country. Keyword search is literal.
+so you see everything stored for that country. search_policies does a \
+full-text search over each policy's name, summary, key requirements, and \
+jurisdiction — all words must match, so keep queries short and specific.
 - Before concluding a country or region has NO policies, call \
 get_policy_stats to see which jurisdictions actually have stored policies, \
 then search those. Do not claim emptiness without checking stats first.

@@ -12,6 +12,7 @@ import pytest
 
 from src.agent.ask import (
     ASK_MAX_ITERATIONS,
+    READER_SYSTEM_PROMPT,
     READER_TOOL_NAMES,
     reader_tools,
     answer_question,
@@ -40,6 +41,29 @@ class TestReaderTools:
         names = {t["name"] for t in reader_tools()}
         for forbidden in ("start_scan", "web_search", "add_domain", "analyze_url"):
             assert forbidden not in names
+
+
+class TestReaderSystemPromptHonesty:
+    """search_policies is now a real full-text index (name/summary/
+    key_requirements/jurisdiction, all words must match), not literal
+    substring-on-name-and-summary - the prompt must describe it honestly."""
+
+    def test_no_longer_claims_keyword_search_is_literal(self):
+        assert "Keyword search is literal" not in READER_SYSTEM_PROMPT
+
+    def test_describes_full_text_search_over_the_indexed_fields(self):
+        prompt = READER_SYSTEM_PROMPT.lower()
+        assert "full-text" in prompt
+        assert "summar" in prompt
+        assert "jurisdiction" in prompt
+
+    def test_states_all_words_must_match(self):
+        assert "all words must match" in READER_SYSTEM_PROMPT.lower()
+
+    def test_still_coaches_native_language_retry(self):
+        # Behavioral guidance that must NOT be weakened by the rewrite.
+        assert "native-language" in READER_SYSTEM_PROMPT
+        assert "Abwärme" in READER_SYSTEM_PROMPT
 
 
 class TestAnswerQuestion:

@@ -93,6 +93,31 @@ def list_policies(
     return {"policies": stored, "count": len(stored)}
 
 
+# Declared before any parameterized policies route (there are none today,
+# but a future GET /policies/{id} would otherwise shadow this literal path)
+# so "/api/policies/search" always resolves here, not to a path parameter.
+@router.get("/policies/search")
+def search_policies_text(
+    q: str = Query(..., min_length=1, max_length=200),
+    jurisdiction: Optional[str] = Query(None),
+    policy_type: Optional[str] = Query(None),
+    min_score: Optional[int] = Query(None, ge=1, le=10),
+    limit: int = Query(20, ge=1, le=100),
+    store: PolicyStore = Depends(get_policy_store),
+):
+    """Free-text search over stored policies (name, summary, key requirements,
+    jurisdiction). See ``PolicyStore.search_text`` for ranking and matching
+    semantics."""
+    results = store.search_text(
+        q,
+        jurisdiction=jurisdiction,
+        policy_type=policy_type,
+        min_score=min_score,
+        limit=limit,
+    )
+    return {"policies": results, "total": len(results), "query": q}
+
+
 class ReviewUpdate(BaseModel):
     url: str
     review_status: Literal["new", "reviewed", "promoted", "rejected"]

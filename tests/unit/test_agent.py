@@ -60,6 +60,11 @@ class TestToolDefinitions:
         names = [t["name"] for t in tools]
         assert len(names) == len(set(names))
 
+    def test_search_policies_query_description_says_full_text(self):
+        search_tool = next(t for t in POLICY_TOOLS if t["name"] == "search_policies")
+        query_description = search_tool["input_schema"]["properties"]["query"]["description"]
+        assert "full-text" in query_description.lower()
+
 
 class TestToolDispatch:
     """Test that execute_tool dispatches correctly."""

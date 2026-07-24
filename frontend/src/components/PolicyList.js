@@ -48,6 +48,10 @@ function PolicyList({ externalPlace = null }) {
   const [selectedJurisdictions, setSelectedJurisdictions] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [nameQuery, setNameQuery] = useState('');
+  // Server-backed search results for a 2+ char nameQuery; null means "not
+  // searching" so sourcePolicies falls back to the normal list/place scope.
+  const [searchResults, setSearchResults] = useState(null);
+  const searchDebounceRef = useRef(null);
   const [sortBy, setSortBy] = useState('relevance');
   const [lifecycleMode, setLifecycleMode] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -138,6 +142,42 @@ function PolicyList({ externalPlace = null }) {
     };
   }, [externalPlace]);
 
+  // Server-backed free-text search: debounce 300ms, only fire once the
+  // query is 2+ characters, and drop back to the normal list (no refetch)
+  // below that threshold.
+  useEffect(() => {
+    const trimmedQuery = nameQuery.trim();
+
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = null;
+    }
+
+    if (trimmedQuery.length < 2) {
+      setSearchResults(null);
+      return undefined;
+    }
+
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ q: trimmedQuery, limit: '50' });
+        const response = await fetch(apiUrl(`/api/policies/search?${params.toString()}`));
+        if (!response.ok) {
+          throw new Error(`Search failed (${response.status})`);
+        }
+        const data = await response.json();
+        setSearchResults(Array.isArray(data.policies) ? data.policies : []);
+      } catch (searchError) {
+        console.error(searchError);
+        setError('Could not load data. Check that the backend is running, then refresh.');
+      }
+    }, 300);
+
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [nameQuery]);
+
   // Scrolling requires the real list markup to be mounted (not the "Loading
   // policies..." placeholder returned while the baseline fetch is still in
   // flight), so this waits on both the place fetch landing AND isLoading
@@ -153,10 +193,13 @@ function PolicyList({ externalPlace = null }) {
     setPlaceFilterError(null);
   };
 
-  // The place-filter fetch's own results when active, otherwise the normal
-  // all-policies view - everything downstream (tag map, name/jurisdiction/tag/
-  // lifecycle filters, sort) runs the same either way.
-  const sourcePolicies = placeFilter ? placeFilter.policies : policies;
+  // Search results (2+ char query) take priority over everything else,
+  // then the place-filter fetch's own results, otherwise the normal
+  // all-policies view - jurisdiction/tag/lifecycle filters and sort still
+  // apply client-side on top either way.
+  const sourcePolicies = searchResults !== null
+    ? searchResults
+    : (placeFilter ? placeFilter.policies : policies);
 
   const policyTagsByKey = useMemo(() => {
     return sourcePolicies.reduce((tagMap, policy, index) => {
@@ -190,15 +233,10 @@ function PolicyList({ externalPlace = null }) {
   );
 
   const filteredPolicyEntries = useMemo(() => {
-    const normalizedNameQuery = nameQuery.trim().toLowerCase();
-
     return sourcePolicies
       .map((policy, index) => ({ policy, policyKey: getPolicyKey(policy, index) }))
       .filter(({ policy, policyKey }) => {
         const matchesLifecycle = lifecycleAllowedPolicies.has(policy);
-        const matchesName = normalizedNameQuery
-          ? String(policy.policy_name || '').toLowerCase().includes(normalizedNameQuery)
-          : true;
         const matchesJurisdictions = selectedJurisdictions.length > 0
           ? selectedJurisdictions.includes(policy.jurisdiction)
           : true;
@@ -207,7 +245,7 @@ function PolicyList({ externalPlace = null }) {
           ? selectedTags.every((tag) => policyTags.includes(tag))
           : true;
 
-        return matchesLifecycle && matchesName && matchesJurisdictions && matchesTags;
+        return matchesLifecycle && matchesJurisdictions && matchesTags;
       })
       .sort((firstEntry, secondEntry) => {
         const firstPolicy = firstEntry.policy;
@@ -230,7 +268,6 @@ function PolicyList({ externalPlace = null }) {
     lifecycleAllowedPolicies,
     selectedJurisdictions,
     selectedTags,
-    nameQuery,
     sortBy,
   ]);
 
@@ -266,8 +303,8 @@ function PolicyList({ externalPlace = null }) {
           </div>
           <TextField
             className="policy-list-filter policy-list-search"
-            label="Filter by name"
-            placeholder="Filter by name..."
+            label="Search policies"
+            placeholder="Search policies..."
             size="small"
             value={nameQuery}
             onChange={(event) => setNameQuery(event.target.value)}

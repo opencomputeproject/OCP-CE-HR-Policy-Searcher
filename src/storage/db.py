@@ -217,6 +217,24 @@ def escape_like(term: str) -> str:
     return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
+def build_fts_match_query(query: str) -> str:
+    """Turn free text into a safe FTS5 MATCH expression.
+
+    Every whitespace-separated token is wrapped in double quotes (doubling
+    any embedded quote), which forces FTS5 to treat it as a literal phrase —
+    ``AND``/``OR``/``NOT``, parentheses, ``*``, and column-filter ``:``
+    syntax are all neutralized this way. The quoted tokens are implicitly
+    ANDed by FTS5, and a trailing ``*`` on the last one turns it into a
+    prefix match (FTS5 supports a prefix ``*`` immediately after a quoted
+    phrase's closing quote — it matches the phrase's final token as a
+    prefix rather than a whole term).
+    """
+    tokens = query.split()
+    quoted = ['"' + token.replace('"', '""') + '"' for token in tokens]
+    quoted[-1] += "*"
+    return " ".join(quoted)
+
+
 def _insert_policy_row(conn: sqlite3.Connection, record: dict) -> None:
     conn.execute(
         """
