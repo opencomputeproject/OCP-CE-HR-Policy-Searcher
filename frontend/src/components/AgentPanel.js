@@ -7,6 +7,7 @@ import { DEFAULT_CHANNELS, buildScanRequests } from '../utils/scanTargets';
 import AdminSignInDialog from './AdminSignInDialog';
 import AgentChatPanel from './AgentChatPanel';
 import ApiKeySettingsModal from './ApiKeySettingsModal';
+import CostPlanner from './CostPlanner';
 import DomainScanPanel from './DomainScanPanel';
 import LibraryView from './LibraryView';
 import PolicyScannerHeader from './PolicyScannerHeader';
@@ -201,6 +202,7 @@ function AgentPanel({
                     />
                     <ReviewInbox isAdmin={adminUnlocked} />
                     <LibraryView />
+                    <CostPlanner />
                 </div>
             ) : (
                 <p className="admin-readonly-note" role="status">
