@@ -8,10 +8,20 @@ from pydantic import BaseModel
 from ..deps import get_scan_manager, get_policy_store
 from ...agent.tools import jurisdiction_matches
 from ...core import jurisdictions
+from ...core.models import LIFECYCLE_STAGES
 from ...orchestration.scan_manager import ScanManager
 from ...storage.store import PolicyStore
 
 router = APIRouter(prefix="/api", tags=["policies"])
+
+
+def _validate_lifecycle_stage(lifecycle_stage: Optional[str]) -> None:
+    if lifecycle_stage is not None and lifecycle_stage not in LIFECYCLE_STAGES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown lifecycle_stage '{lifecycle_stage}'. "
+            f"Must be one of: {', '.join(LIFECYCLE_STAGES)}",
+        )
 
 
 def _matches_place(place: "jurisdictions.Jurisdiction", jurisdiction_text: Optional[str]) -> bool:
@@ -39,6 +49,7 @@ def list_policies(
     scan_id: Optional[str] = Query(None),
     review_status: Optional[str] = Query(None),
     place: Optional[str] = Query(None),
+    lifecycle_stage: Optional[str] = Query(None),
     store: PolicyStore = Depends(get_policy_store),
     manager: ScanManager = Depends(get_scan_manager),
 ):
@@ -47,13 +58,15 @@ def list_policies(
     ``place`` is a jurisdiction-registry slug (see ``src/core/jurisdictions.py``)
     and composes with the other filters. Country slugs are descendant-inclusive
     (place=us also returns federal + every US state policy); subnational and
-    supranational slugs match exactly.
+    supranational slugs match exactly. ``lifecycle_stage`` is an exact match
+    against ``src.core.models.LIFECYCLE_STAGES``.
     """
     place_jur = None
     if place is not None:
         place_jur = jurisdictions.get(place)
         if place_jur is None:
             raise HTTPException(status_code=404, detail=f"Unknown place '{place}'")
+    _validate_lifecycle_stage(lifecycle_stage)
 
     # Merge stored policies with in-memory scan results
     stored = store.search(
@@ -62,6 +75,7 @@ def list_policies(
         min_score=min_score,
         scan_id=scan_id,
         review_status=review_status,
+        lifecycle_stage=lifecycle_stage,
     )
 
     # Also include in-memory policies from recent scans
@@ -77,6 +91,8 @@ def list_policies(
         if scan_id and p_dict.get("scan_id") != scan_id:
             continue
         if review_status and p_dict.get("review_status", "new") != review_status:
+            continue
+        if lifecycle_stage and p_dict.get("lifecycle_stage") != lifecycle_stage:
             continue
         in_memory.append(p_dict)
 
@@ -102,17 +118,21 @@ def search_policies_text(
     jurisdiction: Optional[str] = Query(None),
     policy_type: Optional[str] = Query(None),
     min_score: Optional[int] = Query(None, ge=1, le=10),
+    lifecycle_stage: Optional[str] = Query(None),
     limit: int = Query(20, ge=1, le=100),
     store: PolicyStore = Depends(get_policy_store),
 ):
     """Free-text search over stored policies (name, summary, key requirements,
     jurisdiction). See ``PolicyStore.search_text`` for ranking and matching
-    semantics."""
+    semantics. ``lifecycle_stage`` is an exact match against
+    ``src.core.models.LIFECYCLE_STAGES``."""
+    _validate_lifecycle_stage(lifecycle_stage)
     results = store.search_text(
         q,
         jurisdiction=jurisdiction,
         policy_type=policy_type,
         min_score=min_score,
+        lifecycle_stage=lifecycle_stage,
         limit=limit,
     )
     return {"policies": results, "total": len(results), "query": q}

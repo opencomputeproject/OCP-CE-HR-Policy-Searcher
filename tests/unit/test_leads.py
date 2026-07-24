@@ -63,3 +63,83 @@ class TestLeadStore:
         store = LeadStore(data_dir=str(tmp_path))
         assert store.list() == []
         assert (tmp_path / "leads.json.corrupt").exists()
+
+
+class TestNoteOnlyLeadDedupe:
+    """Note-only leads (no URL) must not collide on an empty source_url."""
+
+    def _note_lead(self, title, snippet):
+        return Lead(title=title, source_url="", snippet=snippet)
+
+    def test_source_url_defaults_to_empty_string(self):
+        lead = Lead(title="t")
+        assert lead.source_url == ""
+
+    def test_distinct_note_only_leads_both_added(self, store):
+        added = store.add_leads([
+            self._note_lead("Rumor A", "First rumor"),
+            self._note_lead("Rumor B", "Second, unrelated rumor"),
+        ])
+        assert added == 2
+        assert len(store.list()) == 2
+
+    def test_identical_note_text_dedupes(self, store):
+        store.add_leads([self._note_lead("Rumor", "Same text")])
+        added = store.add_leads([self._note_lead("Rumor again", "Same text")])
+        assert added == 0
+        assert len(store.list()) == 1
+
+    def test_note_only_lead_does_not_collide_with_url_lead(self, store):
+        store.add_leads([_lead()])  # has a real source_url
+        added = store.add_leads([self._note_lead("Rumor", "Some note")])
+        assert added == 1
+        assert len(store.list()) == 2
+
+
+class TestRecordChase:
+    """record_chase() persists a chase attempt's outcome and timing."""
+
+    def test_defaults_are_unset(self, store):
+        lead = _lead()
+        store.add_leads([lead])
+        fresh = store.get(lead.lead_id)
+        assert fresh.chased_at is None
+        assert fresh.chase_outcome is None
+        assert fresh.chase_error is None
+
+    def test_policy_found_marks_chased_with_url(self, store):
+        lead = _lead()
+        store.add_leads([lead])
+        updated = store.record_chase(
+            lead.lead_id, outcome="policy_found", mark_chased=True,
+            policy_url="https://gov.example/law",
+        )
+        assert updated.status == "chased"
+        assert updated.policy_url == "https://gov.example/law"
+        assert updated.chase_outcome == "policy_found"
+        assert updated.chased_at is not None
+
+    def test_no_policy_marks_chased_without_url(self, store):
+        lead = _lead()
+        store.add_leads([lead])
+        updated = store.record_chase(lead.lead_id, outcome="no_policy", mark_chased=True)
+        assert updated.status == "chased"
+        assert updated.policy_url is None
+        assert updated.chase_outcome == "no_policy"
+        assert updated.chased_at is not None
+
+    def test_fetch_failed_keeps_status_and_records_error(self, store):
+        """A fetch failure must not remove the tip from further chase attempts."""
+        lead = _lead()
+        store.add_leads([lead])
+        updated = store.record_chase(
+            lead.lead_id, outcome="fetch_failed", mark_chased=False,
+            error="ConnectionError: too many redirects",
+        )
+        assert updated.status == "new"  # unchanged - stays chaseable
+        assert updated.chase_outcome == "fetch_failed"
+        assert updated.chase_error == "ConnectionError: too many redirects"
+        assert updated.chased_at is not None
+
+    def test_unknown_lead_returns_none(self, store):
+        assert store.record_chase("nope", outcome="no_policy", mark_chased=True) is None

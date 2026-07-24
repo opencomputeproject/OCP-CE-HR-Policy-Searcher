@@ -16,6 +16,11 @@ const LIFECYCLE_FILTER_MODES = [
   { id: 'all', label: 'All' },
   { id: 'upcoming', label: 'Upcoming' },
   { id: 'enacted', label: 'Enacted' },
+  // Unlike the three modes above (computed client-side by filterByLifecycle
+  // over whatever's already loaded), this one is server-side: it fetches
+  // /api/policies?lifecycle_stage=consultation directly, exercising the new
+  // backend lifecycle_stage filter.
+  { id: 'open_for_comment', label: 'Open for comment' },
 ];
 
 export function filterByLifecycle(policies, mode) {
@@ -66,6 +71,10 @@ function PolicyList({ externalPlace = null }) {
   const [placeFilter, setPlaceFilter] = useState(null);
   const [isPlaceFilterLoading, setIsPlaceFilterLoading] = useState(false);
   const [placeFilterError, setPlaceFilterError] = useState(null);
+  // "Open for comment" chip: server-side lifecycle_stage=consultation fetch.
+  const [consultationPolicies, setConsultationPolicies] = useState([]);
+  const [isConsultationLoading, setIsConsultationLoading] = useState(false);
+  const [consultationError, setConsultationError] = useState(null);
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -142,6 +151,38 @@ function PolicyList({ externalPlace = null }) {
     };
   }, [externalPlace]);
 
+  useEffect(() => {
+    if (lifecycleMode !== 'open_for_comment') return undefined;
+    let cancelled = false;
+
+    setIsConsultationLoading(true);
+    setConsultationError(null);
+
+    const loadConsultationPolicies = async () => {
+      try {
+        const params = new URLSearchParams({ lifecycle_stage: 'consultation' });
+        const response = await fetch(apiUrl(`/api/policies?${params.toString()}`));
+        if (!response.ok) {
+          throw new Error(`Failed to load open-for-comment policies (${response.status})`);
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setConsultationPolicies(Array.isArray(data.policies) ? data.policies : []);
+        }
+      } catch (loadError) {
+        console.error(loadError);
+        if (!cancelled) setConsultationError('Could not load open-for-comment policies.');
+      } finally {
+        if (!cancelled) setIsConsultationLoading(false);
+      }
+    };
+
+    loadConsultationPolicies();
+    return () => {
+      cancelled = true;
+    };
+  }, [lifecycleMode]);
+
   // Server-backed free-text search: debounce 300ms, only fire once the
   // query is 2+ characters, and drop back to the normal list (no refetch)
   // below that threshold.
@@ -199,7 +240,9 @@ function PolicyList({ externalPlace = null }) {
   // apply client-side on top either way.
   const sourcePolicies = searchResults !== null
     ? searchResults
-    : (placeFilter ? placeFilter.policies : policies);
+    : lifecycleMode === 'open_for_comment'
+      ? consultationPolicies
+      : (placeFilter ? placeFilter.policies : policies);
 
   const policyTagsByKey = useMemo(() => {
     return sourcePolicies.reduce((tagMap, policy, index) => {
@@ -404,6 +447,12 @@ function PolicyList({ externalPlace = null }) {
           </button>
         ))}
       </div>
+      {lifecycleMode === 'open_for_comment' && isConsultationLoading && (
+        <p role="status">Loading open-for-comment policies...</p>
+      )}
+      {lifecycleMode === 'open_for_comment' && consultationError && (
+        <p className="ask-box-error" role="alert">{consultationError}</p>
+      )}
       {sourcePolicies.length === 0 ? (
         <p>No policies discovered yet. Select a region in the scanner and press Scan, or ask the agent in the chat.</p>
       ) : filteredPolicyEntries.length === 0 ? (

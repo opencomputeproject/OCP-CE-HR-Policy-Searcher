@@ -11,8 +11,14 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from ..core.models import Policy
 from ..core.policy_schema import LINK_HEADER, STAGING_HEADERS
+from ..storage.leads import Lead
 
 logger = logging.getLogger(__name__)
+
+# Tips worksheet columns (see SheetsClient.export_tips). Public vocabulary
+# ("tip") over the internal Lead/LeadStore field names — mirrors the
+# API-level rename in src/api/routes/leads.py.
+TIP_HEADERS = ["Submitted At", "Origin", "Title/Note", "URL", "Status", "Chase Outcome"]
 
 
 def _col_letter(n: int) -> str:
@@ -120,3 +126,51 @@ class SheetsClient:
         rows = [p.to_sheet_row() for p in new_policies]
         sheet.append_rows(rows, value_input_option="USER_ENTERED")
         return len(rows)
+
+    def get_tips_sheet(self, name: str = "Tips") -> gspread.Worksheet:
+        try:
+            return self._spreadsheet.worksheet(name)
+        except gspread.WorksheetNotFound:
+            sheet = self._spreadsheet.add_worksheet(
+                name, rows=1000, cols=len(TIP_HEADERS),
+            )
+            end_col = _col_letter(len(TIP_HEADERS))
+            sheet.update([TIP_HEADERS], f"A1:{end_col}1")
+            return sheet
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=2, max=20))
+    def export_tips(self, leads: list[Lead], sheet_name: str = "Tips") -> int:
+        """One-way, full-snapshot export of the tip queue to the Tips worksheet.
+
+        Rewrites the sheet on every call rather than appending: a tip's
+        status and chase outcome change over its lifecycle (new -> chased,
+        outcome recorded), so appending would accumulate stale duplicate
+        rows instead of reflecting current state. Never called
+        automatically on submission — batch/ops-triggered only (see
+        src/output/export_tips.py).
+        """
+        sheet = self.get_tips_sheet(sheet_name)
+        rows = [_tip_to_row(lead) for lead in leads]
+        end_col = _col_letter(len(TIP_HEADERS))
+        sheet.clear()
+        sheet.update([TIP_HEADERS] + rows, f"A1:{end_col}{len(rows) + 1}")
+        return len(rows)
+
+
+def _tip_chase_outcome(lead: Lead) -> str:
+    if lead.status == "chased":
+        return f"Found: {lead.policy_url}" if lead.policy_url else "Checked - nothing found"
+    if lead.chase_outcome == "fetch_failed":
+        return f"Fetch failed: {lead.chase_error or 'unknown error'}"
+    return ""
+
+
+def _tip_to_row(lead: Lead) -> list:
+    return [
+        lead.found_at.isoformat(),
+        lead.origin,
+        lead.title or lead.snippet,
+        lead.source_url,
+        lead.status,
+        _tip_chase_outcome(lead),
+    ]

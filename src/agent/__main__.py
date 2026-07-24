@@ -522,8 +522,8 @@ def main():
         ))
         print(
             f"News signals: {summary.get('items_seen', 0)} items seen, "
-            f"{summary.get('leads_added', 0)} new leads "
-            f"(review at /api/leads or in the app)."
+            f"{summary.get('leads_added', 0)} new tips "
+            f"(review at /api/tips or in the app)."
         )
         sys.exit(0)
 
