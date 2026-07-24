@@ -25,6 +25,7 @@ from ..core.models import (
     Policy, ScanJob, ScanStatus, ScanProgress, DomainProgress,
     DomainScanStatus, ScanEvent,
 )
+from ..core.overrides import apply_domain_overrides
 from ..core.scanner import DomainScanner
 from ..core.verifier import Verifier
 from ..storage.scan_history import ScanHistoryStore
@@ -44,15 +45,31 @@ class ScanManager:
         broadcaster: EventBroadcaster,
         api_key: Optional[str] = None,
         data_dir: str = "data",
+        domain_overrides_store=None,
     ):
         self.config = config
         self.broadcaster = broadcaster
         self.api_key = api_key
         self.data_dir = data_dir
+        # Optional (WP-8): a src.storage.domain_overrides.DomainOverridesStore.
+        # None (the default every existing test and call site relies on)
+        # means "no overlay" — start_scan/estimate_cost behave exactly as
+        # before. deps.get_scan_manager() wires in the real store.
+        self.domain_overrides_store = domain_overrides_store
 
         self._jobs: dict[str, ScanJob] = {}
         self._policies: dict[str, list[Policy]] = {}  # scan_id → policies
         self._tasks: dict[str, asyncio.Task] = {}
+
+    def _overlay_domains(self, domains: list[dict]) -> list[dict]:
+        """Drop any domain the admin overlay has disabled (WP-8/WP-9).
+
+        A no-op when no store was wired in (see __init__), so every existing
+        caller and test is unaffected.
+        """
+        if self.domain_overrides_store is None:
+            return domains
+        return apply_domain_overrides(domains, self.domain_overrides_store.get_all())
 
     @property
     def jobs(self) -> dict[str, ScanJob]:
@@ -86,7 +103,7 @@ class ScanManager:
         channels = channels or ["crawl"]
 
         # Resolve domains
-        domains = self.config.get_enabled_domains(domains_group)
+        domains = self._overlay_domains(self.config.get_enabled_domains(domains_group))
 
         # Apply additional filters
         if category:
@@ -691,7 +708,7 @@ class ScanManager:
         group/region/domain scope — callers (the API route) turn that into a
         400, mirroring domains.py's list_domains.
         """
-        domains = self.config.get_enabled_domains(domains_group)
+        domains = self._overlay_domains(self.config.get_enabled_domains(domains_group))
         settings = self.config.settings
 
         max_pages_per_domain = settings.crawl.max_pages_per_domain
