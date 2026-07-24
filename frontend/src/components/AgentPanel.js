@@ -14,6 +14,7 @@ import PolicyScannerHeader from './PolicyScannerHeader';
 import PublicVisibilityControl from './PublicVisibilityControl';
 import ReviewInbox from './ReviewInbox';
 import SearchPanel from './SearchPanel';
+import SourcesPanel from './SourcesPanel';
 import WorldMap from './WorldMap';
 
 function AgentPanel({
@@ -203,6 +204,7 @@ function AgentPanel({
                     <ReviewInbox isAdmin={adminUnlocked} />
                     <LibraryView />
                     <CostPlanner />
+                    <SourcesPanel />
                 </div>
             ) : (
                 <p className="admin-readonly-note" role="status">

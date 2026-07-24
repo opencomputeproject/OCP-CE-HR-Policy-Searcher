@@ -15,7 +15,7 @@ from ..core.log_setup import setup_logging
 from .deps import get_config_version, get_public_visibility_store, request_is_admin
 from .routes import (
     domains, scans, policies, analysis, agent, ask, coverage, cost_projection,
-    config_admin, leads, logs, search, settings,
+    config_admin, leads, logs, search, settings, sources_admin,
 )
 from .static_site import mount_frontend
 
@@ -140,6 +140,7 @@ app.include_router(ask.router)
 app.include_router(coverage.router)
 app.include_router(cost_projection.router)
 app.include_router(config_admin.router)
+app.include_router(sources_admin.router)
 app.include_router(leads.router)
 app.include_router(logs.router)
 app.include_router(search.router)
