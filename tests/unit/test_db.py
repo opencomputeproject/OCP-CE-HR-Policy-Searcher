@@ -194,7 +194,9 @@ class TestFTS5Search:
         store = PolicyStore(data_dir=str(tmp_path))
         assert storage_db.fts5_enabled(store._conn)
 
-    def test_jurisdiction_prefix_match(self, tmp_path):
+    def test_jurisdiction_substring_match(self, tmp_path):
+        """Exact semantics of the JSON-backed store: case-insensitive substring,
+        including mid-word fragments, which FTS5 token matching would miss."""
         store = PolicyStore(data_dir=str(tmp_path))
         store.add_policies([
             Policy(url="https://a.gov", policy_name="A", jurisdiction="Germany",
@@ -204,8 +206,10 @@ class TestFTS5Search:
         ])
         assert {p["url"] for p in store.search(jurisdiction="Ger")} == {"https://a.gov"}
         assert {p["url"] for p in store.search(jurisdiction="Germany")} == {"https://a.gov"}
+        assert {p["url"] for p in store.search(jurisdiction="erman")} == {"https://a.gov"}
+        assert {p["url"] for p in store.search(jurisdiction="RANC")} == {"https://b.gov"}
 
-    def test_respects_other_filters_alongside_fts(self, tmp_path):
+    def test_respects_other_filters_alongside_jurisdiction(self, tmp_path):
         store = PolicyStore(data_dir=str(tmp_path))
         store.add_policies([
             Policy(url="https://a.gov", policy_name="A", jurisdiction="Germany",
@@ -253,7 +257,7 @@ class TestLikeFallback:
         store = PolicyStore(data_dir=str(tmp_path))
         assert not storage_db.fts5_enabled(store._conn)
 
-    def test_forced_fallback_search_matches_like_the_fts_path(self, tmp_path, monkeypatch):
+    def test_search_works_without_fts5_available(self, tmp_path, monkeypatch):
         monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
         store = PolicyStore(data_dir=str(tmp_path))
         store.add_policies([

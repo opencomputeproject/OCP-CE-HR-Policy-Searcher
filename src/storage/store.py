@@ -140,28 +140,19 @@ class PolicyStore:
     ) -> list[dict]:
         """Search policies with filters.
 
-        The jurisdiction filter is a case-insensitive substring match, same
-        as before. It runs through FTS5 (prefix match on the jurisdiction
-        column) when the local SQLite build supports it, and falls back to
-        a plain LIKE otherwise — same result shape either way.
+        The jurisdiction filter is a case-insensitive substring match — the
+        exact semantics of the JSON-backed store this replaced. FTS5 token
+        matching answers mid-word fragments differently, so the FTS index is
+        deliberately NOT used here; it exists for the upcoming free-text
+        search feature, where new semantics belong.
         """
         conditions: list[str] = []
         params: list = []
 
-        use_fts = bool(jurisdiction) and storage_db.fts5_enabled(self._conn)
-        if use_fts:
-            query = (
-                "SELECT DISTINCT policies.raw, policies.rowid FROM policies "
-                "JOIN policies_fts ON policies.rowid = policies_fts.rowid"
-            )
-            escaped = jurisdiction.replace('"', '""')
-            conditions.append("policies_fts MATCH ?")
-            params.append(f'jurisdiction:"{escaped}"*')
-        else:
-            query = "SELECT raw, rowid FROM policies"
-            if jurisdiction:
-                conditions.append("LOWER(jurisdiction) LIKE ? ESCAPE '\\'")
-                params.append(f"%{storage_db.escape_like(jurisdiction.lower())}%")
+        query = "SELECT raw, rowid FROM policies"
+        if jurisdiction:
+            conditions.append("LOWER(jurisdiction) LIKE ? ESCAPE '\\'")
+            params.append(f"%{storage_db.escape_like(jurisdiction.lower())}%")
 
         if review_status:
             conditions.append("review_status = ?")
@@ -178,7 +169,7 @@ class PolicyStore:
 
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
-        query += " ORDER BY policies.rowid" if use_fts else " ORDER BY rowid"
+        query += " ORDER BY rowid"
 
         rows = self._conn.execute(query, params).fetchall()
         return [json.loads(row[0]) for row in rows]
