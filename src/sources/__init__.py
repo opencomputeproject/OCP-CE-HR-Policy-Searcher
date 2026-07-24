@@ -57,6 +57,7 @@ from . import sejm  # noqa: E402, F401
 from . import pmg  # noqa: E402, F401
 from . import camara  # noqa: E402, F401
 from . import nz_pco  # noqa: E402, F401
+from . import ris_austria  # noqa: E402, F401
 
 # Client modules self-register via @register_source on import.
 from . import legiscan  # noqa: E402,F401

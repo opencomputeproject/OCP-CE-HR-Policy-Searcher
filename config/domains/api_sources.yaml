@@ -468,3 +468,31 @@ domains:
       so content is metadata plus an explicit "full-text search matched
       <term> in this document" line - the server-side match is the signal.
       NZ legislation is public domain. 10k requests/day limit.
+
+  # ---------------------------------------------------------------------------
+  # Wave 3 (added 2026-07-24). Keyless, live-verified.
+  # ---------------------------------------------------------------------------
+
+  - id: "ris_austria_api"
+    name: "RIS OGD Bundesrecht API (Austria)"
+    enabled: true
+    source_type: "ris_austria"
+    base_url: "https://data.bka.gv.at"
+    region:
+      - "austria"
+      - "eu"
+    category: "legislation"
+    tags:
+      - "mandates"
+    policy_types:
+      - "legislation"
+    notes: |
+      RIS is Austria's official legal information system; Bundesrecht is
+      enacted federal law plus the Bundesgesetzblatt (official gazette).
+      Genuine server-side full-text filter confirmed live 2026-07-24 via
+      `Suchworte=` (nonsense=0 vs baseline=18821): Fernwärme 103, Abwärme
+      28, Rechenzentrum 8, Energieeffizienz 150. Complements (does not
+      replace) the already-catalogued Austria Parlament Filter API, which
+      tracks bills at introduction and remains unbuilt - this source's
+      earliness is at promulgation. lifecycle_stage is always "enacted".
+      License: CC BY 4.0. No API key required.

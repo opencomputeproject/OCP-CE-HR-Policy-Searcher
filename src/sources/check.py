@@ -28,6 +28,7 @@ _PROBE_PARAMS = {
     "govinfo": {"query_terms": ["district heating"], "max_documents": 1},
     "regulations_gov": {"query_terms": ["waste heat"], "max_documents": 1},
     "dip": {"query_terms": ["Abwärme"], "max_documents": 1},
+    "ris_austria": {"terms": ["Fernwärme"], "max_documents": 1},
 }
 
 
