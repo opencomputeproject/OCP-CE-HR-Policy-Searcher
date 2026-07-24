@@ -63,7 +63,7 @@ VALID_REGIONS = {
     "niedersachsen": "Lower Saxony", "sachsen": "Saxony",
     # Asia-Pacific countries
     "singapore": "Singapore", "japan": "Japan", "south_korea": "South Korea",
-    "australia": "Australia", "india": "India",
+    "australia": "Australia", "india": "India", "new_zealand": "New Zealand",
     # Australian states
     "new_south_wales": "New South Wales", "south_australia": "South Australia",
     # Indian states
