@@ -57,8 +57,11 @@ def mount_frontend(app: FastAPI, static_dir: str | os.PathLike) -> bool:
         if full_path.startswith(_RESERVED_PREFIXES) or full_path == "api":
             raise HTTPException(status_code=404)
 
-        candidate = build_dir / full_path
-        if full_path and candidate.is_file():
+        # Containment check: resolve the candidate and require it to stay
+        # inside the build dir — encoded dot segments (/%2e%2e/...) reach
+        # this handler unnormalized and must never escape to host files.
+        candidate = (build_dir / full_path).resolve()
+        if full_path and candidate.is_file() and candidate.is_relative_to(build_dir.resolve()):
             return FileResponse(candidate)
         return FileResponse(index_file)
 

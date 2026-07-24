@@ -162,3 +162,25 @@ class TestAppServesStaticFrontendWhenPresent:
         finally:
             monkeypatch.delenv("OCP_STATIC_DIR", raising=False)
             importlib.reload(app_module)
+
+
+class TestPathTraversal:
+    def test_dot_segments_cannot_escape_build_dir(self, tmp_path):
+        """A traversal path must never serve files outside the build dir."""
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from src.api.static_site import mount_frontend
+
+        build = tmp_path / "build"
+        build.mkdir()
+        (build / "index.html").write_text("<html>app</html>", encoding="utf-8")
+        secret = tmp_path / "secret.txt"
+        secret.write_text("ANTHROPIC_API_KEY=sk-oops", encoding="utf-8")
+
+        app = FastAPI()
+        assert mount_frontend(app, build)
+        client = TestClient(app)
+
+        for path in ("/../secret.txt", "/%2e%2e/secret.txt", "/a/../../secret.txt"):
+            r = client.get(path)
+            assert "sk-oops" not in r.text, f"traversal served secret via {path}"
