@@ -57,7 +57,17 @@ const ALL_POLICIES = [
 
 const US_PLACE_POLICIES = [ALL_POLICIES[0], ALL_POLICIES[1]];
 
-function mockFetch({ placePolicies = US_PLACE_POLICIES, placeOk = true, searchOk = true } = {}) {
+const CONSULTATION_POLICIES = [
+  {
+    url: 'https://a.gov/4', policy_name: 'Open Comment Draft Rule', jurisdiction: 'Norway',
+    relevance_score: 4, scan_id: 's4', domain_id: 'd4', lifecycle_stage: 'consultation',
+  },
+];
+
+function mockFetch({
+  placePolicies = US_PLACE_POLICIES, placeOk = true, searchOk = true,
+  consultationPolicies = CONSULTATION_POLICIES, consultationOk = true,
+} = {}) {
   return jest.fn(async (url) => {
     const s = String(url);
     if (s.includes('/api/policies/search')) {
@@ -67,6 +77,11 @@ function mockFetch({ placePolicies = US_PLACE_POLICIES, placeOk = true, searchOk
       const q = (new URL(s).searchParams.get('q') || '').toLowerCase();
       const matches = ALL_POLICIES.filter((p) => p.policy_name.toLowerCase().includes(q));
       return { ok: true, json: async () => ({ policies: matches, total: matches.length, query: q }) };
+    }
+    if (s.includes('/api/policies') && s.includes('lifecycle_stage=consultation')) {
+      return consultationOk
+        ? { ok: true, json: async () => ({ policies: consultationPolicies, count: consultationPolicies.length }) }
+        : { ok: false, status: 500, text: async () => 'server error' };
     }
     if (s.includes('/api/policies') && s.includes('place=')) {
       return placeOk
@@ -304,5 +319,59 @@ describe('PolicyList server-backed search', () => {
       },
       { timeout: 2000 },
     );
+  });
+});
+
+// --- "Open for comment" lifecycle chip (server-side lifecycle_stage) ---
+
+describe('PolicyList "Open for comment" chip', () => {
+  it('renders alongside the existing All/Upcoming/Enacted chips (unchanged UX)', async () => {
+    global.fetch = mockFetch();
+    render(<PolicyList />);
+    await screen.findByText('Federal Heat Reuse Act');
+
+    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Upcoming' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Enacted' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open for comment' })).toBeInTheDocument();
+  });
+
+  it('fetches /api/policies?lifecycle_stage=consultation server-side when clicked', async () => {
+    global.fetch = mockFetch();
+    render(<PolicyList />);
+    await screen.findByText('Federal Heat Reuse Act');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open for comment' }));
+
+    await screen.findByText('Open Comment Draft Rule');
+    expect(screen.queryByText('Federal Heat Reuse Act')).not.toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/policies?lifecycle_stage=consultation'),
+    );
+  });
+
+  it('returns to the normal full list when All is clicked again', async () => {
+    global.fetch = mockFetch();
+    render(<PolicyList />);
+    await screen.findByText('Federal Heat Reuse Act');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open for comment' }));
+    await screen.findByText('Open Comment Draft Rule');
+
+    fireEvent.click(screen.getByRole('button', { name: 'All' }));
+    await screen.findByText('Federal Heat Reuse Act');
+    expect(screen.getByText('Sweden Heat Rule')).toBeInTheDocument();
+  });
+
+  it('surfaces an error without crashing when the consultation fetch fails', async () => {
+    global.fetch = mockFetch({ consultationOk: false });
+    render(<PolicyList />);
+    await screen.findByText('Federal Heat Reuse Act');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open for comment' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/open.for.comment/i);
+    });
   });
 });

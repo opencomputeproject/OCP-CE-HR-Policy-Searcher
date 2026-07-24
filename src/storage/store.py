@@ -137,6 +137,7 @@ class PolicyStore:
         min_score: Optional[int] = None,
         scan_id: Optional[str] = None,
         review_status: Optional[str] = None,
+        lifecycle_stage: Optional[str] = None,
     ) -> list[dict]:
         """Search policies with filters.
 
@@ -166,6 +167,9 @@ class PolicyStore:
         if scan_id:
             conditions.append("scan_id = ?")
             params.append(scan_id)
+        if lifecycle_stage:
+            conditions.append("lifecycle_stage = ?")
+            params.append(lifecycle_stage)
 
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
@@ -181,6 +185,7 @@ class PolicyStore:
         policy_type: Optional[str] = None,
         min_score: Optional[int] = None,
         review_status: Optional[str] = None,
+        lifecycle_stage: Optional[str] = None,
         limit: int = 50,
     ) -> list[dict]:
         """Free-text search across policy name, summary, key requirements,
@@ -214,6 +219,9 @@ class PolicyStore:
         if min_score is not None:
             conditions.append("COALESCE(policies.relevance_score, 0) >= ?")
             params.append(min_score)
+        if lifecycle_stage:
+            conditions.append("policies.lifecycle_stage = ?")
+            params.append(lifecycle_stage)
 
         if storage_db.fts5_enabled(self._conn):
             match_query = storage_db.build_fts_match_query(query)
