@@ -79,6 +79,13 @@ function usePanZoom(svgRef, config) {
     viewBox: initialViewBox = WORLD_VIEWBOX,
     bounds = ZOOM_BOUNDS,
     onZoomOutBeyondMin,
+    // Flip this false->true in the same render that mounts the svg. The
+    // wheel listener attaches via addEventListener (it must, for
+    // passive:false), so if the svg mounts in a LATER render than the one
+    // that changed this hook's other deps, the attach effect has already
+    // run against a null ref and never re-fires - wheel zoom silently dead
+    // (the CountryView geometry-vs-coverage load race).
+    active = true,
   } = config || {};
   const [viewBox, setViewBox] = useState(initialViewBox);
   // Mirrors `viewBox` but updated eagerly (not via a post-render effect) so
@@ -188,6 +195,7 @@ function usePanZoom(svgRef, config) {
   // map. Attached imperatively (not via JSX onWheel) because React treats
   // onWheel as a passive listener by default.
   useEffect(() => {
+    if (!active) return undefined;
     const node = svgRef.current;
     if (!node) return undefined;
     const onWheel = (event) => {
@@ -209,7 +217,7 @@ function usePanZoom(svgRef, config) {
     };
     node.addEventListener('wheel', onWheel, { passive: false });
     return () => node.removeEventListener('wheel', onWheel);
-  }, [svgRef, clientToWorld, applyViewBox, bounds, registerZoomOutAttempt]);
+  }, [svgRef, clientToWorld, applyViewBox, bounds, registerZoomOutAttempt, active]);
 
   const handlePointerDown = useCallback((event) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;

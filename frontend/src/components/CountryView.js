@@ -99,8 +99,14 @@ function CountryView({
       viewBox,
       bounds: { ...viewBox, minW: w / 8, maxW: w },
       onZoomOutBeyondMin: handleZoomOutBeyondMin,
+      // The svg only mounts once children coverage has ALSO loaded (see
+      // isLoading below) - `active` must flip true in that same render or
+      // usePanZoom's wheel listener attaches against a null ref and never
+      // re-fires. Identity changes from this dep happen before any user
+      // interaction, so the viewBox reset they trigger is a no-op.
+      active: !childrenLoading,
     };
-  }, [geometry, handleZoomOutBeyondMin]);
+  }, [geometry, handleZoomOutBeyondMin, childrenLoading]);
   const panZoom = usePanZoom(svgRef, panZoomConfig);
 
   const joined = useMemo(

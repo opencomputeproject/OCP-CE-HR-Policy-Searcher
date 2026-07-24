@@ -265,5 +265,30 @@ describe('usePanZoom (hook integration)', () => {
 
       document.body.removeChild(node);
     });
+
+    it('attaches the wheel listener when the svg mounts later than the first render', () => {
+      // Regression: CountryView's svg mounts only after BOTH geometry and
+      // children coverage load. If the attach effect's deps all settled
+      // while the ref was still null, wheel zoom was silently dead. The
+      // `active` config flag re-fires the effect in the mounting render.
+      const onZoomOutBeyondMin = jest.fn();
+      const ref = { current: null };
+      const { rerender } = renderHook(
+        ({ active }) => usePanZoom(ref, { onZoomOutBeyondMin, active }),
+        { initialProps: { active: false } },
+      );
+
+      const node = document.createElement('svg');
+      document.body.appendChild(node);
+      ref.current = node;
+      rerender({ active: true });
+
+      const wheelOut = () => fireEvent.wheel(node, { deltaY: 100, clientX: 10, clientY: 10 });
+      act(() => wheelOut());
+      act(() => wheelOut());
+      expect(onZoomOutBeyondMin).toHaveBeenCalledTimes(1);
+
+      document.body.removeChild(node);
+    });
   });
 });
