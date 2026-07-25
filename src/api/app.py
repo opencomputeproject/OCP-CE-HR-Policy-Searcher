@@ -146,6 +146,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Baseline hardening headers on every response, success or error.
+
+    The CSP is sized to what the built CRA app actually needs and nothing
+    more: same-origin scripts/styles only, no external fonts/CDNs (there
+    are none in frontend/src or frontend/public), data: images (the app's
+    own assets), and same-origin fetch/WebSocket calls (the built app talks
+    to its own origin — REACT_APP_API_BASE_URL="" in the Dockerfile).
+    'unsafe-inline' on style-src is needed for React's inline style={{}}
+    usage, which the app relies on throughout.
+
+    HSTS is normally a Caddy (reverse-proxy) concern, not the app's — set
+    here too as belt-and-braces in case this process is ever reached
+    directly.
+    """
+
+    _CSP = (
+        "default-src 'self'; "
+        "img-src 'self' data:; "
+        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self'; "
+        "connect-src 'self'"
+    )
+
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = self._CSP
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
+        return response
+
+
+# Added last so it wraps every other middleware (including CORS and the
+# admin gate) and its response headers land on literally every response,
+# success or short-circuited error.
+app.add_middleware(SecurityHeadersMiddleware)
+
 # Register route modules
 app.include_router(domains.router)
 app.include_router(scans.router)
