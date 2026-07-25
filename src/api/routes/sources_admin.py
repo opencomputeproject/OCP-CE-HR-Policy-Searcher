@@ -40,9 +40,13 @@ def build_source_rows(domains: list[dict], overrides: dict[str, dict]) -> list[d
         if source_type != "crawl":
             key_row = key_rows.get(source_type)
             if key_row is not None:
+                required = key_row["api_key_env"]
                 key_status = {
-                    "required_env": key_row["api_key_env"],
-                    "configured": key_row["key_present"],
+                    "required_env": required,
+                    # 18 of the 23 connectors are keyless public APIs - they
+                    # need nothing, so report them ready rather than letting
+                    # "configured: False" read as a missing key.
+                    "configured": True if required is None else key_row["key_present"],
                 }
 
         rows.append({
