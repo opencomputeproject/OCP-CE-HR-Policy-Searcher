@@ -117,6 +117,26 @@ CREATE TABLE IF NOT EXISTS scans (
 CREATE INDEX IF NOT EXISTS idx_scans_domain_group ON scans(domain_group);
 CREATE INDEX IF NOT EXISTS idx_scans_status ON scans(status);
 CREATE INDEX IF NOT EXISTS idx_scans_started_at ON scans(started_at);
+
+CREATE TABLE IF NOT EXISTS schedules (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    domains TEXT NOT NULL,
+    channels TEXT,
+    deep INTEGER DEFAULT 0,
+    topic TEXT,
+    cadence TEXT NOT NULL,
+    enabled INTEGER DEFAULT 1,
+    monthly_ceiling_usd REAL,
+    paused_reason TEXT,
+    last_run_at TEXT,
+    last_scan_id TEXT,
+    next_run_at TEXT,
+    created_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_schedules_enabled ON schedules(enabled);
+CREATE INDEX IF NOT EXISTS idx_schedules_next_run_at ON schedules(next_run_at);
 """
 
 _SCHEMA_FTS5 = """
