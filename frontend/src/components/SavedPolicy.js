@@ -139,7 +139,7 @@ export function getPolicyTags(policy, tags) {
     return [...new Set([...explicitTags, ...inferredTags])].slice(0, 8);
 }
 
-function SavedPolicy({ policy, tags = {} }) {
+function SavedPolicy({ policy, tags = {}, isAdmin = false }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const detailsId = useId();
 
@@ -310,22 +310,24 @@ function SavedPolicy({ policy, tags = {} }) {
                         </div>
                     )}
 
-                    <div className="detail-section meta-info">
-                        <dl className="detail-list">
-                            <dt>Scan ID:</dt>
-                            <dd className="monospace">{policy.scan_id}</dd>
-                            <dt>Domain ID:</dt>
-                            <dd className="monospace">{policy.domain_id}</dd>
-                            <dt>Crawl Status:</dt>
-                            <dd>{policy.crawl_status}</dd>
-                            {policy.error_details && (
-                                <>
-                                    <dt>Error Details:</dt>
-                                    <dd>{policy.error_details}</dd>
-                                </>
-                            )}
-                        </dl>
-                    </div>
+                    {isAdmin && (
+                        <div className="detail-section meta-info">
+                            <dl className="detail-list">
+                                <dt>Scan ID:</dt>
+                                <dd className="monospace">{policy.scan_id}</dd>
+                                <dt>Domain ID:</dt>
+                                <dd className="monospace">{policy.domain_id}</dd>
+                                <dt>Crawl Status:</dt>
+                                <dd>{policy.crawl_status}</dd>
+                                {policy.error_details && (
+                                    <>
+                                        <dt>Error Details:</dt>
+                                        <dd>{policy.error_details}</dd>
+                                    </>
+                                )}
+                            </dl>
+                        </div>
+                    )}
 
                     <div className="detail-section actions">
                         <a

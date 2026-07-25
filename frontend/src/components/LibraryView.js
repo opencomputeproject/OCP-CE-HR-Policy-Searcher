@@ -322,7 +322,7 @@ function LibraryView() {
                                     {expandedUrl === policy.url && (
                                         <tr className="library-detail-row">
                                             <td colSpan={TOTAL_COLUMN_COUNT}>
-                                                <SavedPolicy policy={policy} />
+                                                <SavedPolicy policy={policy} isAdmin />
                                             </td>
                                         </tr>
                                     )}

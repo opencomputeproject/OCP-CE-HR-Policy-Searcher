@@ -118,7 +118,12 @@ function App() {
           <AskPolicyBox />
         </section>
         <section className="app-stage" aria-label="Discovered policies">
-          <PolicyList externalPlace={placePolicyRequest} publicView={publicView} />
+          <PolicyList
+            externalPlace={placePolicyRequest}
+            publicView={publicView}
+            adminRequired={adminRequired}
+            hasAdminToken={hasAdminToken}
+          />
           <LeadsInbox adminRequired={adminRequired} hasAdminToken={hasAdminToken} />
         </section>
       </main>
