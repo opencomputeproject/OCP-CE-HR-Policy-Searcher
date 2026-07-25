@@ -157,6 +157,13 @@ def get_keyword_overrides_store():
     return KeywordOverridesStore(data_dir=data_dir)
 
 
+@lru_cache()
+def get_schedules_store():
+    from ..storage.schedules import SchedulesStore
+    data_dir = os.environ.get("OCP_DATA_DIR", "data")
+    return SchedulesStore(data_dir=data_dir)
+
+
 def get_scan_manager() -> ScanManager:
     if _scan_manager_state["instance"] is None:
         config = get_config()
