@@ -61,6 +61,18 @@ async def lifespan(app: FastAPI):
     logging.getLogger("ocp").info("OCP CE HR Policy Searcher shutting down")
 
 
+def admin_token_configured() -> bool:
+    return bool(os.environ.get("ADMIN_TOKEN"))
+
+
+# ADMIN_TOKEN set means a production deploy: the route map (what every
+# endpoint is, its schema, its parameters) shouldn't be handed out to
+# anonymous visitors, so /docs, /redoc, and /openapi.json are disabled
+# entirely. ADMIN_TOKEN unset means local/dev, where docs stay on. This is
+# read once, at construction time — FastAPI wires these into fixed routes
+# in __init__ and there's no supported way to toggle them per-request.
+_production_mode = admin_token_configured()
+
 app = FastAPI(
     title="OCP CE HR Policy Searcher",
     description=(
@@ -70,11 +82,10 @@ app = FastAPI(
     ),
     version="1.0.0",
     lifespan=lifespan,
+    docs_url=None if _production_mode else "/docs",
+    redoc_url=None if _production_mode else "/redoc",
+    openapi_url=None if _production_mode else "/openapi.json",
 )
-
-
-def admin_token_configured() -> bool:
-    return bool(os.environ.get("ADMIN_TOKEN"))
 
 
 # Non-GET routes that stay open when admin mode is active:
