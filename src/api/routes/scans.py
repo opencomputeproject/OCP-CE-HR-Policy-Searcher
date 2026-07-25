@@ -115,8 +115,17 @@ async def _run_discovery(request: ScanRequest):
 
 
 @router.get("/scans")
-def list_scans(manager: ScanManager = Depends(get_scan_manager)):
-    """List all scans."""
+def list_scans(request: Request, manager: ScanManager = Depends(get_scan_manager)):
+    """List all scans.
+
+    Admin-only: in-memory scan jobs can include unreviewed/rejected
+    policies and cost/token data, so this gets the full admin gate
+    (mirrors GET /api/scans/history below) rather than a visibility
+    clamp — GET requests bypass AdminGateMiddleware, so the check
+    happens here.
+    """
+    if not request_is_admin(request):
+        raise HTTPException(status_code=403, detail="Administrator access required")
     return [
         {
             "scan_id": job.scan_id,
@@ -164,9 +173,16 @@ def scan_history(
 @router.get("/scans/{scan_id}")
 def get_scan(
     scan_id: str,
+    request: Request,
     manager: ScanManager = Depends(get_scan_manager),
 ):
-    """Get detailed scan status including per-domain progress."""
+    """Get detailed scan status including per-domain progress.
+
+    Admin-only: same reasoning as GET /api/scans above — per-domain
+    progress includes unreviewed/rejected policies and cost/token data.
+    """
+    if not request_is_admin(request):
+        raise HTTPException(status_code=403, detail="Administrator access required")
     job = manager.jobs.get(scan_id)
     if not job:
         raise HTTPException(status_code=404, detail=f"Scan '{scan_id}' not found")
