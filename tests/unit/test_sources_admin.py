@@ -2,7 +2,7 @@
 
 Admin-only visibility into every configured domain: YAML-enabled state, the
 WP-8 enabled overlay, and (for structured connectors) whether their required
-API key env var is set — reusing src/sources/check.py's source_key_status()
+API key env var is set - reusing src/sources/check.py's source_key_status()
 rather than duplicating key-readiness logic. No key values ever appear in
 the response.
 """

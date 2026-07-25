@@ -1,4 +1,4 @@
-"""Persisted scan schedules (WP-11) — the ``schedules`` table.
+"""Persisted scan schedules (WP-11) - the ``schedules`` table.
 
 An in-app alternative to a server crontab entry: an admin defines a scope
 (the same scope string ``ScanManager.start_scan``/``estimate_cost`` already
@@ -8,11 +8,11 @@ and ``src.orchestration.schedule_runner`` fires it through the exact same
 
 Cadence format
 --------------
-Deliberately not raw cron — two shapes only, both UTC:
+Deliberately not raw cron - two shapes only, both UTC:
 
-- ``"weekly:<dow>:<HH:MM>"`` — ``dow`` is 0 (Monday) through 6 (Sunday),
+- ``"weekly:<dow>:<HH:MM>"`` - ``dow`` is 0 (Monday) through 6 (Sunday),
   matching Python's ``datetime.weekday()``.
-- ``"monthly:<dom>:<HH:MM>"`` — ``dom`` is 1-31. A shorter month clamps to
+- ``"monthly:<dom>:<HH:MM>"`` - ``dom`` is 1-31. A shorter month clamps to
   its last day (31 in February runs on the 28th, or the 29th in a leap
   year).
 
@@ -181,7 +181,7 @@ class SchedulesStore:
         """Partial update. Only keys present in ``fields`` are changed.
 
         Raises InvalidCadenceError if ``cadence`` is provided and invalid.
-        Changing ``cadence`` recomputes ``next_run_at`` from now — the old
+        Changing ``cadence`` recomputes ``next_run_at`` from now - the old
         next_run_at was computed against the previous cadence and no
         longer means anything once the schedule shape changes.
         """
@@ -233,7 +233,7 @@ class SchedulesStore:
         self, schedule_id: str, observed_next_run_at: str, new_next_run_at: str,
     ) -> bool:
         """Atomically advance ``next_run_at`` iff it still equals what the
-        caller observed — the cross-process guard against duplicate firing.
+        caller observed - the cross-process guard against duplicate firing.
 
         When several uvicorn workers each run their own ScheduleRunner (the
         README documents ``--workers``), all of them see the same due
@@ -250,6 +250,18 @@ class SchedulesStore:
         self._conn.commit()
         return cur.rowcount == 1
 
+    def set_next_run_at(self, schedule_id: str, next_run_at_iso: str) -> None:
+        """Unconditionally set next_run_at. Used by the runner to release a
+        claim it took but did not fire (busy/ceiling), restoring the original
+        due time so the schedule retries on the next tick. Unconditional is
+        safe here: the caller already won claim_due, so it owns the row for
+        this tick and no other worker will act on it."""
+        self._conn.execute(
+            "UPDATE schedules SET next_run_at = ? WHERE id = ?",
+            (next_run_at_iso, schedule_id),
+        )
+        self._conn.commit()
+
     def mark_ran(
         self, schedule_id: str, scan_id: str, ran_at: datetime, next_run_at: datetime,
     ) -> Optional[dict]:
@@ -264,7 +276,7 @@ class SchedulesStore:
 
     def month_spend(self, domains: str, now: datetime) -> float:
         """Sum of completed scans' cost_usd for ``domains`` in ``now``'s
-        UTC calendar month — the input to the monthly-ceiling pause check."""
+        UTC calendar month - the input to the monthly-ceiling pause check."""
         row = self._conn.execute(
             "SELECT COALESCE(SUM(cost_usd), 0) FROM scans "
             "WHERE domain_group = ? AND status = 'completed' "

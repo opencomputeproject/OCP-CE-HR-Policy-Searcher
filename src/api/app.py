@@ -1,4 +1,4 @@
-"""FastAPI application — REST API + WebSocket for OCP CE HR Policy Searcher."""
+"""FastAPI application - REST API + WebSocket for OCP CE HR Policy Searcher."""
 
 import logging
 import os
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     get_cost_settings_store().apply_to_config(get_config())
 
     # In-app scheduled scans (WP-11): a plain asyncio background task, not
-    # APScheduler or any other new dependency — see schedule_runner.py.
+    # APScheduler or any other new dependency - see schedule_runner.py.
     # Started here and cancelled on shutdown below, same lifecycle as any
     # other per-process singleton wired through deps.py.
     runner = ScheduleRunner(
@@ -90,7 +90,7 @@ class AdminGateMiddleware(BaseHTTPMiddleware):
     When ADMIN_TOKEN is set, every non-GET /api request (except explicit
     exemptions) must carry a matching X-Admin-Token header. Reading stays
     open; scanning, chatting, settings, and review actions become
-    admin-only — the access model agreed at the 2026-07-07 OCP call.
+    admin-only - the access model agreed at the 2026-07-07 OCP call.
 
     When ADMIN_TOKEN is unset, the server is assumed to be a local,
     single-user deployment: non-GET /api requests are only accepted from
@@ -132,7 +132,7 @@ class AdminGateMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(AdminGateMiddleware)
 
-# CORS — allow React frontend
+# CORS - allow React frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -194,7 +194,7 @@ def health(visibility_store=Depends(get_public_visibility_store)):
 
 
 # Serve the built React app (frontend/build) from this same process, if it
-# exists. In every current dev/test setup it doesn't, so this is a no-op —
+# exists. In every current dev/test setup it doesn't, so this is a no-op -
 # behavior above is unchanged.
 mount_frontend(
     app,

@@ -308,7 +308,7 @@ def _manager_with_config(get_enabled_domains_return=None, get_enabled_domains_si
 
 
 class TestEstimateCost:
-    """ScanManager.estimate_cost() — WP-1 estimator repair.
+    """ScanManager.estimate_cost() - WP-1 estimator repair.
 
     Unknown scopes now raise ConfigurationError (caught by the API route and
     turned into a 400, mirroring domains.py) instead of a raw 500. deep=True
@@ -532,7 +532,7 @@ class TestScanHistoryWiring:
     @pytest.mark.asyncio
     async def test_failed_scan_records_failed_status(self, tmp_path, monkeypatch):
         """A domain-level exception is caught inside scan_domain() itself
-        (see scan_manager.py) and still yields an overall "completed" scan —
+        (see scan_manager.py) and still yields an overall "completed" scan -
         so to exercise the outer except-Exception branch (the "failed"
         status), the failure has to come from after the per-domain gather,
         where a real bug (a cache write failure) would land."""

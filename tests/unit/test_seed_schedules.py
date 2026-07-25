@@ -1,10 +1,10 @@
 """Tests for `python -m src.storage.seed_schedules` (WP-11).
 
 Seeds only "Monthly full scan" (domains=all, channels crawl+law_apis+
-transposition, monthly:1:06:00, no ceiling) — the one recurring server-crontab
+transposition, monthly:1:06:00, no ceiling) - the one recurring server-crontab
 job that maps onto ScanManager. The weekly news sweep is explicitly out of
 scope: news runs outside ScanManager entirely (see
-src/orchestration/scan_manager.py's _domain_channel — "news" always yields 0
+src/orchestration/scan_manager.py's _domain_channel - "news" always yields 0
 domains), so there is nothing for a schedules row to fire.
 
 Idempotent: running the seed twice, or against a table that already has any

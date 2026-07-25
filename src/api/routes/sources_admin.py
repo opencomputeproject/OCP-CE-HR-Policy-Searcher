@@ -1,10 +1,10 @@
 """GET /api/sources/status and PUT /api/sources/{id}/enabled (WP-9).
 
-Admin-only visibility into every configured domain — the raw YAML
+Admin-only visibility into every configured domain - the raw YAML
 ``enabled:`` flag, the WP-8 enabled overlay, the effective (merged) state,
 and (for the structured connectors) whether their required API key env var
 is set. Reuses ``src.sources.check.source_key_status()`` for key readiness
-rather than duplicating that logic — no key values ever leave this module.
+rather than duplicating that logic - no key values ever leave this module.
 """
 
 from typing import Optional
@@ -24,7 +24,7 @@ def build_source_rows(domains: list[dict], overrides: dict[str, dict]) -> list[d
     """Pure: one row per configured domain, with overlay + key readiness.
 
     ``domains`` is the *full* domain list (``config.domains_config["domains"]``),
-    not the YAML-enabled-only subset ``get_enabled_domains`` returns — the
+    not the YAML-enabled-only subset ``get_enabled_domains`` returns - the
     admin needs to see (and re-enable) a YAML-disabled domain too.
     """
     key_rows = {row["id"]: row for row in source_key_status()}
@@ -71,7 +71,7 @@ def get_sources_status(
     """Every configured domain/source, admin-only.
 
     This is a GET, so AdminGateMiddleware doesn't cover it (mirrors GET
-    /api/policies/library and GET /api/cost-projection) — checked here.
+    /api/policies/library and GET /api/cost-projection) - checked here.
     """
     if not request_is_admin(request):
         raise HTTPException(status_code=403, detail="Administrator access required")
