@@ -171,6 +171,10 @@
   border-radius: 8px;
   padding: 3px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  /* The card itself never intercepts taps - only the buttons inside it do
+     (restored below). That way any padding/gap inside the cluster passes
+     taps straight through to the map underneath instead of dead-zoning it. */
+  pointer-events: none;
 }
 
 .wm-control-btn {
@@ -189,6 +193,7 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.15s ease;
+  pointer-events: auto;
 }
 
 .wm-control-btn:hover:not(:disabled) {
@@ -731,4 +736,18 @@
   .wm-stat b { font-size: 20px; }
   .wm-panel { width: 100%; }
   .wm-country-view .wm-svg { max-height: 50vh; }
+
+  /* At mobile widths the map shrinks enough that an absolutely-positioned
+     top-left overlay can sit directly on top of tappable countries (e.g.
+     Germany, the US) and steal their taps. Take the controls out of the
+     overlay entirely: back to normal flow, centered below the map, where
+     they stay fully visible and usable without ever covering the map. The
+     controls already render after the map <svg> in the DOM (see
+     WorldMap.js), so this stacks them below it. */
+  .wm-controls {
+    position: static;
+    justify-content: center;
+    width: fit-content;
+    margin: 8px auto 0;
+  }
 }
