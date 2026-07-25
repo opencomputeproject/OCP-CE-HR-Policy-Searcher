@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { apiUrl } from '../config/api';
+import { renderMiniMarkdown } from '../utils/miniMarkdown';
 
 const URL_PATTERN = /(https?:\/\/[^\s)]+)/g;
 
@@ -24,22 +25,7 @@ export function linkifyAnswer(text) {
 function AnswerText({ answer }) {
   return (
     <div className="ask-box-answer" role="region" aria-label="Answer">
-      {answer.split('\n').map((line, lineIndex) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <p key={lineIndex}>
-          {linkifyAnswer(line).map((part, partIndex) =>
-            part.type === 'link' ? (
-              // eslint-disable-next-line react/no-array-index-key
-              <a key={partIndex} href={part.value} target="_blank" rel="noopener noreferrer">
-                {part.value}
-              </a>
-            ) : (
-              // eslint-disable-next-line react/no-array-index-key
-              <span key={partIndex}>{part.value}</span>
-            )
-          )}
-        </p>
-      ))}
+      {renderMiniMarkdown(answer)}
     </div>
   );
 }

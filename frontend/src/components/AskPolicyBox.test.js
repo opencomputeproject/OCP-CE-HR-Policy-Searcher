@@ -53,6 +53,36 @@ describe('AskPolicyBox busy feedback', () => {
   });
 });
 
+describe('AskPolicyBox markdown rendering', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders Markdown headings and bold as formatted elements, not literal syntax', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ answer: '## Germany\n**Heat reuse** is mandatory.' }),
+    });
+
+    render(<AskPolicyBox />);
+    fireEvent.change(screen.getByPlaceholderText(/ask about discovered policies/i), {
+      target: { value: 'What does Germany require?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /ask/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 2, name: 'Germany' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('Heat reuse').tagName).toBe('STRONG');
+    expect(screen.queryByText(/##/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\*\*/)).not.toBeInTheDocument();
+  });
+});
+
 describe('AskPolicyBox', () => {
   beforeEach(() => {
     global.fetch = jest.fn();
