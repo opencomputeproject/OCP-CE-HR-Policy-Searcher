@@ -2,11 +2,24 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import { apiUrl } from '../config/api';
 import { adminHeaders } from '../utils/adminAuth';
+import { cleanTipText } from '../utils/plainText';
 
 function formatWhen(isoString) {
     if (!isoString) return '';
     const parsed = new Date(isoString);
     return Number.isNaN(parsed.getTime()) ? '' : parsed.toLocaleString();
+}
+
+const UNTITLED_FALLBACK = 'Untitled source';
+
+// Cleans a tip's title for display, falling back to a cleaned second field
+// (a note or the source URL) when the title itself has nothing readable in
+// it - e.g. a Google News RSS item with no title but a note, or a bare
+// redirect URL with neither.
+function cleanCardTitle(title, fallbackRaw) {
+    const cleanedTitle = cleanTipText(title, '');
+    if (cleanedTitle) return cleanedTitle;
+    return cleanTipText(fallbackRaw, UNTITLED_FALLBACK);
 }
 
 // User-facing vocabulary is "Tips" (this file keeps its LeadsInbox name and
@@ -196,7 +209,9 @@ function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
                                     <li key={lead.lead_id} className="leads-card">
                                         <div className="leads-card-header">
                                             {isNoteOnly ? (
-                                                <span className="leads-card-title">{lead.title || lead.snippet}</span>
+                                                <span className="leads-card-title">
+                                                    {cleanCardTitle(lead.title, lead.snippet)}
+                                                </span>
                                             ) : (
                                                 <a
                                                     href={lead.source_url}
@@ -204,7 +219,7 @@ function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
                                                     rel="noopener noreferrer"
                                                     className="leads-card-title"
                                                 >
-                                                    {lead.title || lead.source_url}
+                                                    {cleanCardTitle(lead.title, lead.source_url)}
                                                 </a>
                                             )}
                                             <div className="leads-chips">
@@ -222,7 +237,7 @@ function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
                                             </div>
                                         </div>
                                         {!isNoteOnly && lead.snippet && (
-                                            <p className="leads-snippet">{lead.snippet}</p>
+                                            <p className="leads-snippet">{cleanTipText(lead.snippet, '')}</p>
                                         )}
                                         {lead.status === 'chased' && (
                                             lead.policy_url ? (

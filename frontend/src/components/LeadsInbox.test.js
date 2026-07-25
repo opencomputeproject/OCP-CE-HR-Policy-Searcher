@@ -143,6 +143,61 @@ describe('LeadsInbox note-only tips (hearsay)', () => {
   });
 });
 
+describe('LeadsInbox cleans encoded HTML in note/title text', () => {
+  const ENCODED_TITLE_TIP = {
+    lead_id: 'tip-encoded',
+    title: '&lt;a href="https://news.google.com/rss/articles/CBMi123abc"&gt;'
+      + 'Netherlands drafts heat reuse rule&lt;/a&gt;',
+    source_url: 'https://news.google.com/rss/articles/CBMi123abc',
+    snippet: '',
+    origin: 'news',
+    status: 'new',
+  };
+
+  const NO_TITLE_REDIRECT_TIP = {
+    lead_id: 'tip-notitle',
+    title: '',
+    source_url: 'https://news.google.com/rss/articles/CBMi999xyz',
+    snippet: '',
+    origin: 'news',
+    status: 'new',
+  };
+
+  const ENCODED_NOTE_ONLY_TIP = {
+    lead_id: 'tip-encoded-note',
+    title: '&lt;a href="https://news.google.com/rss/articles/CBMi456"&gt;Belgium rumor&lt;/a&gt;',
+    source_url: '',
+    snippet: '&lt;a href="https://news.google.com/rss/articles/CBMi456"&gt;Belgium rumor&lt;/a&gt;',
+    origin: 'community',
+    status: 'new',
+  };
+
+  it('renders the decoded title text, never the raw angle-bracket markup', async () => {
+    global.fetch = mockFetch([ENCODED_TITLE_TIP]);
+    render(<LeadsInbox />);
+
+    await screen.findByText('Netherlands drafts heat reuse rule');
+    expect(screen.queryByText(/&lt;a href/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/<a href/)).not.toBeInTheDocument();
+  });
+
+  it('falls back to a friendly label when title and note are empty and the URL is a bare Google News redirect', async () => {
+    global.fetch = mockFetch([NO_TITLE_REDIRECT_TIP]);
+    render(<LeadsInbox />);
+
+    await screen.findByText('Untitled source');
+    expect(screen.queryByText(/news\.google\.com\/rss/)).not.toBeInTheDocument();
+  });
+
+  it('cleans encoded markup in a note-only tip title too', async () => {
+    global.fetch = mockFetch([ENCODED_NOTE_ONLY_TIP]);
+    render(<LeadsInbox />);
+
+    await screen.findByText('Belgium rumor');
+    expect(screen.queryByText(/&lt;a href/)).not.toBeInTheDocument();
+  });
+});
+
 describe('LeadsInbox chase outcomes', () => {
   const POLICY_FOUND_TIP = {
     lead_id: 'tip-found',
