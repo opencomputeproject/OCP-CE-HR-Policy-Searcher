@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 from ..core.config import ConfigLoader, ConfigurationError
 from ..core.crawler import AsyncCrawler
 from ..core.extractor import HtmlExtractor
-from ..core.keywords import KeywordMatcher
+from ..core.keywords import build_keyword_matcher
 from ..core.llm import ClaudeClient, LLMError
 from ..core.log_setup import log_audit_event
 from ..core.verifier import Verifier
@@ -547,7 +547,7 @@ async def execute_tool(
             extractor = HtmlExtractor(settings.config_dir)
             extracted = extractor.extract(results[0].content, url)
 
-            kw_matcher = KeywordMatcher(config.keywords_config)
+            kw_matcher = build_keyword_matcher(config, scan_manager.data_dir)
             kw_result = kw_matcher.match(extracted.text)
 
             response: dict[str, Any] = {
@@ -615,7 +615,7 @@ async def execute_tool(
             return response
 
         elif name == "match_keywords":
-            kw_matcher = KeywordMatcher(config.keywords_config)
+            kw_matcher = build_keyword_matcher(config, scan_manager.data_dir)
             result = kw_matcher.match(arguments["text"])
             return {
                 "score": result.score,

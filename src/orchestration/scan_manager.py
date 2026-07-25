@@ -19,7 +19,7 @@ from ..core.config import ConfigLoader
 from ..core.log_setup import log_audit_event
 from ..core.crawler import AsyncCrawler
 from ..core.extractor import HtmlExtractor
-from ..core.keywords import KeywordMatcher
+from ..core.keywords import build_keyword_matcher
 from ..core.llm import ClaudeClient
 from ..core.models import (
     Policy, ScanJob, ScanStatus, ScanProgress, DomainProgress,
@@ -289,7 +289,7 @@ class ScanManager:
             cache_path=Path(self.data_dir) / "url_cache.json"
         )
         extractor = HtmlExtractor(settings.config_dir)
-        keyword_matcher = KeywordMatcher(self.config.keywords_config)
+        keyword_matcher = build_keyword_matcher(self.config, self.data_dir)
         verifier = Verifier()
 
         # Per-domain persistence — saves policies to data/policies.json as each
