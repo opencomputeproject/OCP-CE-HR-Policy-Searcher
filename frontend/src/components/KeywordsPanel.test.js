@@ -184,7 +184,32 @@ describe('KeywordsPanel save', () => {
       expect(body.categories.subject.en.added).toEqual(
         expect.arrayContaining(['heat pump', 'thermal recycling']),
       );
+      // A term-only save must NOT pin the current effective thresholds as
+      // an override - that would freeze YAML's values forever.
+      expect(body.thresholds).toEqual({});
     });
+  });
+
+  it('includes thresholds in the PUT only after an explicit edit, and reset clears them', async () => {
+    global.fetch = mockFetch();
+    render(<KeywordsPanel />);
+    await waitFor(() => expect(screen.getByText(SUBJECT_SUMMARY)).toBeInTheDocument());
+
+    fireEvent.change(screen.getByLabelText(/minimum keyword score/i), { target: { value: '7' } });
+    expect(screen.getByText(/Thresholds are overridden/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+    await waitFor(() => {
+      const putCall = global.fetch.mock.calls.find(
+        ([url, options]) => String(url).includes('/api/keywords/overrides') && options?.method === 'PUT',
+      );
+      expect(JSON.parse(putCall[1].body).thresholds).toEqual({ minimum_keyword_score: 7 });
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /reset to yaml defaults/i }));
+    expect(screen.queryByText(/Thresholds are overridden/)).not.toBeInTheDocument();
+    // Input falls back to the effective (YAML) value after the reset.
+    expect(screen.getByLabelText(/minimum keyword score/i)).toHaveValue(5);
   });
 
   it('shows a validation error returned by the PUT', async () => {

@@ -76,7 +76,13 @@ function KeywordsPanel() {
     // reappear as a fake yaml term (the merged terms list is static
     // between fetches).
     const [baselineAdded, setBaselineAdded] = useState({});
-    const [thresholds, setThresholds] = useState({ minimum_keyword_score: 0, minimum_matches: 0 });
+    // Two separate threshold states: the merged/effective values (display
+    // fallback) and the raw override delta (what Save sends). Sending the
+    // merged values back would silently pin YAML's current thresholds as a
+    // permanent override on every save - after which editing keywords.yaml
+    // in git would have no effect. Only explicit edits enter the override.
+    const [effectiveThresholds, setEffectiveThresholds] = useState({});
+    const [thresholdOverrides, setThresholdOverrides] = useState({});
     const [loadError, setLoadError] = useState('');
     const [saveError, setSaveError] = useState('');
     const [saveStatus, setSaveStatus] = useState('');
@@ -90,7 +96,8 @@ function KeywordsPanel() {
             setCategories(data.categories || {});
             setOverrideCategories(overrideCats);
             setBaselineAdded(overrideCats);
-            setThresholds(data.thresholds || { minimum_keyword_score: 0, minimum_matches: 0 });
+            setEffectiveThresholds(data.thresholds || {});
+            setThresholdOverrides(data.overrides?.thresholds || {});
             const firstCategory = Object.keys(data.categories || {})[0] || '';
             setNewTermCategory((current) => current || firstCategory);
         })
@@ -138,7 +145,7 @@ function KeywordsPanel() {
         setSaveError('');
         setSaveStatus('');
         try {
-            await putOverrides({ categories: overrideCategories, thresholds });
+            await putOverrides({ categories: overrideCategories, thresholds: thresholdOverrides });
             setSaveStatus('Saved.');
             await load();
         } catch (err) {
@@ -249,8 +256,9 @@ function KeywordsPanel() {
                 <input
                     id="keyword-threshold-score"
                     type="number"
-                    value={thresholds.minimum_keyword_score ?? ''}
-                    onChange={(event) => setThresholds((current) => ({
+                    value={thresholdOverrides.minimum_keyword_score
+                        ?? effectiveThresholds.minimum_keyword_score ?? ''}
+                    onChange={(event) => setThresholdOverrides((current) => ({
                         ...current, minimum_keyword_score: Number(event.target.value),
                     }))}
                 />
@@ -259,11 +267,25 @@ function KeywordsPanel() {
                 <input
                     id="keyword-threshold-matches"
                     type="number"
-                    value={thresholds.minimum_matches ?? ''}
-                    onChange={(event) => setThresholds((current) => ({
+                    value={thresholdOverrides.minimum_matches
+                        ?? effectiveThresholds.minimum_matches ?? ''}
+                    onChange={(event) => setThresholdOverrides((current) => ({
                         ...current, minimum_matches: Number(event.target.value),
                     }))}
                 />
+
+                {Object.keys(thresholdOverrides).length > 0 && (
+                    <p className="keyword-thresholds-override-note" role="note">
+                        Thresholds are overridden - YAML defaults no longer apply.
+                        <button
+                            type="button"
+                            className="button-link"
+                            onClick={() => setThresholdOverrides({})}
+                        >
+                            Reset to YAML defaults
+                        </button>
+                    </p>
+                )}
             </div>
 
             {saveError && <p role="alert">{saveError}</p>}

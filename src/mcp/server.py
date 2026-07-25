@@ -211,6 +211,15 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         if name == "list_domains":
             group = arguments.get("group", "all")
             domains = config.get_enabled_domains(group)
+            # Same overlay the API routes and ScanManager apply - without it,
+            # a domain disabled in the admin Sources panel still shows as
+            # available to MCP clients.
+            from ..core.overrides import apply_domain_overrides
+            from ..storage.domain_overrides import DomainOverridesStore
+            domains = apply_domain_overrides(
+                domains,
+                DomainOverridesStore(data_dir=manager.data_dir).get_all(),
+            )
             category = arguments.get("category")
             tags = arguments.get("tags")
             region = arguments.get("region")

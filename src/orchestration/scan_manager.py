@@ -285,6 +285,14 @@ class ScanManager:
 
         # Shared resources
         settings = self.config.settings
+        # Snapshot the url-filter config once per scan: POST /api/config/reload
+        # reassigns self.config on this live instance, and a single run must
+        # not crawl its early domains under one filter set and its later
+        # domains under another (settings/models are already captured above).
+        skip_extensions = self.config.get_skip_extensions()
+        crawl_blocked_patterns = self.config.get_crawl_blocked_patterns()
+        url_skip_paths = self.config.get_url_skip_paths()
+        url_skip_patterns = self.config.get_url_skip_patterns()
         cache = URLCache.load(
             cache_path=Path(self.data_dir) / "url_cache.json"
         )
@@ -365,11 +373,11 @@ class ScanManager:
                     timeout_seconds=settings.crawl.timeout_seconds,
                     user_agent=settings.crawl.user_agent,
                     max_retries=settings.crawl.max_retries,
-                    skip_extensions=self.config.get_skip_extensions(),
-                    crawl_blocked_patterns=self.config.get_crawl_blocked_patterns()
+                    skip_extensions=skip_extensions,
+                    crawl_blocked_patterns=crawl_blocked_patterns
                         + domain.get("blocked_path_patterns", []),
-                    url_skip_paths=self.config.get_url_skip_paths(),
-                    url_skip_patterns=self.config.get_url_skip_patterns(),
+                    url_skip_paths=url_skip_paths,
+                    url_skip_patterns=url_skip_patterns,
                 )
 
                 scanner = DomainScanner(

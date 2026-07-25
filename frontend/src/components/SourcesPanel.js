@@ -97,7 +97,6 @@ function SourcesPanel() {
     const handleToggle = async (row) => {
         setToggleError('');
         const nextEnabled = !row.effective_enabled;
-        const previous = sources;
         setSources((current) => current.map((s) => (
             s.id === row.id
                 ? { ...s, effective_enabled: nextEnabled, enabled_override: nextEnabled }
@@ -106,7 +105,18 @@ function SourcesPanel() {
         try {
             await putEnabled(row.id, nextEnabled);
         } catch (err) {
-            setSources(previous);
+            // Revert ONLY this row - a whole-array snapshot restore would
+            // stomp another row's concurrent optimistic update if two
+            // toggles are in flight and this one fails.
+            setSources((current) => current.map((s) => (
+                s.id === row.id
+                    ? {
+                        ...s,
+                        effective_enabled: row.effective_enabled,
+                        enabled_override: row.enabled_override,
+                    }
+                    : s
+            )));
             setToggleError(err.message);
         }
     };
