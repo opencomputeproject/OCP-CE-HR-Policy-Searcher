@@ -9,6 +9,7 @@ import AgentChatPanel from './AgentChatPanel';
 import ApiKeySettingsModal from './ApiKeySettingsModal';
 import CostPlanner from './CostPlanner';
 import DomainScanPanel from './DomainScanPanel';
+import KeywordsPanel from './KeywordsPanel';
 import LibraryView from './LibraryView';
 import PolicyScannerHeader from './PolicyScannerHeader';
 import PublicVisibilityControl from './PublicVisibilityControl';
@@ -205,6 +206,7 @@ function AgentPanel({
                     <LibraryView />
                     <CostPlanner />
                     <SourcesPanel />
+                    <KeywordsPanel />
                 </div>
             ) : (
                 <p className="admin-readonly-note" role="status">
