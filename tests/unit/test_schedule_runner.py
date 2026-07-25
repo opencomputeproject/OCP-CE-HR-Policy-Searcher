@@ -156,6 +156,42 @@ class TestBusySkips:
         assert any(e.get("event") == "schedule_skipped_busy" for e in events)
 
     @pytest.mark.asyncio
+    async def test_busy_skip_keeps_next_run_at_due_for_retry(self, store, data_dir):
+        # A schedule skipped for busy must NOT lose its occurrence: the claim
+        # is released (next_run_at restored) so the very next tick retries it
+        # once the scope is free. Regression for the claim-vs-skip interaction.
+        now = datetime(2026, 1, 5, 6, 0)
+        schedule = _due_schedule(store, now, domains="quick")
+        manager = FakeManager()
+        manager.add_job("running-scan", "quick", ScanStatus.RUNNING)
+
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+        assert store.get(schedule["id"])["next_run_at"] == now.isoformat()  # still due
+
+        # Scope frees up; the next tick fires it (occurrence not lost).
+        manager._jobs.clear()
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+        assert store.get(schedule["id"])["last_scan_id"] is not None
+
+    @pytest.mark.asyncio
+    async def test_ceiling_pause_keeps_next_run_at_due_for_retry(self, store, data_dir):
+        now = datetime(2026, 1, 5, 6, 0)
+        schedule = _due_schedule(store, now, domains="quick", monthly_ceiling_usd=10.0)
+        store._conn.execute(
+            "INSERT INTO scans (scan_id, domain_group, status, completed_at, cost_usd) "
+            "VALUES (?, ?, 'completed', ?, ?)",
+            ("s1", "quick", "2026-01-01T00:00:00", 15.0),
+        )
+        store._conn.commit()
+        manager = FakeManager()
+
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+        # Paused but still due, so it re-checks spend on the next tick and
+        # resumes on its own once the ceiling clears.
+        assert store.get(schedule["id"])["next_run_at"] == now.isoformat()
+        assert "monthly ceiling reached" in store.get(schedule["id"])["paused_reason"]
+
+    @pytest.mark.asyncio
     async def test_different_scope_running_does_not_block(self, store, data_dir):
         now = datetime(2026, 1, 5, 6, 0)
         schedule = _due_schedule(store, now, domains="quick")

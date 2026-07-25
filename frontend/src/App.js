@@ -20,7 +20,7 @@ function App() {
   const [hasAdminToken, setHasAdminToken] = useState(Boolean(getAdminToken()));
   const [placePolicyRequest, setPlacePolicyRequest] = useState(null);
   // Public review visibility (WP-3): posture comes from /health, publicView
-  // is the reader-facing toggle it seeds — 'reviewed_only' locks the toggle
+  // is the reader-facing toggle it seeds - 'reviewed_only' locks the toggle
   // to 'reviewed' and hides the switch (see WorldMap/PolicyList).
   const [visibilityPosture, setVisibilityPosture] = useState('default_all');
   const [publicView, setPublicView] = useState('all');

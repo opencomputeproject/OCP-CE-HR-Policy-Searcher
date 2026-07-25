@@ -1,6 +1,6 @@
 """Tests for the baseline security-headers middleware (src/api/app.py).
 
-Every response — success or error, any route — should carry a fixed set of
+Every response - success or error, any route - should carry a fixed set of
 hardening headers. HSTS is normally a Caddy (reverse-proxy) concern; it's
 set here too as belt-and-braces in case the app is ever reached directly.
 """
@@ -29,7 +29,7 @@ def test_security_headers_present_on_success_response():
 
 
 def test_security_headers_present_on_error_response(monkeypatch):
-    """AdminGateMiddleware's short-circuit 403 must carry the same headers —
+    """AdminGateMiddleware's short-circuit 403 must carry the same headers -
     it returns a response directly, bypassing the route handlers."""
     monkeypatch.delenv("ADMIN_TOKEN", raising=False)
     from src.api.app import app

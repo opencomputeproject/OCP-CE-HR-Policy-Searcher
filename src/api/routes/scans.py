@@ -1,4 +1,4 @@
-"""Scan endpoints — start/stop/status + WebSocket progress."""
+"""Scan endpoints - start/stop/status + WebSocket progress."""
 
 import os
 from typing import Optional
@@ -121,7 +121,7 @@ def list_scans(request: Request, manager: ScanManager = Depends(get_scan_manager
     Admin-only: in-memory scan jobs can include unreviewed/rejected
     policies and cost/token data, so this gets the full admin gate
     (mirrors GET /api/scans/history below) rather than a visibility
-    clamp — GET requests bypass AdminGateMiddleware, so the check
+    clamp - GET requests bypass AdminGateMiddleware, so the check
     happens here.
     """
     if not request_is_admin(request):
@@ -148,18 +148,18 @@ def scan_history(
     offset: int = Query(0, ge=0),
     history: ScanHistoryStore = Depends(get_scan_history_store),
 ):
-    """Persisted scan run history (WP-5) — an admin-only review surface.
+    """Persisted scan run history (WP-5) - an admin-only review surface.
 
     Because it's a GET, ``AdminGateMiddleware`` doesn't gate it (that
     middleware only covers non-GET requests), so the admin check happens
-    here instead — a non-admin caller gets 403, mirroring
+    here instead - a non-admin caller gets 403, mirroring
     GET /api/policies/library.
 
     Declared ahead of GET /scans/{scan_id} so "/api/scans/history" always
     resolves here rather than being captured as scan_id="history".
 
     Response includes ``total`` (all rows matching domain_group/status,
-    ignoring limit/offset) alongside the page — the same shape as
+    ignoring limit/offset) alongside the page - the same shape as
     GET /api/policies/library, so a paginated UI never needs a second
     round trip just to know how many pages there are.
     """
@@ -178,7 +178,7 @@ def get_scan(
 ):
     """Get detailed scan status including per-domain progress.
 
-    Admin-only: same reasoning as GET /api/scans above — per-domain
+    Admin-only: same reasoning as GET /api/scans above - per-domain
     progress includes unreviewed/rejected policies and cost/token data.
     """
     if not request_is_admin(request):

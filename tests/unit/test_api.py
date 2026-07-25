@@ -234,7 +234,7 @@ class TestAnalysisRoutes:
 
     def test_analyze_rejects_private_url_without_crawling(self, client):
         """SSRF guard: /api/analyze is admin-gated already, but a rejected
-        URL must never reach AsyncCrawler — defense in depth."""
+        URL must never reach AsyncCrawler - defense in depth."""
         with patch("src.api.routes.analysis.AsyncCrawler") as crawler_cls:
             response = client.post(
                 "/api/analyze", json={"url": "http://127.0.0.1/admin"}

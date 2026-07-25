@@ -1,7 +1,7 @@
 """Tests for the /api/schedules routes (WP-11).
 
 GET is admin-gated manually (it's a GET, so AdminGateMiddleware doesn't
-cover it — same pattern as /api/cost-projection, /api/sources/status,
+cover it - same pattern as /api/cost-projection, /api/sources/status,
 /api/scans/history). POST/PUT/DELETE/run-now are non-GET, so
 AdminGateMiddleware covers those automatically; these tests exercise them
 in the default (loopback-open) test mode along with their own validation.
@@ -87,7 +87,7 @@ def _create_body(**overrides):
 
 
 # ---------------------------------------------------------------------------
-# GET /api/schedules — admin gate + shape
+# GET /api/schedules - admin gate + shape
 # ---------------------------------------------------------------------------
 
 class TestListAdminGate:
@@ -157,7 +157,7 @@ class TestListShape:
 
 
 # ---------------------------------------------------------------------------
-# POST /api/schedules — create + validation
+# POST /api/schedules - create + validation
 # ---------------------------------------------------------------------------
 
 class TestCreate:
@@ -206,7 +206,7 @@ class TestCreate:
 
 
 # ---------------------------------------------------------------------------
-# PUT /api/schedules/{id} — update
+# PUT /api/schedules/{id} - update
 # ---------------------------------------------------------------------------
 
 class TestUpdate:

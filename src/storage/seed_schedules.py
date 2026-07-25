@@ -4,21 +4,21 @@ server-crontab equivalents, run as::
     python -m src.storage.seed_schedules [--data-dir data]
 
 Only one job is seeded: **"Monthly full scan"** (domains=all, channels
-crawl+law_apis+transposition, ``monthly:1:06:00``, no ceiling) — the
+crawl+law_apis+transposition, ``monthly:1:06:00``, no ceiling) - the
 recurring full-scope scan that already runs as a server cron job and maps
 directly onto ``ScanManager.start_scan``.
 
 **Out of scope by design:** the other current cron job, a weekly news/
 signals sweep, is deliberately *not* seeded here. News runs through its own
-runner outside ``ScanManager`` entirely — see
+runner outside ``ScanManager`` entirely - see
 ``src/orchestration/scan_manager.py``'s ``_domain_channel``, where
-``channels=["news"]`` always resolves to zero domains — so there is no
+``channels=["news"]`` always resolves to zero domains - so there is no
 ``ScanManager.start_scan`` call a schedules row could ever fire for it.
 Automating that sweep is a separate, out-of-scope feature (a different
 runner, not this one).
 
 Idempotent: seeds nothing if the ``schedules`` table already has any row
-at all (not just a matching one) — running this against a table an admin
+at all (not just a matching one) - running this against a table an admin
 has already started customizing must never silently add a row back.
 """
 

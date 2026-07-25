@@ -1,8 +1,8 @@
-"""In-app scheduled scans (WP-11) — GET/POST/PUT/DELETE /api/schedules,
+"""In-app scheduled scans (WP-11) - GET/POST/PUT/DELETE /api/schedules,
 POST /api/schedules/{id}/run-now.
 
 GET is admin-gated here (a GET, so ``AdminGateMiddleware`` doesn't cover
-it — same pattern as GET /api/cost-projection, /api/sources/status,
+it - same pattern as GET /api/cost-projection, /api/sources/status,
 /api/scans/history). The non-GET routes are covered automatically by that
 middleware.
 
@@ -10,7 +10,7 @@ Every schedule row in every response is enriched with a per-run estimate
 and an expected per-month cost, computed by reusing
 ``src.api.routes.cost_projection``'s blend helpers (``RUNS_PER_MONTH``,
 ``_project_group``) rather than re-implementing the estimate/actuals blend
-here — a schedule's cadence type ("weekly"/"monthly") maps directly onto
+here - a schedule's cadence type ("weekly"/"monthly") maps directly onto
 that module's cadence keys, and its ``domains`` scope string is exactly
 what ``ScanHistoryStore.stats()``/``ScanManager.estimate_cost()`` already
 key on.
@@ -50,7 +50,7 @@ def _validate_channels(value: Optional[list[str]]) -> Optional[list[str]]:
     if value is None:
         return value
     # An explicit [] would persist and display as "no channels" but silently
-    # scan crawl anyway at fire time — reject it so what's stored matches what
+    # scan crawl anyway at fire time - reject it so what's stored matches what
     # runs. (None, meaning "field omitted", still defaults to ["crawl"].)
     if not value:
         raise ValueError("At least one channel must be selected.")
@@ -96,7 +96,7 @@ def _with_cost(schedule: dict, manager: ScanManager, history: ScanHistoryStore) 
     unresolvable (a domain/group renamed or removed via a config edit or
     POST /api/config/reload). estimate_cost would then raise
     ConfigurationError; catch it and return null cost for just that row rather
-    than 500-ing the whole schedules panel — the admin still needs the list to
+    than 500-ing the whole schedules panel - the admin still needs the list to
     see, edit, or delete the now-broken schedule.
     """
     cadence_type = schedule["cadence"].split(":", 1)[0]
@@ -200,7 +200,7 @@ async def run_schedule_now(
     manager: ScanManager = Depends(get_scan_manager),
     history: ScanHistoryStore = Depends(get_scan_history_store),
 ):
-    """Fire a schedule immediately — the same busy/ceiling-checked path the
+    """Fire a schedule immediately - the same busy/ceiling-checked path the
     background runner uses (see src/orchestration/schedule_runner.py),
     just triggered by hand instead of by next_run_at."""
     schedule = store.get(schedule_id)

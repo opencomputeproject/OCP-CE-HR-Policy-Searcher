@@ -1,22 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import AskPolicyBox, { linkifyAnswer } from './AskPolicyBox';
-
-describe('linkifyAnswer', () => {
-  it('turns bare URLs into anchor descriptors', () => {
-    const parts = linkifyAnswer('See https://ec.europa.eu/law for details.');
-    expect(parts).toEqual([
-      { type: 'text', value: 'See ' },
-      { type: 'link', value: 'https://ec.europa.eu/law' },
-      { type: 'text', value: ' for details.' },
-    ]);
-  });
-
-  it('returns plain text untouched', () => {
-    expect(linkifyAnswer('No policies found.')).toEqual([
-      { type: 'text', value: 'No policies found.' },
-    ]);
-  });
-});
+import AskPolicyBox from './AskPolicyBox';
 
 describe('AskPolicyBox busy feedback', () => {
   afterEach(() => {

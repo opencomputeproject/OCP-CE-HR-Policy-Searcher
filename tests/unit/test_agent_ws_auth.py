@@ -2,7 +2,7 @@
 
 Before this fix, `if admin_token: <check>` meant an unset ADMIN_TOKEN left
 the endpoint (which spends ANTHROPIC budget) fully open to any remote
-caller — contradicting AdminGateMiddleware's own model, where unset means
+caller - contradicting AdminGateMiddleware's own model, where unset means
 loopback-only. The fix reuses deps.is_loopback_client (the same fallback
 request_is_admin uses) instead of duplicating the loopback logic.
 """
@@ -60,7 +60,7 @@ class TestAgentWebSocketAdminGate:
     def test_tokenless_remote_client_rejected(self, monkeypatch):
         """The fail-open bug: ADMIN_TOKEN unset used to accept ANY remote
         caller. It must now be rejected the same way AdminGateMiddleware
-        would reject a non-GET request from this same client — before ever
+        would reject a non-GET request from this same client - before ever
         reaching the ANTHROPIC_API_KEY check."""
         monkeypatch.delenv("ADMIN_TOKEN", raising=False)
         from src.api.app import app

@@ -23,7 +23,7 @@ function cleanCardTitle(title, fallbackRaw) {
 }
 
 // User-facing vocabulary is "Tips" (this file keeps its LeadsInbox name and
-// talks to /api/tips — see src/api/routes/leads.py for the API-side mapping
+// talks to /api/tips - see src/api/routes/leads.py for the API-side mapping
 // between the public "tip" vocabulary and the internal Lead/LeadStore
 // storage layer).
 function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
@@ -92,7 +92,7 @@ function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
 
             if (response.status === 429) {
                 const errorBody = await response.json().catch(() => ({}));
-                setSuggestMessage(errorBody.detail || 'Too many tips submitted — please try again shortly.');
+                setSuggestMessage(errorBody.detail || 'Too many tips submitted - please try again shortly.');
                 return;
             }
 
@@ -259,7 +259,7 @@ function LeadsInbox({ adminRequired = false, hasAdminToken = false }) {
                                             <p className="leads-outcome leads-outcome-failed">
                                                 Chase attempt failed
                                                 {lead.chased_at && ` (on ${formatWhen(lead.chased_at)})`}:{' '}
-                                                {lead.chase_error || 'unknown error'} — still chaseable.
+                                                {lead.chase_error || 'unknown error'} - still chaseable.
                                             </p>
                                         )}
                                         <div className="leads-actions">

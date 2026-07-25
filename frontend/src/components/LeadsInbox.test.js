@@ -54,7 +54,7 @@ describe('LeadsInbox uses Tips vocabulary and /api/tips', () => {
       && !String(call[0]).includes('chase') && !String(call[0]).includes('dismiss')
       && (call[1] === undefined || (call[1].method || 'GET') === 'GET'));
     expect(getCall).toBeDefined();
-    // Not filtered to status=new — chased tips must still load so their
+    // Not filtered to status=new - chased tips must still load so their
     // outcome can be shown (see "LeadsInbox chase outcomes" below).
     expect(String(getCall[0])).not.toContain('status=new');
   });

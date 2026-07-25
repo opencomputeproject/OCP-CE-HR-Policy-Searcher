@@ -1,4 +1,4 @@
-"""FastAPI application — REST API + WebSocket for OCP CE HR Policy Searcher."""
+"""FastAPI application - REST API + WebSocket for OCP CE HR Policy Searcher."""
 
 import logging
 import os
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     get_cost_settings_store().apply_to_config(get_config())
 
     # In-app scheduled scans (WP-11): a plain asyncio background task, not
-    # APScheduler or any other new dependency — see schedule_runner.py.
+    # APScheduler or any other new dependency - see schedule_runner.py.
     # Started here and cancelled on shutdown below, same lifecycle as any
     # other per-process singleton wired through deps.py.
     runner = ScheduleRunner(
@@ -69,7 +69,7 @@ def admin_token_configured() -> bool:
 # endpoint is, its schema, its parameters) shouldn't be handed out to
 # anonymous visitors, so /docs, /redoc, and /openapi.json are disabled
 # entirely. ADMIN_TOKEN unset means local/dev, where docs stay on. This is
-# read once, at construction time — FastAPI wires these into fixed routes
+# read once, at construction time - FastAPI wires these into fixed routes
 # in __init__ and there's no supported way to toggle them per-request.
 _production_mode = admin_token_configured()
 
@@ -101,7 +101,7 @@ class AdminGateMiddleware(BaseHTTPMiddleware):
     When ADMIN_TOKEN is set, every non-GET /api request (except explicit
     exemptions) must carry a matching X-Admin-Token header. Reading stays
     open; scanning, chatting, settings, and review actions become
-    admin-only — the access model agreed at the 2026-07-07 OCP call.
+    admin-only - the access model agreed at the 2026-07-07 OCP call.
 
     When ADMIN_TOKEN is unset, the server is assumed to be a local,
     single-user deployment: non-GET /api requests are only accepted from
@@ -143,7 +143,7 @@ class AdminGateMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(AdminGateMiddleware)
 
-# CORS — allow React frontend
+# CORS - allow React frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -165,11 +165,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     more: same-origin scripts/styles only, no external fonts/CDNs (there
     are none in frontend/src or frontend/public), data: images (the app's
     own assets), and same-origin fetch/WebSocket calls (the built app talks
-    to its own origin — REACT_APP_API_BASE_URL="" in the Dockerfile).
+    to its own origin - REACT_APP_API_BASE_URL="" in the Dockerfile).
     'unsafe-inline' on style-src is needed for React's inline style={{}}
     usage, which the app relies on throughout.
 
-    HSTS is normally a Caddy (reverse-proxy) concern, not the app's — set
+    HSTS is normally a Caddy (reverse-proxy) concern, not the app's - set
     here too as belt-and-braces in case this process is ever reached
     directly.
     """
@@ -247,7 +247,7 @@ def health(visibility_store=Depends(get_public_visibility_store)):
 
 
 # Serve the built React app (frontend/build) from this same process, if it
-# exists. In every current dev/test setup it doesn't, so this is a no-op —
+# exists. In every current dev/test setup it doesn't, so this is a no-op -
 # behavior above is unchanged.
 mount_frontend(
     app,

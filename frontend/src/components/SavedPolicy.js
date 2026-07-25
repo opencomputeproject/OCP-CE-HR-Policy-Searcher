@@ -77,7 +77,7 @@ const UPCOMING_LIFECYCLE_STAGES = new Set([
     'proposed', 'consultation', 'in_committee', 'passed', 'transposition_notified',
 ]);
 
-// Friendly reader-facing text for the review workflow's internal statuses —
+// Friendly reader-facing text for the review workflow's internal statuses -
 // "new"/"promoted" read as jargon to a visitor who isn't part of the review
 // process (see WP-3 "public review visibility").
 const REVIEW_STATUS_LABELS = {

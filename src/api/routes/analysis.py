@@ -1,4 +1,4 @@
-"""Single URL analysis endpoint — full pipeline on one URL."""
+"""Single URL analysis endpoint - full pipeline on one URL."""
 
 import os
 
@@ -168,7 +168,7 @@ async def run_url_analysis(
         finally:
             await llm.close()
     elif not api_key:
-        response["llm_note"] = "No ANTHROPIC_API_KEY set — LLM analysis skipped"
+        response["llm_note"] = "No ANTHROPIC_API_KEY set - LLM analysis skipped"
 
     return response
 
