@@ -144,6 +144,24 @@ describe('SchedulesPanel create form', () => {
     expect(capturedBody.monthly_ceiling_usd).toBe(25);
   });
 
+  it('blocks submit with no channel selected and never calls the API', async () => {
+    let posted = false;
+    global.fetch = mockFetch({
+      schedules: [],
+      onPost: () => { posted = true; return jsonResponse(200, SCHEDULE_ACTIVE); },
+    });
+    render(<SchedulesPanel />);
+    await waitFor(() => expect(screen.getByLabelText(/schedule name/i)).toBeInTheDocument());
+
+    fireEvent.change(screen.getByLabelText(/schedule name/i), { target: { value: 'No channels' } });
+    fireEvent.change(screen.getByLabelText(/scope/i), { target: { value: 'eu' } });
+    // Leave every channel unchecked (emptyForm defaults them all false).
+    fireEvent.click(screen.getByRole('button', { name: /create schedule/i }));
+
+    expect(await screen.findByText(/at least one source channel/i)).toBeInTheDocument();
+    expect(posted).toBe(false);
+  });
+
   it('shows the server validation error on a failed create', async () => {
     global.fetch = mockFetch({
       schedules: [],
@@ -154,6 +172,7 @@ describe('SchedulesPanel create form', () => {
 
     fireEvent.change(screen.getByLabelText(/schedule name/i), { target: { value: 'X' } });
     fireEvent.change(screen.getByLabelText(/scope/i), { target: { value: 'bogus' } });
+    fireEvent.click(screen.getByLabelText(/^crawl$/i)); // pass the client-side channel guard
     fireEvent.click(screen.getByRole('button', { name: /create schedule/i }));
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/bogus/));

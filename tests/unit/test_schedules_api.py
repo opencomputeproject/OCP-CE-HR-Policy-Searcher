@@ -140,6 +140,21 @@ class TestListShape:
         row = resp.json()["schedules"][0]
         assert row["per_month_usd"] == 2.0
 
+    def test_unresolvable_scope_row_returns_null_cost_not_500(self, client, env):
+        # A schedule whose scope later becomes unresolvable (config edit /
+        # reload) must not 500 the whole list - the admin still needs to see
+        # and delete it (review finding).
+        env["store"].create(
+            name="Broken", domains="bogus-scope", channels=["crawl"], deep=False,
+            topic=None, cadence="monthly:1:06:00",
+        )
+        env["manager"].estimate_cost.side_effect = ConfigurationError("gone")
+        resp = client.get("/api/schedules")
+        assert resp.status_code == 200
+        row = resp.json()["schedules"][0]
+        assert row["estimate_usd"] is None
+        assert row["per_month_usd"] is None
+
 
 # ---------------------------------------------------------------------------
 # POST /api/schedules — create + validation
@@ -166,6 +181,19 @@ class TestCreate:
     def test_bad_channel_is_422(self, client):
         resp = client.post("/api/schedules", json=_create_body(channels=["not-a-channel"]))
         assert resp.status_code == 422
+
+    def test_empty_channels_is_422(self, client):
+        # An explicit [] would persist as "no channels" but silently scan
+        # crawl anyway at fire time - reject it (review finding).
+        resp = client.post("/api/schedules", json=_create_body(channels=[]))
+        assert resp.status_code == 422
+
+    def test_omitted_channels_defaults_to_crawl(self, client):
+        body = _create_body()
+        del body["channels"]
+        resp = client.post("/api/schedules", json=body)
+        assert resp.status_code == 200
+        assert resp.json()["channels"] == ["crawl"]
 
     def test_unknown_scope_is_400(self, client):
         resp = client.post("/api/schedules", json=_create_body(domains="bogus-scope"))

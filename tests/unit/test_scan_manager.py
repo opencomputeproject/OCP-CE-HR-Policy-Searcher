@@ -350,6 +350,28 @@ class TestEstimateCost:
 
         assert deep["estimated_cost_usd"] > standard["estimated_cost_usd"]
 
+    def test_channels_filter_narrows_the_domain_count(self):
+        # A schedule scoped to only law databases must not be costed as if it
+        # also crawled every website (review finding). crawl=3, law_apis=2.
+        domains = (
+            [{"id": f"c{i}", "name": f"C{i}"} for i in range(3)]
+            + [{"id": f"a{i}", "name": f"A{i}", "source_type": "legiscan"} for i in range(2)]
+        )
+        manager = _manager_with_config(get_enabled_domains_return=domains)
+
+        all_channels = manager.estimate_cost("quick")
+        apis_only = manager.estimate_cost("quick", channels=["law_apis"])
+
+        assert all_channels["domain_count"] == 5
+        assert apis_only["domain_count"] == 2
+        assert apis_only["estimated_cost_usd"] < all_channels["estimated_cost_usd"]
+
+    def test_channels_none_counts_all_domains(self):
+        # Callers that don't pass channels (e.g. cost_projection) are unchanged.
+        domains = [{"id": f"d{i}", "name": f"D{i}"} for i in range(4)]
+        manager = _manager_with_config(get_enabled_domains_return=domains)
+        assert manager.estimate_cost("quick")["domain_count"] == 4
+
 
 def _minimal_config(config_dir) -> ConfigLoader:
     """A real, minimal config directory (same shape as the integration

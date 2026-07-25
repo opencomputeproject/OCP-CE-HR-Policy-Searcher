@@ -229,6 +229,27 @@ class SchedulesStore:
         self._conn.commit()
         return cur.rowcount > 0
 
+    def claim_due(
+        self, schedule_id: str, observed_next_run_at: str, new_next_run_at: str,
+    ) -> bool:
+        """Atomically advance ``next_run_at`` iff it still equals what the
+        caller observed — the cross-process guard against duplicate firing.
+
+        When several uvicorn workers each run their own ScheduleRunner (the
+        README documents ``--workers``), all of them see the same due
+        schedule on a tick. This conditional UPDATE lets exactly one win: the
+        first worker's commit moves ``next_run_at`` forward, so every other
+        worker's ``WHERE next_run_at = observed`` matches zero rows. Returns
+        True only for the worker that should actually fire.
+        """
+        cur = self._conn.execute(
+            "UPDATE schedules SET next_run_at = ? "
+            "WHERE id = ? AND next_run_at = ? AND enabled = 1",
+            (new_next_run_at, schedule_id, observed_next_run_at),
+        )
+        self._conn.commit()
+        return cur.rowcount == 1
+
     def mark_ran(
         self, schedule_id: str, scan_id: str, ran_at: datetime, next_run_at: datetime,
     ) -> Optional[dict]:

@@ -213,6 +213,10 @@ function SchedulesPanel() {
 
     const handleSubmit = async () => {
         setCreateError('');
+        if (!CHANNELS.some((c) => form.channels[c])) {
+            setCreateError('Select at least one source channel.');
+            return;
+        }
         try {
             if (editingId) {
                 await putSchedule(editingId, buildCreateBody(form));

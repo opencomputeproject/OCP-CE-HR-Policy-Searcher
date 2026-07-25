@@ -709,14 +709,24 @@ class ScanManager:
     # doubles the pass rate used for the standard estimate below.
     DEEP_KEYWORD_PASS_RATE = 0.20
 
-    def estimate_cost(self, domains_group: str, deep: bool = False) -> dict:
+    def estimate_cost(
+        self, domains_group: str, deep: bool = False, channels: Optional[list[str]] = None,
+    ) -> dict:
         """Estimate API costs for a scan.
 
         Raises ConfigurationError (via get_enabled_domains) for an unknown
         group/region/domain scope — callers (the API route) turn that into a
         400, mirroring domains.py's list_domains.
+
+        ``channels`` (optional) narrows the domain set to those matching the
+        selected scan channels, exactly like start_scan does — so a schedule
+        scoped to only law databases isn't costed as if it also crawled every
+        website. ``None`` (the default) counts every domain, preserving the
+        behavior of callers that don't pass it (e.g. cost_projection).
         """
         domains = self._overlay_domains(self.config.get_enabled_domains(domains_group))
+        if channels is not None:
+            domains = [d for d in domains if self._domain_channel(d) in channels]
         settings = self.config.settings
 
         max_pages_per_domain = settings.crawl.max_pages_per_domain

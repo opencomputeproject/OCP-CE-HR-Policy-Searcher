@@ -89,6 +89,8 @@ async def fire_schedule(
     if schedule.get("paused_reason"):
         store.update(schedule["id"], paused_reason=None)
 
+    # channels is guaranteed non-empty by the create/update validators; a
+    # legacy row could still carry [], so keep a defensive default.
     job = await manager.start_scan(
         domains_group=domains,
         deep=bool(schedule.get("deep")),
@@ -129,6 +131,19 @@ async def run_due_schedules(
 
     for schedule in due:
         try:
+            # Atomically claim the schedule before firing: advance its
+            # next_run_at, and only proceed if this process won the claim.
+            # Guards against multiple uvicorn workers all firing the same
+            # due schedule on the same tick. compute_next_run here matches
+            # what fire_schedule's mark_ran will set, so the claim and the
+            # eventual mark_ran agree.
+            try:
+                new_next = compute_next_run(schedule["cadence"], now).isoformat()
+            except Exception as e:
+                logger.error("Schedule %s has an invalid cadence: %s", schedule["id"], e)
+                continue
+            if not store.claim_due(schedule["id"], schedule["next_run_at"], new_next):
+                continue
             await fire_schedule(manager, store, schedule, data_dir, now)
         except Exception as e:
             logger.error("Schedule %s failed to fire: %s", schedule["id"], e)

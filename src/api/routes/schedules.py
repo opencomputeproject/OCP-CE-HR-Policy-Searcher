@@ -49,6 +49,11 @@ def _validate_cadence(value: Optional[str]) -> Optional[str]:
 def _validate_channels(value: Optional[list[str]]) -> Optional[list[str]]:
     if value is None:
         return value
+    # An explicit [] would persist and display as "no channels" but silently
+    # scan crawl anyway at fire time — reject it so what's stored matches what
+    # runs. (None, meaning "field omitted", still defaults to ["crawl"].)
+    if not value:
+        raise ValueError("At least one channel must be selected.")
     invalid = sorted(set(value) - VALID_SCAN_CHANNELS)
     if invalid:
         raise ValueError(
@@ -85,11 +90,26 @@ class ScheduleUpdate(BaseModel):
 
 
 def _with_cost(schedule: dict, manager: ScanManager, history: ScanHistoryStore) -> dict:
-    """One schedule row plus its per-run estimate and expected per-month cost."""
+    """One schedule row plus its per-run estimate and expected per-month cost.
+
+    A schedule is scope-validated at creation, but its scope can later become
+    unresolvable (a domain/group renamed or removed via a config edit or
+    POST /api/config/reload). estimate_cost would then raise
+    ConfigurationError; catch it and return null cost for just that row rather
+    than 500-ing the whole schedules panel — the admin still needs the list to
+    see, edit, or delete the now-broken schedule.
+    """
     cadence_type = schedule["cadence"].split(":", 1)[0]
     runs_per_month = RUNS_PER_MONTH.get(cadence_type, RUNS_PER_MONTH["monthly"])
 
-    estimate = manager.estimate_cost(schedule["domains"], deep=schedule["deep"])
+    try:
+        estimate = manager.estimate_cost(
+            schedule["domains"], deep=schedule["deep"],
+            channels=schedule.get("channels") or None,
+        )
+    except ConfigurationError:
+        return {**schedule, "estimate_usd": None, "history": None, "per_month_usd": None}
+
     stats = history.stats(schedule["domains"])
     projection = _project_group(schedule["domains"], estimate, stats, runs_per_month)
 

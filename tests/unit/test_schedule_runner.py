@@ -264,6 +264,50 @@ class TestResilience:
         manager.start_scan.assert_not_awaited()
 
 
+class TestClaimGuard:
+    """The atomic claim prevents multiple uvicorn workers from firing the
+    same due schedule on the same tick (review finding, WP-11)."""
+
+    def test_claim_due_wins_once_then_loses(self, store):
+        now = datetime(2026, 1, 5, 6, 0)
+        schedule = _due_schedule(store, now, domains="quick")
+        observed = store.get(schedule["id"])["next_run_at"]
+        advanced = "2026-02-01T06:00:00"
+
+        # First worker's claim wins; a second worker still observing the old
+        # next_run_at loses because the row has already moved.
+        assert store.claim_due(schedule["id"], observed, advanced) is True
+        assert store.claim_due(schedule["id"], observed, "2026-03-01T06:00:00") is False
+        assert store.get(schedule["id"])["next_run_at"] == advanced
+
+    def test_claim_survives_a_second_store_connection(self, tmp_path):
+        # Two SchedulesStore instances = two connections to the same db file,
+        # standing in for two worker processes.
+        now = datetime(2026, 1, 5, 6, 0)
+        store_a = SchedulesStore(data_dir=str(tmp_path))
+        store_b = SchedulesStore(data_dir=str(tmp_path))
+        schedule = _due_schedule(store_a, now, domains="quick")
+        observed = store_a.get(schedule["id"])["next_run_at"]
+
+        assert store_a.claim_due(schedule["id"], observed, "2026-02-01T06:00:00") is True
+        assert store_b.claim_due(schedule["id"], observed, "2026-02-08T06:00:00") is False
+
+    @pytest.mark.asyncio
+    async def test_due_schedule_fires_exactly_once_across_two_ticks(self, store, data_dir):
+        # After a tick fires a due schedule, the claim has advanced
+        # next_run_at into the future, so an immediately-following tick at the
+        # same "now" finds nothing due and does not fire a second scan - the
+        # single-process expression of the cross-worker guard.
+        now = datetime(2026, 1, 5, 6, 0)
+        _due_schedule(store, now, domains="quick", cadence="weekly:0:06:00")
+        manager = FakeManager()
+
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+
+        manager.start_scan.assert_awaited_once()
+
+
 class TestFireScheduleDirect:
     """fire_schedule() is the single-schedule primitive reused by both the
     tick loop and the run-now route - exercised directly here too."""
