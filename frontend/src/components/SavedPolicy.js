@@ -91,6 +91,17 @@ function formatReviewStatusLabel(status) {
     return REVIEW_STATUS_LABELS[status] || status;
 }
 
+const CURATED_DOMAIN_ID = 'curated_master_tab';
+
+// Curated master records carry relevance_score 0 to mean "not applicable -
+// hand-verified", not "irrelevant" - showing "0 relevance" on exactly the
+// most-trusted records reads backwards. Any record with no real score
+// (falsy relevance_score) gets the same "Curated" treatment, since a bare
+// 0/null score means the same thing everywhere: no automated score applies.
+function isCuratedRelevance(policy) {
+    return policy.domain_id === CURATED_DOMAIN_ID || !policy.relevance_score;
+}
+
 function getLifecycleBadgeStyle(stage) {
     if (UPCOMING_LIFECYCLE_STAGES.has(stage)) {
         return { color: '#92400e', backgroundColor: '#fef3c7', borderColor: '#fde68a' };
@@ -220,8 +231,14 @@ function SavedPolicy({ policy, tags = {}, isAdmin = false }) {
                     )}
                 </span>
                 <span className="saved-policy-score">
-                    <span className="relevance-score">{policy.relevance_score}</span>
-                    <span className="score-label">relevance</span>
+                    {isCuratedRelevance(policy) ? (
+                        <span className="relevance-score relevance-curated">Curated</span>
+                    ) : (
+                        <>
+                            <span className="relevance-score">{policy.relevance_score}</span>
+                            <span className="score-label">relevance</span>
+                        </>
+                    )}
                 </span>
                 <span className="expand-button" aria-hidden="true">
                     {isExpanded ? '-' : '+'}

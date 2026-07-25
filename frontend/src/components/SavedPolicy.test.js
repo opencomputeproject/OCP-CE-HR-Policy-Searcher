@@ -74,3 +74,34 @@ describe('SavedPolicy pipeline meta (Scan ID / Domain ID / Crawl Status)', () =>
         expect(screen.queryByText('Scan ID:')).not.toBeInTheDocument();
     });
 });
+
+describe('SavedPolicy relevance chip on curated records', () => {
+    it('shows the numeric score and "relevance" label for a normal scored record', () => {
+        render(<SavedPolicy policy={policy({ relevance_score: 7 })} tags={{}} />);
+        expect(screen.getByText('7')).toBeInTheDocument();
+        expect(screen.getByText('relevance')).toBeInTheDocument();
+        expect(screen.queryByText('Curated')).not.toBeInTheDocument();
+    });
+
+    it('shows "Curated" instead of "0 relevance" for a curated master record', () => {
+        render(<SavedPolicy policy={policy({ domain_id: 'curated_master_tab', relevance_score: 0 })} tags={{}} />);
+        expect(screen.getByText('Curated')).toBeInTheDocument();
+        expect(screen.queryByText('0')).not.toBeInTheDocument();
+        expect(screen.queryByText('relevance')).not.toBeInTheDocument();
+    });
+
+    it('shows "Curated" for a curated master record with no relevance_score at all', () => {
+        const curatedPolicy = policy({ domain_id: 'curated_master_tab' });
+        delete curatedPolicy.relevance_score;
+        render(<SavedPolicy policy={curatedPolicy} tags={{}} />);
+        expect(screen.getByText('Curated')).toBeInTheDocument();
+    });
+
+    it('shows "Curated" for any record with a falsy relevance_score, even outside the curated domain', () => {
+        // Judgment call: relevance_score 0/null reads as "hand-verified, no
+        // score applies" everywhere, not just on curated_master_tab records -
+        // see the fix report for the product-decision note on this heuristic.
+        render(<SavedPolicy policy={policy({ domain_id: 'de-federal-heat', relevance_score: 0 })} tags={{}} />);
+        expect(screen.getByText('Curated')).toBeInTheDocument();
+    });
+});
