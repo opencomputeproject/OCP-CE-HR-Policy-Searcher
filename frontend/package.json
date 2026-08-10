@@ -31,7 +31,7 @@
     "serialize-javascript": "^7.0.5",
     "underscore": "^1.13.7",
     "uuid": "^11.1.1",
-    "brace-expansion": "^1.1.16",
+    "brace-expansion": "^1.1.18",
     "filelist": {
       "brace-expansion": "^2.1.2"
     },
