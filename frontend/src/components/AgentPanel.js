@@ -18,6 +18,7 @@ import SchedulesPanel from './SchedulesPanel';
 import SearchPanel from './SearchPanel';
 import SourcesPanel from './SourcesPanel';
 import WorldMap from './WorldMap';
+import { adminHeaders } from '../utils/adminAuth';
 
 function AgentPanel({
     adminRequired = false, hasAdminToken = false, onAdminTokenChange,
@@ -79,7 +80,9 @@ function AgentPanel({
 
     const fetchApiKeyStatus = useCallback(async () => {
         try {
-            const res = await fetch(apiUrl('/api/settings/api-key'));
+            // Admin-gated route now - send the token, and only meaningful once
+            // signed in (the key status is an admin concern anyway).
+            const res = await fetch(apiUrl('/api/settings/api-key'), { headers: adminHeaders() });
             if (!res.ok) throw new Error();
             const data = await res.json();
             setHasApiKey(data.exists);
