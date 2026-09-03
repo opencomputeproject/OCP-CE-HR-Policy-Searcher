@@ -331,11 +331,21 @@ What has to be true for the output to mean what it appears to mean.
 
 **Measurement**
 
-- Precision and recall are **not yet measured in the deployed tool**. The
-  evaluation harness exists in `src/eval/` and a protected-recall list is
-  checked, but no golden set has been built. As of 2 September 2026 the
-  labels exist: the reviewer's column holds 134 verdicts, and building the
-  first golden set from it is work package WP-1. Until then, treat any
+- Precision and recall are **not yet measured in the deployed tool**: the
+  evaluation harness lives in `src/eval/`, but nothing has scored a live scan
+  against it yet. What changed on 2 September 2026 (work package WP-1): the
+  golden set now exists, built from the reviewer's own column
+  (`tests/fixtures/golden/v1.jsonl`, 120 decided rows, her 32 keeps and 88
+  removes, each reject carrying a reason category; her 13 to-be-decided rows,
+  9 blank cells and 1 unreachable link are counted but not labelled, since
+  none of those is yet a decision). Rebuild it from the live sheet with
+  `python -m src.eval.golden --from-sheet --out data/golden/v1.jsonl` once
+  production points at the sheet of record rather than the copy (see
+  [ADR-0005](decisions/ADR-0005-the-reviewers-column-is-the-review-record.md)),
+  or from a fresh CSV export with `--from-csv PATH`. Score the live store
+  against a golden set with `python -m src.eval.score`, or against the
+  committed one with `python -m src.eval.score --golden-dir
+  tests/fixtures/golden`. Until a scan has been scored this way, treat any
   quality claim about this tool as unquantified.
 
 ## Reading the output

@@ -9,6 +9,7 @@ the next change.
 import argparse
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from .golden import GoldenItem, GoldenSetError, load_golden
 
@@ -142,10 +143,15 @@ def main(argv: list[str] | None = None) -> int:
         description="Score the pipeline against a labelled set.")
     parser.add_argument("--golden", default="v1",
                         help="Which version of the labelled set to score against.")
+    parser.add_argument("--golden-dir", default=None,
+                        help="Directory the golden set lives in "
+                        "(default: data/golden; a committed set might live "
+                        "under tests/fixtures/golden instead).")
     args = parser.parse_args(argv)
 
     try:
-        golden = load_golden(args.golden)
+        golden_dir = Path(args.golden_dir) if args.golden_dir else None
+        golden = load_golden(args.golden, golden_dir=golden_dir)
     except GoldenSetError as e:
         print(f"Could not score: {e}", file=sys.stderr)
         return 1

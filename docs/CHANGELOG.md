@@ -8,6 +8,13 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-02 The first golden set exists: 120 of the reviewer's own
+  decisions (32 keeps, 88 removes, each with a reason), turned into a
+  labelled set the pipeline can be scored against
+  (`tests/fixtures/golden/v1.jsonl`). Two documents she has since marked
+  Remove came off the protected-recall floor; her 32 keeps joined it.
+  Nothing a visitor sees changes today; this is the measurement the tool
+  has been missing, not a change to what it finds.
 - 2026-09-02 A reviewer who reads only English can now find and read a
   non-English policy without translating it by hand: searching the English
   name now finds the row, and a non-English row carries a "Read in English"
