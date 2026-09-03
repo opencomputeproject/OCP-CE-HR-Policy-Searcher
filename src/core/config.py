@@ -319,10 +319,30 @@ class ConfigLoader:
         # Resolve Google credentials: support file path, raw JSON, or base64
         _creds_b64 = _resolve_google_credentials(_raw_creds, _placeholders)
 
+        _spreadsheet_id = _raw_sheet if _raw_sheet not in _placeholders else None
+
+        # The reviewer's sheet of record (ADR-0005): production's
+        # spreadsheet_id points at a copy, so this needs its own override,
+        # following the existing POLICYSEARCH__OUTPUT__... env pattern (see
+        # src/notifications/mailer.py). Unset (or a placeholder) falls back
+        # to spreadsheet_id, so a single-sheet setup needs no extra config.
+        _raw_review_sheet = os.environ.get(
+            "POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID",
+            output_data.get("review_spreadsheet_id"),
+        )
+        if not _raw_review_sheet or _raw_review_sheet in _placeholders:
+            _raw_review_sheet = None
+        _review_spreadsheet_id = _raw_review_sheet or _spreadsheet_id
+
         output = OutputSettings(
-            spreadsheet_id=_raw_sheet if _raw_sheet not in _placeholders else None,
+            spreadsheet_id=_spreadsheet_id,
             staging_sheet_name=output_data.get("staging_sheet_name", "Staging"),
             google_credentials_b64=_creds_b64,
+            review_spreadsheet_id=_review_spreadsheet_id,
+            import_reviews_before_scan=bool(
+                output_data.get("import_reviews_before_scan", False)
+            ),
+            review_keep_status=output_data.get("review_keep_status", "reviewed"),
         )
         self._settings = AppSettings(
             crawl=crawl,

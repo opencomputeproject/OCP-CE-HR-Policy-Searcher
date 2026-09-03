@@ -17,6 +17,7 @@ from ..core.policy_schema import (
     STAGING_HEADERS,
     to_staging_dict,
 )
+from ..eval.sheet_labels import CATEGORIES
 from ..storage.leads import Lead
 
 logger = logging.getLogger(__name__)
@@ -212,6 +213,65 @@ class SheetsClient:
             return 0
         sheet.batch_update(updates)
         return len(updates)
+
+    def add_reason_column(
+        self,
+        sheet_name: str = "Staging",
+        header: str = "Reason (fixed list)",
+        options: tuple = CATEGORIES,
+    ) -> bool:
+        """Append a fixed-dropdown Reason column after the sheet's last
+        header (WP-2, ADR-0005), so the next review round can be counted
+        without reading every cell. Never touches any other cell or header,
+        including the reviewer's own free-text column (ADR-0009) - widens
+        the tab first if it is exactly as wide as its last header, the same
+        guard ``_ensure_policypulse_headers`` uses.
+
+        A data-validation dropdown (``options``, default
+        ``src.eval.sheet_labels.CATEGORIES``) is set on the new column for
+        every data row, rows 2 through the sheet's current row count.
+
+        Explicit and one-shot: called only from
+        ``python -m src.output.import_reviews --add-reason-column``, never
+        automatically. Returns False and changes nothing when ``header`` is
+        already present (matched stripped/case-insensitively, like every
+        other header check in this class).
+        """
+        sheet = self._spreadsheet.worksheet(sheet_name)
+        header_row = sheet.row_values(1)
+        present = {_norm_header(h) for h in header_row}
+        if _norm_header(header) in present:
+            return False
+
+        col = len(header_row) + 1
+        col_count = getattr(sheet, "col_count", None)
+        if isinstance(col_count, int) and col_count < col:
+            sheet.add_cols(col - col_count)
+        sheet.update([[header]], f"{_col_letter(col)}1:{_col_letter(col)}1")
+
+        row_count = getattr(sheet, "row_count", None) or 1
+        self._spreadsheet.batch_update({
+            "requests": [{
+                "setDataValidation": {
+                    "range": {
+                        "sheetId": sheet.id,
+                        "startRowIndex": 1,  # row 2 (row 1 is the header)
+                        "endRowIndex": row_count,
+                        "startColumnIndex": col - 1,
+                        "endColumnIndex": col,
+                    },
+                    "rule": {
+                        "condition": {
+                            "type": "ONE_OF_LIST",
+                            "values": [{"userEnteredValue": opt} for opt in options],
+                        },
+                        "showCustomUi": True,
+                        "strict": False,
+                    },
+                }
+            }]
+        })
+        return True
 
     def get_tips_sheet(self, name: str = "Tips") -> gspread.Worksheet:
         try:
