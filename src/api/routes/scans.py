@@ -83,10 +83,15 @@ async def start_scan(
             detail="ANTHROPIC_API_KEY is not configured. Add an API key or enable skip_llm.",
         )
 
-    budget_usd = request.budget_usd
-    if budget_usd is None and not request.no_budget:
+    # no_budget wins outright: a stray budget_usd sent alongside it must not
+    # quietly cap a run the caller asked to leave uncapped.
+    if request.no_budget:
+        budget_usd = None
+    elif request.budget_usd is None:
         default_budget = manager.config.settings.analysis.default_scan_budget_usd
         budget_usd = default_budget if default_budget else None
+    else:
+        budget_usd = request.budget_usd
 
     job = await manager.start_scan(
         domains_group=request.domains,
