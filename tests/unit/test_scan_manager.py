@@ -316,6 +316,7 @@ def _manager_with_config(
     settings.analysis.min_keyword_score = 3.0
     settings.analysis.screening_model = screening_model or DEFAULT_SCREENING_MODEL
     settings.analysis.analysis_model = analysis_model or DEFAULT_ANALYSIS_MODEL
+    settings.analysis.default_scan_budget_usd = 25.0
     config.settings = settings
     return ScanManager(config=config, broadcaster=MagicMock())
 
@@ -359,6 +360,8 @@ class TestEstimateCost:
             "channels",
             "auditor_cost_usd",
             "assumptions",
+            "last_actual",
+            "warnings",
         }
         assert result["estimated_cost_usd"] > 0
         assert result["auditor_cost_usd"] > 0
@@ -432,6 +435,136 @@ class TestEstimateCost:
 
 
 @pytest.mark.small
+class TestEstimateDefaults:
+    """PL-004: the estimator's static defaults were educated guesses, never
+    checked against a real run - $188.46 estimated against a $9.05 actual
+    for the same 402-domain scope (scan 86463134, 2026-09-01). 378 crawl +
+    24 structured domains is the real split behind that $188.46 figure, so
+    this pins a fresh estimate for the same scope to the same decade as the
+    actual instead of a fixed dollar amount.
+    """
+
+    def test_estimate_for_all_is_in_the_decade_of_the_last_actual(self):
+        domains = (
+            [{"id": f"c{i}", "name": f"C{i}"} for i in range(378)]
+            + [{"id": f"a{i}", "name": f"A{i}", "source_type": "legiscan"} for i in range(24)]
+        )
+        manager = _manager_with_config(get_enabled_domains_return=domains)
+
+        result = manager.estimate_cost("all")
+
+        assert 4 <= result["estimated_cost_usd"] <= 40
+
+
+class _StubHistory:
+    """A ScanHistoryStore stand-in for last_actual/warnings tests.
+
+    Deliberately not a MagicMock: a real ScanHistoryStore needs tmp_path
+    (medium), and a bare MagicMock's measured_rates() would return
+    MagicMock objects in place of the crawl/structured rate dicts, which
+    estimate_cost() would then try to format as numbers and blow up. This
+    stub returns the exact "no calibration yet" shape
+    ScanManager._measured_rates() itself falls back to when no store is
+    wired in, so estimate_cost()'s crawl/structured math runs exactly as
+    it does with no history - only last_completed() is under test.
+    """
+
+    def __init__(self, last_completed_result=None):
+        self._last_completed_result = last_completed_result
+
+    def last_completed(self, domain_group):
+        return self._last_completed_result
+
+    def measured_rates(self):
+        return {
+            "crawl": {
+                "keyword_rate": None, "screening_pass_rate": None,
+                "pages_per_domain": None, "scans": 0,
+                "spread": {
+                    "keyword_rate": {"p25": None, "p75": None},
+                    "screening_pass_rate": {"p25": None, "p75": None},
+                    "pages_per_domain": {"p25": None, "p75": None},
+                },
+            },
+            "structured": {
+                "items_per_source": None, "screening_pass_rate": None,
+                "scans": 0,
+                "spread": {
+                    "items_per_source": {"p25": None, "p75": None},
+                    "screening_pass_rate": {"p25": None, "p75": None},
+                },
+            },
+        }
+
+
+@pytest.mark.small
+class TestEstimateLastActualAndWarnings:
+    """WP-6a/PL-004: estimate_cost() surfaces the last completed run for
+    the same scope, and flags plainly when a fresh estimate disagrees with
+    it sharply or when a scan will stop itself at a default budget.
+    """
+
+    def test_last_actual_is_present_after_one_completed_run_and_absent_with_none(self):
+        domains = [{"id": "d1", "name": "D1"}]
+        manager = _manager_with_config(get_enabled_domains_return=domains)
+
+        # No history store wired in at all (every existing call site's
+        # default) - last_actual stays None, exactly like before this
+        # field existed.
+        assert manager.estimate_cost("quick")["last_actual"] is None
+
+        # A history store with one completed run for this exact scope -
+        # last_actual carries it through unchanged.
+        actual = {
+            "scan_id": "86463134", "cost_usd": 9.05,
+            "completed_at": "2026-09-01T06:00:00", "domains_scanned": 402,
+            "policies_found": 71,
+        }
+        manager.scan_history_store = _StubHistory(last_completed_result=actual)
+
+        result = manager.estimate_cost("quick")
+
+        assert result["last_actual"] == actual
+
+    def test_a_warning_names_the_ratio_when_estimate_and_actual_disagree(self):
+        domains = [{"id": f"d{i}", "name": f"D{i}"} for i in range(5)]
+        manager = _manager_with_config(get_enabled_domains_return=domains)
+        typical = manager.estimate_cost("quick")["estimated_cost_usd"]
+
+        # 10x lower than the fresh estimate - past both the 3x-high and
+        # (implicitly) the under-a-third thresholds.
+        manager.scan_history_store = _StubHistory(last_completed_result={
+            "scan_id": "s1", "cost_usd": round(typical / 10, 2),
+            "completed_at": "2026-08-01T06:00:00", "domains_scanned": 5,
+            "policies_found": 3,
+        })
+
+        result = manager.estimate_cost("quick")
+
+        assert any(
+            "the last measured run for this scope" in w for w in result["warnings"]
+        )
+
+    def test_no_warning_when_they_agree(self):
+        domains = [{"id": f"d{i}", "name": f"D{i}"} for i in range(5)]
+        manager = _manager_with_config(get_enabled_domains_return=domains)
+        typical = manager.estimate_cost("quick")["estimated_cost_usd"]
+
+        # Same figure as the fresh estimate - ratio 1.0, well inside band.
+        manager.scan_history_store = _StubHistory(last_completed_result={
+            "scan_id": "s1", "cost_usd": typical,
+            "completed_at": "2026-08-01T06:00:00", "domains_scanned": 5,
+            "policies_found": 3,
+        })
+
+        result = manager.estimate_cost("quick")
+
+        assert not any(
+            "the last measured run for this scope" in w for w in result["warnings"]
+        )
+
+
+@pytest.mark.small
 class TestEstimateCostRespectsCostLevel:
     """WP-20: estimate_cost() reads settings.analysis.{screening,analysis}
     _model - the exact attributes CostSettingsStore.apply_to_config()
@@ -457,9 +590,9 @@ class TestEstimateCostRespectsCostLevel:
 
         est_pages_per_domain = 200 // 2
         total_pages = domain_count * est_pages_per_domain
-        keyword_passes = int(total_pages * 0.10)
-        screening_calls = keyword_passes
-        analysis_calls = int(screening_calls * 0.50)
+        keyword_passes = int(total_pages * 0.26)
+        screening_calls = int(keyword_passes * 0.15)
+        analysis_calls = int(screening_calls * 0.70)
 
         raw = (
             screening_calls * screening_price.cost_usd(

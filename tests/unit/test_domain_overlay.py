@@ -59,6 +59,7 @@ def _manager_with_domains(domains, overrides_store=None):
     settings = MagicMock()
     settings.crawl.max_pages_per_domain = 200
     settings.analysis.min_keyword_score = 3.0
+    settings.analysis.default_scan_budget_usd = 25.0
     config.settings = settings
     return ScanManager(
         config=config, broadcaster=MagicMock(), domain_overrides_store=overrides_store,

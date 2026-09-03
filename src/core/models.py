@@ -268,6 +268,14 @@ class DomainProgress(BaseModel):
     # from the keyword and screening drops so the cost of the scope
     # rule is visible rather than folded into the total.
     filtered_out_of_scope: int = 0
+    # Dropped by a source's document-type allow-list.
+    filtered_doc_type: int = 0
+    # Dropped by the pre-screen link check.
+    filtered_link: int = 0
+    # Folded into an existing kept row.
+    filtered_duplicate: int = 0
+    # Dropped by the screener's document-kind question.
+    screened_kind: int = 0
     near_misses: int = 0
     keywords_matched: int = 0
     policies_found: int = 0
@@ -349,10 +357,16 @@ class ScanRequest(BaseModel):
     # Per-request overrides for structured sources (e.g. {"state": "CA",
     # "terms": [...]} from a place-first search). Crawl domains ignore this.
     source_params: Optional[dict] = None
-    # Mid-scan budget stop (WP-22b). None = no cap (default, unchanged
-    # behavior). Schedules pass their remaining monthly ceiling here so a
-    # scan stops launching further domains once running cost reaches it.
+    # Mid-scan budget stop (WP-22b). None = no cap unless the route applies
+    # its default_scan_budget_usd (WP-6a/PL-004) - see no_budget below.
+    # Schedules pass their remaining monthly ceiling here so a scan stops
+    # launching further domains once running cost reaches it.
     budget_usd: Optional[float] = Field(default=None, ge=0)
+    # Explicit opt-out (WP-6a) of the default_scan_budget_usd the route
+    # applies when budget_usd is omitted. False (the default) means an
+    # omitted budget_usd gets the configured default; True means this scan
+    # really is meant to run uncapped.
+    no_budget: bool = False
 
     @model_validator(mode="after")
     def validate_scan_mode(self) -> "ScanRequest":
@@ -424,6 +438,13 @@ class AnalysisSettings(BaseModel):
     # required | adjacent | off. See src/core/scope.py; the reviewer's
     # rule is required, and it is the default.
     data_center_required: str = "required"
+    # Default running-cost cap (WP-6a/PL-004) applied to a scan that omits
+    # budget_usd, so a scan the estimator badly mis-priced cannot run away
+    # unnoticed. The full 402-source scan of 2026-09-01 cost $9.05; 25
+    # leaves headroom while still stopping a runaway. 0 disables the
+    # default (a scan then runs uncapped unless it passes its own
+    # budget_usd, exactly as before this setting existed).
+    default_scan_budget_usd: float = 25.0
 
 
 class OutputSettings(BaseModel):

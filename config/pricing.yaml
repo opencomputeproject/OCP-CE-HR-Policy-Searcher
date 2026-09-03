@@ -31,14 +31,23 @@ models:
     input_per_mtok: 3.00
     output_per_mtok: 15.00
 
-# Token-size assumptions for the pre-scan estimator. These are educated
-# guesses, not measurements - they get refined as real scan_history data
-# accumulates (see WP-25).
+# -----------------------------------------------------------------------
+# PROVENANCE (WP-6a / lesson PL-004): the token sizes and pass rates below
+# were measured on scan 86463134 (2026-09-01, 402 domains, 35,402 pages
+# fetched, $9.05 actual). They replace educated guesses that had never
+# been compared with a real run - the guesses priced the same scope at
+# $188.46. Re-measure and update these when scan_history has enough
+# completed runs to calibrate from directly (ScanHistoryStore.measured_rates,
+# WP-25); until then these are the static fallback every estimate uses.
+# -----------------------------------------------------------------------
 estimator:
-  screening_input: 2000
-  screening_output: 50
-  analysis_input: 20000
-  analysis_output: 1000
+  # Haiku screening: measured 1,885 input tokens/call average; output
+  # rounded up from a small sample.
+  screening_input: 1900
+  screening_output: 20
+  # Sonnet analysis: measured 3,129 input tokens/call average, 533 output.
+  analysis_input: 3200
+  analysis_output: 550
   auditor_input: 5000
   auditor_output: 2000
   # Structured sources (law_apis/transposition channels) skip the crawl
@@ -47,3 +56,10 @@ estimator:
   # items reach screening per structured source. Assumed - no scan
   # history yet to calibrate against (pending WP-25).
   structured_items_per_source: 40
+  # Crawl-channel funnel rates, measured on scan 86463134: of 35,402 pages
+  # fetched, 26% passed the keyword gate; of those, 15% survived the scope
+  # gate (mentioned a data centre); of those, 70% passed Haiku screening
+  # to reach Sonnet analysis. See ScanManager.estimate_cost.
+  keyword_pass_rate: 0.26
+  scope_pass_rate: 0.15
+  screening_pass_rate: 0.70

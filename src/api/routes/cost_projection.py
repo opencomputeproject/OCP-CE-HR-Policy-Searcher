@@ -51,6 +51,10 @@ def _project_group(group: str, estimate: dict, stats: dict, runs_per_month: floa
             "runs": stats["runs"],
             "mean_cost_usd": stats["mean_cost_usd"],
             "last_cost_usd": stats["last_cost_usd"],
+            # .get(): older/hand-built stats dicts in tests may not carry
+            # these (WP-6a) - None is the correct "not known" reading.
+            "cost_per_policy_usd": stats.get("cost_per_policy_usd"),
+            "last_cost_per_policy_usd": stats.get("last_cost_per_policy_usd"),
         }
 
     return {

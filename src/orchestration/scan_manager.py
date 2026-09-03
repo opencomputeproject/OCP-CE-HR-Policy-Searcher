@@ -493,6 +493,10 @@ class ScanManager:
                             dp.filtered_screening = scanner.progress.filtered_screening
                             dp.filtered_out_of_scope = (
                                 scanner.progress.filtered_out_of_scope)
+                            dp.filtered_doc_type = scanner.progress.filtered_doc_type
+                            dp.filtered_link = scanner.progress.filtered_link
+                            dp.filtered_duplicate = scanner.progress.filtered_duplicate
+                            dp.screened_kind = scanner.progress.screened_kind
                             dp.near_misses = scanner.progress.near_misses
                             dp.keywords_matched = scanner.progress.keywords_matched
                             dp.llm_skipped = scanner.progress.llm_skipped
@@ -974,16 +978,23 @@ class ScanManager:
             domains = [d for d in domains if self._domain_channel(d) in channels]
         settings = self.config.settings
 
+        est = self._pricing.estimator
         max_pages_per_domain = settings.crawl.max_pages_per_domain
-        static_keyword_pass_rate = 0.10
+        static_keyword_pass_rate = est.get("keyword_pass_rate", 0.10)
         if deep:
             # Reuse _with_deep_scan_defaults as the single source of truth for
             # the deep-scan max_pages value instead of duplicating it here.
             max_pages_per_domain = self._with_deep_scan_defaults({})["max_pages"]
             static_keyword_pass_rate = self.DEEP_KEYWORD_PASS_RATE
 
-        static_screening_pass_rate = 0.50
-        est = self._pricing.estimator
+        static_screening_pass_rate = est.get("screening_pass_rate", 0.50)
+        # Scope gate pass rate (WP-6a/PL-004): ScanHistoryStore.measured_rates()
+        # does not (yet - pending a future WP-25-style calibration) expose a
+        # measured scope rate, so this is always the static figure below,
+        # applied in the crawl branch regardless of whether the keyword/
+        # screening rates there came from history or from these same static
+        # defaults - see the crawl branch's assumptions line.
+        static_scope_pass_rate = est.get("scope_pass_rate", 0.15)
         static_structured_items_per_source = est.get("structured_items_per_source", 40)
         screening_input = est.get("screening_input", 2000)
         screening_output = est.get("screening_output", 50)
@@ -1049,7 +1060,18 @@ class ScanManager:
                         "the keyword gate (assumed - no scan history yet)"
                     )
                 keyword_passes = int(items_or_pages * keyword_rate)
-                screening_calls = keyword_passes
+
+                # Scope gate (WP-6a/PL-004): sits between the keyword gate
+                # and screening, mirroring where src/core/scanner.py runs
+                # it for real (after the crawl/structured lanes rejoin,
+                # before any model call). Always the static rate - see its
+                # definition above.
+                assumptions.append(
+                    f"crawl: {static_scope_pass_rate:.0%} of keyword-gate passes assumed "
+                    "to mention a data centre (assumed - scope pass rate is not yet "
+                    "calibrated from history)"
+                )
+                screening_calls = int(keyword_passes * static_scope_pass_rate)
 
                 screening_measured = (
                     not deep and crawl_measured["screening_pass_rate"] is not None
@@ -1074,8 +1096,8 @@ class ScanManager:
                     kw_low, kw_high = spread["keyword_rate"]["p25"], spread["keyword_rate"]["p75"]
                     scr_low = spread["screening_pass_rate"]["p25"]
                     scr_high = spread["screening_pass_rate"]["p75"]
-                    low_screening_calls = int(items_or_pages * kw_low)
-                    high_screening_calls = int(items_or_pages * kw_high)
+                    low_screening_calls = int(items_or_pages * kw_low * static_scope_pass_rate)
+                    high_screening_calls = int(items_or_pages * kw_high * static_scope_pass_rate)
                     low_analysis_calls = int(low_screening_calls * scr_low)
                     high_analysis_calls = int(high_screening_calls * scr_high)
                 else:
@@ -1176,6 +1198,33 @@ class ScanManager:
         # alike - it doesn't vary with calibration.
         auditor_price = self._pricing.pricing_for(DEFAULT_ANALYSIS_MODEL)
         auditor_raw_cost = auditor_price.cost_usd(auditor_input, auditor_output)
+        estimated_cost_usd = round(total_typical_cost + auditor_raw_cost, 2)
+
+        # last_actual + warnings (WP-6a/PL-004): the last completed run of
+        # this exact scope, and plain sentences flagging when this estimate
+        # disagrees with it sharply, or when a scan started from it will
+        # stop itself at a default budget. Both are None/empty when there
+        # is nothing to say - see docs/HOW_IT_WORKS.md's cost section.
+        last_actual = (
+            self.scan_history_store.last_completed(domains_group)
+            if self.scan_history_store is not None else None
+        )
+
+        warnings: list[str] = []
+        if last_actual and last_actual.get("cost_usd"):
+            ratio = estimated_cost_usd / last_actual["cost_usd"]
+            if ratio > 3 or ratio < (1 / 3):
+                warnings.append(
+                    f"The estimate is {ratio:.1f}x the last measured run for this scope "
+                    f"(${last_actual['cost_usd']:.2f} on {last_actual['completed_at'][:10]}). "
+                    "The measured number is usually the better guide."
+                )
+        default_budget = settings.analysis.default_scan_budget_usd
+        if default_budget:
+            warnings.append(
+                f"This scan stops itself at ${default_budget:.2f}, the default budget. "
+                "Pass budget_usd to change it."
+            )
 
         return {
             "domain_count": len(domains),
@@ -1183,10 +1232,12 @@ class ScanManager:
             "estimated_keyword_passes": total_keyword_passes,
             "estimated_screening_calls": total_screening_calls,
             "estimated_analysis_calls": total_analysis_calls,
-            "estimated_cost_usd": round(total_typical_cost + auditor_raw_cost, 2),
+            "estimated_cost_usd": estimated_cost_usd,
             "estimated_cost_low_usd": round(total_low_cost + auditor_raw_cost, 2),
             "estimated_cost_high_usd": round(total_high_cost + auditor_raw_cost, 2),
             "channels": channels_out,
             "auditor_cost_usd": round(auditor_raw_cost, 2),
             "assumptions": assumptions,
+            "last_actual": last_actual,
+            "warnings": warnings,
         }

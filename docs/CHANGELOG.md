@@ -28,6 +28,21 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
   person can read it (`docs/HOW_IT_WORKS.md`), with decision records and a
   lessons register that a test keeps honest. Nothing about scan behaviour
   changed.
+- 2026-09-02 The pre-scan cost estimate is now measured, not guessed: its
+  token sizes and pass rates come from the first real monthly scan instead
+  of unmeasured assumptions that had priced the same 402-domain scope at
+  $188.46 against a $9.05 actual. The estimate now also shows the last
+  completed run for the same scope alongside the fresh number, with a
+  plain warning when the two disagree by more than 3x either way.
+- 2026-09-02 A scan that doesn't set its own budget now stops itself at $25
+  by default, instead of running uncapped - pass `no_budget: true` for an
+  explicitly uncapped run. Both the API and the CLI agent report which
+  budget actually applied.
+- 2026-09-02 Cost projections (`GET /api/cost-projection`) now show cost
+  per policy found, alongside mean and last-run cost.
+- 2026-09-02 A completed scan's detail view now includes a plain-English
+  summary of what happened to documents at each stage - pages fetched,
+  dropped and why, screened, analysed, found.
 
 ## 2026-08-31
 

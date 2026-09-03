@@ -367,6 +367,17 @@ def _on_tool_result(name: str, result):
     elif name == "estimate_cost" and "estimated_cost_usd" in result:
         print(f"  → Estimated cost: ${result['estimated_cost_usd']:.2f} "
               f"({result.get('domain_count', '?')} domains)")
+        # Last actual + warnings (WP-6a/PL-004): plain lines under the
+        # estimate so a stale/off assumption is visible before a scan
+        # starts, not just discoverable after the fact.
+        last_actual = result.get("last_actual")
+        if last_actual:
+            print(f"  → Last actual: ${last_actual['cost_usd']:.2f} on "
+                  f"{last_actual['completed_at'][:10]} "
+                  f"({last_actual['domains_scanned']} domains, "
+                  f"{last_actual['policies_found']} policies)")
+        for warning in result.get("warnings") or []:
+            print(f"  ⚠️  {warning}")
 
     elif name == "search_policies" and "count" in result:
         print(f"  → {result['count']} policies match")

@@ -16,11 +16,43 @@ from ..deps import (
 from ...core.config import ConfigurationError
 from ...core.models import ScanRequest
 from ...orchestration.events import EventBroadcaster
+from ...orchestration.funnel import funnel_sentences
 from ...orchestration.scan_manager import ScanManager
 from ...storage.scan_history import ScanHistoryStore
 from ...storage.store import PolicyStore
 
 router = APIRouter(prefix="/api", tags=["scans"])
+
+# Counters DomainProgress and scan_domains rows share (WP-6a); summed
+# across a scan's domains to feed funnel_sentences(). See _funnel_totals.
+_FUNNEL_COUNTER_KEYS = (
+    "pages_crawled", "filtered_short_content", "filtered_excluded",
+    "filtered_doc_type", "filtered_keywords", "filtered_out_of_scope",
+    "filtered_link", "keywords_matched", "llm_skipped",
+    "filtered_screening", "screened_kind", "filtered_duplicate",
+    "policies_found",
+)
+
+
+def _funnel_totals(domains: list[dict]) -> dict:
+    """Sum ``domains``' funnel counters (either
+    ``[dp.model_dump() for dp in job.progress.domains]`` or
+    ``history.domains_for_scan(scan_id)`` rows - both carry the same keys)
+    into the ``totals`` dict ``funnel_sentences()`` expects.
+
+    Adds the two model-call counts DomainProgress does not track directly:
+    ``screening_calls`` is keyword-gate passes minus the scope-gate drops
+    and LLM-skipped pages that never reached the screener; ``analysis_calls``
+    is those minus the screener's own rejections.
+    """
+    totals = {k: sum(d.get(k) or 0 for d in domains) for k in _FUNNEL_COUNTER_KEYS}
+    screening_calls = max(
+        0,
+        totals["keywords_matched"] - totals["filtered_out_of_scope"] - totals["llm_skipped"],
+    )
+    totals["screening_calls"] = screening_calls
+    totals["analysis_calls"] = max(0, screening_calls - totals["filtered_screening"])
+    return totals
 
 
 @router.post("/scans")
@@ -33,6 +65,13 @@ async def start_scan(
 
     With discover=true, runs the agent discovery workflow instead and
     returns its result synchronously (scan_id is null).
+
+    When ``budget_usd`` is omitted, the configured default
+    (``analysis.default_scan_budget_usd``, ``config/settings.yaml``, $25 by
+    default) applies, so a scan an estimate badly under-priced cannot run
+    away unnoticed (lesson PL-004). Pass ``no_budget: true`` for one
+    explicitly uncapped run without changing that setting; a 0 setting
+    disables the default for every scan.
     """
     if request.discover:
         return await _run_discovery(request)
@@ -43,6 +82,11 @@ async def start_scan(
             status_code=400,
             detail="ANTHROPIC_API_KEY is not configured. Add an API key or enable skip_llm.",
         )
+
+    budget_usd = request.budget_usd
+    if budget_usd is None and not request.no_budget:
+        default_budget = manager.config.settings.analysis.default_scan_budget_usd
+        budget_usd = default_budget if default_budget else None
 
     job = await manager.start_scan(
         domains_group=request.domains,
@@ -55,13 +99,14 @@ async def start_scan(
         policy_type=request.policy_type,
         channels=request.channels,
         source_params=request.source_params,
-        budget_usd=request.budget_usd,
+        budget_usd=budget_usd,
     )
     return {
         "scan_id": job.scan_id,
         "status": job.status.value,
         "domain_count": job.domain_count,
         "options": job.options,
+        "budget_usd": budget_usd,
     }
 
 
@@ -197,6 +242,7 @@ def get_scan(
     job = manager.jobs.get(scan_id)
     if job:
         policies = manager.get_policies(scan_id)
+        domain_dicts = [dp.model_dump() for dp in job.progress.domains]
         return {
             "scan_id": job.scan_id,
             "status": job.status.value,
@@ -208,12 +254,13 @@ def get_scan(
                 "total": job.progress.total_domains,
                 "completed": job.progress.completed_domains,
                 "running": job.progress.running_domains,
-                "domains": [dp.model_dump() for dp in job.progress.domains],
+                "domains": domain_dicts,
             },
             "policies": [p.model_dump(mode="json") for p in policies],
             "cost": job.cost.model_dump() if job.cost else None,
             "audit_advisory": job.audit_advisory,
             "budget_reached": job.budget_reached,
+            "funnel_summary": funnel_sentences(_funnel_totals(domain_dicts)),
         }
 
     row = history.get(scan_id)
@@ -245,6 +292,7 @@ def get_scan(
         ),
         "audit_advisory": None,
         "budget_reached": row["status"] == "completed_budget_reached",
+        "funnel_summary": funnel_sentences(_funnel_totals(domain_rows)),
     }
 
 

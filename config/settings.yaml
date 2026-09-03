@@ -116,6 +116,15 @@ analysis:
   # previously judged pages are re-decided rather than served from cache.
   data_center_required: "required"
 
+  # Default running-cost cap applied to a scan that omits budget_usd, so an
+  # estimate that turns out to be badly wrong cannot run away unnoticed.
+  # The full 402-source scan of 2026-09-01 cost $9.05; 25 leaves headroom
+  # for a bigger run while still stopping a real runaway. Set to 0 to
+  # disable the default (a scan then runs uncapped unless it passes its
+  # own budget_usd). Pass no_budget: true on a request to opt out of the
+  # default for one uncapped run without changing this setting.
+  default_scan_budget_usd: 25.0
+
 # -----------------------------------------------------------------------------
 # OUTPUT SETTINGS
 # -----------------------------------------------------------------------------

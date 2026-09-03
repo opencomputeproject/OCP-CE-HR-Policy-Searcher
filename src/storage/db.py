@@ -138,6 +138,18 @@ CREATE TABLE IF NOT EXISTS scan_domains (
     policies_found INTEGER,
     errors INTEGER,
     completed_at TEXT,
+    -- Rejection-breakdown counters (WP-6a): filled in from DomainProgress's
+    -- fuller counter set, DEFAULT 0 so a pre-existing row (added via the
+    -- guarded ALTER below, before this scan was ever re-run) reads as "none
+    -- of this kind" rather than NULL/unknown.
+    filtered_short_content INTEGER DEFAULT 0,
+    filtered_excluded INTEGER DEFAULT 0,
+    filtered_out_of_scope INTEGER DEFAULT 0,
+    near_misses INTEGER DEFAULT 0,
+    filtered_doc_type INTEGER DEFAULT 0,
+    filtered_link INTEGER DEFAULT 0,
+    filtered_duplicate INTEGER DEFAULT 0,
+    screened_kind INTEGER DEFAULT 0,
     PRIMARY KEY (scan_id, domain_id)
 );
 
@@ -270,12 +282,35 @@ def _ensure_scans_estimate_columns(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+_SCAN_DOMAINS_COUNTER_COLUMNS = (
+    "filtered_short_content", "filtered_excluded", "filtered_out_of_scope",
+    "near_misses", "filtered_doc_type", "filtered_link", "filtered_duplicate",
+    "screened_kind",
+)
+
+
+def _ensure_scan_domains_columns(conn: sqlite3.Connection) -> None:
+    """Guarded ALTER migration (WP-6a): a ``scan_domains`` table that
+    predates the fuller rejection-breakdown counters gets them added in
+    place, ``DEFAULT 0`` so pre-existing rows read as "none of this kind"
+    rather than NULL. Same pattern as ``_ensure_scans_estimate_columns``:
+    ``PRAGMA table_info`` first so a re-run never re-issues ``ALTER TABLE
+    ADD COLUMN`` for a column that's already there.
+    """
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(scan_domains)")}
+    for column in _SCAN_DOMAINS_COUNTER_COLUMNS:
+        if column not in existing:
+            conn.execute(f"ALTER TABLE scan_domains ADD COLUMN {column} INTEGER DEFAULT 0")
+    conn.commit()
+
+
 def _ensure_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(_SCHEMA_CORE)
     if fts5_supported():
         conn.executescript(_SCHEMA_FTS5)
     conn.commit()
     _ensure_scans_estimate_columns(conn)
+    _ensure_scan_domains_columns(conn)
     _ensure_fts_has_policy_name_en(conn)
 
 

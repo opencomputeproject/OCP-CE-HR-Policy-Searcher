@@ -116,8 +116,9 @@ answer visible.
 - first_seen: 2026-09-01
 - last_seen: 2026-09-02
 - recurrences: 1
-- status: open
-- guard: none (WP-6 adds tests/unit/test_scan_manager.py::TestEstimateDefaults::test_estimate_for_all_is_in_the_decade_of_the_last_actual, red against today's config)
+- status: mechanized
+- guard: tests/unit/test_scan_manager.py::TestEstimateDefaults::test_estimate_for_all_is_in_the_decade_of_the_last_actual
+- decision: [ADR-0008](decisions/ADR-0008-every-scan-has-a-budget-by-default.md)
 - class: a number nobody had measured, presented with two decimals
 
 **The defect.** `ScanManager.estimate_cost` multiplies pages per domain, a
@@ -133,11 +134,15 @@ number as the tool's cost and planned around it.
 blend rule already prefers measured rates after two completed scans; there
 had been none.
 
-**How it is held.** Not yet. WP-6 sets the static defaults in
-`config/pricing.yaml` from the measured run with a provenance comment, shows
-the last actual beside every estimate, and adds the guard test named above.
-Until it lands, the estimate shown before a scan can be an order of
-magnitude high.
+**How it is held.** WP-6a set the static defaults in `config/pricing.yaml`
+from the measured run with a provenance comment, added a scope-gate pass
+rate the old formula never modeled at all, and the guard test above pins a
+fresh estimate for the full scope to the same decade as the $9.05 actual
+instead of a fixed dollar figure. `ScanManager.estimate_cost` now also
+shows the last completed run beside every estimate and a plain-sentence
+warning when the two disagree by more than 3x either way, so the gap this
+lesson describes is visible before it can mislead anyone again, not just
+correctable after the fact.
 
 ---
 
