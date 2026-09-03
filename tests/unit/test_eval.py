@@ -134,12 +134,31 @@ class TestProtectedRecall:
 
     @pytest.mark.small
     def test_the_curated_keeps_most_at_risk_are_protected(self):
-        """The three the data-centre scope rule would drop when applied to
-        the sheet's own text. Listed so a test says it, not the silence."""
+        """The two the data-centre scope rule would still drop when applied
+        to the sheet's own text. Listed so a test says it, not the silence.
+
+        A third, the NY Utility Thermal Energy Network and Jobs Act, was on
+        this list for the same reason until the reviewer's column settled
+        it: she marked it Remove, "no reference to data centers". It is not
+        at risk from the scope rule; it is simply not wanted, so it is
+        gone from protected recall entirely rather than asserted here."""
         urls = protected_urls()
-        assert "https://legislation.nysenate.gov/pdf/bills/2021/S9422" in urls
         assert "https://www.nyserda.ny.gov/All-Programs/Heat-Recovery-Program" in urls
         assert "https://www.emb3rs.eu/" in urls
+
+    @pytest.mark.small
+    def test_protected_recall_excludes_the_reviewers_removals(self):
+        """FAILS ON OLD BEHAVIOR. She has since reviewed all three of these
+        and marked them Remove; a protected-recall floor that still demands
+        them back is demanding the wrong answer."""
+        urls = protected_urls()
+        assert "https://www.climateneutraldatacentre.net/" not in urls
+        assert "https://legislation.nysenate.gov/pdf/bills/2021/S9422" not in urls
+        assert (
+            "https://www.epw.senate.gov/public/_cache/files/e/2/e2c78ea9-0e16-4588-888f-"
+            "b9b2e57c3fb6/B99FED5139B823395EFC442BF75CF687E7275CBA19F73D8C9A3B5E3E5AF1474D."
+            "maz25018.pdf/"
+        ) not in urls
 
     @pytest.mark.small
     def test_every_protected_entry_explains_itself(self):
@@ -170,6 +189,17 @@ class TestProtectedRecall:
     @pytest.mark.small
     def test_nothing_is_protected_twice(self):
         assert len(protected_urls()) == len(PROTECTED_RECALL)
+
+    @pytest.mark.small
+    def test_protected_recall_has_the_expected_count_after_wp1(self):
+        """11 remain of the original 13 (2 removed on her word) plus her 32
+        keeps, deduplicated against what was already there. Not "32 + (13 -
+        3)" = 42: ten of her 32 keeps were already on the original list
+        (Noord-Holland, the German EnEfG, Norway's mandate, the EU EED, the
+        WA program, NYSERDA, EMB3RS, HB 2578, DOE COOLERCHIPS, the AI
+        executive order), and adding them again would fail
+        test_nothing_is_protected_twice above. 11 + (32 - 10) = 33."""
+        assert len(PROTECTED_RECALL) == 33
 
     @pytest.mark.small
     def test_a_trivially_different_address_is_not_a_loss(self):
