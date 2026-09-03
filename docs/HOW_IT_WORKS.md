@@ -276,6 +276,49 @@ Reading her column into the app is
 [ADR-0005](decisions/ADR-0005-the-reviewers-column-is-the-review-record.md),
 proposed.
 
+**The import** (`src.output.import_reviews`, WP-2) is the mechanism ADR-0005
+proposes, built and tested but shipped switched off. Run a dry run first:
+
+```
+python -m src.output.import_reviews --dry-run
+```
+
+That reports counts (how many rows would change, how many are already
+correct, how many URLs in her column are not yet in the store, how many
+rows are still `tbd`, blank or unreachable) and previews the first ten
+changes as `url: from -> to (note)`, writing nothing. Drop `--dry-run` to
+apply. `--from-csv PATH` reads a CSV export instead of the live sheet (no
+network, no `.env`); `--spreadsheet-id ID` overrides which sheet; `--keep-as
+reviewed|promoted` overrides what a keep verdict maps to.
+
+What it never does: it never writes into her column - read-only against the
+sheet, write-only against the store. It never downgrades a `promoted` row
+to `reviewed` - a person moved that row to the master tab, and a later keep
+verdict does not undo that. And it never blocks a scan: when
+`output.import_reviews_before_scan` is true, `fire_schedule` runs it
+immediately before `start_scan`, but a sheet it cannot reach is logged as a
+warning and the scan fires anyway - a review import is a convenience for
+that run, not a dependency of it.
+
+Two settings, both in `config/settings.yaml` under `output:`, both off/unset
+by default:
+
+- `review_spreadsheet_id` - the reviewer's sheet of record, when it differs
+  from `spreadsheet_id` (production's points at a copy; see ADR-0005's
+  Evidence). Unset falls back to `spreadsheet_id`. Override with
+  `POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID`.
+- `import_reviews_before_scan` - whether the import above runs automatically
+  before each monthly scan. `false` until ADR-0005 is accepted; today's
+  behavior is unchanged either way.
+
+`python -m src.output.import_reviews --add-reason-column` is a separate,
+one-shot command - never run by a scan or the schedule - that appends a
+fixed-dropdown "Reason (fixed list)" column to Staging, after her own
+column, with the same eight categories `src.eval.sheet_labels.CATEGORIES`
+uses, so the next review round can be counted without reading every cell.
+It changes one header and one column's validation rule, nothing else, and
+prints what it did.
+
 ## The reviewer's vocabulary, and which gate answers each reason
 
 From her review of 143 rows on the Staging tab, read 2 September 2026: 32
@@ -292,7 +335,7 @@ each:
 | Data centre present, no heat-reuse substance | 6 | The screener's quote question | about $0.002 per page | planned, WP-5 |
 | Duplicate, or news about a policy already kept | 4 | Same-instrument check against kept rows | free | built, WP-4 |
 | Only in Dutch (to be decided, not removed) | 10 | English title backfill, translated-page link | cents | built, not applied |
-| No reason given | 4 | A fixed reason list in the sheet, so the next round can be counted | free | planned, WP-2 |
+| No reason given | 4 | A fixed reason list in the sheet, so the next round can be counted | free | built, WP-2; waits for the reviewer |
 
 Rows carry two reasons where she gave two, so the column does not sum to 88.
 The full mapping, row by row, is in the working document "What Anna's

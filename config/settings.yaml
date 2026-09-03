@@ -136,6 +136,27 @@ output:
   # Name of the staging sheet (will be created if doesn't exist)
   staging_sheet_name: "Staging"
 
+  # The reviewer's sheet of record for src.output.import_reviews (ADR-0005).
+  # Production's spreadsheet_id above points at a copy of the Heat Reuse
+  # Policies Database, not the sheet she actually reviews - this lets the
+  # importer read her real column without changing where exports go.
+  # null falls back to spreadsheet_id (a single-sheet setup needs nothing
+  # here). Override with POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID.
+  review_spreadsheet_id: null
+
+  # Whether the review import runs automatically before each monthly scan.
+  # Off by default: ADR-0005 (the reviewer's column is the review record) is
+  # Proposed, not Accepted - this mechanism is built and tested but shipped
+  # switched off until the owner accepts it. See docs/HOW_IT_WORKS.md "9.
+  # Review" and python -m src.output.import_reviews to run it by hand.
+  import_reviews_before_scan: false
+
+  # The review_status a "keep" verdict in her column maps to: "reviewed" or
+  # "promoted". "promoted" keeps its existing meaning - moved to the master
+  # tab by a person - and a keep verdict never downgrades an already-promoted
+  # row to this value, whatever it is set to.
+  review_keep_status: "reviewed"
+
   # Whether to save page snapshots
   save_snapshots: true
 

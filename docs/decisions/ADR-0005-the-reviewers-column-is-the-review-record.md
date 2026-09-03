@@ -37,6 +37,8 @@ reading every cell. Her free-text column stays.
 The public visibility posture moves to "reviewed only by default, visitors
 can switch".
 
+Implementation note: mechanism built 2026-09-03 (WP-2), shipped switched off.
+
 Pending the owner's word: the `keep` to `reviewed` mapping, and pointing
 production at the sheet of record (it currently writes to a copy, so scans
 since July have not reached her tab).

@@ -8,6 +8,14 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-03 A one-way import (`python -m src.output.import_reviews`) can now
+  read the reviewer's verdicts off the Staging sheet and set each matching
+  policy's review status to match: a keep becomes `reviewed`, a remove
+  becomes `rejected` with her reason recorded. Built and tested this round,
+  but shipped switched off (`output.import_reviews_before_scan: false`) -
+  ADR-0005 is still Proposed, so nothing a visitor or reviewer sees changes
+  yet. Also adds a one-shot `--add-reason-column` command that appends a
+  fixed-dropdown Reason column to Staging, for the next review round.
 - 2026-09-02 A page that is a missing-document placeholder in disguise (a
   "soft 404": a 200 status with "page not found" where the document should
   be) is now dropped before it costs a screening or analysis call, in nine

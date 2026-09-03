@@ -219,7 +219,7 @@ class TestSheetsClient:
         count = client.append_policies(policies)
 
         assert count == 2
-        mock_sheet.append_rows.assert_called_once()
+        assert mock_sheet.append_rows.call_count == 1
         rows = mock_sheet.append_rows.call_args[0][0]
         assert len(rows) == 2
         # URL is the "Link" column (index 10), not column A.
@@ -364,8 +364,7 @@ class TestSheetsClient:
         count = client.append_policies(policies)
 
         assert count == 0
-        mock_sheet.append_rows.assert_not_called()
-
+        assert mock_sheet.append_rows.call_count == 0
     def test_get_existing_urls_reads_link_column(self):
         """get_existing_urls locates the Link column by header, not column A."""
         try:
@@ -386,6 +385,8 @@ class TestSheetsClient:
         urls = client.get_existing_urls()
 
         mock_sheet.col_values.assert_called_once_with(link_idx)
+
+        assert mock_sheet.col_values.call_count == 1
         assert urls == {"https://a.gov", "https://b.gov"}
 
     def test_read_staging_rows_returns_records(self):
@@ -409,7 +410,9 @@ class TestSheetsClient:
         rows = client.read_staging_rows()
 
         mock_spreadsheet.worksheet.assert_called_once_with("Staging")
-        mock_sheet.get_all_records.assert_called_once()
+
+        assert mock_spreadsheet.worksheet.call_count == 1
+        assert mock_sheet.get_all_records.call_count == 1
         assert rows == records
 
     def test_read_staging_rows_missing_sheet_returns_empty(self):
@@ -472,7 +475,7 @@ class TestSheetsClientHeaderAlignment:
 
         # Header row: the reviewer's column (position 29) is untouched; the
         # two new PolicyPulse headers land at 30 (AD) and 31 (AE).
-        mock_sheet.update.assert_called_once()
+        assert mock_sheet.update.call_count == 1
         values, cell_range = mock_sheet.update.call_args[0]
         assert values == [["Name (English)", "Read in English"]]
         assert cell_range == "AD1:AE1"
@@ -559,6 +562,137 @@ class TestSheetsClientHeaderAlignment:
         assert cell_range == "A1:AD1"  # 28 STAGING_HEADERS + 2 appended = 30 cols
 
 
+class TestSheetsClientAddReasonColumn:
+    """SheetsClient.add_reason_column (WP-2, ADR-0005) - explicit and off by
+    default: only ever reached via `python -m src.output.import_reviews
+    --add-reason-column`, never by a scan or the schedule runner."""
+
+    REVIEWER_HEADER = (
+        "Review (Is website trustworthy? Is the policy focused on data center "
+        "heat reuse explicitly? Is it duplicative? Is it actually a policy? "
+        "Are proposed and enacted policies differentiated?)"
+    )
+
+    def _client(self, header_row, row_count=1000, col_count=None):
+        from src.output.sheets import SheetsClient
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+        sheet = MagicMock()
+        sheet.row_values.return_value = list(header_row)
+        sheet.row_count = row_count
+        sheet.col_count = col_count if col_count is not None else len(header_row) + 10
+        sheet.id = 456
+        spreadsheet = MagicMock()
+        spreadsheet.worksheet.return_value = sheet
+        client._spreadsheet = spreadsheet
+        return client, sheet, spreadsheet
+
+    @pytest.mark.small
+    def test_adds_header_after_the_reviewers_column_with_dropdown_validation(self):
+        from src.eval.sheet_labels import CATEGORIES
+
+        headers = list(STAGING_HEADERS) + [self.REVIEWER_HEADER]  # 29 headers
+        client, sheet, spreadsheet = self._client(headers, row_count=1000)
+
+        added = client.add_reason_column()
+
+        assert added is True
+        # Header written at column 30 (AD), nowhere else.
+        values, cell_range = sheet.update.call_args[0]
+        assert values == [["Reason (fixed list)"]]
+        assert cell_range == "AD1:AD1"
+
+        # One setDataValidation request, column 30 only, rows 2..1000.
+        assert spreadsheet.batch_update.call_count == 1
+        body = spreadsheet.batch_update.call_args[0][0]
+        requests = body["requests"]
+        assert len(requests) == 1
+        rule_range = requests[0]["setDataValidation"]["range"]
+        assert rule_range["sheetId"] == 456
+        assert rule_range["startColumnIndex"] == 29
+        assert rule_range["endColumnIndex"] == 30
+        assert rule_range["startRowIndex"] == 1
+        assert rule_range["endRowIndex"] == 1000
+        condition = requests[0]["setDataValidation"]["rule"]["condition"]
+        assert condition["type"] == "ONE_OF_LIST"
+        assert [v["userEnteredValue"] for v in condition["values"]] == list(CATEGORIES)
+        rule = requests[0]["setDataValidation"]["rule"]
+        assert rule["showCustomUi"] is True
+        assert rule["strict"] is False
+
+    @pytest.mark.small
+    def test_every_existing_header_is_untouched(self):
+        headers = list(STAGING_HEADERS) + [self.REVIEWER_HEADER]
+        client, sheet, _ = self._client(headers, row_count=1000)
+
+        client.add_reason_column()
+
+        # update() is called exactly once, for the new header only - the
+        # other 29 headers are never part of any write.
+        assert sheet.update.call_count == 1
+        values, _ = sheet.update.call_args[0]
+        assert values == [["Reason (fixed list)"]]
+
+    @pytest.mark.small
+    def test_widens_a_tab_with_no_spare_columns(self):
+        headers = list(STAGING_HEADERS) + [self.REVIEWER_HEADER]
+        client, sheet, _ = self._client(headers, row_count=1000, col_count=len(headers))
+
+        client.add_reason_column()
+
+        sheet.add_cols.assert_called_once_with(1)
+
+
+        assert sheet.add_cols.call_count == 1
+    @pytest.mark.small
+    def test_a_tab_with_a_spare_column_is_not_widened(self):
+        headers = list(STAGING_HEADERS) + [self.REVIEWER_HEADER]
+        client, sheet, _ = self._client(headers, row_count=1000, col_count=len(headers) + 5)
+
+        client.add_reason_column()
+
+        assert sheet.add_cols.call_count == 0
+    @pytest.mark.small
+    def test_returns_false_and_changes_nothing_when_header_already_present(self):
+        headers = list(STAGING_HEADERS) + [self.REVIEWER_HEADER, "Reason (fixed list)"]
+        client, sheet, spreadsheet = self._client(headers, row_count=1000)
+
+        added = client.add_reason_column()
+
+        assert added is False
+        assert sheet.update.call_count == 0
+        assert sheet.add_cols.call_count == 0
+        assert spreadsheet.batch_update.call_count == 0
+    @pytest.mark.small
+    def test_header_match_is_stripped_and_case_insensitive(self):
+        headers = list(STAGING_HEADERS) + [self.REVIEWER_HEADER, "reason (FIXED LIST) "]
+        client, sheet, spreadsheet = self._client(headers, row_count=1000)
+
+        added = client.add_reason_column()
+
+        assert added is False
+        assert sheet.update.call_count == 0
+    @pytest.mark.small
+    def test_custom_sheet_name_header_and_options_are_honoured(self):
+        client, sheet, spreadsheet = self._client(["A", "B"], row_count=50)
+
+        added = client.add_reason_column(
+            sheet_name="Other", header="My Reason", options=("x", "y"),
+        )
+
+        spreadsheet.worksheet.assert_called_once_with("Other")
+
+        assert spreadsheet.worksheet.call_count == 1
+        assert added is True
+        values, cell_range = sheet.update.call_args[0]
+        assert values == [["My Reason"]]
+        assert cell_range == "C1:C1"
+        requests = spreadsheet.batch_update.call_args[0][0]["requests"]
+        condition = requests[0]["setDataValidation"]["rule"]["condition"]
+        assert [v["userEnteredValue"] for v in condition["values"]] == ["x", "y"]
+
+
 class TestSheetsClientUpdateReviewStatuses:
     """SheetsClient.update_review_statuses — one-way (app -> sheet), URL-matched
     batch write to the Review Status column. Used by the scan-end
@@ -585,7 +719,7 @@ class TestSheetsClientUpdateReviewStatuses:
         count = client.update_review_statuses({"https://a.gov/p1": "rejected"})
 
         assert count == 1
-        mock_sheet.batch_update.assert_called_once()
+        assert mock_sheet.batch_update.call_count == 1
         updates = mock_sheet.batch_update.call_args[0][0]
         assert len(updates) == 1
         review_col = STAGING_HEADERS.index("Review Status") + 1
@@ -627,8 +761,7 @@ class TestSheetsClientUpdateReviewStatuses:
         count = client.update_review_statuses({"https://nope.gov/x": "rejected"})
 
         assert count == 0
-        mock_sheet.batch_update.assert_not_called()
-
+        assert mock_sheet.batch_update.call_count == 0
     def test_empty_input_returns_zero_without_touching_the_sheet(self):
         from src.output.sheets import SheetsClient
 
@@ -674,7 +807,7 @@ class TestSheetsClientExportTips:
 
         client.export_tips([])
 
-        mock_spreadsheet.add_worksheet.assert_called_once()
+        assert mock_spreadsheet.add_worksheet.call_count == 1
         _, kwargs = mock_spreadsheet.add_worksheet.call_args
         assert kwargs["cols"] == len(TIP_HEADERS)
 
@@ -687,8 +820,9 @@ class TestSheetsClientExportTips:
 
         client.export_tips([])
 
-        mock_spreadsheet.add_worksheet.assert_not_called()
+        assert mock_spreadsheet.add_worksheet.call_count == 0
         mock_spreadsheet.worksheet.assert_called_with("Tips")
+        assert mock_spreadsheet.worksheet.call_count == 1
         assert mock_spreadsheet.add_worksheet.call_count == 0
         assert mock_spreadsheet.worksheet.call_count == 1
 
@@ -711,7 +845,7 @@ class TestSheetsClientExportTips:
         count = client.export_tips([lead])
 
         assert count == 1
-        mock_sheet.update.assert_called_once()
+        assert mock_sheet.update.call_count == 1
         values, _range = mock_sheet.update.call_args[0]
         assert values[0] == TIP_HEADERS
         row = values[1]
@@ -794,7 +928,7 @@ class TestSheetsClientExportTips:
         count = client.export_tips([])
 
         assert count == 0
-        mock_sheet.clear.assert_called_once()
+        assert mock_sheet.clear.call_count == 1
         values, _range = mock_sheet.update.call_args[0]
         assert values == [TIP_HEADERS]
 
@@ -812,9 +946,7 @@ class TestSheetsClientExportTips:
         client.export_tips([lead])
 
         assert mock_sheet.clear.call_count == 2
-        mock_sheet.append_rows.assert_not_called()
-
-
+        assert mock_sheet.append_rows.call_count == 0
 class TestHeaderAlignmentAgainstARealTab:
     """Two things a MagicMock sheet cannot teach on its own (ADR-0009).
 
@@ -848,6 +980,7 @@ class TestHeaderAlignmentAgainstARealTab:
         client, sheet = self._client(headers, col_count=len(headers))
         client._ensure_policypulse_headers(sheet)
         sheet.add_cols.assert_called_once_with(len(POLICYPULSE_APPENDED_HEADERS))
+        assert sheet.add_cols.call_count == 1
         written = sheet.update.call_args[0][0][0]
         assert written == list(POLICYPULSE_APPENDED_HEADERS)
 

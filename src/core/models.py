@@ -451,6 +451,19 @@ class OutputSettings(BaseModel):
     spreadsheet_id: Optional[str] = None
     staging_sheet_name: str = "Staging"
     google_credentials_b64: Optional[str] = None
+    # The reviewer's sheet of record (ADR-0005) - production's spreadsheet_id
+    # points at a copy, so the review importer needs its own, independently
+    # overridable id. None means "same sheet as spreadsheet_id"; ConfigLoader
+    # resolves that fallback at load time (src/core/config.py).
+    review_spreadsheet_id: Optional[str] = None
+    # Whether src.orchestration.schedule_runner.fire_schedule runs the review
+    # import before each monthly scan. Off by default: ADR-0005 is Proposed,
+    # not Accepted, so this mechanism ships built but switched off (WP-2).
+    import_reviews_before_scan: bool = False
+    # The status a "keep" verdict in her column maps to. "promoted" keeps its
+    # existing meaning - moved to the master tab by a person - and a keep
+    # never downgrades an already-promoted row to this value.
+    review_keep_status: Literal["reviewed", "promoted"] = "reviewed"
 
 
 class AppSettings(BaseModel):
