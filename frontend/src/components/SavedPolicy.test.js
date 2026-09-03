@@ -145,3 +145,82 @@ describe('SavedPolicy English title (WP-35)', () => {
         expect(container.querySelector('.original-name')).not.toBeInTheDocument();
     });
 });
+
+describe('SavedPolicy Read in English link (WP-9b)', () => {
+    function dualLanguagePolicy(overrides = {}) {
+        return policy({
+            url: 'https://wetten.overheid.nl/wet-collectieve-warmte',
+            source_language: 'nl',
+            policy_name: 'Wet collectieve warmte',
+            policy_name_en: 'Collective Heat Act',
+            read_in_english_url: 'https://example.translate.goog/wet-collectieve-warmte',
+            ...overrides,
+        });
+    }
+
+    function expandDualLanguageCard() {
+        fireEvent.click(screen.getByRole('button', { name: /Collective Heat Act/ }));
+    }
+
+    it('renders the English name, the original name, and a Read in English link when read_in_english_url is present', () => {
+        const { container } = render(<SavedPolicy policy={dualLanguagePolicy()} tags={{}} />);
+
+        expect(screen.getByText('Collective Heat Act')).toBeInTheDocument();
+        const originalName = container.querySelector('.original-name');
+        expect(originalName).toBeInTheDocument();
+        expect(originalName).toHaveTextContent('Wet collectieve warmte');
+
+        expandDualLanguageCard();
+
+        const readLink = screen.getByRole('link', { name: 'Read in English' });
+        expect(readLink).toHaveAttribute(
+            'href', 'https://example.translate.goog/wet-collectieve-warmte',
+        );
+        expect(readLink).toHaveAttribute('target', '_blank');
+        expect(readLink).toHaveAttribute('rel', 'noopener noreferrer');
+        expect(readLink).toHaveAttribute(
+            'title',
+            'Machine translation of the original page by Google Translate. '
+            + 'The original link stays the link of record.',
+        );
+    });
+
+    it('keeps the original View Full Policy link unchanged alongside the new one', () => {
+        render(<SavedPolicy policy={dualLanguagePolicy()} tags={{}} />);
+        expandDualLanguageCard();
+
+        const viewLink = screen.getByRole('link', { name: 'View Full Policy' });
+        expect(viewLink).toHaveAttribute('href', 'https://wetten.overheid.nl/wet-collectieve-warmte');
+    });
+
+    it('renders no Read in English link when read_in_english_url is null', () => {
+        render(<SavedPolicy policy={dualLanguagePolicy({ read_in_english_url: null })} tags={{}} />);
+        expandDualLanguageCard();
+
+        expect(screen.queryByRole('link', { name: 'Read in English' })).not.toBeInTheDocument();
+    });
+
+    it('renders no Read in English link when read_in_english_url is absent', () => {
+        const policyWithoutField = dualLanguagePolicy();
+        delete policyWithoutField.read_in_english_url;
+        render(<SavedPolicy policy={policyWithoutField} tags={{}} />);
+        expandDualLanguageCard();
+
+        expect(screen.queryByRole('link', { name: 'Read in English' })).not.toBeInTheDocument();
+    });
+
+    it('shows the name once when policy_name_en equals policy_name, but still shows the Read in English link', () => {
+        render(
+            <SavedPolicy
+                policy={dualLanguagePolicy({ policy_name_en: 'Wet collectieve warmte' })}
+                tags={{}}
+            />
+        );
+        expect(screen.getByText('Wet collectieve warmte')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: /Wet collectieve warmte/ }));
+        expect(screen.getByRole('link', { name: 'Read in English' })).toHaveAttribute(
+            'href', 'https://example.translate.goog/wet-collectieve-warmte',
+        );
+    });
+});

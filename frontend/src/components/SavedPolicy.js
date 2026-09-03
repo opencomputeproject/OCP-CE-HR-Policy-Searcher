@@ -368,6 +368,17 @@ function SavedPolicy({ policy, tags = {}, isAdmin = false }) {
                         >
                             View Full Policy
                         </a>
+                        {policy.read_in_english_url && (
+                            <a
+                                href={policy.read_in_english_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="action-link secondary read-in-english-link"
+                                title="Machine translation of the original page by Google Translate. The original link stays the link of record."
+                            >
+                                Read in English
+                            </a>
+                        )}
                     </div>
                 </div>
             )}

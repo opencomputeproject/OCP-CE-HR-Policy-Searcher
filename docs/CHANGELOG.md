@@ -8,6 +8,9 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-02 In the app, a non-English policy now shows a "Read in English"
+  link beside its source link, opening a machine translation of the original
+  page in a new tab. The original link stays the link of record.
 - 2026-09-02 The first golden set exists: 120 of the reviewer's own
   decisions (32 keeps, 88 removes, each with a reason), turned into a
   labelled set the pipeline can be scored against
