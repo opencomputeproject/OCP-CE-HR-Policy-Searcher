@@ -8,7 +8,7 @@ matching the mocking style in tests/unit/test_sheets.py: no network calls.
 import pytest
 
 from src.core.models import Policy, PolicyType
-from src.core.policy_schema import STAGING_HEADERS
+from src.core.policy_schema import STAGING_HEADERS, to_staging_row
 from src.output.import_sheet import ImportSummary, import_from_sheet, main, map_row_to_policy
 from src.storage.store import PolicyStore
 
@@ -28,7 +28,7 @@ def _make_policy(url: str = "https://a.gov/p1", **overrides) -> Policy:
 
 def _row(policy: Policy) -> dict:
     """Header-keyed row dict, matching what gspread's get_all_records() returns."""
-    return dict(zip(STAGING_HEADERS, policy.to_sheet_row()))
+    return dict(zip(STAGING_HEADERS, to_staging_row(policy)))
 
 
 class FakeSheetsClient:

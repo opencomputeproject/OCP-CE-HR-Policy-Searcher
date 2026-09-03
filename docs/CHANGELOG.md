@@ -8,6 +8,15 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-02 A reviewer who reads only English can now find and read a
+  non-English policy without translating it by hand: searching the English
+  name now finds the row, and a non-English row carries a "Read in English"
+  link to a translated copy of the source page. Still one row per document,
+  never one per language.
+- 2026-09-02 Sheet exports now align to whatever header row the sheet
+  actually has and only ever add columns at the end, so a reviewer's own
+  column added to the Staging sheet is never moved, renamed, or overwritten
+  by a scan.
 - 2026-09-02 The reasoning behind every filter is now written down where a
   person can read it (`docs/HOW_IT_WORKS.md`), with decision records and a
   lessons register that a test keeps honest. Nothing about scan behaviour

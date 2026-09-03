@@ -11,7 +11,7 @@ import gspread
 import pytest
 
 from src.core.models import Policy, PolicyType, VerificationFlag
-from src.core.policy_schema import STAGING_HEADERS
+from src.core.policy_schema import POLICYPULSE_APPENDED_HEADERS, STAGING_HEADERS, to_staging_row
 from src.storage.leads import Lead
 
 
@@ -52,7 +52,7 @@ class TestPolicySheetHeaders:
 
 
 class TestPolicyToSheetRow:
-    """Test Policy.to_sheet_row()."""
+    """Test to_staging_row(), the Staging serialisation."""
 
     def test_full_row(self):
         policy = Policy(
@@ -75,7 +75,7 @@ class TestPolicyToSheetRow:
             lifecycle_stage="enacted",
             verification_flags=[VerificationFlag.GENERIC_NAME],
         )
-        row = policy.to_sheet_row()
+        row = to_staging_row(policy)
 
         assert len(row) == 28
         # Master columns
@@ -116,7 +116,7 @@ class TestPolicyToSheetRow:
             summary="Minimal",
             relevance_score=5,
         )
-        row = policy.to_sheet_row()
+        row = to_staging_row(policy)
 
         assert len(row) == 28
         assert row[0] == "North America"   # US -> North America
@@ -144,7 +144,7 @@ class TestPolicyToSheetRow:
                 VerificationFlag.FUTURE_DATE,
             ],
         )
-        row = policy.to_sheet_row()
+        row = to_staging_row(policy)
         assert row[22] == "jurisdiction_mismatch, future_date"
 
     def test_row_with_referenced_policies(self):
@@ -159,7 +159,7 @@ class TestPolicyToSheetRow:
             referenced_policies=["EU EED Art 26", "EnEfG §12"],
             referenced_urls=["https://eur-lex.europa.eu/x", "https://bmwk.de/y"],
         )
-        row = policy.to_sheet_row()
+        row = to_staging_row(policy)
         assert row[0] == "Europe"
         assert row[1] == "EU Member States"
         assert row[23] == "EU EED Art 26; EnEfG §12"
@@ -174,7 +174,7 @@ class TestPolicyToSheetRow:
             summary="Length check",
             relevance_score=7,
         )
-        assert len(policy.to_sheet_row()) == len(Policy.sheet_headers())
+        assert len(to_staging_row(policy)) == len(Policy.sheet_headers())
 
 
 class TestSheetsClient:
@@ -426,6 +426,137 @@ class TestSheetsClient:
         client._spreadsheet = mock_spreadsheet
 
         assert client.read_staging_rows() == []
+
+
+@pytest.mark.small
+class TestSheetsClientHeaderAlignment:
+    """append_policies aligns to whatever header row the sheet actually
+    has, appending only the PolicyPulse headers it is missing at the end -
+    after any column PolicyPulse did not create, such as the reviewer's
+    own - and never moving or renaming an existing header (WP-9a / ADR-0009).
+    """
+
+    REVIEWER_HEADER = (
+        "Review (Is website trustworthy? Is the policy focused on data center "
+        "heat reuse explicitly? Is it duplicative? Is it actually a policy? "
+        "Are proposed and enacted policies differentiated?)"
+    )
+
+    def _client_with_reviewer_column(self):
+        from src.output.sheets import SheetsClient
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+        mock_sheet = MagicMock()
+        mock_sheet.row_values.return_value = list(STAGING_HEADERS) + [self.REVIEWER_HEADER]
+        mock_sheet.col_values.return_value = ["Link"]  # no existing URLs
+        mock_spreadsheet = MagicMock()
+        mock_spreadsheet.worksheet.return_value = mock_sheet
+        client._spreadsheet = mock_spreadsheet
+        return client, mock_sheet
+
+    def test_appends_policypulse_headers_after_reviewer_column(self):
+        client, mock_sheet = self._client_with_reviewer_column()
+        policy = Policy(
+            url="https://nl.gov/wet",
+            policy_name="Wet collectieve warmte",
+            policy_name_en="Collective Heat Act",
+            jurisdiction="Netherlands",
+            policy_type=PolicyType.LAW,
+            summary="s",
+            relevance_score=7,
+            source_language="Dutch",
+        )
+
+        client.append_policies([policy])
+
+        # Header row: the reviewer's column (position 29) is untouched; the
+        # two new PolicyPulse headers land at 30 (AD) and 31 (AE).
+        mock_sheet.update.assert_called_once()
+        values, cell_range = mock_sheet.update.call_args[0]
+        assert values == [["Name (English)", "Read in English"]]
+        assert cell_range == "AD1:AE1"
+
+        # Data row aligned to that 31-wide header row.
+        rows = mock_sheet.append_rows.call_args[0][0]
+        assert len(rows) == 1
+        row = rows[0]
+        assert len(row) == 31
+        assert row[28] == ""                       # position 29: reviewer's column
+        assert row[29] == "Collective Heat Act"     # position 30: Name (English)
+        assert row[30].startswith("https://nl-gov.translate.goog/wet")  # position 31
+
+    def test_second_call_does_not_append_headers_again(self):
+        client, mock_sheet = self._client_with_reviewer_column()
+        client.append_policies([
+            Policy(
+                url="https://nl.gov/wet", policy_name="Wet", jurisdiction="Netherlands",
+                policy_type=PolicyType.LAW, summary="s", relevance_score=7,
+            ),
+        ])
+        assert mock_sheet.update.call_count == 1
+
+        # The sheet now actually carries the appended headers.
+        mock_sheet.row_values.return_value = (
+            list(STAGING_HEADERS) + [self.REVIEWER_HEADER, *POLICYPULSE_APPENDED_HEADERS]
+        )
+        mock_sheet.col_values.return_value = ["Link"]
+
+        client.append_policies([
+            Policy(
+                url="https://nl.gov/wet2", policy_name="Wet 2", jurisdiction="Netherlands",
+                policy_type=PolicyType.LAW, summary="s", relevance_score=7,
+            ),
+        ])
+
+        assert mock_sheet.update.call_count == 1  # no second header-writing call
+        assert mock_sheet.append_rows.call_count == 2
+
+    def test_existing_headers_are_never_moved_or_renamed(self):
+        """A plain sheet with no reviewer column: appending PolicyPulse
+        headers must not touch the original 28, in text or in position."""
+        from src.output.sheets import SheetsClient
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+        mock_sheet = MagicMock()
+        mock_sheet.row_values.return_value = list(STAGING_HEADERS)
+        mock_sheet.col_values.return_value = ["Link"]
+        mock_spreadsheet = MagicMock()
+        mock_spreadsheet.worksheet.return_value = mock_sheet
+        client._spreadsheet = mock_spreadsheet
+
+        client.append_policies([
+            Policy(
+                url="https://a.gov/p1", policy_name="Policy A", jurisdiction="US",
+                policy_type=PolicyType.LAW, summary="s", relevance_score=8,
+            ),
+        ])
+
+        values, cell_range = mock_sheet.update.call_args[0]
+        assert values == [["Name (English)", "Read in English"]]
+        assert cell_range == "AC1:AD1"
+        link_col = STAGING_HEADERS.index("Link")
+        rows = mock_sheet.append_rows.call_args[0][0]
+        assert rows[0][link_col] == "https://a.gov/p1"
+
+    def test_brand_new_sheet_gets_full_header_list(self):
+        from src.output.sheets import SheetsClient
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+        mock_new_sheet = MagicMock()
+        mock_spreadsheet = MagicMock()
+        mock_spreadsheet.worksheet.side_effect = gspread.WorksheetNotFound("Staging")
+        mock_spreadsheet.add_worksheet.return_value = mock_new_sheet
+        client._spreadsheet = mock_spreadsheet
+
+        sheet = client.get_staging_sheet()
+
+        assert sheet is mock_new_sheet
+        values, cell_range = mock_new_sheet.update.call_args[0]
+        assert values == [list(STAGING_HEADERS) + POLICYPULSE_APPENDED_HEADERS]
+        assert cell_range == "A1:AD1"  # 28 STAGING_HEADERS + 2 appended = 30 cols
 
 
 class TestSheetsClientUpdateReviewStatuses:
@@ -682,3 +813,71 @@ class TestSheetsClientExportTips:
 
         assert mock_sheet.clear.call_count == 2
         mock_sheet.append_rows.assert_not_called()
+
+
+class TestHeaderAlignmentAgainstARealTab:
+    """Two things a MagicMock sheet cannot teach on its own (ADR-0009).
+
+    A hand-typed header keeps its trailing space or its capitals, and the
+    Sheets API refuses any write past the tab's last column. Both were
+    found by reading the sheet of record, whose Staging tab is exactly as
+    wide as its last column.
+    """
+
+    REVIEWER_HEADER = "Review (Is website trustworthy? Is it actually a policy?)"
+
+    def _client(self, header_row, col_count):
+        from src.output.sheets import SheetsClient
+
+        client = SheetsClient.__new__(SheetsClient)
+        client.spreadsheet_id = "test-id"
+        sheet = MagicMock()
+        sheet.row_values.return_value = list(header_row)
+        sheet.col_values.return_value = ["Link"]
+        sheet.col_count = col_count
+        spreadsheet = MagicMock()
+        spreadsheet.worksheet.return_value = sheet
+        client._spreadsheet = spreadsheet
+        return client, sheet
+
+    @pytest.mark.small
+    def test_a_tab_as_wide_as_its_reviewer_column_is_widened_before_the_headers_are_written(self):
+        from src.core.policy_schema import POLICYPULSE_APPENDED_HEADERS
+
+        headers = list(STAGING_HEADERS) + [self.REVIEWER_HEADER]
+        client, sheet = self._client(headers, col_count=len(headers))
+        client._ensure_policypulse_headers(sheet)
+        sheet.add_cols.assert_called_once_with(len(POLICYPULSE_APPENDED_HEADERS))
+        written = sheet.update.call_args[0][0][0]
+        assert written == list(POLICYPULSE_APPENDED_HEADERS)
+
+    @pytest.mark.small
+    def test_a_tab_with_spare_columns_is_not_widened(self):
+        headers = list(STAGING_HEADERS) + [self.REVIEWER_HEADER]
+        client, sheet = self._client(headers, col_count=len(headers) + 10)
+        client._ensure_policypulse_headers(sheet)
+        assert sheet.add_cols.call_count == 0
+
+    @pytest.mark.small
+    def test_a_hand_typed_header_with_a_trailing_space_still_receives_its_value(self):
+        from src.core.policy_schema import POLICYPULSE_APPENDED_HEADERS
+        from src.output.sheets import SheetsClient
+
+        headers = [("Name " if h == "Name" else h) for h in STAGING_HEADERS]
+        headers += ["name (english) "]  # already there, typed by hand, wrong case
+        client, sheet = self._client(headers, col_count=len(headers) + 5)
+        result = client._ensure_policypulse_headers(sheet)
+        assert result[-2] == "name (english) "  # recognised in place, Read in English appended after
+        assert "Name (English)" not in result, "recognised, so not appended twice"
+        assert result.count("Read in English") == 1
+        policy = Policy(
+            url="https://example.nl/warmte", policy_name="Wet collectieve warmte",
+            policy_name_en="Collective Heat Act", jurisdiction="Netherlands",
+            policy_type=PolicyType.LAW, summary="s", relevance_score=7,
+            source_language="nl",
+        )
+        row = SheetsClient._aligned_row(policy, result)
+        assert row[headers.index("Name ")] == "Wet collectieve warmte"
+        assert row[result.index("name (english) ")] == "Collective Heat Act"
+        assert len(POLICYPULSE_APPENDED_HEADERS) == 2
+

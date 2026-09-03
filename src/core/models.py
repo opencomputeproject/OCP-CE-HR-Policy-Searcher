@@ -227,10 +227,6 @@ class Policy(BaseModel):
         from .policy_schema import STAGING_HEADERS
         return list(STAGING_HEADERS)
 
-    def to_sheet_row(self) -> list:
-        """Serialize into a Staging row matching sheet_headers()."""
-        from .policy_schema import to_staging_row
-        return to_staging_row(self)
 
 
 # --- Scan Events (WebSocket) ---

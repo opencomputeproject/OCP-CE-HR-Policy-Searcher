@@ -419,26 +419,29 @@ class PolicyStore:
             all_params = [match_query, *params]
             if conditions:
                 sql += " AND " + " AND ".join(conditions)
-            # Name matches rank far above summary/requirements/jurisdiction hits.
-            sql += " ORDER BY bm25(policies_fts, 10.0, 1.0, 1.0, 1.0) LIMIT ?"
+            # Name matches (original-language or English) rank far above
+            # summary/requirements/jurisdiction hits.
+            sql += " ORDER BY bm25(policies_fts, 10.0, 10.0, 1.0, 1.0, 1.0) LIMIT ?"
             all_params.append(limit)
             rows = self._conn.execute(sql, all_params).fetchall()
             return [json.loads(row[0]) for row in rows]
 
         # LIKE fallback: every token must substring-match at least one of
-        # the four indexed fields, case-insensitively.
+        # the five indexed fields, case-insensitively.
         like_conditions = []
         like_params: list = []
         for token in query.split():
             escaped = f"%{storage_db.escape_like(token.lower())}%"
             like_conditions.append(
                 "(LOWER(policies.policy_name) LIKE ? ESCAPE '\\' "
+                "OR LOWER(COALESCE(json_extract(policies.raw, '$.policy_name_en'), '')) "
+                "LIKE ? ESCAPE '\\' "
                 "OR LOWER(COALESCE(json_extract(policies.raw, '$.summary'), '')) LIKE ? ESCAPE '\\' "
                 "OR LOWER(COALESCE(json_extract(policies.raw, '$.key_requirements'), '')) "
                 "LIKE ? ESCAPE '\\' "
                 "OR LOWER(policies.jurisdiction) LIKE ? ESCAPE '\\')"
             )
-            like_params.extend([escaped] * 4)
+            like_params.extend([escaped] * 5)
 
         sql = "SELECT policies.raw FROM policies"
         all_conditions = conditions + like_conditions

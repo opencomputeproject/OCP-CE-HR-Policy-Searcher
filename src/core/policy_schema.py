@@ -14,6 +14,7 @@ import re
 from datetime import datetime
 
 from src.agent.domain_generator import US_STATE_ABBREVS
+from src.core.urls import translated_url
 
 # --- Master "Heat Reuse Policies Database" columns (exact header text) ---
 MASTER_HEADERS = [
@@ -53,6 +54,11 @@ EXTRA_HEADERS = [
 ]
 
 STAGING_HEADERS = MASTER_HEADERS + EXTRA_HEADERS
+
+# PolicyPulse headers appended after whatever headers the sheet already has
+# (see SheetsClient.append_policies, ADR-0009) - never inserted positionally,
+# so a reviewer's own appended column is never overwritten.
+POLICYPULSE_APPENDED_HEADERS = ["Name (English)", "Read in English"]
 
 # Header of the column holding a policy's canonical URL. scan_manager dedupes
 # staged rows against this column, so keep it in sync with the "Link" mapping.
@@ -389,3 +395,22 @@ def to_staging_row(policy) -> list:
         policy.domain_id or "",
         policy.error_details or "",
     ]
+
+
+def to_staging_dict(policy) -> dict[str, str]:
+    """Header-keyed row for ``policy``: every ``STAGING_HEADERS`` value plus
+    ``POLICYPULSE_APPENDED_HEADERS`` (ADR-0009 - one row per document, both
+    languages on it). Re-keys ``to_staging_row``'s own values rather than
+    recomputing them, so the two never drift on the columns they share.
+
+    ``SheetsClient.append_policies`` aligns each data row to the sheet's
+    actual header row by looking values up in this dict by header name, so
+    a header PolicyPulse does not own (a reviewer's own column) is simply
+    absent here and comes out blank - never overwritten.
+    """
+    row = dict(zip(STAGING_HEADERS, to_staging_row(policy)))
+    row["Name (English)"] = policy.policy_name_en or ""
+    row["Read in English"] = (
+        translated_url(policy.url) if policy.source_language != "English" else ""
+    )
+    return row
