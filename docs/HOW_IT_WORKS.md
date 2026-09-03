@@ -102,6 +102,33 @@ HTML and PDF become plain text (`src/core/extractor.py`). A page under fifty
 words is skipped for crawled pages only; structured records are often short
 by nature and go through.
 
+#### The link check
+
+Before that short-content check, `src/core/soft404.py` asks whether a
+crawled page is a soft 404: a missing-page placeholder answered with an
+HTTP 200, so nothing upstream ever sees an error to catch. When the
+extracted text is under 400 words, a title or the first 300 characters
+matching a pattern from a table covering nine languages ("page not found",
+"Seite nicht gefunden", "ページが見つかりません", and others), or a bare
+"404" / "Not Found" / "Error" title on a page under thirty words, drops the
+page before any model call and counts it as `filtered_link`. It never fires
+on a long page, even one that happens to contain the word "404" somewhere.
+Structured records are API records, never pages, so they skip this
+entirely, the same way they skip the keyword gate. Costs nothing: it runs
+on already-extracted text, before the cache check and before either model
+call.
+
+Deliberately narrow: a genuine landing page can be just as short as a soft
+404, so the signals require an actual not-found phrase, or a bare
+error-shaped title, rather than short length alone - one of her kept rows
+is a bare host, and a length-only rule would have dropped it.
+
+Why: the reviewer's rows, read 2 September 2026 - "not a real website" and
+"link is an error page" among the 39 rows grouped below as "Link is a
+general site, an error page, not the document". Guarded by
+`tests/unit/test_soft404.py` and the wiring tests in
+`tests/unit/test_scanner.py`.
+
 ### 3. The keyword gate (crawled pages only)
 
 `config/keywords.yaml` holds weighted term categories in twenty languages.
@@ -196,6 +223,37 @@ sheet's Link column. Everything is stored in `data/policypulse.db`, and each
 domain's finds are appended to the Staging tab as the domain completes, so a
 crash mid-scan loses nothing already found.
 
+#### Same instrument, one row
+
+Deduplication by URL only catches the same link seen twice. It does not
+catch the same instrument reached by two different links - a news story
+about a policy already kept, a second structured-source copy of one act.
+`src/core/instruments.py` turns a policy name into a small set of keys (the
+normalised full name, plus a parenthesised abbreviation like "EnEfG" when
+one is present) and `InstrumentIndex` looks a page's own title, and
+separately every policy the analysis model extracts from it, up against
+every policy already kept. A match folds the new page in instead of
+creating a second row: a title match before screening is counted as
+`filtered_duplicate` and dropped outright, for free; a policy that matches
+an existing row after analysis is dropped from the batch instead of stored.
+Either way the fold is recorded on the kept row's `related_urls`
+(`PolicyStore.add_related_url`), so a reviewer can see what folded into it.
+Costs nothing: name matching, no model call, and it runs before the
+screener would otherwise have been asked to look at the page at all.
+
+Why: the reviewer's rows, read 2 September 2026 - three news stories about
+EnEfG (the German data-centre energy efficiency act, kept under
+`https://www.gesetze-im-internet.de/enefg/`) and one repeat of a row
+already above it, grouped below as "Duplicate, or news about a policy
+already kept".
+
+Deliberately name-key and abbreviation matching only for now; matching on
+referenced/cited legislation is a separate, later idea. See
+[ADR-0010](decisions/ADR-0010-same-instrument-folds-into-the-existing-row.md).
+A genuinely new instrument whose abbreviation happens to collide with an
+existing one would be folded too, wrongly - the "Folded into `<url>`" log
+line at INFO is what makes that visible to catch.
+
 ### 9. Review
 
 The reviewer works in the Google Sheet, not the app. The sheet of record is
@@ -228,11 +286,11 @@ each:
 | Her reason | Rows | Where it can be caught | Cost | State |
 |---|---|---|---|---|
 | Not a policy: parliamentary question, written answer, transcript | 46 | At the source. DIP and Folketing already send a document-type field; Kokkai is Diet speeches by design | free | built, WP-3 |
-| Link is a general site, an error page, not the document | 39 | At the source (emit the document URL) and a fetch check before screening | free | built, WP-3 (source); planned, WP-4 (fetch check) |
+| Link is a general site, an error page, not the document | 39 | At the source (emit the document URL) and a fetch check before screening | free | built, WP-3 (source) and WP-4 (fetch check) |
 | No data centre in the bill | 14 | The scope gate, on source text | free | built |
 | Not a policy: report, article, opinion, private initiative | 12 | The screener's document-kind question | about $0.002 per page | planned, WP-5 |
 | Data centre present, no heat-reuse substance | 6 | The screener's quote question | about $0.002 per page | planned, WP-5 |
-| Duplicate, or news about a policy already kept | 4 | Same-instrument check against kept rows | free | planned, WP-4 |
+| Duplicate, or news about a policy already kept | 4 | Same-instrument check against kept rows | free | built, WP-4 |
 | Only in Dutch (to be decided, not removed) | 10 | English title backfill, translated-page link | cents | built, not applied |
 | No reason given | 4 | A fixed reason list in the sheet, so the next round can be counted | free | planned, WP-2 |
 

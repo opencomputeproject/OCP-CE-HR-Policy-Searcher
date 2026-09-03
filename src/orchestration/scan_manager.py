@@ -20,6 +20,7 @@ from ..core.config import ConfigLoader, ConfigurationError
 from ..core.log_setup import log_audit_event
 from ..core.crawler import AsyncCrawler
 from ..core.extractor import HtmlExtractor
+from ..core.instruments import InstrumentIndex
 from ..core.keywords import build_keyword_matcher
 from ..core.llm import ClaudeClient
 from ..core.models import (
@@ -375,6 +376,18 @@ class ScanManager:
         # deduplication by URL.
         store = PolicyStore(data_dir=self.data_dir)
 
+        # Same-instrument duplicate check (WP-4): seeded from every kept
+        # policy already in the store (excluding rejected ones - a rejected
+        # row should not go on attracting new pages toward it), so a page
+        # about an already-kept instrument folds into it instead of
+        # becoming a second row. store is always constructed just above,
+        # but guarded anyway so the absence of one still passes None - the
+        # same check-off default every DomainScanner call site relies on.
+        instrument_index = (
+            InstrumentIndex.from_rows(store.get_all(exclude_review_status="rejected"))
+            if store is not None else None
+        )
+
         # Incremental Google Sheets export - write policies as each domain
         # completes, not just at scan end.  This means if the user quits
         # mid-scan, all policies found so far are already in the Sheet.
@@ -476,6 +489,7 @@ class ScanManager:
                     on_event=self.broadcaster.broadcast,
                     screening_min_confidence=settings.analysis.screening_min_confidence,
                     scope_setting=settings.analysis.data_center_required,
+                    instrument_index=instrument_index,
                 )
 
                 try:
@@ -504,6 +518,15 @@ class ScanManager:
                             dp.errors = scanner.progress.errors
                             dp.error_message = scanner.progress.error_message
                             break
+
+                    # Drain this domain's same-instrument folds (WP-4) into
+                    # the store, so the relationship is durably recorded.
+                    # The shared instrument_index above (mutated directly
+                    # by DomainScanner._process_page as it runs) is what
+                    # makes the fold itself work in real time; this only
+                    # persists it for a reviewer to see later.
+                    for existing_url, new_url in scanner.duplicates:
+                        store.add_related_url(existing_url, new_url)
 
                     job.progress.completed_domains += 1
 
