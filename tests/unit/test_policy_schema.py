@@ -2,20 +2,25 @@
 
 from datetime import date, datetime
 
+import pytest
+
 from src.core.models import Policy, PolicyType, VerificationFlag
 from src.core.policy_schema import (
     MASTER_HEADERS,
+    POLICYPULSE_APPENDED_HEADERS,
     STAGING_HEADERS,
     from_staging_row,
     split_jurisdiction,
     status_label,
+    to_staging_dict,
+    to_staging_row,
     type_label,
 )
 
 
 def _row(policy: Policy) -> dict:
     """Header-keyed row dict, matching what gspread's get_all_records() returns."""
-    return dict(zip(STAGING_HEADERS, policy.to_sheet_row()))
+    return dict(zip(STAGING_HEADERS, to_staging_row(policy)))
 
 
 class TestStagingHeaders:
@@ -246,3 +251,99 @@ class TestFromStagingRow:
         policy = self._full_policy(relevance_score=0)
         kwargs = from_staging_row(_row(policy))
         assert kwargs["relevance_score"] == "0"
+
+
+@pytest.mark.small
+class TestToStagingRowLegacyLength:
+    """Regression pin (WP-9a / ADR-0009): to_staging_row must keep returning
+    exactly the 28 STAGING_HEADERS values, in order. to_staging_dict is the
+    new entry point sheet writes align to; to_staging_row must not grow
+    under whatever still calls it directly."""
+
+    def test_returns_exactly_28_values_in_staging_headers_order(self):
+        policy = Policy(
+            url="https://example.gov/policy",
+            policy_name="Test Act",
+            jurisdiction="Germany",
+            policy_type=PolicyType.LAW,
+            summary="A test law",
+            relevance_score=9,
+        )
+        row = to_staging_row(policy)
+        assert len(STAGING_HEADERS) == 28
+        assert len(row) == 28
+
+
+@pytest.mark.small
+class TestToStagingDict:
+    """to_staging_dict (WP-9a / ADR-0009): every STAGING_HEADERS value plus
+    the two PolicyPulse-appended ones, header-keyed so SheetsClient can
+    align a row to whatever header layout a sheet actually has."""
+
+    def test_covers_every_staging_header_plus_the_two_new_ones(self):
+        policy = Policy(
+            url="https://example.gov/policy",
+            policy_name="Test Act",
+            jurisdiction="Germany",
+            policy_type=PolicyType.LAW,
+            summary="A test law",
+            relevance_score=9,
+        )
+        row = to_staging_dict(policy)
+        assert set(row.keys()) == set(STAGING_HEADERS) | set(POLICYPULSE_APPENDED_HEADERS)
+
+    def test_name_english_and_read_in_english_for_non_english_source(self):
+        policy = Policy(
+            url="https://nl.gov/wet",
+            policy_name="Wet collectieve warmte",
+            policy_name_en="Collective Heat Act",
+            jurisdiction="Netherlands",
+            policy_type=PolicyType.LAW,
+            summary="s",
+            relevance_score=7,
+            source_language="Dutch",
+        )
+        row = to_staging_dict(policy)
+        assert row["Name (English)"] == "Collective Heat Act"
+        assert row["Read in English"].startswith("https://nl-gov.translate.goog/wet")
+
+    def test_blank_read_in_english_for_english_source(self):
+        policy = Policy(
+            url="https://example.gov/policy",
+            policy_name="Test Act",
+            jurisdiction="US",
+            policy_type=PolicyType.LAW,
+            summary="s",
+            relevance_score=5,
+            source_language="English",
+        )
+        row = to_staging_dict(policy)
+        assert row["Read in English"] == ""
+
+    def test_blank_name_english_when_policy_name_en_unset(self):
+        policy = Policy(
+            url="https://example.gov/policy",
+            policy_name="Test Act",
+            jurisdiction="US",
+            policy_type=PolicyType.LAW,
+            summary="s",
+            relevance_score=5,
+        )
+        row = to_staging_dict(policy)
+        assert row["Name (English)"] == ""
+
+    def test_other_columns_match_to_staging_row(self):
+        """to_staging_dict must not silently diverge from to_staging_row for
+        the columns both cover - it re-keys the same values, it does not
+        recompute them."""
+        policy = Policy(
+            url="https://example.gov/policy",
+            policy_name="Test Act",
+            jurisdiction="Germany",
+            policy_type=PolicyType.LAW,
+            summary="A test law",
+            relevance_score=9,
+        )
+        row_dict = to_staging_dict(policy)
+        row_list = to_staging_row(policy)
+        assert [row_dict[h] for h in STAGING_HEADERS] == row_list

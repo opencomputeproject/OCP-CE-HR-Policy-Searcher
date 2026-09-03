@@ -191,6 +191,11 @@ heat reuse explicitly? Is it duplicative? Is it actually a policy? Are
 proposed and enacted policies differentiated?)*, is the review record: a
 verdict word, a hyphen, a reason, in her words.
 
+The writer aligns every export to the sheet's actual header row and never
+overwrites a column it did not create, so her column - or any other reviewer
+addition to the header row - is safe across scans, wherever it sits
+([ADR-0009](decisions/ADR-0009-one-row-per-document-both-languages.md)).
+
 Review states in the app are `new`, `reviewed`, `promoted`, `rejected`. Who
 sees which is set by the public visibility posture; see
 [Who sees unreviewed records](../README.md#who-sees-unreviewed-records).
@@ -305,10 +310,15 @@ What has to be true for the output to mean what it appears to mean.
   Finnish, Icelandic, Hungarian, Japanese, Korean, Arabic) match on substrings
   rather than word boundaries, to handle compound words and scripts without
   word separators. That raises false positives in those languages.
-- Every row keeps its original-language name and its original link. The
-  summary is written in English by the analysis model. An English name is
-  filled where the model or the backfill supplied one. One row per
-  document, never one per language.
+- Every row keeps its original-language name and its original link, an
+  English summary written by the analysis model, and an optional English
+  name (`policy_name_en`) filled by the analysis model or by
+  `python -m src.output.backfill_english`. One row per document, never one
+  per language. Free-text search matches the English name as well as the
+  original-language one, and a source that is not in English gets a
+  computed "Read in English" link (Google's website-translator proxy,
+  never fetched or stored by this tool) alongside it. See
+  [ADR-0009](decisions/ADR-0009-one-row-per-document-both-languages.md).
 
 **Retrieval**
 

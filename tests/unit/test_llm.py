@@ -14,6 +14,7 @@ from src.core.models import (
     PolicyAnalysis, PolicyType, CostInfo,
     DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL,
 )
+from src.core.policy_schema import to_staging_row
 from src.core.pricing import PricingLoader
 
 
@@ -319,7 +320,7 @@ class TestToPolicy:
         # Verify end-to-end sheet serialization (Referenced Policies/URLs
         # are extra columns after the 13 master-database columns).
         from src.core.policy_schema import STAGING_HEADERS
-        row = policy.to_sheet_row()
+        row = to_staging_row(policy)
         assert row[STAGING_HEADERS.index("Referenced Policies")] == \
             "EU EED Article 26; EnEfG §12"
         assert row[STAGING_HEADERS.index("Referenced URLs")] == \

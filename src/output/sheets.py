@@ -10,7 +10,13 @@ from google.oauth2.service_account import Credentials
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from ..core.models import Policy
-from ..core.policy_schema import LINK_HEADER, REVIEW_STATUS_HEADER, STAGING_HEADERS
+from ..core.policy_schema import (
+    LINK_HEADER,
+    POLICYPULSE_APPENDED_HEADERS,
+    REVIEW_STATUS_HEADER,
+    STAGING_HEADERS,
+    to_staging_dict,
+)
 from ..storage.leads import Lead
 
 logger = logging.getLogger(__name__)
@@ -28,6 +34,11 @@ def _col_letter(n: int) -> str:
         n, rem = divmod(n - 1, 26)
         letters = chr(65 + rem) + letters
     return letters
+
+
+def _norm_header(header: str) -> str:
+    """Header text as compared everywhere in this module: stripped, lowercased."""
+    return (header or "").strip().lower()
 
 
 class SheetsClient:
@@ -57,13 +68,49 @@ class SheetsClient:
         try:
             return self._spreadsheet.worksheet(name)
         except gspread.WorksheetNotFound:
-            headers = Policy.sheet_headers()
+            headers = Policy.sheet_headers() + POLICYPULSE_APPENDED_HEADERS
             sheet = self._spreadsheet.add_worksheet(
                 name, rows=1000, cols=len(headers),
             )
             end_col = _col_letter(len(headers))
             sheet.update([headers], f"A1:{end_col}1")
             return sheet
+
+    def _ensure_policypulse_headers(self, sheet: gspread.Worksheet) -> list[str]:
+        """Extend the sheet's header row with any PolicyPulse header it is
+        missing, appended after every header already there - including a
+        column PolicyPulse did not create, such as the reviewer's own -
+        never moving or renaming an existing one (ADR-0009). Returns the
+        resulting header row.
+
+        Header presence is judged the way ``_link_column_index`` judges the
+        Link column, stripped and case-insensitive, so a hand-typed header
+        with a trailing space is still recognised rather than duplicated.
+        The Sheets API refuses a write past the tab's last column ("range
+        exceeds grid limits"), so the tab is widened first when it is too
+        narrow - a sheet that already carries a reviewer's column at 29 has
+        exactly 29 columns and would otherwise reject the 30th.
+        """
+        header_row = sheet.row_values(1)
+        present = {_norm_header(h) for h in header_row}
+        missing = [h for h in POLICYPULSE_APPENDED_HEADERS if _norm_header(h) not in present]
+        if not missing:
+            return header_row
+        start_col = len(header_row) + 1
+        end_col = start_col + len(missing) - 1
+        col_count = getattr(sheet, "col_count", None)
+        if isinstance(col_count, int) and col_count < end_col:
+            sheet.add_cols(end_col - col_count)
+        sheet.update([missing], f"{_col_letter(start_col)}1:{_col_letter(end_col)}1")
+        return header_row + missing
+
+    @staticmethod
+    def _aligned_row(policy: Policy, header_row: list[str]) -> list:
+        """A data row positionally aligned to ``header_row``, blank under
+        any header this policy's dict does not know about (ADR-0009).
+        Matching is stripped and case-insensitive, like the header check."""
+        row_dict = {_norm_header(k): v for k, v in to_staging_dict(policy).items()}
+        return [row_dict.get(_norm_header(header), "") for header in header_row]
 
     def _link_column_index(self, sheet: gspread.Worksheet) -> int:
         """1-based index of the URL column, found by header name.
@@ -123,7 +170,8 @@ class SheetsClient:
             return 0
 
         sheet = self.get_staging_sheet(sheet_name)
-        rows = [p.to_sheet_row() for p in new_policies]
+        header_row = self._ensure_policypulse_headers(sheet)
+        rows = [self._aligned_row(p, header_row) for p in new_policies]
         sheet.append_rows(rows, value_input_option="USER_ENTERED")
         return len(rows)
 

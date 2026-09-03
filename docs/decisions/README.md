@@ -27,3 +27,4 @@ same pull request as the change it explains.
 | [ADR-0005](ADR-0005-the-reviewers-column-is-the-review-record.md) | Proposed | The reviewer's sheet column is the review record; the app reads it, never rewrites it |
 | [ADR-0006](ADR-0006-one-monthly-trigger.md) | Proposed | The in-app schedule is the only thing that starts the monthly scan |
 | [ADR-0007](ADR-0007-kokkai-is-a-signals-source.md) | Proposed | Diet speeches become tips, never policy rows |
+| [ADR-0009](ADR-0009-one-row-per-document-both-languages.md) | Accepted | One row per document, both languages on it: English name is indexed, a translated-page link is computed, sheet writes are header-aligned |

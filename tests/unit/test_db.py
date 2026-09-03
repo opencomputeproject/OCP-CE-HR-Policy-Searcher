@@ -429,6 +429,36 @@ class TestSearchText:
         results = store.search_text("waste heat reuse")
         assert [r["url"] for r in results] == ["https://named.gov", "https://buried.gov"]
 
+    @pytest.mark.medium
+    def test_english_name_matches_via_fts(self, tmp_path):
+        """WP-9a: policy_name_en joins the FTS index, so a reviewer who reads
+        only English can find a policy by its English name (ADR-0009)."""
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([
+            Policy(
+                url="https://nl.gov/warmte", policy_name="Wet collectieve warmte",
+                policy_name_en="Collective Heat Act", jurisdiction="Netherlands",
+                policy_type=PolicyType.LAW, summary="s", relevance_score=7,
+                source_language="Dutch",
+            ),
+        ])
+        results = store.search_text("Collective Heat")
+        assert {r["url"] for r in results} == {"https://nl.gov/warmte"}
+
+    @pytest.mark.medium
+    def test_original_language_name_still_matches_alongside_english(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([
+            Policy(
+                url="https://nl.gov/warmte", policy_name="Wet collectieve warmte",
+                policy_name_en="Collective Heat Act", jurisdiction="Netherlands",
+                policy_type=PolicyType.LAW, summary="s", relevance_score=7,
+                source_language="Dutch",
+            ),
+        ])
+        results = store.search_text("collectieve warmte")
+        assert {r["url"] for r in results} == {"https://nl.gov/warmte"}
+
 
 class TestSearchTextLikeFallback:
     """Same fixture and assertions as TestSearchText, forced onto the LIKE
@@ -477,6 +507,21 @@ class TestSearchTextLikeFallback:
             for i in range(150)
         ])
         assert len(store.search_text("heat", limit=1000)) == 100
+
+    @pytest.mark.medium
+    def test_english_name_matches_via_like_fallback(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([
+            Policy(
+                url="https://nl.gov/warmte", policy_name="Wet collectieve warmte",
+                policy_name_en="Collective Heat Act", jurisdiction="Netherlands",
+                policy_type=PolicyType.LAW, summary="s", relevance_score=7,
+                source_language="Dutch",
+            ),
+        ])
+        results = store.search_text("Collective Heat")
+        assert {r["url"] for r in results} == {"https://nl.gov/warmte"}
 
 
 class TestConcurrentAccess:
@@ -630,3 +675,100 @@ class TestScansEstimateColumnsMigration:
         columns = [row[1] for row in conn.execute("PRAGMA table_info(scans)")]
         assert columns.count("estimated_cost_usd") == 1
         conn.close()
+
+
+@pytest.mark.medium
+class TestFtsPolicyNameEnMigration:
+    """policies_fts built before policy_name_en joined the tracked columns
+    (WP-9a / ADR-0009) is dropped and rebuilt with it, in place, the first
+    time such a database is connected to. ``_OLD_SCHEMA_FTS5`` is a frozen
+    snapshot of the pre-WP-9a DDL (the 4-column table and its 3 triggers),
+    hardcoded here the same way TestScansEstimateColumnsMigration hardcodes
+    its legacy ``scans`` DDL - the module's own ``_SCHEMA_FTS5`` constant
+    already carries the new column by the time this test runs against it.
+    """
+
+    _OLD_SCHEMA_FTS5 = """
+    CREATE VIRTUAL TABLE IF NOT EXISTS policies_fts USING fts5(
+        policy_name, summary, key_requirements, jurisdiction,
+        content='policies', content_rowid='rowid'
+    );
+
+    CREATE TRIGGER IF NOT EXISTS policies_fts_ai AFTER INSERT ON policies BEGIN
+        INSERT INTO policies_fts(rowid, policy_name, summary, key_requirements, jurisdiction)
+        VALUES (
+            new.rowid, new.policy_name,
+            json_extract(new.raw, '$.summary'),
+            json_extract(new.raw, '$.key_requirements'),
+            new.jurisdiction
+        );
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS policies_fts_ad AFTER DELETE ON policies BEGIN
+        INSERT INTO policies_fts(policies_fts, rowid, policy_name, summary, key_requirements, jurisdiction)
+        VALUES (
+            'delete', old.rowid, old.policy_name,
+            json_extract(old.raw, '$.summary'),
+            json_extract(old.raw, '$.key_requirements'),
+            old.jurisdiction
+        );
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS policies_fts_au AFTER UPDATE ON policies BEGIN
+        INSERT INTO policies_fts(policies_fts, rowid, policy_name, summary, key_requirements, jurisdiction)
+        VALUES (
+            'delete', old.rowid, old.policy_name,
+            json_extract(old.raw, '$.summary'),
+            json_extract(old.raw, '$.key_requirements'),
+            old.jurisdiction
+        );
+        INSERT INTO policies_fts(rowid, policy_name, summary, key_requirements, jurisdiction)
+        VALUES (
+            new.rowid, new.policy_name,
+            json_extract(new.raw, '$.summary'),
+            json_extract(new.raw, '$.key_requirements'),
+            new.jurisdiction
+        );
+    END;
+    """
+
+    def _make_legacy_db(self, tmp_path):
+        db_path = tmp_path / storage_db.DB_FILENAME
+        conn = sqlite3.connect(db_path)
+        conn.executescript(storage_db._SCHEMA_CORE)
+        conn.executescript(self._OLD_SCHEMA_FTS5)
+        conn.commit()
+        return conn
+
+    def test_old_index_gets_rebuilt_with_the_column_on_connect(self, tmp_path):
+        conn = self._make_legacy_db(tmp_path)
+        storage_db._insert_policy_row(conn, _full_policy_dict(
+            url="https://nl.gov/1", policy_name="Wet collectieve warmte",
+            policy_name_en="Collective Heat Act", jurisdiction="Netherlands",
+        ))
+        storage_db._insert_policy_row(conn, _full_policy_dict(
+            url="https://nl.gov/2", policy_name="Andere wet", jurisdiction="Netherlands",
+        ))
+        conn.commit()
+        conn.close()
+
+        store = PolicyStore(data_dir=str(tmp_path))
+        columns = {row[1] for row in store._conn.execute("PRAGMA table_info(policies_fts)")}
+        assert "policy_name_en" in columns
+
+        results = store.search_text("Collective Heat")
+        assert {r["url"] for r in results} == {"https://nl.gov/1"}
+
+    def test_reconnect_is_a_no_op(self, tmp_path):
+        conn = self._make_legacy_db(tmp_path)
+        storage_db._insert_policy_row(conn, _full_policy_dict(
+            url="https://nl.gov/1", policy_name="Wet collectieve warmte",
+            policy_name_en="Collective Heat Act", jurisdiction="Netherlands",
+        ))
+        conn.commit()
+        conn.close()
+
+        PolicyStore(data_dir=str(tmp_path))  # first connect: migrates
+        store2 = PolicyStore(data_dir=str(tmp_path))  # second: must be a no-op, not an error
+        results = store2.search_text("Collective Heat")
+        assert {r["url"] for r in results} == {"https://nl.gov/1"}
