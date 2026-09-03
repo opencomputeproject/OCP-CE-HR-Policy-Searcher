@@ -81,6 +81,21 @@ the 143 rows the reviewer saw came from them; about 9 came from crawled
 pages). That fact decides where every precision rule has to sit; see
 [ADR-0002](decisions/ADR-0002-structured-sources-bypass-the-keyword-gate.md).
 
+**Document types at the source.** DIP and Folketing both tag every record
+with the publisher's own document-type field, and both now check it before
+returning anything: `source_params.document_types` in
+`config/domains/api_sources.yaml` is an allow-list, defaulting to
+`DEFAULT_DOCUMENT_TYPES` (`Gesetzgebung`, `Rechtsverordnung`, `Verordnung`,
+`Antrag`) in `src/sources/dip_bundestag.py` for DIP's `vorgangstyp`, and to
+`DEFAULT_DOCUMENT_TYPE_IDS` (`[3, 5, 9]`, Lovforslag, Beslutningsforslag,
+Forslag til vedtagelse) in `src/sources/folketing.py` for Folketing's
+`typeid`. A record whose type is not on the list is dropped before any page
+is fetched or any model is called, and counted as `filtered_doc_type` on
+the domain's progress rather than folded into a total that would hide it.
+Both sources also now cite the underlying document (a PDF where one is
+found) instead of the case-overview page, falling back to the overview page
+only when no document URL resolves.
+
 ### 2. Extracting text
 
 HTML and PDF become plain text (`src/core/extractor.py`). A page under fifty
@@ -212,8 +227,8 @@ each:
 
 | Her reason | Rows | Where it can be caught | Cost | State |
 |---|---|---|---|---|
-| Not a policy: parliamentary question, written answer, transcript | 46 | At the source. DIP and Folketing already send a document-type field; Kokkai is Diet speeches by design | free | planned, WP-3 |
-| Link is a general site, an error page, not the document | 39 | At the source (emit the document URL) and a fetch check before screening | free | planned, WP-3 and WP-4 |
+| Not a policy: parliamentary question, written answer, transcript | 46 | At the source. DIP and Folketing already send a document-type field; Kokkai is Diet speeches by design | free | built, WP-3 |
+| Link is a general site, an error page, not the document | 39 | At the source (emit the document URL) and a fetch check before screening | free | built, WP-3 (source); planned, WP-4 (fetch check) |
 | No data centre in the bill | 14 | The scope gate, on source text | free | built |
 | Not a policy: report, article, opinion, private initiative | 12 | The screener's document-kind question | about $0.002 per page | planned, WP-5 |
 | Data centre present, no heat-reuse substance | 6 | The screener's quote question | about $0.002 per page | planned, WP-5 |

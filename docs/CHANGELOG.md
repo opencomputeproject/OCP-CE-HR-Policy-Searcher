@@ -8,6 +8,11 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-02 Germany (DIP) and Denmark (Folketing) no longer surface
+  parliamentary questions as if they were policies: both sources now check
+  the publisher's own document-type field before returning a record, at no
+  extra cost. A row from either source now links to the actual bill
+  document instead of a general case-overview page, when one can be found.
 - 2026-09-02 The admin scan panel now shows what the last measured run of
   the same scope actually cost beside the estimate, says in plain words when
   the two disagree, has a budget box prefilled with the default cap and a
