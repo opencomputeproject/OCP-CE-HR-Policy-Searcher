@@ -144,6 +144,11 @@ export async function buildScanRequests(selectedItems, scanOptions) {
         category: categories[0] || null,
         tags: tags.length > 0 ? tags : null,
         channels: buildChannels(scanOptions.channels),
+        // WP-6b: budget_usd omitted (null) lets the backend apply its own
+        // default; no_budget explicitly opts out of that default for one
+        // uncapped run. See DomainScanPanel's budget control.
+        budget_usd: scanOptions.budget_usd ?? null,
+        no_budget: Boolean(scanOptions.no_budget),
     };
 
     // Discovery runs an agent workflow per country, so it stays per-target.

@@ -8,6 +8,11 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-02 The admin scan panel now shows what the last measured run of
+  the same scope actually cost beside the estimate, says in plain words when
+  the two disagree, has a budget box prefilled with the default cap and a
+  "No budget" option that asks for a second click, and after a scan lists
+  what happened as sentences rather than counters.
 - 2026-09-02 In the app, a non-English policy now shows a "Read in English"
   link beside its source link, opening a machine translation of the original
   page in a new tab. The original link stays the link of record.
