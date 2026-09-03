@@ -508,16 +508,30 @@ class TestScanRoutes:
         assert response.status_code == 422
 
     @pytest.mark.medium
-    def test_start_scan_omitted_budget_usd_defaults_to_none(self, client, mock_manager):
+    def test_default_budget_applies_when_omitted_and_not_when_no_budget_is_set(
+        self, client, mock_manager,
+    ):
+        # WP-6a/PL-004: an omitted budget_usd now gets the configured
+        # default (config/settings.yaml's analysis.default_scan_budget_usd)
+        # instead of running uncapped, unless the request says no_budget.
+        mock_manager.config.settings.analysis.default_scan_budget_usd = 25.0
         job = ScanJob(scan_id="s1", status=ScanStatus.RUNNING, domain_count=1)
         mock_manager.start_scan = AsyncMock(return_value=job)
 
-        response = client.post(
+        applied = client.post(
             "/api/scans", json={"domains": "quick", "skip_llm": True},
         )
+        assert applied.status_code == 200
+        assert mock_manager.start_scan.await_args.kwargs["budget_usd"] == 25.0
+        assert applied.json()["budget_usd"] == 25.0
 
-        assert response.status_code == 200
+        uncapped = client.post(
+            "/api/scans",
+            json={"domains": "quick", "skip_llm": True, "no_budget": True},
+        )
+        assert uncapped.status_code == 200
         assert mock_manager.start_scan.await_args.kwargs["budget_usd"] is None
+        assert uncapped.json()["budget_usd"] is None
 
     def test_list_scans_empty(self, client):
         response = client.get("/api/scans")

@@ -772,3 +772,73 @@ class TestFtsPolicyNameEnMigration:
         store2 = PolicyStore(data_dir=str(tmp_path))  # second: must be a no-op, not an error
         results = store2.search_text("Collective Heat")
         assert {r["url"] for r in results} == {"https://nl.gov/1"}
+@pytest.mark.medium
+class TestScanDomainsCounterColumnsMigration:
+    """The fuller rejection-breakdown counters (WP-6a) on the
+    ``scan_domains`` table: present on a fresh db via CREATE TABLE, and
+    guard-added in place via ALTER TABLE for a pre-existing db that
+    predates them - same pattern as TestScansEstimateColumnsMigration
+    above."""
+
+    NEW_COLUMNS = {
+        "filtered_short_content", "filtered_excluded", "filtered_out_of_scope",
+        "near_misses", "filtered_doc_type", "filtered_link", "filtered_duplicate",
+        "screened_kind",
+    }
+
+    def test_fresh_db_has_the_new_columns(self, tmp_path):
+        conn = storage_db.connect(tmp_path)
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(scan_domains)")}
+        assert self.NEW_COLUMNS <= columns
+        conn.close()
+
+    def test_pre_existing_scan_domains_table_gets_columns_added(self, tmp_path):
+        # Simulate a database created before WP-6a: a scan_domains table
+        # with the old column set only, no counter-breakdown columns.
+        db_path = tmp_path / storage_db.DB_FILENAME
+        legacy = sqlite3.connect(db_path)
+        legacy.execute(
+            "CREATE TABLE scan_domains (scan_id TEXT NOT NULL, domain_id TEXT NOT NULL, "
+            "channel TEXT, pages_crawled INTEGER, keywords_matched INTEGER, "
+            "filtered_keywords INTEGER, filtered_screening INTEGER, llm_skipped INTEGER, "
+            "policies_found INTEGER, errors INTEGER, completed_at TEXT, "
+            "PRIMARY KEY (scan_id, domain_id))"
+        )
+        rows = [
+            ("s1", "d1", "crawl", 100, 10, 3, 2, 1, 1, 0, "2026-01-01T00:00:00"),
+            ("s1", "d2", "crawl", 50, 5, 1, 0, 0, 0, 1, "2026-01-01T00:00:00"),
+            ("s2", "d1", "law_apis", 40, 40, 0, 5, 0, 2, 0, "2026-01-02T00:00:00"),
+        ]
+        legacy.executemany(
+            "INSERT INTO scan_domains (scan_id, domain_id, channel, pages_crawled, "
+            "keywords_matched, filtered_keywords, filtered_screening, llm_skipped, "
+            "policies_found, errors, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            rows,
+        )
+        legacy.commit()
+        legacy.close()
+
+        conn = storage_db.connect(tmp_path)
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(scan_domains)")}
+        assert self.NEW_COLUMNS <= columns
+
+        # The three pre-existing rows survive the ALTER intact, and the
+        # new columns read 0 (DEFAULT 0), not NULL/unknown.
+        db_rows = conn.execute(
+            "SELECT scan_id, domain_id, pages_crawled, filtered_short_content, "
+            "filtered_excluded, filtered_out_of_scope, near_misses, filtered_doc_type, "
+            "filtered_link, filtered_duplicate, screened_kind FROM scan_domains "
+            "ORDER BY scan_id, domain_id"
+        ).fetchall()
+        assert len(db_rows) == 3
+        assert db_rows[0] == ("s1", "d1", 100, 0, 0, 0, 0, 0, 0, 0, 0)
+        assert db_rows[1] == ("s1", "d2", 50, 0, 0, 0, 0, 0, 0, 0, 0)
+        assert db_rows[2] == ("s2", "d1", 40, 0, 0, 0, 0, 0, 0, 0, 0)
+        conn.close()
+
+    def test_migration_is_idempotent_across_reconnects(self, tmp_path):
+        storage_db.connect(tmp_path).close()
+        conn = storage_db.connect(tmp_path)
+        columns = [row[1] for row in conn.execute("PRAGMA table_info(scan_domains)")]
+        assert columns.count("filtered_out_of_scope") == 1
+        conn.close()

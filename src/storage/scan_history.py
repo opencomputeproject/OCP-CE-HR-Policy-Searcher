@@ -76,7 +76,9 @@ _COLUMNS = (
 _DOMAIN_COLUMNS = (
     "scan_id, domain_id, channel, pages_crawled, keywords_matched, "
     "filtered_keywords, filtered_screening, llm_skipped, policies_found, "
-    "errors, completed_at"
+    "errors, completed_at, filtered_short_content, filtered_excluded, "
+    "filtered_out_of_scope, near_misses, filtered_doc_type, filtered_link, "
+    "filtered_duplicate, screened_kind"
 )
 
 
@@ -187,13 +189,17 @@ class ScanHistoryStore:
             for progress, channel in domains:
                 self._conn.execute(
                     f"INSERT OR REPLACE INTO scan_domains ({_DOMAIN_COLUMNS}) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         scan_id, progress.domain_id, channel,
                         progress.pages_crawled, progress.keywords_matched,
                         progress.filtered_keywords, progress.filtered_screening,
                         progress.llm_skipped, progress.policies_found,
                         progress.errors, _iso(completed_at),
+                        progress.filtered_short_content, progress.filtered_excluded,
+                        progress.filtered_out_of_scope, progress.near_misses,
+                        progress.filtered_doc_type, progress.filtered_link,
+                        progress.filtered_duplicate, progress.screened_kind,
                     ),
                 )
 
@@ -218,6 +224,14 @@ class ScanHistoryStore:
                 "policies_found": r[8],
                 "errors": r[9],
                 "completed_at": r[10],
+                "filtered_short_content": r[11],
+                "filtered_excluded": r[12],
+                "filtered_out_of_scope": r[13],
+                "near_misses": r[14],
+                "filtered_doc_type": r[15],
+                "filtered_link": r[16],
+                "filtered_duplicate": r[17],
+                "screened_kind": r[18],
             }
             for r in rows
         ]
@@ -290,15 +304,67 @@ class ScanHistoryStore:
                 "mean_cost_usd": None,
                 "last_cost_usd": None,
                 "mean_policies": None,
+                "cost_per_policy_usd": None,
+                "last_cost_per_policy_usd": None,
             }
 
         costs = [r[0] for r in rows if r[0] is not None]
         policies = [r[1] for r in rows if r[1] is not None]
+
+        # cost_per_policy_usd (WP-6a): total completed cost over total
+        # completed policies - a weighted average across runs, not a mean
+        # of each run's own ratio, so one large or one tiny run doesn't get
+        # equal say with the rest. None (not a ZeroDivisionError) when
+        # there is no cost data yet, or when every completed run found 0
+        # policies - a "$0.00 per policy" reading would be misleading, not
+        # merely 0.
+        total_cost = sum(costs) if costs else None
+        total_policies = sum(policies)
+        cost_per_policy = (
+            (total_cost / total_policies)
+            if total_cost is not None and total_policies
+            else None
+        )
+        last_cost, last_policies = rows[0][0], rows[0][1]
+        last_cost_per_policy = (
+            (last_cost / last_policies)
+            if last_cost is not None and last_policies
+            else None
+        )
+
         return {
             "runs": len(rows),
             "mean_cost_usd": (sum(costs) / len(costs)) if costs else None,
             "last_cost_usd": rows[0][0],
             "mean_policies": (sum(policies) / len(policies)) if policies else None,
+            "cost_per_policy_usd": cost_per_policy,
+            "last_cost_per_policy_usd": last_cost_per_policy,
+        }
+
+    def last_completed(self, domain_group: str) -> Optional[dict]:
+        """The most recently completed run for ``domain_group``, or
+        ``None`` (WP-6a/PL-004).
+
+        Feeds ``ScanManager.estimate_cost()``'s ``last_actual`` - the
+        number a curator reaches for before trusting a fresh estimate.
+        Only ``status='completed'`` rows count, mirroring ``stats()``: a
+        budget-capped or failed run's cost is not a clean "what did the
+        last full run of this scope actually cost" comparison.
+        """
+        row = self._conn.execute(
+            "SELECT scan_id, cost_usd, completed_at, domains_scanned, policies_found "
+            "FROM scans WHERE domain_group = ? AND status = 'completed' "
+            "ORDER BY completed_at DESC LIMIT 1",
+            (domain_group,),
+        ).fetchone()
+        if row is None:
+            return None
+        return {
+            "scan_id": row[0],
+            "cost_usd": row[1],
+            "completed_at": row[2],
+            "domains_scanned": row[3],
+            "policies_found": row[4],
         }
 
     def measured_rates(self) -> dict:

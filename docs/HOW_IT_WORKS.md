@@ -277,9 +277,35 @@ Column Teaches" (2 September 2026).
   `config/pricing.yaml`) multiplies assumptions; once two scans have
   completed it prefers measured rates. On 1 September it said $188.46 and
   the scan cost $9.05, because two assumptions were off in the same
-  direction. See [lesson PL-004](LESSONS.md#pl-004).
+  direction, and a third stage - the scope gate - was not modeled at all.
+  The static defaults now come from that same scan (measured, not guessed):
+  token sizes per call, and pass rates for the keyword gate (26%), the
+  scope gate (15% of keyword-gate passes), and screening (70%). See
+  [lesson PL-004](LESSONS.md#pl-004) and
+  [ADR-0008](decisions/ADR-0008-every-scan-has-a-budget-by-default.md).
+- **The last actual, beside the estimate.** Every estimate also carries
+  `last_actual` - the most recently completed run for the same scope, when
+  one exists - and `warnings`: a plain sentence when the fresh estimate
+  disagrees with that actual by more than 3x either way ("the measured
+  number is usually the better guide"), and one whenever a scan started
+  from this estimate will stop itself at the default budget. The CLI agent
+  prints both under the dollar figure it already shows before a scan
+  starts.
+- **Every scan has a budget by default.** `analysis.default_scan_budget_usd`
+  (`config/settings.yaml`, $25) applies to any scan whose request omits
+  `budget_usd` - the same running-cost stop `start_scan` already had
+  (WP-22b), just filled in by default instead of left uncapped. Pass
+  `no_budget: true` for one deliberately uncapped run, or set the setting
+  to `0` to turn the default off everywhere. `POST /api/scans` and the
+  agent's `start_scan` tool both apply it and report the `budget_usd` that
+  actually applied. Schedules are unaffected - they keep their own ceiling.
+  See [ADR-0008](decisions/ADR-0008-every-scan-has-a-budget-by-default.md).
 - **Cost per stored policy** on 1 September: $0.13. At the reviewer's 27
   percent keep rate, about $0.47 per kept policy.
+  `ScanHistoryStore.stats()` now tracks this per scope over time too -
+  `cost_per_policy_usd` (total completed cost over total completed
+  policies) and `last_cost_per_policy_usd`, both shown in
+  `GET /api/cost-projection`.
 
 ## Assumptions
 
@@ -390,14 +416,8 @@ are prompts for a reviewer, not rejections.
 
 ### Known gaps
 
-- Four of the eight per-domain funnel counters have no database column, so
-  out-of-scope, short-content, excluded and near-miss counts are discarded at
-  the end of each scan. Filter rates cannot yet be reported per scan (work
-  package WP-6).
 - Reviewer rejection reasons are free text, so review rounds cannot be
   counted without reading every cell (work package WP-2).
-- The cost estimate shown before a scan can be an order of magnitude high
-  until two scans have completed (lesson PL-004).
 
 ## Glossary
 

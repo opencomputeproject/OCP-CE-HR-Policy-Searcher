@@ -99,6 +99,21 @@ class TestDbFallback:
         assert domains[0]["keywords_matched"] == 7
         assert domains[0]["policies_found"] == 2
 
+    def test_funnel_summary_present_in_db_fallback(self, mock_manager, history, monkeypatch):
+        # The history fixture's one domain: pages_crawled=42,
+        # keywords_matched=7, policies_found=2, nothing dropped at the
+        # scope gate or by screening - so both derived model-call counts
+        # equal keywords_matched (7).
+        with _client(mock_manager, history, monkeypatch) as c:
+            resp = c.get("/api/scans/s1")
+        summary = resp.json()["funnel_summary"]
+        assert summary == [
+            "42 pages fetched",
+            "7 screened by the cheap model",
+            "7 analysed by the strong model",
+            "2 policies found",
+        ]
+
     def test_unknown_scan_still_404s(self, mock_manager, history, monkeypatch):
         with _client(mock_manager, history, monkeypatch) as c:
             resp = c.get("/api/scans/does-not-exist")

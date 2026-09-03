@@ -303,6 +303,7 @@ class ConfigLoader:
             screening_model=_screening_model,
             enable_two_stage=analysis_data.get("enable_two_stage", True),
             screening_min_confidence=analysis_data.get("screening_min_confidence", 5),
+            default_scan_budget_usd=analysis_data.get("default_scan_budget_usd", 25.0),
         )
         output_data = data.get("output", {})
         # Filter out placeholder values from example.env

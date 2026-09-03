@@ -191,6 +191,7 @@ class TestStats:
         stats = store.stats("quick")
         assert stats == {
             "runs": 0, "mean_cost_usd": None, "last_cost_usd": None, "mean_policies": None,
+            "cost_per_policy_usd": None, "last_cost_per_policy_usd": None,
         }
 
     def test_only_completed_runs_count(self, store):
@@ -260,6 +261,46 @@ class TestStats:
         assert store.stats("quick")["runs"] == 1
         assert store.stats("eu")["runs"] == 1
         assert store.stats("nonexistent")["runs"] == 0
+
+    @pytest.mark.medium
+    def test_cost_per_policy_usd_is_total_cost_over_total_policies(self, store):
+        base = datetime(2026, 1, 1)
+        # Two runs: $9.05/71 policies and $3.00/9 policies - a weighted
+        # average over the two runs combined, not a mean of each run's own
+        # per-policy ratio (which would be (0.1275 + 0.3333) / 2 = 0.2304).
+        for i, (cost, policies) in enumerate([(9.05, 71), (3.0, 9)]):
+            scan_id = f"s{i}"
+            store.record_start(
+                scan_id=scan_id, domain_group="quick", mode="standard",
+                channels=["crawl"], started_at=base + timedelta(hours=i),
+            )
+            store.record_completion(
+                scan_id=scan_id, status="completed",
+                completed_at=base + timedelta(hours=i, minutes=5),
+                cost_usd=cost, policies_found=policies,
+            )
+
+        stats = store.stats("quick")
+
+        assert stats["cost_per_policy_usd"] == pytest.approx((9.05 + 3.0) / (71 + 9))
+        # last_cost_per_policy_usd is the most recently completed run alone.
+        assert stats["last_cost_per_policy_usd"] == pytest.approx(3.0 / 9)
+
+    @pytest.mark.medium
+    def test_cost_per_policy_usd_is_none_when_zero_policies(self, store):
+        store.record_start(
+            scan_id="s1", domain_group="quick", mode="standard",
+            channels=["crawl"], started_at=datetime(2026, 1, 1),
+        )
+        store.record_completion(
+            scan_id="s1", status="completed", completed_at=datetime(2026, 1, 1),
+            cost_usd=2.0, policies_found=0,
+        )
+
+        stats = store.stats("quick")
+
+        assert stats["cost_per_policy_usd"] is None
+        assert stats["last_cost_per_policy_usd"] is None
 
 
 @pytest.mark.medium
@@ -347,6 +388,9 @@ class TestRecordDomains:
         progress = _dp(
             "d1", pages_crawled=100, keywords_matched=10, filtered_keywords=5,
             filtered_screening=2, llm_skipped=1, policies_found=3, errors=1,
+            filtered_short_content=6, filtered_excluded=4, filtered_out_of_scope=8,
+            near_misses=2, filtered_doc_type=7, filtered_link=9,
+            filtered_duplicate=1, screened_kind=5,
         )
         store.record_domains(
             "s1", [(progress, "crawl")], completed_at=datetime(2026, 1, 1, 0, 5),
@@ -360,6 +404,15 @@ class TestRecordDomains:
         assert row["policies_found"] == 3
         assert row["errors"] == 1
         assert row["completed_at"] == "2026-01-01T00:05:00"
+        # WP-6a: the fuller rejection-breakdown counters round-trip too.
+        assert row["filtered_short_content"] == 6
+        assert row["filtered_excluded"] == 4
+        assert row["filtered_out_of_scope"] == 8
+        assert row["near_misses"] == 2
+        assert row["filtered_doc_type"] == 7
+        assert row["filtered_link"] == 9
+        assert row["filtered_duplicate"] == 1
+        assert row["screened_kind"] == 5
 
     def test_empty_list_is_a_noop(self, store):
         store.record_domains("s1", [], completed_at=datetime(2026, 1, 1))

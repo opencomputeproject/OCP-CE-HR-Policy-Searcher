@@ -247,6 +247,8 @@ POLICY_TOOLS: list[dict[str, Any]] = [
                 "domains": {"type": "string", "default": "quick", "description": "Which domains to scan: 'quick', 'eu', 'nordic', 'dach', 'north_america', 'asia_pacific', 'all'"},
                 "max_concurrent": {"type": "integer", "default": 5, "description": "Max parallel workers (1-20)"},
                 "skip_llm": {"type": "boolean", "default": False, "description": "Skip AI analysis (keyword-only mode)"},
+                "budget_usd": {"type": "number", "description": "Stop the scan once running cost reaches this. Omit to use the configured default (see get_scan_status's result for what applied)."},
+                "no_budget": {"type": "boolean", "default": False, "description": "Run uncapped instead of applying the configured default budget."},
             },
         },
     },
@@ -457,16 +459,26 @@ async def execute_tool(
                 if j.status.value == "running"
             ]
 
+            # Default running-cost cap (WP-6a/PL-004), same rule as
+            # POST /api/scans: an omitted budget_usd gets the configured
+            # default unless no_budget asks for an explicitly uncapped run.
+            budget_usd = arguments.get("budget_usd")
+            if budget_usd is None and not arguments.get("no_budget", False):
+                default_budget = scan_manager.config.settings.analysis.default_scan_budget_usd
+                budget_usd = default_budget if default_budget else None
+
             job = await scan_manager.start_scan(
                 domains_group=arguments.get("domains", "quick"),
                 max_concurrent=arguments.get("max_concurrent", 5),
                 skip_llm=arguments.get("skip_llm", False),
+                budget_usd=budget_usd,
             )
 
             result = {
                 "scan_id": job.scan_id,
                 "status": job.status.value,
                 "domain_count": job.domain_count,
+                "budget_usd": budget_usd,
             }
 
             if running_scans:
