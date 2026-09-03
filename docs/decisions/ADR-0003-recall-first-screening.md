@@ -1,6 +1,6 @@
 # ADR-0003: Recall-first screening in front of the analysis model
 
-- Status: Accepted, under review by work package WP-5
+- Status: Superseded by ADR-0011
 - Date: original design, recorded 2026-09-02
 - Owner: the workstream lead
 - Supersedes: none

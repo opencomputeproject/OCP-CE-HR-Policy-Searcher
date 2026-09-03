@@ -17,7 +17,6 @@ src/core/crawler.py::BLE001::AsyncCrawler._sitemap_urls	1
 src/core/crawler.py::BLE001::AsyncCrawler.crawl_domain	1
 src/core/extractor.py::BLE001::HtmlExtractor._load_config	1
 src/core/llm.py::BLE001::ClaudeClient._validate_models	1
-src/core/llm.py::BLE001::ClaudeClient.screen_relevance	1
 src/core/llm.py::BLE001::_resolve_model	2
 src/core/log_setup.py::BLE001::setup_logging._flush_all	1
 src/core/log_setup.py::S110::setup_logging._flush_all	1

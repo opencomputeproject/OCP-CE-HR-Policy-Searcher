@@ -1,0 +1,99 @@
+Listen
+Data centre energy performance reporting
+On 1 July 2025, the Act on the Disclosure of Information on the Energy Performance of Data Centres entered into effect. Here you will find information about what the Act entails.
+The Act (2025:570) requires owners or operators of data centres with an installed IT power demand of at least 500 kW to publish annual information on the energy performance of their data centre by reporting data to an EU-wide database.
+Act (2025:570) on the Disclosure of Information on the Energy Performance of Data Centres (in Swedish, riksdagen.se)
+The obligation to notify and report does not apply to data centres that, under the Protective Security Act (2018:585), are used for security‑sensitive activities, defence purposes or civil contingency purposes, or where services are provided exclusively for such activities.
+Protective Security Act 2018:585 (in Swedish, riksdagen.se)
+Purpose of the Act
+The purpose of the Act is to promote energy efficiency and the use of renewable energy, as well as to reduce the environmental impact of data centres. Reporting to the EU database will form the basis for establishing a common Union‑wide system for assessing the sustainability of data centres within the EU.
+Key Dates
+By 27 April 2026:
+Notification to the Swedish Energy Agency must be submitted. After notification, you will need to apply for access rights to the EU database in order to report.
+By 15 May 2026:
+Reporting in the EU database must be completed. The data must cover the full year 2025.
+Reporting Now Open
+Reporting for the year 2025 is now open in the EU database.
+Notification and Registration – Step by Step
++
+−
+1. Notify your company to the Swedish Energy Agency
+Email the company name, company registration number and company email address to:
+registrator@energimyndigheten.se
+In the subject line, please write Energy Performance of Data Centres.
+The email address may be created specifically for reporting purposes – for example EEDrapportering@company.com or another relevant functional mailbox.
+The Swedish Energy Agency will register the company name and email address in the EU database. Once your notification has been registered, you will receive a confirmation email.
+Please note that information submitted to the authority becomes a public document, so do not include more information than the company name and company email address.
++
+−
+2. Create an EU Login Account
+To access the database, you need to create an EU Login Account:
+EU Login (ecas.ec.europa.eu)
+Use the same email address as in your notification to the Swedish Energy Agency.
+If you need assistance: See the European Commission’s manual:
+Policy Reporting Platform User Management Manual (circab.europa.eu)
++
+−
+3. Await confirmation email from the Swedish Energy Agency
+Once you have received the confirmation email, you may apply for access rights as a reporting entity in the EU database. The email will contain a reference number that must be used during reporting.
++
+−
+4. Apply for access rights as a reporting entity in the EU database
+Once your notification has been confirmed, you may apply for access rights (Request Access with EU Login Account as Reporting Entity Representative).
+Log in using the company email address.
+You can find the login page here:
+Energy performance of data centres (energy.ec.europa.eu)
+Select the link “European database” to log in.
+A form will appear. Make the following selections:
+Account type: Reporting entity representative
+Justification: Data Centre Operator
+Country: Sweden
+Represented reporting entity: Select your company from the list
+Once access rights have been approved and verified, the company may begin reporting.
++
+−
+5. Await confirmation email from the EU database
+Wait for the confirmation email regarding your access rights application.
++
+−
+6. The company may now report in the EU database
+The company can now report its energy performance in the EU database.
+Energy performance of data centres (energy.ec.europa.eu)
+Companies Previously Registered
+Companies that have previously notified the Swedish Energy Agency and reported do not need to submit a new notification. The company retains its reference number from the previous reporting year.
+Information on Reporting
+On the Commission’s website, you log in to report. The site also contains information needed for reporting:
+Energy performance of data centres (energy.ec.europa.eu)
+Data to Be Reported
+Delegated Regulation 2024/1364 specifies which data must be reported. The requirements are set out in Annexes I and II of the Regulation and include, for example, information on the data centre’s energy use, water use, waste heat, and whether the data centre contributes to grid services.
+Delegated Regulation (eur-lex.europa.eu)
++
+−
+How is the reported data handled?
+Information in the EU database is subject to confidentiality under Chapter 30, Section 23 of the Public Access to Information and Secrecy Act (2009:400).
++
+−
+How Is the Data Made Available to the Public?
+Reported data will be available to the public in aggregated form at both member state and EU levels, according to Annex IV of
+Delegated regulation 2024/1364 (eur.lex.europa.eu)
+Questions and Answers
+On the Commission website you will find answers to common questions about reporting on the energy performance of data centres.
+Articles in the Energy Efficiency Directive (EED)  related to data centres
+On 10 October  2023, the revised EU Energy Efficiency Directive 2023/179 came into force. Below are the articles in the directive that affect data centres.
++
+−
+Article 12 – data centres
+According to Article 12, member states must ensure that owners or operators of data centres with an installed IT power demand of at least 500 kW make information about energy performance publicly available. In Sweden, this is done by reporting to the EU database.
++
+−
+Article 12.4 – EU Code of Conduct for Energy Efficiency
+Article 12.4 encourages member states to promote best practices according to the latest version of the EU Code of Conduct for Energy Efficiency in data centres for facilities with an installed IT power demand of at least 1 MW.
+The EU Code of Conduct is available here:
+The Joint Research Centre: EU Science Hub (joint-researrch-centre.ec.europa.eu)
++
+−
+Proposed amendment to the law (2013:268) on certain cost-benefit analyses
+According to Article 26.6 of the revised directive, member states must ensure that data centres with a total energy supply level above 1 MW use waste heat or other recovery applications, unless it can be shown that it is not technically or economically feasible.
+The legislative proposal is under consultation until 4 November 2025.
+Last updated: 2026-03-24
+Contact the coordinating office

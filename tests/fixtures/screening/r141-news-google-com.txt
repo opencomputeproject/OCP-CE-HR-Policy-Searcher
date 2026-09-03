@@ -1,0 +1,49 @@
+German Datacenter Association warnt
+Energieeffizienzgesetz gefährdet Digitalstrategie
+Die German Datacenter Association e.V. (GDA) befürwortet grundsätzlich die Pläne der Bundesregierung, einen rechtlichen Rahmen zur Steigerung der Energieeffizienz in Rechenzentren zu schaffen. Doch die Vorgaben des kürzlich bekannt gewordenen Referentenentwurfs für ein Energieeffizienzgesetz (EnEfG) seien schlicht nicht umsetzbar.
+Autor:
+Jörg Schröper
+•  28.10.2022
+• ca. 2:55 Min
+Anna Klaft, German Datacenter Association.
+© GDA
+bei Google bevorzugen
+Was bedeutet das?
+So verpasst du unsere Updates auf Google nicht mehr. Du kannst uns mit nur zwei Klicks in deinem Google-Konto als Favoriten speichern: Klicke auf unseren Aktivierungs-Link. Setze im Google-Menü das Häkchen direkt neben unserer Domain. Dadurch sorgt Google dafür, dass unsere neuen Beiträge bei deinen Suchanfragen bevorzugt ausgespielt werden.
+„Starre Prozentwerte bei der verpflichtenden Abwärmenutzung oder eine pauschale PUE-Vorgabe bergen die Gefahr, mit dem uns vorliegenden Entwurf ein ‚Rechenzentren-Verhinderungsgesetz‘ auf den Weg zu bringen“, gibt Anna Klaft, Vorstandsvorsitzende der GDA, zu bedenken. Mangelhafte infrastrukturelle Rahmenbedingungen und technische Hemmnisse machten eine Umsetzung dieser Vorgaben unmöglich. „Rechenzentren sind das Fundament der Digitalisierung. Sollte das Gesetz in dieser Form verabschiedet werden, wird der Bau neuer Rechenzentren unmöglich. Und damit ist die erfolgreiche Umsetzung der Digitalstrategie der Bundesregierung in Gefahr“, warnt Klaft weiter.
+Der Wert der Power Usage Effectiveness (PUE-Wert) gibt Aufschluss über das Verhältnis des Jahresenergiebedarfs des gesamten Rechenzentrums zum Jahresenergiebedarf der IT des Rechenzentrums. Laut einer globalen Umfrage des Uptime-Instituts lag der durchschnittliche jährliche PUE-Wert 2022 bei 1,55. Im Schnitt verwenden Rechenzentren insgesamt 55 Prozent der verbrauchten Energie nicht für den Betrieb der IT-Systeme, sondern für Kühlung, Stromverteilung und zusätzliche Gebäudefunktionen.
+Der PUE-Wert von neuen Rechenzentren beträgt in der Regel die im Gesetzesentwurf geforderten 1,3. „Voraussetzung hierfür ist allerdings eine Auslastung der IT-Systeme von mindestens 30 Prozent, besser 50 Prorzent – darauf haben beispielsweise Colocation-Anbieter allerdings keinen Einfluss“, sagte Klaft. Dabei machten 2020 Colocation-Rechenzentren, die ihre Dienstleistungen mehreren Unternehmen zur Verfügung stellen, 40 Porzent der Rechenzentren-Kapazität in Deutschland aus.
+Außerdem ist im EnEfG-Entwurf eine verpflichtende Abwämenutzung von 30 Prozent ab 2024 und 40 Prozent ab 2027 vorgesehen. „Das ist schlicht unrealistisch: Die Abwärmenutzung liegt bei allen aktuell praktizierten Konstellationen im einstelligen Bereich.“ Es mangele jedoch weniger an der Motivation der Rechenzentrums-Betreiber, sondern scheitert vielmehr an technischen Hemmnissen und der Wirtschaftlichkeit aktueller Lösungen. Die Abwärme aus Rechenzentren sei mit 25 bis 35 °C zu niedrig für die jetzigen Fernwärmenetze, müsse also zunächst aufgewertet werden.
+Außerdem sei der Fernwärmenetzausbau aktuell unzureichend, und es mangele an passenden Abnehmern. „Die Verpflichtungen sollten sich weniger an die Rechenzentrumsbranche richten, sondern Energieversorger beispielsweise mit einer Abnahmeverpflichtung in den Fokus nehmen, um die gewünschten Effekte zu erzielen.“
+Denn betrachte man den Anteil der Branche am Gesamtstromverbrauch, stelle sich die Frage der Verhältnismäßigkeit der im Entwurf vorgesehenen Auflagen. Mit einem jährlichen Stromverbrauch von 17 Milliarden Kilowattstunden ist die Rechenzentrumsbranche für drei Prozent des gesamtdeutschen Stromverbrauchs verantwortlich. Andere energieintensive Branchen würden im Gesetzesentwurf nicht explizit mit Auflagen berücksichtigt.
+Die im Entwurf vorgegebenen Fristen entsprächen zudem nicht der Realität in der Rechenzentrumsbranche: „Wenn man Ende 2022 Auflagen für die Rechenzentren beschließen möchte, die im Jahr 2024 in Betrieb gehen, dann ist das fünf Jahre zu spät“, gab Klaft zu bedenken. „Diese Rechenzentren sind bereits geplant, genehmigt und befinden sich im Bau.“
+Die 2018 gegründete German Datacenter Association e.V. ist ein Zusammenschluss von Betreibern und Inhabern von Rechenzentren aller Größen. Sie wird von führenden Forschungsinstituten, Kommunen und einem Netzwerk aus Partnern unterstützt. Der Verband bietet Rechenzentren-Betreibern in Deutschland nach eigenen Angaben eine Plattform, um das Wachstum der Branche gemeinsam zu stärken und ihre Wahrnehmung in Wirtschaft, Gesellschaft und Politik zu verbessern. Zudem vertritt die GDA ihre Mitglieder in Bezug auf Gesetze, Bestimmungen, Standards, Normen und politische Fragen in den entsprechenden Gremien. Erklärtes Ziel ist es, die Rahmenbedingungen für das Betreiben von Rechenzentren in Deutschland nachhaltig zu verbessern und die Investitionsattraktivität von deutschen Standorten zu steigern.
+Das könnte Sie auch interessieren
+Interview mit CyrusOne zur Energieinfrastruktur für Rechenzentren
+Strom wird zur Standortfrage
+Verzögerungen, Budgetüberschreitungen, Einschränkungen im laufenden Betrieb
+Warum Datacenter-Projekte scheitern
+Infrastruktur für KI und Rechenzentren
+Vertiv erweitert Kapazitäten für Rechenzentren in Irland
+Konsequenz aus EnEfG-Novelle
+TelemaxX: Infrastruktur für Rechenzentren stärken
+Infrastrukturausbau
+Microsoft plant weiteres KI-Rechenzentrum in Nordrhein-Westfalen
+Opposition beklagt klimapolitischen Rückschritt
+Regierung lockert Effizienzvorgaben für Rechenzentren
+KI-Infrastruktur
+Strom wird zum limitierenden Faktor für KI
+Massiv gestiegene Speicherkosten
+Apple-Chef kündigt Preiserhöhungen an
+Mehr passende Artikel
+Glasfaserverkabelung im Rechenzentrum
+Wenn jeder Steckverbinder zählt
+KI-Fabriken im Fokus
+Vertiv stellt digitalen Zwilling für Nvidia Omniverse DSX vor
+Effiziente Kühlung für Serverräume und Rechenzentren
+So bleiben Server cool
+Verdoppelte Kapazität
+Nexspace erweitert sein Rechenzentrum in Graz
+Inbetriebnahme für 2028 geplant
+M-net baut neues Rechenzentrum in München
+Weiter zur Startseite

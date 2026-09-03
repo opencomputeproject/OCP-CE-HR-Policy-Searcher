@@ -32,3 +32,11 @@ file = "docs/CHANGELOG.md"
 marker = "<!-- proofmark:changelog -->"
 closer = "<!-- /proofmark:changelog -->"
 label = "docs/CHANGELOG.md"
+
+# Hand-run recording tools, not application source: they fetch pages over
+# the network and make paid model calls once to refresh the screening replay
+# fixtures under tests/fixtures/screening. Ruff still lints them; the suite
+# does not import them.
+[proofmark.exclude]
+"scripts/record_screening_fixtures.py" = "one-shot fixture recorder: network fetches, run by hand, output is committed under tests/fixtures/screening"
+"scripts/record_screening_responses.py" = "one-shot answer recorder: paid model calls, run by hand, output is committed under tests/fixtures/screening"

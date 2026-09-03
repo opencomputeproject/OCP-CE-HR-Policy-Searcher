@@ -18,6 +18,19 @@ from pydantic import BaseModel, Field, model_validator
 DEFAULT_ANALYSIS_MODEL = "claude-sonnet-4-6"
 DEFAULT_SCREENING_MODEL = "claude-haiku-4-5-20251001"
 
+# Document kinds the cheap screener drops before any analysis call (WP-5) -
+# see src/core/scanner.py's screening_decision and
+# config/settings.yaml's analysis.screener_reject_kinds, which overrides
+# this default via src/core/config.py.
+# Hard drops: never a policy in the reviewer's 143 rows (WP-5).
+DEFAULT_SCREENER_REJECT_KINDS = ["question", "speech"]
+# Soft drops: dropped only when the screener found neither a data-centre
+# sentence nor a heat-reuse sentence; with either, escalated to the strong
+# model. Measured 2026-09-03 on her rows: two kept agency pages and one
+# kept press release came back as "report"/"article" WITH quotes, so a
+# hard drop on these kinds would have lost keeps (see ADR-0011).
+DEFAULT_SCREENER_SOFT_REJECT_KINDS = ["report", "article"]
+
 
 # --- Enums ---
 
@@ -160,6 +173,21 @@ class ScreeningResult(BaseModel):
     relevant: bool
     confidence: int = 5
     error: Optional[str] = None
+    # WP-5: the screener's three narrow questions replace one wide
+    # relevance judgment. kind is one of the fixed list in SCREENING_PROMPT
+    # (src/core/llm.py) - None means a parsing/API fallback produced this
+    # result, never a real verdict; see screening_decision in
+    # src/core/scanner.py, which always proceeds on kind=None. dc_quote and
+    # heat_quote are the source-text sentences the model quoted, or None
+    # when it found none; relevant is derived from them
+    # (src.core.llm.parse_screening_response), never asked for directly.
+    kind: Optional[str] = None
+    dc_quote: Optional[str] = None
+    heat_quote: Optional[str] = None
+    # False means a quote is kept - never dropped for this alone - but did
+    # not literally appear (whitespace normalised) in the excerpt the model
+    # was shown, so it is worth a reviewer's second look.
+    quote_verified: bool = True
 
 
 class PolicyAnalysis(BaseModel):
@@ -220,6 +248,13 @@ class Policy(BaseModel):
     referenced_policies: list[str] = Field(default_factory=list)
     referenced_urls: list[str] = Field(default_factory=list)
     lifecycle_stage: str = "unknown"
+    # The screener's kind classification and its two quotes (WP-5), carried
+    # from ScreeningResult onto every policy the page produced - so a
+    # reviewer can see why the row exists without re-reading the source.
+    # None for anything discovered before WP-5, or when screening was
+    # skipped entirely (skip_llm, cache hit). Rides in the raw JSON; the
+    # sheet is unchanged.
+    evidence: Optional[dict] = None
 
     @staticmethod
     def sheet_headers() -> list[str]:
@@ -438,6 +473,18 @@ class AnalysisSettings(BaseModel):
     # required | adjacent | off. See src/core/scope.py; the reviewer's
     # rule is required, and it is the default.
     data_center_required: str = "required"
+    # Document kinds the cheap screener drops before any analysis call
+    # (WP-5): a parliamentary question, transcript, report or article is
+    # never a policy, whatever it quotes. See src/core/scanner.py's
+    # screening_decision. Part of the analysis block, so changing it
+    # changes the rules fingerprint (src/core/rules_version.py) like every
+    # other screening rule.
+    screener_reject_kinds: list[str] = Field(
+        default_factory=lambda: list(DEFAULT_SCREENER_REJECT_KINDS)
+    )
+    screener_soft_reject_kinds: list[str] = Field(
+        default_factory=lambda: list(DEFAULT_SCREENER_SOFT_REJECT_KINDS)
+    )
     # Default running-cost cap (WP-6a/PL-004) applied to a scan that omits
     # budget_usd, so a scan the estimator badly mis-priced cannot run away
     # unnoticed. The full 402-source scan of 2026-09-01 cost $9.05; 25

@@ -1,0 +1,34 @@
+Category
+Bills and Statutes
+Collection
+Congressional Bills
+SuDoc Class Number
+Y 1.6:
+Y 1.4/6:
+Congress Number
+119th Congress
+Congress Session
+2nd Session
+Last Action Date Listed
+January 14,
+2026
+Action
+Mr. Vasquez (for himself and Mr. Baird) introduced the following bill; which was referred to the Committee on Agriculture
+Bill Number
+H.R. 7080
+Bill Version
+Introduced in House
+(IH)
+Short Title
+Waste Heat to Wattage Act of 2026
+Full Title
+To amend the Farm Security and Rural Investment Act of 2002 to include waste energy recovery as a source of renewable energy, and for other purposes.
+Sponsors
+Gabe Vasquez(NM)
+Cosponsors
+James R. Baird
+(IN)
+Committees
+Committee on Agriculture (Standing)
+United States Code Reference
+7 U.S.C. 8101

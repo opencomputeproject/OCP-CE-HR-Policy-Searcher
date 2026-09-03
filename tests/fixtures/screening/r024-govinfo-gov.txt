@@ -1,0 +1,45 @@
+Category
+Bills and Statutes
+Collection
+Congressional Bills
+SuDoc Class Number
+Y 1.6:
+Y 1.4/6:
+Congress Number
+118th Congress
+Congress Session
+2nd Session
+Last Action Date Listed
+September 6,
+2024
+Action
+Ms. Castor of Florida (for herself and Ms. Clarke of New York) introduced the following bill; which was referred to the Committee on Energy and Commerce
+Bill Number
+H.R. 9467
+Bill Version
+Introduced in House
+(IH)
+Short Title
+American Energy Efficiency Act of 2024
+Full Title
+To amend title VI of the Public Utility Regulatory Policies Act of 1978 to establish a Federal energy efficiency resource standard for electricity and natural gas suppliers, and for other purposes.
+Sponsors
+Kathy Castor(FL)
+Cosponsors
+Yvette D. Clarke
+(NY)
+Committees
+Committee on Energy and Commerce (Standing)
+Public and Private Law References
+Public Law 95-617
+United States Code References
+7 U.S.C. 918c
+15 U.S.C. 3301
+and
+772
+16 U.S.C. 796
+42 U.S.C. 17381, 6303, 6306
+and
+9902
+Statutes at Large Reference
+92 Stat. 3118

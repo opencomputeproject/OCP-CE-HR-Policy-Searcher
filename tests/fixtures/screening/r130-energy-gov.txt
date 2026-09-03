@@ -1,0 +1,88 @@
+DOE Announces $40 Million for More Efficient Cooling for Data Centers
+15 Projects Will Develop High Performance Cooling Systems For More Energy Efficient Data Centers to Reduce Carbon Emissions and Mitigate Climate Change
+Energy.gov
+May 9, 2023
+Estimated Read Time
+min
+15 Projects Will Develop High Performance Cooling Systems For More Energy Efficient Data Centers to Reduce Carbon Emissions and Mitigate Climate Change
+WASHINGTON, D.C. —
+The U.S. Department of Energy (DOE) today announced $40 million in funding for 15 projects that will develop high-performance, energy efficient cooling solutions for data centers. Used to house computers, storage systems, and computing infrastructure, data centers account for approximately 2% of total U.S. electricity consumption while data center cooling can account for up to 40% of data center energy usage overall. The selected projects—located at national labs, universities, and businesses—seek to reduce the energy necessary to cool data centers. These efforts will lower the operational carbon footprint associated with powering and cooling this critical infrastructure and support President Biden’s goals to reach net-zero carbon by 2050.
+“Climate change, including severe weather events, threatens the functionality of data centers that are critical to connecting computing and network infrastructure that power our everyday lives,” said
+U.S. Secretary of Energy Jennifer M. Granholm
+. “DOE is funding projects that will ensure the continued operation of these facilities while reducing the associated carbon emissions to beat climate change and reach our clean energy future.”
+Supported by DOE’s Advanced Research Projects Agency-Energy (ARPA-E), the following projects have been selected as part of the Cooling Operations Optimized for Leaps in Energy, Reliability, and Carbon Hyperefficiency for Information Processing Systems (
+COOLERCHIPS
+) program:
+Flexnode (Bethesda, MD)
+will develop a prefabricated, modularly designed data center that will leverage four key components and system-level technology advancements to cool more efficiently.
+(Award amount: $3,500,000)
+HP (Corvallis, OR)
+will develop an aggressive liquid cooling solution that reduces the need for thermal interface material, thereby lowering the package thermal resistance. This design would reject server heat to 40°C and 60% relative humidity external ambient air.
+(Award amount: $3,250,000)
+HRL Laboratories (Malibu, CA)
+will develop a novel data center thermal management system with low thermal resistance and greater energy efficiency to reduce power consumption for the next generation of data center servers.
+(Award amount: $2,000,000)
+Intel Federal (Austin, TX)
+will seek to adapt a two-phase immersion cooling system to spread heat more effectively.
+(Award amount: $1,711,416)
+JETCOOL Technologies (Littleton, MA)
+will develop a microconvective cooling technology that combines and optimizes two distinct cooling approaches to provide the highest levels of energy efficiency in data centers, aiming for significant energy savings.
+(Award amount: $1,265,747)
+National Renewable Energy Laboratory (Golden, CO)
+will develop testing protocols to evaluate the cooling technologies developed by COOLERCHIPS projects in real data center operating conditions. This technical evaluation team will leverage the work done by the other project teams to develop a digital twin to evaluate key parameters and help test a broad range of technologies to evaluate thermal, reliability, and cost goals.
+(Award amount: $1,463,319)
+Nvidia (Santa Clara, CA)
+will develop a modular datacenter with a multi-aspect innovative cooling system. The design cools chips with a two-phase cold plate, which achieve a thermal resistance as low as 0.0025°C/W.
+(Award amount: $5,000,000)
+Purdue University (West Lafayette, IN)
+will develop an innovative chip-level direct two-phase impingement jet cooling solution to drastically enhance overall thermal performance while reducing pumping power.
+(Award amount: $1,881,315)
+Raytheon Technologies Research Center (East Hartford, CT)
+will develop a system to remove heat from sources in servers using ribbon oscillating heat pipes. This system could enable a transformational reduction in the power consumption of future data centers.
+(Award amount: $2,504,024)
+University of California, Davis (Davis, CA)
+will develop a suite of holistic thermal management solutions and incorporate these in a modular datacenter for edge computing. Their design innovations include efficient heat extraction and dissipation of this heat to the ambient by using high-efficiency, low-cost heat exchangers.
+(Award amount: $3,586,473)
+University of Florida (Gainesville, FL)
+will develop a disruptive thermal management solution proposed for cooling future CPU and GPU chips at unprecedented heat flux and power levels in data centers server racks. The new technology allows for significant future growth in processor power, rejects heat directly to the ambient air external to the data center, and would facilitate adoption within existing data center infrastructure with a primary liquid cooling loop.
+(Award amount: $3,042,417)
+University of Illinois at Urbana-Champaign (Champaign, IL)
+will develop a cooling paradigm capable of both minimal energy use and maximum cooling power for future servers.
+(Award amount: $2,500,000)
+University of Maryland (College Park, MD)
+will develop an integrated decision support software tool for the design of next-generation data centers that links existing modeling software with an innovative co-simulation framework.
+(Award amount: $3,484,484)
+University of Missouri (Columbia, MO)
+will develop an innovative, scalable cooling solution for data centers offering numerous advantages over existing phase-change processes.
+(Award amount: $1,649,290)
+University of Texas at Arlington (Arlington, TX)
+will develop a novel hybrid cooling technology to address the growing need for advanced thermal management solutions for high-power data centers.
+(Award amount: $2,843,223)
+Learn more about the
+projects selected as part of the COOLERCHIPS program
+.
+ARPA-E advances high-potential, high-impact energy technologies across a wide range of technical areas. ARPA-E projects are unique because they are developing entirely new ways to generate, store, and use energy. Just last month, ARPA-E announced a new effort focused on evaluating the feasibility of extracting rare earth and other high-value trace critical minerals from macroalgae. Earlier this year, ARPA-E unveiled two new programs aimed at improving the reliability, resilience, and security of the power grid. The first,
+ULTRAFAST
+, supports the development and deployment of power electronics to improve control and protection of the domestic power grid. The second,
+GOPHURRS
+, will pursue cost-effective, high-speed, and safe undergrounding technologies to strengthen system reliability for distribution grids by undergrounding electric power lines in urban and suburban areas.
+Learn more about
+ARPA-E
+.
+###
+View Next
+DOE Proposes National Interest Electric Transmission Corridor Designation Process
+May 9, 2023
+View Previous
+DOE Awards $22.1 Million to Advance Promising Nuclear Technologies
+May 9, 2023
+Explore more on these topics:
+Hydrocarbons
+Buildings
+Energy Sources
+Science & Innovation
+Energy Usage
+Media Inquiries:
+(202) 586-4940 or DOENews@hq.doe.gov
+Read more at the
+energy.gov Newsroom

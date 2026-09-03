@@ -1,0 +1,48 @@
+Granskningsrapport
+01 sep 2022
+Statliga insatser för att stimulera investeringar i datacenter
+(RiR 2022:18)
+Ladda ner
+Pdf, 2 MB.
+In English
+Sammanfattning
+Datacenter för lagring och bearbetning av data är en viktig byggsten i det digitala samhället. Men datacenter är också stora energianvändare i en tid när allt fler verksamheter konkurrerar om elen. Därför behöver statliga insatser för att stimulera investeringar i datacenter bygga på avvägningar mellan mål och effekter inom näringspolitiken respektive energipolitiken.
+Riksrevisionens övergripande bedömning i denna granskning är att regeringen inte har säkerställt att väsentliga effekter av de statliga insatserna för att stimulera investeringar i datacenter har beaktats så att insatserna är effektiva med avseende på näringspolitiska och energipolitiska mål.
+Företagen som har fått del av nedsättningen av energiskatten för datacenter är färre än beräknat
+Ur ett näringspolitiskt perspektiv har detta lett till att långt färre företag har fått del av nedsättningen än vad regeringen räknade med. Nedsättningen har dessutom till stor del gått till ett fåtal större företag, trots att regeringen efter ett år gjorde justeringar för att även mindre datacenterföretag skulle kunna ta del av nedsättningen. Därmed kan nedsättningens bidrag till sysselsättning och ekonomisk utveckling ha blivit mindre än vad det annars hade kunnat bli.
+Regeringen har inte gjort egna konsekvensanalyser för att identifiera vilka företag som insatserna behöver nå, för att uppnå de avsedda effekterna och bidra till näringspolitikens mål – att stärka den svenska konkurrenskraften och skapa förutsättningar för fler jobb i fler och växande företag.
+I utredningar av rätten till nedsatt energiskatt ser Skatteverket fortfarande utmaningar, framför allt avseende samlokaliserade datacenter. Det handlar om grundläggande praktiska förhållanden av betydelse för vilka företag som kan ta del av nedsättningen, till exempel vem som förfogar över utrustningen i datacenter och hur stor elförbrukningen varit.
+Datacentrens möjliga bidrag till energisystemet har inte beaktats
+Ur ett energipolitiskt perspektiv har regeringen inte övervägt åtgärder som skulle kunna bidra till att möta utmaningarna på energiområdet. I synnerhet gäller det energieffektivisering, där datacenter kan bidra som producenter av spillvärme, genom att tillföra flexibilitet till energisystemet och genom sitt interna energieffektiviserande arbete.
+Trots att kopplingen till energipolitiken är uppenbar, har regeringen inte behandlat den energipolitiska betydelsen av nedsättningen av energiskatten för datacenter i utredningen eller genomförandet av nedsättningen. I den investeringsfrämjande verksamheten omfattar regeringens uppdrag och riktlinjer till Business Sweden att Business Sweden ska ge potentiella investerare etableringsrelevant och kvalificerad information. Regeringen anger dock inte att Business Sweden ska informera om sakpolitiska mål i berörda områden och därigenom uttrycka förväntningar eller ställa krav på investerare.
+Regeringen har inte utvärderat eller omprövat insatserna
+Regeringen har inte genomfört någon uppföljning, utvärdering eller omprövning av insatserna för att stimulera investeringar i datacenter. Riksrevisionen bedömer att detta är en brist, och att behovet av en utvärdering blir allt större, i syfte att överväga justeringar, i synnerhet av kopplingarna till energipolitiska mål. Det har gått fem år sedan nedsättningen infördes, och insatserna har både näringspolitisk och energipolitisk betydelse.
+Rekommendationer
+Det är osäkert om statens insatser för att stimulera investeringar i datacenter har gett de avsedda näringspolitiska effekterna. Insatsernas konsekvenser inom energiområdet har samtidigt aktualiserats alltmer under de senaste åren.
+Riksrevisionen lämnar därför följande rekommendationer till regeringen:
+Gör en översyn av nedsättningen av energiskatten för datacenter, grundad på en utvärdering av nedsättningens konsekvenser.
+Genomför åtgärder för att koppla ihop statliga insatser kring datacenter med de energipolitiska målen.
+Förtydliga i styrningen av det statliga investeringsfrämjandet, att det ingår i uppdraget att informera om nationella sakpolitiska mål av betydelse för varje investeringsområde. För investeringar i datacenter handlar det främst om närings- och energipolitiska mål.
+Kommunikationer, infrastruktur, IT
+Regional utveckling
+Skatter, avgifter och tullar
+Energi
+Skatteverket
+Finansdepartementet
+Klimat- och näringslivsdepartementet
+Landsbygds- och infrastrukturdepartementet
+Utrikesdepartementet
+1. Inledning
+1.1 Motiv till granskning
+Datacenter är en viktig förutsättning för den ökande digitaliseringen. Behoven av datacentertjänster ökar globalt. Datacenter definieras i lagen (1994:1776) om skatt på energi (LSE) som en anläggning där en näringsidkare, som huvudsakligen bedriver informationstjänstverksamhet, informationsbehandling eller uthyrning av serverutrymme och tillhörande tjänster, utövar sådan verksamhet.[1]
+För att stimulera privata investeringar i datacenter, har staten genomfört insatser som i huvudsak har varit av tre slag: investeringsstöd, investeringsfrämjande insatser och nedsättning av energiskatten för datacenter. I denna granskning fokuserar vi på de två senare, eftersom investeringsstöden ligger längre tillbaka i tiden.
+År 2017 införde regeringen en skattenedsättning för datacenter där skattenedsättning medges i form av avdrag eller återbetalning. Vi bedömer att det finns skäl att granska nedsättningen av energiskatten för datacenter, eftersom det är en skatteutgift, och därför kräver särskilda överväganden. Enligt riksdagen ska skatteutgifter ses som ett avsteg från den grundläggande skattepolitiska principen – att reglerna ska vara generella och tydliga, fria från komplicerade gränsdragningar, bidra till förståelse och legitimitet för skattesystemet samt minska utrymmet och risken för fel och fusk. Enligt de skattepolitiska riktlinjerna bör därför skatteutgifter regelbundet omprövas.[2]
+Vi har också granskat regeringens styrning av det allmänna statliga uppdraget om investeringsfrämjande till Business Sweden, eftersom Business Sweden genomfört en mångårig satsning på datacenter.
+Gemensamt för insatserna är att staten vill dra fördel av de goda förutsättningarna i Sverige för att stimulera och attrahera investeringar i datacenter, från såväl svenska som internationella aktörer. Exempel på fördelar är ett svalt klimat, en väl utbyggd bredbandsinfrastruktur, en tillförlitlig elförsörjning med relativt låga elpriser och ett stabilt politiskt klimat.[3]
+Etableringen av datacenter kan ge positiva effekter, till exempel ökad sysselsättning. Datacenter kräver dock mycket el, vilket medför ytterligare belastning på det allt hårdare utnyttjade elnätet. I en rapport beställd av Energimyndigheten görs bedömningen att datacenter kan komma att stå för omkring 20 procent av den ökande elanvändningen under den kommande 20-årsperioden givet att trenden från de senaste åren fortsätter.[4]
+Det finns därför en målkonflikt som gör att det inte är självklart att staten bör stimulera ytterligare etableringar av datacenter. Hänsyn behöver tas till datacentrens roll i energisystemet.
+1.2 Övergripande revisionsfråga, delfrågor och avgränsningar
+Vår övergripande revisionsfråga är följande:
+Har regeringen och Skatteverket säkerställt att väsentliga effekter av statliga insatser för att stimulera investeringar i datacenter har beaktats, så att insatserna är effektiva?
+Med effektivitet avser vi om regeringen har utrett, följt upp och omprövat insatser på ett sådant sätt att den har gjort en avvägning mellan målen inom näringspolitiken och energipolitiken, och har balanserat positiva och negativa effekter. Vi avser med effektivitet också om Skatteverket har genomfört insatser på ett sådant sätt att de har balanserat positiva och negativa effekter i kontakterna med företag och i informationen till företag.
+Den övergripande revisionsfrågan besvaras med h
