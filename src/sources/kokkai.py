@@ -17,14 +17,28 @@ NDL asks API users not to burst: space requests seconds apart and make no
 parallel calls. That is enforced here in code.
 
 License: Government Standard Terms of Use v2.0 (CC BY 4.0 compatible).
+
+Signals lane (added 2026-09-02, WP-3; ADR-0007, status Proposed, ships
+switched OFF, default lane stays "policies"): the reviewer removed 11 of 11
+Kokkai rows as "not a policy", every one a Diet speech, exactly the low
+yield this source's docstring already predicted. `source_params.lane:
+"signals"` routes each matching speech into the lead queue instead
+(`src/storage/leads.py`, `origin="kokkai"`) rather than the analysis
+pipeline: no model spend, and the speech still surfaces in the Admin tips
+inbox for a person to chase. `fetch()` returns `[]` in this lane: the
+scanner never sees a CrawlResult, only the leads written directly to
+`LeadStore`. The default lane, "policies", is unchanged from today.
 """
 
 import asyncio
 import logging
+import os
+import re
 
 import httpx
 
 from ..core.models import CrawlResult, PageStatus
+from ..storage.leads import Lead, LeadStore
 from . import register_source
 from ._common import build_client
 from .base import PolicySource
@@ -47,6 +61,15 @@ REQUEST_SPACING_SECONDS = 2.0
 # if a caller passes a term broad enough to match a one-line interjection.
 MIN_SPEECH_LENGTH = 60
 
+# Today's behaviour: every matching speech goes to analysis as a policy
+# candidate. "signals" instead files it as a lead; see module docstring.
+DEFAULT_LANE = "policies"
+SIGNALS_LANE = "signals"
+
+# A lead snippet prefers the sentence containing the search term; this caps
+# the fallback when no sentence boundary is found.
+SNIPPET_FALLBACK_CHARS = 300
+
 
 @register_source
 class KokkaiSource(PolicySource):
@@ -59,26 +82,38 @@ class KokkaiSource(PolicySource):
         params = domain.get("source_params", {})
         terms = params.get("terms") or DEFAULT_TERMS
         max_documents = params.get("max_documents", DEFAULT_MAX_DOCUMENTS)
+        lane = params.get("lane") or DEFAULT_LANE
 
-        results: list[CrawlResult] = []
+        collected: list = []
         seen_urls: set[str] = set()
 
         async with build_client() as client:
             for index, term in enumerate(terms):
-                if len(results) >= max_documents:
+                if len(collected) >= max_documents:
                     break
                 # Space every request after the first; never burst, never
                 # run these concurrently.
                 if index:
                     await asyncio.sleep(REQUEST_SPACING_SECONDS)
                 for speech in await self._search(client, term):
-                    if len(results) >= max_documents:
+                    if len(collected) >= max_documents:
                         break
-                    result = self._to_crawl_result(speech, seen_urls)
-                    if result:
-                        results.append(result)
+                    item = (
+                        self._to_lead(speech, seen_urls, term)
+                        if lane == SIGNALS_LANE
+                        else self._to_crawl_result(speech, seen_urls)
+                    )
+                    if item:
+                        collected.append(item)
 
-        return results
+        if lane == SIGNALS_LANE:
+            # No model spend in this lane: leads wait in the tips inbox for
+            # a person to chase. The scanner sees no CrawlResult at all.
+            data_dir = os.environ.get("OCP_DATA_DIR", "data")
+            LeadStore(data_dir).add_leads(collected)
+            return []
+
+        return collected
 
     async def _search(self, client: httpx.AsyncClient, term: str) -> list[dict]:
         try:
@@ -141,4 +176,54 @@ class KokkaiSource(PolicySource):
             content_type="text/plain",
             title=title or (speech.get("speechID") or ""),
             lifecycle_stage=None,
+        )
+
+    @staticmethod
+    def _matching_sentence(text: str, term: str) -> str:
+        """The sentence containing the search term, or "" if none does.
+
+        Japanese sentences end in 。 rather than a period; splitting on it
+        (and on newlines, for header-like breaks) is enough for a snippet.
+        This is not a general-purpose sentence tokenizer.
+        """
+        for sentence in re.split(r"(?<=[。\n])", text):
+            if term in sentence:
+                return sentence.strip()
+        return ""
+
+    def _to_lead(
+        self, speech: dict, seen_urls: set[str], term: str
+    ) -> Lead | None:
+        if not isinstance(speech, dict):
+            return None
+
+        url = speech.get("speechURL")
+        if not url:
+            return None
+        if url in seen_urls:
+            return None
+
+        text = (speech.get("speech") or "").strip()
+        if len(text) < MIN_SPEECH_LENGTH:
+            return None
+
+        seen_urls.add(url)
+
+        date = speech.get("date") or ""
+        house = speech.get("nameOfHouse") or ""
+        meeting = speech.get("nameOfMeeting") or ""
+        speaker = speech.get("speaker") or ""
+        # House + meeting, not date + house + meeting: the date already has
+        # its own place in the title format below, so folding it in here
+        # too would print it twice.
+        meeting_title = " ".join(p for p in (house, meeting) if p)
+
+        snippet = self._matching_sentence(text, term) or text[:SNIPPET_FALLBACK_CHARS]
+
+        return Lead(
+            title=f"{speaker or 'Diet speech'}, {date}: {meeting_title}",
+            source_url=url,
+            snippet=snippet,
+            origin="kokkai",
+            jurisdiction_guess="Japan",
         )

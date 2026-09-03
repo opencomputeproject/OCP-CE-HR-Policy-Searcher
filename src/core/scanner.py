@@ -91,6 +91,9 @@ class DomainScanner:
                     self.domain_id, source_type,
                 )
                 crawl_results = await source.fetch(self.domain)
+                # Count records the source itself excluded by document type,
+                # before any page was fetched or any model was called.
+                self.progress.filtered_doc_type += getattr(source, "dropped_doc_type", 0)
                 for r in crawl_results:
                     r.domain_id = self.domain_id
             else:

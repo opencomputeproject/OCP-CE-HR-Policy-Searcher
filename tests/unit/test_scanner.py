@@ -316,6 +316,34 @@ class TestDomainScannerScan:
         assert len(policies) == 1
 
     @pytest.mark.asyncio
+    @pytest.mark.medium
+    async def test_source_dropped_doc_type_is_added_to_progress(self, scanner_deps):
+        """A structured source's own document-type allow-list (DIP,
+        Folketing; WP-3) counts its drops on the domain's progress, so the
+        cost of the rule is visible rather than silent."""
+        from src.sources import SOURCE_REGISTRY
+        from src.sources.base import PolicySource
+
+        class _StubSourceWithDrops(PolicySource):
+            id = "stub_doc_type_drops"
+
+            async def fetch(self, domain):
+                self.dropped_doc_type = 3
+                return [_make_crawl_result(url="https://parliament.example.gov/bill/11")]
+
+        SOURCE_REGISTRY["stub_doc_type_drops"] = _StubSourceWithDrops
+        try:
+            scanner = DomainScanner(
+                domain=_make_domain(source_type="stub_doc_type_drops"),
+                scan_id="s1", **scanner_deps,
+            )
+            await scanner.scan()
+        finally:
+            SOURCE_REGISTRY.pop("stub_doc_type_drops", None)
+
+        assert scanner.progress.filtered_doc_type == 3
+
+    @pytest.mark.asyncio
     async def test_source_lifecycle_stage_lands_on_policy(self, scanner_deps):
         """A source-declared stage (e.g. bill status) overrides analysis."""
         from src.sources import SOURCE_REGISTRY

@@ -205,3 +205,53 @@ class TestKokkaiSource:
              patch("asyncio.sleep", new=AsyncMock()):
             results = await KokkaiSource().fetch({"source_params": {"terms": ["排熱"]}})
         assert results == []
+
+
+class TestKokkaiSignalsLane:
+    """ADR-0007 (Proposed, ships switched off): lane: "signals" routes
+    speeches into the lead queue instead of the analysis pipeline. No
+    model spend, and the default lane is unaffected."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.medium
+    async def test_signals_lane_writes_lead_and_returns_no_crawl_results(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("OCP_DATA_DIR", str(tmp_path))
+        client = _mock_client([_mock_response(json_data=_payload([_speech()]))])
+        with patch("httpx.AsyncClient", return_value=client), \
+             patch("asyncio.sleep", new=AsyncMock()):
+            results = await KokkaiSource().fetch(
+                {"source_params": {"terms": ["排熱"], "lane": "signals"}}
+            )
+
+        assert results == []
+
+        from src.storage.leads import LeadStore
+
+        leads = LeadStore(data_dir=str(tmp_path)).list()
+        assert len(leads) == 1
+        lead = leads[0]
+        assert lead.origin == "kokkai"
+        assert lead.source_url == "https://kokkai.ndl.go.jp/txt/122104006X01320260612/71"
+        assert lead.jurisdiction_guess == "Japan"
+        assert "伯野春彦" in lead.title
+        assert "2026-06-12" in lead.title
+        assert lead.snippet
+
+    @pytest.mark.asyncio
+    @pytest.mark.medium
+    async def test_default_lane_writes_no_leads(self, tmp_path, monkeypatch):
+        """Today's behaviour: without lane: "signals", nothing touches the
+        lead queue at all."""
+        monkeypatch.setenv("OCP_DATA_DIR", str(tmp_path))
+        client = _mock_client([_mock_response(json_data=_payload([_speech()]))])
+        with patch("httpx.AsyncClient", return_value=client), \
+             patch("asyncio.sleep", new=AsyncMock()):
+            results = await KokkaiSource().fetch({"source_params": {"terms": ["排熱"]}})
+
+        assert len(results) == 1
+
+        from src.storage.leads import LeadStore
+
+        assert LeadStore(data_dir=str(tmp_path)).list() == []

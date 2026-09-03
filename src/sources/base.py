@@ -13,6 +13,12 @@ Contract rules:
 - Respect per-source caps from the domain config; never raise for a normal
   empty result. Raise SourceError for hard failures so the domain is marked
   failed with a clear message.
+- ``dropped_doc_type`` records the publisher's own type field excluded
+  before any page was fetched or any model was called. A source that
+  filters records by a document-type allow-list (DIP's ``vorgangstyp``,
+  Folketing's ``typeid``) sets it to 0 at the start of every fetch() and
+  increments it once per record it declines to return. A source with no
+  such allow-list leaves it at the class default, 0.
 """
 
 from abc import ABC, abstractmethod
@@ -34,6 +40,10 @@ class PolicySource(ABC):
     #: None for keyless sources. Lets the diagnostic report readiness
     #: without each client leaking its own key-loading details.
     api_key_env: str | None = None
+
+    #: Records the publisher's own type field excluded before any page was
+    #: fetched or any model was called. See the class docstring.
+    dropped_doc_type: int = 0
 
     @abstractmethod
     async def fetch(self, domain: dict) -> list[CrawlResult]:
