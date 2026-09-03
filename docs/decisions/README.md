@@ -29,3 +29,4 @@ same pull request as the change it explains.
 | [ADR-0007](ADR-0007-kokkai-is-a-signals-source.md) | Proposed | Diet speeches become tips, never policy rows |
 | [ADR-0008](ADR-0008-every-scan-has-a-budget-by-default.md) | Accepted | A scan that omits budget_usd stops itself at $25 by default; the estimate shows the last actual and a disagreement warning |
 | [ADR-0009](ADR-0009-one-row-per-document-both-languages.md) | Accepted | One row per document, both languages on it: English name is indexed, a translated-page link is computed, sheet writes are header-aligned |
+| [ADR-0010](ADR-0010-same-instrument-folds-into-the-existing-row.md) | Accepted | A page or extracted policy that names an instrument already kept folds into that row instead of becoming a new one |

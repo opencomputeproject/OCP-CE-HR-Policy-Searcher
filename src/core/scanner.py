@@ -10,8 +10,10 @@ from typing import Optional, Callable, Awaitable
 from urllib.parse import urlparse
 
 from .cache import URLCache, compute_content_hash
+from .instruments import InstrumentIndex, instrument_keys
 from .scope import DEFAULT_SETTING as DEFAULT_SCOPE
 from .scope import OUT_OF_SCOPE, scope_verdict
+from .soft404 import looks_like_soft_404
 from .crawler import AsyncCrawler
 from .extractor import HtmlExtractor
 from .keywords import KeywordMatcher
@@ -42,6 +44,7 @@ class DomainScanner:
         on_event: Optional[Callable[[ScanEvent], Awaitable[None]]] = None,
         screening_min_confidence: int = 5,
         scope_setting: str = DEFAULT_SCOPE,
+        instrument_index: Optional[InstrumentIndex] = None,
     ):
         self.domain = domain
         self.crawler = crawler
@@ -55,6 +58,16 @@ class DomainScanner:
         self.on_event = on_event
         self.screening_min_confidence = screening_min_confidence
         self.scope_setting = scope_setting
+        # Same-instrument duplicate check (WP-4). None (the default) means
+        # the check is off, so every construction site that predates it
+        # keeps working. Built once per scan and shared across every
+        # domain's DomainScanner - see src/orchestration/scan_manager.py.
+        self.instrument_index = instrument_index
+        # (existing_url, new_url) pairs folded during this domain's scan,
+        # always initialised regardless of instrument_index - drained by
+        # the scan manager into PolicyStore.add_related_url after this
+        # domain completes.
+        self.duplicates: list[tuple[str, str]] = []
 
         self.domain_id = domain.get("id", "")
         self.progress = DomainProgress(
@@ -257,6 +270,25 @@ class DomainScanner:
         is_structured = self.domain.get("source_type", "crawl") != "crawl"
 
         if not is_structured:
+            # Stage 2b: the link check. A soft 404 - a missing-page
+            # placeholder answered with a 200 status - looks like a page
+            # but is not a document, and should never cost a screening or
+            # analysis call. Structured records are API records, never
+            # pages, so this never runs for them.
+            if looks_like_soft_404(extracted.title, extracted.text or "", result.url):
+                self.progress.pages_filtered += 1
+                self.progress.filtered_link += 1
+                logger.info(
+                    "Dropped at link check (looks like a missing page): %s",
+                    result.url,
+                )
+                self.cache.set(
+                    result.url, is_relevant=False,
+                    relevance_score=0,
+                    content_hash=compute_content_hash(extracted.text or ""),
+                )
+                return []
+
             if not extracted.text or extracted.word_count < 50:
                 self.progress.pages_filtered += 1
                 self.progress.filtered_short_content += 1
@@ -314,6 +346,30 @@ class DomainScanner:
             # Still return a policy stub from cache? For now skip re-analysis.
             logger.debug(f"Cache hit: {result.url}")
             return []  # Cache hit means we already have this policy
+
+        # Stage 4a: same-instrument duplicate check, on the page's own
+        # title. Both lanes have rejoined by here too - a structured
+        # record's title (a bill's short title, say) is checked exactly
+        # like a crawled page's. A hit means this page is the same
+        # instrument as a row already kept, so it is folded in instead of
+        # costing a screening/analysis call on a second copy. Off when no
+        # instrument_index was wired in (see __init__).
+        if self.instrument_index is not None:
+            title_keys = instrument_keys(result.title)
+            existing_url = self.instrument_index.match(title_keys, exclude_url=result.url)
+            if existing_url:
+                self.progress.pages_filtered += 1
+                self.progress.filtered_duplicate += 1
+                self.duplicates.append((existing_url, result.url))
+                logger.info(
+                    "Folded into %s (same instrument): %s",
+                    existing_url, result.url,
+                )
+                self.cache.set(
+                    result.url, is_relevant=False,
+                    relevance_score=0, content_hash=content_hash,
+                )
+                return []
 
         # Stage 4b: scope gate. Both lanes have rejoined by here, so
         # this is the earliest point that sees every document: the
@@ -402,4 +458,39 @@ class DomainScanner:
         if result.lifecycle_stage:
             for policy in policies:
                 policy.lifecycle_stage = result.lifecycle_stage
+
+        # Stage 6b: same-instrument fold on the extracted policy name(s).
+        # The pre-screen check above only sees the page's own title; the
+        # model may extract a cleaner name (or several, from an index
+        # page) that reveals a match the title alone missed. Checked
+        # in order and added to the index as each survives, so a second
+        # policy from this same page sharing the first one's keys folds
+        # into it too - not just matches against rows from earlier pages.
+        if self.instrument_index is not None and policies:
+            survivors: list[Policy] = []
+            page_keys: set[str] = set()
+            for policy in policies:
+                keys = instrument_keys(policy.policy_name, policy.policy_name_en)
+                # A key shared with an earlier policy from this very page
+                # is a sibling, not a stale self-record - fold it without
+                # consulting the index (which would otherwise treat the
+                # shared page URL as "its own" and refuse the match).
+                existing_url = (
+                    policy.url if keys & page_keys
+                    else self.instrument_index.match(keys, exclude_url=policy.url)
+                )
+                if existing_url:
+                    self.progress.pages_filtered += 1
+                    self.progress.filtered_duplicate += 1
+                    self.duplicates.append((existing_url, policy.url))
+                    logger.info(
+                        "Folded into %s (same instrument): %s",
+                        existing_url, policy.url,
+                    )
+                    continue
+                page_keys |= keys
+                self.instrument_index.add(policy)
+                survivors.append(policy)
+            policies = survivors
+
         return policies

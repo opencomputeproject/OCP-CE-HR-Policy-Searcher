@@ -8,6 +8,16 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-02 A page that is a missing-document placeholder in disguise (a
+  "soft 404": a 200 status with "page not found" where the document should
+  be) is now dropped before it costs a screening or analysis call, in nine
+  languages. Landing pages are unaffected - the check looks for actual
+  not-found wording or a bare error-shaped title, not just a short page.
+- 2026-09-02 A page or extracted policy that names an instrument already
+  kept - a news story about it, a second copy from another source - now
+  folds into the existing row instead of becoming a new one. The fold shows
+  up as a related link on the kept row, and neither check costs anything:
+  both run on text and names, before any model is asked to look.
 - 2026-09-02 Germany (DIP) and Denmark (Folketing) no longer surface
   parliamentary questions as if they were policies: both sources now check
   the publisher's own document-type field before returning a record, at no

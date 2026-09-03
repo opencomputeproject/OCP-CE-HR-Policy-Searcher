@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.core.config import ConfigLoader, ConfigurationError
+from src.core.instruments import InstrumentIndex
 from src.core.models import (
     CostInfo, DomainProgress, DomainScanStatus, Policy, PolicyType,
     DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL,
@@ -1576,3 +1577,79 @@ class TestEstimateCostMeasuredRange:
         crawl = result["channels"]["crawl"]
         assert crawl["cost_low_usd"] == pytest.approx(crawl["cost_usd"] * 0.8, abs=0.01)
         assert crawl["cost_high_usd"] == pytest.approx(crawl["cost_usd"] * 1.2, abs=0.01)
+
+
+@pytest.mark.medium
+class TestInstrumentIndexWiring:
+    """WP-4: ScanManager builds one InstrumentIndex from the store's kept
+    policies at scan start, passes it to every DomainScanner, and after
+    each domain completes drains that domain's found duplicates into
+    store.add_related_url()."""
+
+    def _manager(self, tmp_path, monkeypatch, *, duplicates=None):
+        config = _minimal_config(tmp_path / "config")
+        data_dir = tmp_path / "data"
+        manager = ScanManager(
+            config=config, broadcaster=EventBroadcaster(), data_dir=str(data_dir),
+        )
+
+        captured_kwargs = []
+
+        def record_scanner(**kwargs):
+            captured_kwargs.append(kwargs)
+            mock_scanner = MagicMock()
+            mock_scanner.scan = AsyncMock(return_value=[])
+            mock_scanner.progress = DomainProgress(
+                domain_id="test_gov", domain_name="Test Gov",
+                status=DomainScanStatus.COMPLETED,
+            )
+            mock_scanner.duplicates = duplicates or []
+            return mock_scanner
+
+        monkeypatch.setattr(
+            "src.orchestration.scan_manager.DomainScanner", record_scanner,
+        )
+        monkeypatch.setattr(
+            "src.orchestration.scan_manager.AsyncCrawler",
+            lambda **kwargs: MagicMock(close=AsyncMock()),
+        )
+        return manager, data_dir, captured_kwargs
+
+    @pytest.mark.asyncio
+    async def test_index_reaches_every_domainscanner_construction(self, tmp_path, monkeypatch):
+        manager, data_dir, captured_kwargs = self._manager(tmp_path, monkeypatch)
+
+        job = await manager.start_scan(domains_group="quick", skip_llm=True)
+        await manager._tasks[job.scan_id]
+
+        assert len(captured_kwargs) == 1
+        assert isinstance(captured_kwargs[0]["instrument_index"], InstrumentIndex)
+
+    @pytest.mark.asyncio
+    async def test_empty_store_still_builds_a_real_index_not_none(self, tmp_path, monkeypatch):
+        # Nothing kept yet must still produce a real (empty) InstrumentIndex,
+        # not None - the check stays on, just with nothing to match yet.
+        manager, data_dir, captured_kwargs = self._manager(tmp_path, monkeypatch)
+
+        job = await manager.start_scan(domains_group="quick", skip_llm=True)
+        await manager._tasks[job.scan_id]
+
+        assert captured_kwargs[0]["instrument_index"].match({"anything"}) is None
+
+    @pytest.mark.asyncio
+    async def test_drained_duplicate_lands_in_related_urls(self, tmp_path, monkeypatch):
+        data_dir = tmp_path / "data"
+        store = PolicyStore(data_dir=str(data_dir))
+        store.add_policies([_policy("https://a.gov/kept", "new")])
+
+        manager, _, _ = self._manager(
+            tmp_path, monkeypatch,
+            duplicates=[("https://a.gov/kept", "https://test.gov/duplicate")],
+        )
+
+        job = await manager.start_scan(domains_group="quick", skip_llm=True)
+        await manager._tasks[job.scan_id]
+
+        fresh_store = PolicyStore(data_dir=str(data_dir))
+        row = next(p for p in fresh_store.get_all() if p["url"] == "https://a.gov/kept")
+        assert row["related_urls"] == ["https://test.gov/duplicate"]

@@ -189,6 +189,36 @@ class PolicyStore:
         self._conn.commit()
         return cur.rowcount > 0
 
+    def add_related_url(self, url: str, related_url: str) -> bool:
+        """Record ``related_url`` as the same instrument as the policy
+        stored under ``url`` (WP-4's same-instrument fold) - a news story
+        about a kept policy, or a second structured-source copy of the same
+        act, that was folded rather than stored as its own row.
+
+        Appended to a ``related_urls`` list inside the policy's ``raw``
+        JSON (created if absent), deduplicated, and the policy's own URL is
+        never added to its own list. Returns False when no policy is
+        stored under ``url``.
+        """
+        row = self._conn.execute(
+            "SELECT raw FROM policies WHERE url = ?", (url,)
+        ).fetchone()
+        if row is None:
+            return False
+
+        if related_url != url:
+            record = json.loads(row[0])
+            related = list(record.get("related_urls") or [])
+            if related_url not in related:
+                related.append(related_url)
+                record["related_urls"] = related
+                self._conn.execute(
+                    "UPDATE policies SET raw = ? WHERE url = ?",
+                    (json.dumps(record, ensure_ascii=False, default=str), url),
+                )
+                self._conn.commit()
+        return True
+
     def update_policy_name_en(self, url: str, value: str) -> bool:
         """Set a policy's English title (WP-35 backfill) by URL.
 

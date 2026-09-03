@@ -238,3 +238,67 @@ class TestSave:
         store.add_policies([_make_policy()])
         assert (data_dir / "policypulse.db").exists()
         assert len(PolicyStore(data_dir=str(data_dir)).get_all()) == 1
+
+
+@pytest.mark.medium
+class TestAddRelatedUrl:
+    """PolicyStore.add_related_url (WP-4): a same-instrument fold is
+    recorded as a related_urls list inside the policy's raw JSON, so a
+    reviewer can see the news story or duplicate copy that was folded into
+    the kept row."""
+
+    def test_appends_to_a_fresh_list(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([_make_policy("https://a.gov/kept")])
+
+        assert store.add_related_url("https://a.gov/kept", "https://news.example/story") is True
+
+        row = next(p for p in store.get_all() if p["url"] == "https://a.gov/kept")
+        assert row["related_urls"] == ["https://news.example/story"]
+
+    def test_deduplicates(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([_make_policy("https://a.gov/kept")])
+
+        store.add_related_url("https://a.gov/kept", "https://news.example/story")
+        store.add_related_url("https://a.gov/kept", "https://news.example/story")
+
+        row = next(p for p in store.get_all() if p["url"] == "https://a.gov/kept")
+        assert row["related_urls"] == ["https://news.example/story"]
+
+    def test_appends_a_second_distinct_url(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([_make_policy("https://a.gov/kept")])
+
+        store.add_related_url("https://a.gov/kept", "https://news.example/story-one")
+        store.add_related_url("https://a.gov/kept", "https://news.example/story-two")
+
+        row = next(p for p in store.get_all() if p["url"] == "https://a.gov/kept")
+        assert row["related_urls"] == [
+            "https://news.example/story-one", "https://news.example/story-two",
+        ]
+
+    def test_refuses_self(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([_make_policy("https://a.gov/kept")])
+
+        store.add_related_url("https://a.gov/kept", "https://a.gov/kept")
+
+        row = next(p for p in store.get_all() if p["url"] == "https://a.gov/kept")
+        assert row.get("related_urls", []) == []
+
+    def test_returns_false_for_unknown_url(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        result = store.add_related_url("https://a.gov/missing", "https://news.example/story")
+        assert result is False
+
+    def test_round_trips_through_a_fresh_store_instance(self, tmp_path):
+        store = PolicyStore(data_dir=str(tmp_path))
+        store.add_policies([_make_policy("https://a.gov/kept")])
+        store.add_related_url("https://a.gov/kept", "https://news.example/story")
+
+        # raw is the source of truth for get_all() - a fresh connection to
+        # the same data_dir must see exactly what was written.
+        reloaded = PolicyStore(data_dir=str(tmp_path))
+        row = next(p for p in reloaded.get_all() if p["url"] == "https://a.gov/kept")
+        assert row["related_urls"] == ["https://news.example/story"]
