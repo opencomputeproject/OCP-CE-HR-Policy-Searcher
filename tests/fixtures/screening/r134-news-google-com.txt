@@ -1,0 +1,70 @@
+OpCore et EDF négocient un datacenter à 4 milliards d’euros en Seine-et-Marne
+Charbons ardents
+Illustration : Flock
+Alexandre Laurent
+Le 18 novembre 2025 à 17h27
+OpCore, la coentreprise réunissant le Groupe iliad et des fonds gérés par InfraVia Capital Partners, devrait pouvoir exploiter l’un des sites industriels d’EDF pour développer un datacenter représentant une puissance électrique de plusieurs centaines de MW. Le site retenu est l’ancienne centrale charbon EDF de Montereau-Vallée-de-la-Seine.
+Une erreur ?
+OpCore et EDF négocient un datacenter à 4 milliards d’euros en Seine-et-Marne
+Charbons ardents
+Illustration : Flock
+OpCore, la coentreprise réunissant le Groupe iliad et des fonds gérés par InfraVia Capital Partners, devrait pouvoir exploiter l’un des sites industriels d’EDF pour développer un datacenter représentant une puissance électrique de plusieurs centaines de MW. Le site retenu est l’ancienne centrale charbon EDF de Montereau-Vallée-de-la-Seine.
+Alexandre Laurent
+Le 18 novembre 2025 à 17h27
+Économie
+Économie
+4 min
+EDF et OpCore ont annoncé lundi leur entrée en négociations préalable à l’implantation d’un datacenter de grande capacité sur l’un des sites industriels
+proposés clés en main
+par l’énergéticien. C’est l’ancienne centrale charbon dite de Montereau en Seine-et-Marne qui a été retenue pour ce qui s’annonce comme un complexe de grande envergure. Le site se situe en réalité à cheval sur les communes de Vernou-La-Celle-sur-Seine et La Grande Paroisse.
+Les deux partenaires évoquent une infrastructure équivalente à «
+plusieurs centaines de mégawatts
+» de puissance électrique, avec une enveloppe globale dont le montant se situerait, pour OpCore, aux alentours de 4 milliards d’euros.
+OpCore (
+anciennement Scaleway Datacenter
+) est pour mémoire
+depuis le printemps
+une coentreprise entre le groupe iliad (maison mère de l’opérateur Free) et le fonds d’infrastructure français InfraVia.
+Jusqu’à 700 MW sur 20 hectares
+Dans leur
+communiqué
+d’annonce conjoint, diffusé le jour d’un événement dédié à l’investissement en France organisé par l’Élysée (Choose France, mais dans une édition destinée aux acteurs français), les deux partenaires restent volontairement évasifs sur les chiffres. La mèche avait cependant été
+vendue
+fin juillet par James Chéron, le maire de Montereau-Fault-Yonne, qui précisait alors que le projet correspondait à une puissance électrique maximale de 700 MW, et à une surface au sol d’environ 20 hectares.
+Présenté comme «
+l’un des centres de calcul les plus importants d’Europe
+», le projet «
+constituera un atout majeur pour soutenir l’émergence d’une filière française et européenne d’excellence dans l’intelligence artificielle, et renforcera la souveraineté numérique du continent
+», vantent les deux partenaires. La finalité précise et les modalités de commercialisation des ressources informatiques mises en œuvre ne sont pas évoquées à ce stade, ce qui n’empêche pas EDF et OpCore d’affirmer que ce datacenter «
+permettra de créer plusieurs centaines d’emplois locaux, directs et indirects
+».
+«
+L’investissement se compte en milliards d’euros et notre vallée de la Seine peut être fière de la mise en œuvre de cette formidable ambition, qui participera à la constitution et au renforcement d’un cluster avec notamment le centre de recherche des Renardières et le Campus Énergie Durable
+», se réjouissait quant à lui le maire de Montereau.
+Un projet vertueux ?
+L’annonce par voie de communiqué a été doublée d’une conférence de presse organisée sur le site, pendant laquelle les porteurs de projet ont défendu son caractère vertueux. D’après Jean-Louis Thiériot, député de Seine-et-Marne, la construction du datacenter n’engendrerait aucune artificialisation des sols, puisque les bâtiments seraient construits sur l’emprise de l’ancienne centrale à charbon.
+Les porteurs de projet auraient par ailleurs évoqué un refroidissement en circuit fermé, sans prélèvements d’eau extérieure, une réutilisation de la chaleur fatale via des usages locaux, et une utilisation d’électricité décarbonée. «
+C’est maintenant aux communautés de communes, en charge de l’activité économique, de faire croître un écosystème favorable avec les entreprises du secteur
+»,
+veut croire
+le député. Les activités économiques les plus proches du site sont pour l’instant un fournisseur de granulats et un site de stockage de grains.
+L’ancienne centrale thermique, retenue pour le datacenter, est à proximité immédiate de la Seine et voisine du poste électrique du Chesnoy – capture d’écran Next, carte
+OpenStreetMap
+La mise en service de ce datacenter serait programmée à partir de 2027 avec, sans doute, un déploiement par tranches. Outre le soutien d’EDF, le site bénéficie en effet du dispositif de raccordement fast track, voulu par le Gouvernement et
+approuvé
+en mai dernier par la Commission de régulation de l’énergie (CRE), qui permet «
+de demander un raccordement accéléré et sans limitation à la capacité du réseau
+».
+Le site de Montereau, qui accueille aujourd’hui deux turbines à combustion alimentées par du gaz, est raccordé «
+au réseau électrique national au travers du poste du Chesnoy (400 kV/225 kV/63 kV)
+»,
+indique
+Wikipédia.
+Le datacenter d’OpCore sera ainsi situé à une trentaine de kilomètres d’un autre projet très médiatisé et doté d’un budget dix fois plus important, le fameux
+Campus IA
+dont la concertation publique vient de s’achever autour de Fouju, toujours en Seine-et-Marne.
+Société
+Campus IA : « La souveraineté absolue n’existe pas »
+Société
+Mardi 18 novembre 2025 à 16h59
+18/11/2025 16h59

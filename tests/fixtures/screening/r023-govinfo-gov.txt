@@ -1,0 +1,42 @@
+Category
+Bills and Statutes
+Collection
+Congressional Bills
+SuDoc Class Number
+Y 1.6:
+Y 1.4/1:
+Congress Number
+118th Congress
+Congress Session
+2nd Session
+Last Action Date Listed
+December 19,
+2024
+Action
+Mr. Markey (for himself and Mr. Sanders) introduced the following bill; which was read twice and referred to the Committee on Finance
+Bill Number
+S. 5622
+Bill Version
+Introduced in Senate
+(IS)
+Short Title
+Installing Clean Efficient Energy Hastens Our Transition Act of 2024
+Full Title
+To amend the Energy Policy Act of 2005 to establish an energy efficient appliance rebate program to provide rebates for the manufacturing, distribution, contracting, installation, and servicing of certain building electrification products and industrial heat pumps, and for other purposes.
+Sponsors
+Edward J. Markey(MA)
+Cosponsors
+Bernard Sanders
+(VT)
+Committees
+Committee on Finance (Standing)
+Public and Private Law References
+Public Law 117-169
+United States Code References
+15 U.S.C. 637(a)
+29 U.S.C. 152
+and
+159
+42 U.S.C. 15821, 15821, 18795, 18795a
+and
+6291

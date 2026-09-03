@@ -20,11 +20,51 @@ from .keywords import KeywordMatcher
 from .llm import ClaudeClient, LLMAuthError
 from .models import (
     CrawlResult, Policy, DomainProgress, DomainScanStatus,
-    ScanEvent,
+    ScanEvent, ScreeningResult, DEFAULT_SCREENER_REJECT_KINDS,
+    DEFAULT_SCREENER_SOFT_REJECT_KINDS,
 )
 from .verifier import Verifier
 
 logger = logging.getLogger(__name__)
+
+
+def screening_decision(
+    result: ScreeningResult,
+    reject_kinds: list[str],
+    soft_reject_kinds: list[str],
+) -> str:
+    """Where a classified page goes next: ``drop_kind``, ``escalate`` or
+    ``proceed`` (WP-5, ADR-0011). Applied to the classifier's answer, after
+    the original screening gate has already passed the page.
+
+    A pure function so Stage 5a and the recorded-fixture replay test
+    (tests/unit/test_screening_replay.py) share the exact same gate rather
+    than two copies that can drift apart. Checked in order:
+
+    0. ``kind`` is ``None`` - a parsing/API fallback, never a real verdict -
+       always proceeds.
+    1. ``kind`` on ``reject_kinds`` (question, speech by default) ->
+       ``drop_kind``, even with both quotes: a parliamentary question that
+       names a data centre and its waste heat is still a question.
+    2. ``kind`` on ``soft_reject_kinds`` (report, article by default) ->
+       ``drop_kind`` when the classifier found neither quote, ``escalate``
+       (the strong model decides) when it found either. Measured 2026-09-03
+       on the reviewer's rows: her kept agency pages and press release were
+       labelled report/article with quotes, so a hard drop loses keeps.
+    3. any other kind -> ``proceed``.
+
+    The quotes never gate on their own. The deterministic scope gate on
+    source text (Stage 4b, ADR-0001) is the data-centre rule; the replay
+    showed the model failing to quote a data-centre sentence on 14 of 23
+    kept pages the regex had matched. Lesson PL-008.
+    """
+    if result.kind is None:
+        return "proceed"
+    if result.kind in reject_kinds:
+        return "drop_kind"
+    if result.kind in soft_reject_kinds:
+        return "escalate" if (result.dc_quote or result.heat_quote) else "drop_kind"
+    return "proceed"
 
 
 class DomainScanner:
@@ -45,6 +85,8 @@ class DomainScanner:
         screening_min_confidence: int = 5,
         scope_setting: str = DEFAULT_SCOPE,
         instrument_index: Optional[InstrumentIndex] = None,
+        screener_reject_kinds: Optional[list[str]] = None,
+        screener_soft_reject_kinds: Optional[list[str]] = None,
     ):
         self.domain = domain
         self.crawler = crawler
@@ -58,6 +100,20 @@ class DomainScanner:
         self.on_event = on_event
         self.screening_min_confidence = screening_min_confidence
         self.scope_setting = scope_setting
+        # Document kinds the screener drops before analysis (WP-5). None
+        # (every construction site that predates this - see
+        # src/orchestration/scan_manager.py, which does not yet forward
+        # config/settings.yaml's analysis.screener_reject_kinds here) falls
+        # back to the same default that setting carries, so the gate is on
+        # with sane behavior even where it is not explicitly wired.
+        self.screener_reject_kinds = (
+            list(DEFAULT_SCREENER_REJECT_KINDS) if screener_reject_kinds is None
+            else screener_reject_kinds
+        )
+        self.screener_soft_reject_kinds = (
+            list(DEFAULT_SCREENER_SOFT_REJECT_KINDS) if screener_soft_reject_kinds is None
+            else screener_soft_reject_kinds
+        )
         # Same-instrument duplicate check (WP-4). None (the default) means
         # the check is off, so every construction site that predates it
         # keeps working. Built once per scan and shared across every
@@ -406,7 +462,12 @@ class DomainScanner:
             )
             return []
 
-        # Stage 5a: Haiku screening
+        # Stage 5a: Haiku screening - three narrow questions (WP-5): what
+        # kind of document, and the source-text sentences (if any) naming a
+        # data centre and describing heat reuse. screening_decision is a
+        # pure function (defined above) so the exact same gate can be
+        # replayed against recorded fixtures in
+        # tests/unit/test_screening_replay.py.
         screening = await self.llm_client.screen_relevance(
             extracted.text, result.url,
             anchor_terms=[m.term for m in kw_result.matches],
@@ -425,12 +486,42 @@ class DomainScanner:
                 )
                 return []
             # Borderline rejection: the screener is not confident enough to
-            # make the final call — escalate to full analysis instead.
+            # make the final call - the strong model decides.
             logger.info(
                 "Borderline screening rejection for %s (confidence=%d < %d) "
-                "— escalating to analysis",
+                "- escalating to analysis",
                 result.url, screening.confidence, self.screening_min_confidence,
             )
+
+        # Stage 5a2: the classifier (WP-5). A second cheap call, only for
+        # pages the gate passed: the document kind drives the hard and soft
+        # kind lists; the quotes are evidence on the row.
+        classification = await self.llm_client.classify_document(
+            extracted.text, result.url,
+            anchor_terms=[m.term for m in kw_result.matches],
+        )
+        decision = screening_decision(
+            classification, self.screener_reject_kinds, self.screener_soft_reject_kinds,
+        )
+        if decision == "drop_kind":
+            self.progress.pages_filtered += 1
+            self.progress.screened_kind += 1
+            logger.info(
+                "Dropped at screening (document kind: %s): %s",
+                classification.kind, result.url,
+            )
+            self.cache.set(
+                result.url, is_relevant=False,
+                relevance_score=0, content_hash=content_hash,
+                policy_type=classification.kind,
+            )
+            return []
+        if decision == "escalate":
+            logger.info(
+                "Classified as %s with evidence, the strong model decides: %s",
+                classification.kind, result.url,
+            )
+        # decision == "proceed" falls through silently, same as today.
 
         # Stage 5b: Sonnet analysis
         analysis = await self.llm_client.analyze_policy(
@@ -458,6 +549,20 @@ class DomainScanner:
         if result.lifecycle_stage:
             for policy in policies:
                 policy.lifecycle_stage = result.lifecycle_stage
+
+        # Evidence from the screener rides on every policy this page
+        # produced (WP-5): the document kind, the two quotes, and whether
+        # they were actually found in the excerpt - so a reviewer can see
+        # why the row exists without re-reading the source page.
+        if policies:
+            evidence = {
+                "kind": classification.kind,
+                "dc_quote": classification.dc_quote,
+                "heat_quote": classification.heat_quote,
+                "quote_verified": classification.quote_verified,
+            }
+            for policy in policies:
+                policy.evidence = evidence
 
         # Stage 6b: same-instrument fold on the extracted policy name(s).
         # The pre-screen check above only sees the page's own title; the

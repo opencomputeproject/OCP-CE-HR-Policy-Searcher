@@ -22,7 +22,7 @@ same pull request as the change it explains.
 |---|---|---|
 | [ADR-0001](ADR-0001-scope-requires-a-data-centre-on-source-text.md) | Accepted | A document with no data-centre reference in its source text is out of scope, by default |
 | [ADR-0002](ADR-0002-structured-sources-bypass-the-keyword-gate.md) | Accepted | Legislation sources skip the keyword gate; cross-source rules sit where the lanes rejoin |
-| [ADR-0003](ADR-0003-recall-first-screening.md) | Accepted, under review | The cheap screener keeps anything in doubt; the strong model decides |
+| [ADR-0003](ADR-0003-recall-first-screening.md) | Superseded by ADR-0011 | The cheap screener keeps anything in doubt; the strong model decides |
 | [ADR-0004](ADR-0004-virginia-from-the-lis-session-files.md) | Accepted | Virginia bills come from the LIS session CSVs, not per-bill crawling |
 | [ADR-0005](ADR-0005-the-reviewers-column-is-the-review-record.md) | Proposed | The reviewer's sheet column is the review record; the app reads it, never rewrites it |
 | [ADR-0006](ADR-0006-one-monthly-trigger.md) | Proposed | The in-app schedule is the only thing that starts the monthly scan |
@@ -30,3 +30,4 @@ same pull request as the change it explains.
 | [ADR-0008](ADR-0008-every-scan-has-a-budget-by-default.md) | Accepted | A scan that omits budget_usd stops itself at $25 by default; the estimate shows the last actual and a disagreement warning |
 | [ADR-0009](ADR-0009-one-row-per-document-both-languages.md) | Accepted | One row per document, both languages on it: English name is indexed, a translated-page link is computed, sheet writes are header-aligned |
 | [ADR-0010](ADR-0010-same-instrument-folds-into-the-existing-row.md) | Accepted | A page or extracted policy that names an instrument already kept folds into that row instead of becoming a new one |
+| [ADR-0011](ADR-0011-the-screener-asks-three-questions.md) | Accepted | The screener asks three narrow questions - document kind, a data-centre quote, a heat-reuse quote - instead of one wide relevance judgment |

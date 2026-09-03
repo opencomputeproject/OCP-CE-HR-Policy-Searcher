@@ -1,0 +1,73 @@
+Faktapromemoria
+Riksdagsår:
+2025/26
+FPM-nummer:
+99
+2026-07-08
+Förordning om utveckling av moln och AI
+Finansdepartementet
+Dokumentbeteckning
+COM(2026) 502
+Celexnummer
+52026PC0502
+Proposal for a regulation of the European Parliament and of the Council establishing a framework of measures for strengthening Europe’s cloud and AI ecosystem (Cloud and AI Development Act)
+Sammanfattning
+Den 3 juni 2026 presenterade Europeiska kommissionen ett förslag till förordning om utveckling av moln och artificiell intelligens (AI). Förordningen syftar till att stärka unionens konkurrenskraft och rådighet genom att utveckla dess s.k. moln- och AI
+‑
+ekosystem, dvs. EU:s samlade tekniska, industriella och institutionella miljö för att utveckla, driva och använda molntjänster och AI. Moln- och AI-ekosystemet ska stärkas genom att minska EU:s strategiska beroenden inom digital infrastruktur, öka den teknologiska suveräniteten, stimulera investeringar samt stärka hela leveranskedjans kapacitet, säkerhet, anpassningsförmåga och motståndskraft.
+Regeringen är positiv till ambitionen att stärka EU:s kapacitet, konkurrenskraft, och digitala suveränitet inom moln- och AI-området. Sverige ska ha rådighet över data och system och kunna agera självständigt och i linje med europeiska värderingar och intressen, samtidigt som fördelarna med globalt samarbete med internationella partners tillvaratas. Det är dock viktigt att regleringen bygger på en tydlig konsekvensanalys och utformas utifrån från ett existerande behov av åtgärder. Regeringen avser också verka för att regler, processer och strukturer utformas så att konsekvenserna är proportionerliga och inte medför större begränsningar eller kostnader för medlemsstaterna och företagen än vad som är nödvändigt.
+1.
+Förslaget
+1.1
+Ärendets bakgrund
+Den 14 december 2022 antogs Europaparlamentets och rådets beslut (EU) 2022/2481 om inrättande av policyprogrammet för det digitala decenniet. Programmet fastställer unionens mål för den digitala omställningen till 2030, bl.a. avseende digital infrastruktur, användning av molntjänster och AI samt stärkt digital suveränitet. Kommissionens uppföljning visar att det finns betydande investeringsbehov kopplade till utvecklingen av avancerad digital infrastruktur i unionen.
+Den snabba utvecklingen av AI och datadrivna tekniker har medfört en kraftigt ökad efterfrågan på beräkningskapacitet, särskilt inom molntjänster och högpresterande datorsystem. I den s.k. Draghi
+‑
+rapporten, The future of European competitiveness – A Competitiveness Strategy for Europe (2024), framhålls behovet av att stärka EU:s kapacitet inom strategiska digitala teknologier och att minska externa beroenden.
+Den 13 juni 2024 antogs Europaparlamentets och rådets förordning (EU) 2024/1689 om harmoniserade regler för artificiell intelligens och om ändring av förordningarna (EG) nr 300/2008, (EU) nr 167/2013, (EU) nr 168/2013, (EU) 2018/858, (EU) 2018/1139 och (EU) 2019/2144 samt direktiven 2014/90/EU, (EU) 2016/797 och (EU) 2020/1828 (förordning om artificiell intelligens). Förordningen fastställer harmoniserade regler för utveckling, tillhandahållande och användning av AI
+‑
+system inom unionen och innehåller bl.a. krav baserade på risknivå samt bestämmelser för att säkerställa säkerhet, grundläggande rättigheter och förtroende för AI.
+Den 13 december antogs Europaparlamentets och rådets förordning (EU) 2023/2854 om harmoniserade regler för skälig åtkomst till och användning av data och om ändring av förordning (EU) 2017/2394 och direktiv (EU) 2020/1828 (dataförordningen). Förordningen innehåller bestämmelser om byte av databehandlingstjänster, bl.a. om molntjänster, och interoperabilitet.
+Kommissionen presenterade den 9 april 2025 European AI Continent Action Plan, som syftar till att främja utveckling och användning av AI i Europa samt att stärka tillgången till nödvändig infrastruktur, data och kompetens. Kommissionen presenterade vidare den 8 oktober 2025 en strategi om tillämpning av AI (Apply AI Strategy), med fokus på att öka användningen av AI i ekonomi och samhälle (se Fakta-PM 2025/26:FPM35).
+Den 3 juni 2026 presenterade kommissionen ett förslag till förordning om utveckling av moln och AI (COM (2026) 502).
+1.2
+Förslagets innehåll
+Målsättningen med den föreslagna förordningen är att stärka EU:s kapacitet, konkurrenskraft och digitala suveränitet inom moln
+‑
+och AI
+‑
+området.
+Förslaget ska ses mot bakgrund av den snabbt växande efterfrågan på AI som kräver ökad kapacitet i form av datacenter, molntjänster och beräkningskraft. För närvarande försvåras utbyggnaden av datacenter av långa och komplexa tillståndsprocesser samt begränsad tillgång till energi, mark och finansiering. Samtidigt innebär ett stort beroende av molntjänstleverantörer utanför EU risker för Europas digitala suveränitet.
+För att möta dessa utmaningar ska förordningen göra det enklare och snabbare att bygga ut hållbar moln- och datacenterinfrastruktur, minska strategiska beroenden och påskynda införandet av moln
+‑
+och AI
+‑
+lösningar i samhällsviktiga sektorer. Marknaden ska hållas öppen för internationella partners och samtidigt främja strategiska mål som suveränitet, resiliens och kapacitet.
+Förordningen omfattar tre pelare: forskning, utveckling och innovation, datacenterkapacitet och autonomi (digital suveränitet).
+1.2.1
+Forskning, utveckling och innovation
+Initiativ inom moln och AI
+Förordningen innehåller initiativ som syftar till att stärka forskning, innovation och kapacitet att utveckla EU:s moln- och AI
+‑
+ekosystem. Initiativen syftar bl.a. till att utveckla och införa avancerad teknik, stärka kapaciteten i datacenter och molntjänster samt öka användningen av AI i både den offentliga och privata sektorn.
+För att uppnå detta föreslås storskaliga sektorsövergripande satsningar, som fokuserar på tekniska och industriella områden av strategisk betydelse för EU:s konkurrenskraft och teknologiska suveränitet. Som exempel på sådana områden kan nämnas energieffektiv digital infrastruktur, avancerad AI samt förbättrad tillgång till data och beräkningsresurser. För att kunna beakta marknadens och teknikens utveckling ges kommissionen befogenhet att genom genomförandeakter ändra vilka områden som ska omfattas av satsningarna.
+Genomförandet av initiativen ska ske i samarbete mellan kommissionen och medlemsstaterna och kan medfinansieras genom bl.a. EU
+‑
+programmen Horisont Europa och Programmet för ett digitalt Europa.
+Inrättande av nationella AI-center
+Medlemsstaterna ska enligt förslaget etablera s.k. erfarenhets- och accelerationscenter för AI (AI-center), dvs. center för att främja utveckling, testning och införande av AI samt underlätta kunskapsutbyte och samarbete mellan relevanta aktörer. Centren ska även bidra till ett bredare införande av AI i både den privata och offentliga sektorn. AI-centren ska i första hand utgå från redan etablerade europeiska digitala innovationshubbar,
+men även andra befintliga EU
+-
+initiativ eller strukturer kan vidareutvecklas vid behov. Avsikten med förslaget är inte att etableringen av AI-center ska kräva nya initiativ eller strukturer. Av förslaget framgår inte när dessa ska vara etablerade.
+Framtagande av nationella moln- och AI-strategier
+Enligt förslaget ska medlemsstaterna, inom tolv månader från det att förordningen träder i kraft, ta fram nationella strategier för moln- och AI-användning. Strategierna ska ange centrala mål och prioriteringar för införandet och användningen av dessa tekniker. Strategierna ska även omfatta åtgärder för att bl.a. påskynda utvecklingen och användningen av molninfrastruktur och molntjänster samt AI
+‑
+teknik och AI
+‑
+tillämpningar på nationell, regional och lokal nivå. De ska även inkludera åtgärder för att främja utbyggnaden av energi
+‑
+och resurseffektiv datacenterkapacitet.
+1.2.2
+Datacenterkapacitet
+Inrättande av accelerationszoner för datacenter
+Kommissionen föreslår att varje medlemsstat ska utse särskilda områden, s.k. accelerationszoner, där det ska bli enklare och gå snabbare a

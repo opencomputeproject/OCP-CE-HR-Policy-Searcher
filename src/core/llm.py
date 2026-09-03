@@ -52,6 +52,52 @@ RESPOND WITH JSON ONLY (no explanation):
 {{"relevant": true/false, "confidence": 1-10}}
 """
 
+CLASSIFY_PROMPT = """You are a document classifier for a government policy search tool. Read the
+page and answer three narrow questions about it. Do not judge overall
+relevance yourself - answer only what is asked below; the caller decides
+relevance from your answers.
+
+1. KIND - what kind of document is this? Choose exactly one word from this
+   list:
+   - act: an enacted law or statute
+   - bill: a proposed law under consideration
+   - regulation: a rule, order or decree issued under existing law
+   - consultation: an open call for public comment
+   - grant: a funding, subsidy or tax-incentive program
+   - plan: a ministry memorandum, strategy or roadmap proposing future
+     legislation
+   - index: a listing or directory page that links to other documents
+   - report: an audit, evaluation, study or research document
+   - article: a news item or press release
+   - speech: a parliamentary transcript or spoken remarks (for example a
+     Diet floor transcript)
+   - question: a parliamentary question and its written answer (for
+     example a German Kleine Anfrage)
+   - other: none of the above
+
+2. DC_QUOTE - copy, verbatim, the one sentence in CONTENT below that
+   names a data centre. If no such sentence exists, answer null.
+
+3. HEAT_QUOTE - copy, verbatim, the one sentence in CONTENT below about
+   reusing or recovering heat. If no such sentence exists, answer null.
+
+IMPORTANT: dc_quote and heat_quote must be copied exactly from CONTENT,
+never invented or paraphrased. null is the correct answer whenever no such
+sentence exists - do not force a quote that is not there.
+
+{scope_line}
+Content may be in any language (EN, DE, FR, SV, DA, NO, FI, IS, NL, PL, JA, KO, etc.).
+Quote in the content's own language; do not translate the quote.
+
+URL: {url}
+
+CONTENT (excerpt):
+{content}
+
+RESPOND WITH JSON ONLY (no explanation):
+{{"kind": "act|bill|regulation|consultation|grant|plan|index|report|article|speech|question|other", "dc_quote": "verbatim sentence or null", "heat_quote": "verbatim sentence or null", "confidence": 1-10}}
+"""
+
 ANALYSIS_PROMPT = """
 Analyze this government web page for data center heat reuse policy information.
 
@@ -148,6 +194,13 @@ SCREENING_HEAD_CHARS = 8000
 SCREENING_ANCHOR_WINDOW = 2000
 SCREENING_MAX_CHARS = 12500
 
+# WP-5: the response now carries a kind word and up to two ~400-character
+# quotes instead of a single {"relevant": bool, "confidence": int} - the
+# old 50-token cap truncated a real response mid-quote and broke JSON
+# parsing on every call.
+SCREENING_MAX_TOKENS = 50  # the yes/no gate: {"relevant", "confidence"}
+CLASSIFY_MAX_TOKENS = 300  # kind plus two verbatim quotes
+
 
 def screening_excerpt(content: str, anchor_terms: list[str] | None) -> str:
     """Build the text window the screening model sees.
@@ -170,6 +223,136 @@ def screening_excerpt(content: str, anchor_terms: list[str] | None) -> str:
             break
 
     return excerpt[:SCREENING_MAX_CHARS]
+
+
+# --- Screening response parsing (WP-5) ---
+
+#: The fixed kind vocabulary SCREENING_PROMPT asks for. A value outside
+#: this list (or a missing one) narrows to "other" rather than being
+#: trusted as-is - the same defensive posture src.core.scope.scope_setting
+#: takes on an unrecognised setting.
+VALID_SCREENING_KINDS = (
+    "act", "bill", "regulation", "consultation", "grant", "plan",
+    "index", "report", "article", "speech", "question", "other",
+)
+
+#: A quote longer than this is truncated, never dropped - the model was
+#: told to copy one sentence, but nothing stops it copying a paragraph.
+MAX_QUOTE_CHARS = 400
+
+
+def _normalize_whitespace(text: str) -> str:
+    return " ".join((text or "").split())
+
+
+def _clean_quote(value: object) -> Optional[str]:
+    """A dc_quote/heat_quote field from the model: null-like stays None,
+    otherwise a stripped string truncated to MAX_QUOTE_CHARS."""
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text or text.lower() in ("null", "none", "n/a"):
+        return None
+    return text[:MAX_QUOTE_CHARS]
+
+
+def _quote_found(quote: Optional[str], excerpt_normalized: str) -> bool:
+    """Whether a claimed quote appears verbatim in the excerpt, once
+    whitespace differences are normalised away. A quote of None (nothing
+    claimed) counts as found - there is nothing to verify."""
+    if quote is None:
+        return True
+    return _normalize_whitespace(quote) in excerpt_normalized
+
+
+def _relevant_from(data: dict, dc_quote, heat_quote) -> bool:
+    """The screener's own yes/no when it gave one (question 4, the base gate
+    every stored row already passed in production); otherwise derived from
+    the quotes, so an older recording or a truncated answer still parses."""
+    value = data.get("relevant")
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.strip().lower() in ("true", "false"):
+        return value.strip().lower() == "true"
+    return bool(dc_quote) and bool(heat_quote)
+
+
+def parse_screening_response(data: dict, excerpt: str = "") -> ScreeningResult:
+    """Turn the model's kind/dc_quote/heat_quote/confidence JSON into a
+    ScreeningResult.
+
+    ``relevant`` is derived, never asked for: both quotes must be present.
+    An unrecognised or missing kind narrows to "other" - a successfully
+    parsed response always gets a real kind, never None; None is reserved
+    for the outer fallback in screen_relevance/parse_screening_json, so
+    screening_decision can treat kind=None as "this is not a real verdict,
+    always proceed". Quotes are truncated, never dropped, when long; a
+    quote that does not literally appear in the excerpt is kept (a
+    reviewer can still read it) but flagged quote_verified=False rather
+    than trusted blind - the model was told not to paraphrase, but
+    sometimes does anyway.
+    """
+    kind = data.get("kind")
+    if not isinstance(kind, str) or kind not in VALID_SCREENING_KINDS:
+        kind = "other"
+
+    dc_quote = _clean_quote(data.get("dc_quote"))
+    heat_quote = _clean_quote(data.get("heat_quote"))
+
+    confidence = data.get("confidence", 5)
+    if isinstance(confidence, str):
+        try:
+            confidence = int(confidence)
+        except ValueError:
+            confidence = 5
+    confidence = max(1, min(10, int(confidence)))
+
+    excerpt_normalized = _normalize_whitespace(excerpt)
+    verified = (
+        _quote_found(dc_quote, excerpt_normalized)
+        and _quote_found(heat_quote, excerpt_normalized)
+    )
+
+    return ScreeningResult(
+        relevant=_relevant_from(data, dc_quote, heat_quote),
+        confidence=confidence,
+        kind=kind,
+        dc_quote=dc_quote,
+        heat_quote=heat_quote,
+        quote_verified=verified,
+    )
+
+
+def parse_relevance_json(raw: str) -> ScreeningResult:
+    """The gate's answer: {"relevant": bool, "confidence": 1-10}. Anything
+    unparseable falls open (relevant, confidence 5), logged at warning."""
+    try:
+        data = json.loads(_extract_json(raw))
+        relevant = bool(data.get("relevant", True))
+        confidence = int(data.get("confidence", 5))
+        confidence = max(1, min(10, confidence))
+        return ScreeningResult(relevant=relevant, confidence=confidence)
+    except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as e:
+        logger.warning("Screening answer unparseable (%s), assuming relevant: %.200s", e, raw)
+        return ScreeningResult(relevant=True, confidence=5, kind=None)
+
+
+def parse_screening_json(raw: str, excerpt: str = "") -> ScreeningResult:
+    """parse_screening_response, starting from the model's raw response text.
+
+    Shared by ClaudeClient.screen_relevance and the recorded-fixture replay
+    test (tests/unit/test_screening_replay.py) so both exercise exactly the
+    same parser. A response that is not valid JSON falls open - relevant,
+    kind=None (never a rejection) - and logs the first 200 characters at
+    warning, the same fallback screen_relevance's own retry loop uses for
+    every other failure mode.
+    """
+    try:
+        data = json.loads(_extract_json(raw))
+    except json.JSONDecodeError:
+        logger.warning("Screening response was not valid JSON, assuming relevant: %r", raw[:200])
+        return ScreeningResult(relevant=True, confidence=5, kind=None)
+    return parse_screening_response(data, excerpt)
 
 
 # --- Errors ---
@@ -437,35 +620,14 @@ class ClaudeClient:
             sync_client, self.analysis_model, "analysis", "sonnet",
         )
 
-    async def screen_relevance(
-        self, content: str, url: str, anchor_terms: list[str] | None = None,
-    ) -> ScreeningResult:
-        """Quick relevance screening using Haiku.
-
-        Retries on rate limits to avoid failing open unnecessarily - if
-        screening fails open, the page goes to expensive Sonnet analysis,
-        which worsens rate limit pressure and costs.  Only falls open on
-        non-retryable errors (connection issues, parse failures).
-
-        The confidence gate (drop only when the model is confident the page
-        is irrelevant) is applied by the caller - see DomainScanner.
-
-        Args:
-            content: Full page text.
-            url: Source URL (for logging and prompt context).
-            anchor_terms: Matched keywords; if one first occurs beyond the
-                head window, the excerpt includes text around it so long
-                statutes are not screened on their preamble alone.
-
-        Returns:
-            ScreeningResult with relevant=True/False and confidence 1-10.
+    async def _cheap_model_call(
+        self, prompt: str, url: str, label: str, max_tokens: int,
+    ) -> Optional[str]:
+        """One call to the cheap screening model with the shared retry and
+        fail-open rules. Returns the raw response text, or None when the
+        caller must fall open (rate limit exhausted, connection error, any
+        non-auth failure). Authentication errors still raise.
         """
-        screening_content = screening_excerpt(content, anchor_terms)
-        prompt = SCREENING_PROMPT.format(
-            url=url,
-            content=screening_content,
-            scope_line=screening_scope_line(self.scope_setting),
-        )
         delay = self.BASE_DELAY
 
         for attempt in range(1, self.MAX_RETRIES + 1):
@@ -475,7 +637,7 @@ class ClaudeClient:
                 response = await aispend.acreate(
                     self.client, label="core:llm",
                     model=self.screening_model,
-                    max_tokens=50,
+                    max_tokens=max_tokens,
                     temperature=0.0,
                     messages=[{"role": "user", "content": prompt}],
                 )
@@ -487,33 +649,15 @@ class ClaudeClient:
                     self.cost.screening_input_tokens += response.usage.input_tokens
                     self.cost.screening_output_tokens += response.usage.output_tokens
                     logger.info(
-                        "llm_call: screening model=%s url=%s "
+                        "llm_call: %s model=%s url=%s "
                         "input_tokens=%d output_tokens=%d latency_ms=%d",
-                        self.screening_model, url,
+                        label, self.screening_model, url,
                         response.usage.input_tokens,
                         response.usage.output_tokens,
                         _latency_ms,
                     )
 
-                raw = response.content[0].text
-                try:
-                    data = json.loads(_extract_json(raw))
-                except json.JSONDecodeError:
-                    logger.warning(f"Screening parse failed for {url}, assuming relevant")
-                    return ScreeningResult(relevant=True, confidence=5)
-
-                relevant = data.get("relevant", True)
-                if isinstance(relevant, str):
-                    relevant = relevant.lower() in ("true", "yes", "1")
-                confidence = data.get("confidence", 5)
-                if isinstance(confidence, str):
-                    try:
-                        confidence = int(confidence)
-                    except ValueError:
-                        confidence = 5
-                confidence = max(1, min(10, confidence))
-
-                return ScreeningResult(relevant=relevant, confidence=confidence)
+                return response.content[0].text
 
             except anthropic.AuthenticationError as e:
                 raise LLMAuthError(f"Authentication failed: {e}") from e
@@ -542,7 +686,7 @@ class ClaudeClient:
                     logger.warning(
                         f"Screening rate limit exhausted for {url}, assuming relevant"
                     )
-                    return ScreeningResult(relevant=True, confidence=5)
+                    return None
 
             except anthropic.NotFoundError:
                 # Model doesn't exist - log ONCE and disable screening
@@ -553,15 +697,68 @@ class ClaudeClient:
                         f"Fix: update 'screening_model' in config/settings.yaml to a valid model."
                     )
                     self._screening_model_warned = True
-                return ScreeningResult(relevant=True, confidence=5)
+                return None
 
-            except Exception as e:
+            except (anthropic.APIError, OSError, TimeoutError) as e:
+                # Connection and API failures fall open (the page proceeds);
+                # a programming error is not caught here and must surface.
                 # Fail open: any non-retryable error → assume relevant
                 logger.warning(f"Screening error for {url}: {e}, assuming relevant")
-                return ScreeningResult(relevant=True, confidence=5)
+                return None
 
         # Should never reach here, but fail open for safety
-        return ScreeningResult(relevant=True, confidence=5)
+        return None
+
+    async def screen_relevance(
+        self, content: str, url: str, anchor_terms: list[str] | None = None,
+    ) -> ScreeningResult:
+        """The gate: the original recall-first yes/no question, unchanged.
+
+        Every row in the store passed this prompt, which is why it stays
+        exactly as it was (ADR-0011). Folding the classifier's questions
+        into this call changed the model's relevance answers in replay and
+        lost reviewer keeps; the classifier is therefore a separate call,
+        classify_document, made only for pages that pass here.
+
+        Falls open (relevant, confidence 5, kind None) on any failure that
+        is not an authentication error - a page must never be dropped
+        because the screener could not answer.
+        """
+        screening_content = screening_excerpt(content, anchor_terms)
+        prompt = SCREENING_PROMPT.format(
+            url=url,
+            content=screening_content,
+            scope_line=screening_scope_line(self.scope_setting),
+        )
+        raw = await self._cheap_model_call(prompt, url, "screening", SCREENING_MAX_TOKENS)
+        if raw is None:
+            return ScreeningResult(relevant=True, confidence=5, kind=None)
+        return parse_relevance_json(raw)
+
+    async def classify_document(
+        self, content: str, url: str, anchor_terms: list[str] | None = None,
+    ) -> ScreeningResult:
+        """The classifier (WP-5, ADR-0011): three narrow questions about a page
+        that already passed screen_relevance - what kind of document it is,
+        and the verbatim sentences naming a data centre and describing heat
+        reuse. The kind drives the hard and soft kind lists in the scanner;
+        the quotes are stored as evidence on the row and never gate on
+        their own (lesson PL-008).
+
+        Falls open with kind None, which screening_decision always lets
+        through: a page must never be dropped because the classifier could
+        not answer.
+        """
+        excerpt = screening_excerpt(content, anchor_terms)
+        prompt = CLASSIFY_PROMPT.format(
+            url=url,
+            content=excerpt,
+            scope_line=screening_scope_line(self.scope_setting),
+        )
+        raw = await self._cheap_model_call(prompt, url, "classify", CLASSIFY_MAX_TOKENS)
+        if raw is None:
+            return ScreeningResult(relevant=True, confidence=5, kind=None)
+        return parse_screening_json(raw, excerpt)
 
     async def analyze_policy(
         self, content: str, url: str, language: Optional[str] = None,

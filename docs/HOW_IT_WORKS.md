@@ -52,7 +52,9 @@ Numbers are from the first real monthly scan, 1 September 2026 (scan
 Everything above the screening line is free and did almost all of the
 cutting. The strong model took 86 percent of the money, and 285 of its 445
 calls produced no policy. The cheapest improvement is never a stronger model;
-it is a better question asked earlier.
+it is a better question asked earlier. Since WP-5 the screener also stores
+the document kind and the two quotes behind its verdict, so a reviewer can
+check the number instead of trusting it.
 
 ## Stage by stage
 
@@ -182,27 +184,61 @@ Where it sits: after the cache check, where the crawl and structured lanes
 have rejoined, and before the screener. Guarded by
 `tests/unit/test_scope.py` (the rule, the settings, and the placement).
 
-### 6. The cheap screener
+### 6. The cheap screener, in two calls
 
-`SCREENING_PROMPT` in `src/core/llm.py`, model
-`analysis.screening_model` (Haiku). One question today: is this page
-plausibly government policy touching data-centre heat reuse? It is written
-recall-first: "when in doubt, keep it". A rejection only sticks when the
-screener's confidence is at least `screening_min_confidence`; below that the
-page escalates to the strong model.
+`src/core/llm.py`, model `analysis.screening_model` (Haiku).
 
-Measured 1 September: 636 screened, 445 passed (70 percent), and the strong
-model then found nothing in 285 of those 445. One Pennsylvania domain
-(`pa_dep`) passed 199 pages through screening and produced zero rows.
+**The gate** (`SCREENING_PROMPT`, `screen_relevance`) is the original
+recall-first question, unchanged: could this page plausibly affect
+data-centre heat reuse, even indirectly, yes or no, with a confidence.
+Every row in the store passed it. A confident no drops the page (counted
+as `filtered_screening`); below `screening_min_confidence` the page goes to
+the strong model instead. This prompt stays verbatim on purpose: replaying
+the reviewer's rows on 3 September showed that folding further questions
+into it changed the model's answers and lost 5 to 8 of her 23 kept pages.
 
-Planned change (work package WP-5 in the September plan): three narrow
-questions instead of one wide one. What kind of document is this, from a
-fixed list (act, bill, regulation, consultation, grant, plan, index, report,
-article, speech, question)? Quote the sentence that names a data centre.
-Quote the sentence about reusing or recovering heat. A report or an article
-stops there; under `required`, no data-centre quote stops there. The quotes
-are stored so a reviewer can see why a row exists. Same model, same price.
-See [ADR-0003](decisions/ADR-0003-recall-first-screening.md).
+**The classifier** (`CLASSIFY_PROMPT`, `classify_document`, work package
+WP-5) is a second cheap call, only for pages the gate passed. Three narrow
+questions: what kind of document is this, from a fixed list (act, bill,
+regulation, consultation, grant, plan, index, report, article, speech,
+question, other); quote, verbatim, the sentence that names a data centre,
+or say there is none; quote, verbatim, the sentence about reusing or
+recovering heat, or say there is none. The model is told a quote must be
+copied from the page, never invented.
+
+The kind is the second gate; the quotes are evidence:
+
+- **Hard kinds.** `analysis.screener_reject_kinds` in `config/settings.yaml`,
+  default `question`, `speech`. Dropped even when both quotes are present:
+  a parliamentary question about data-centre heat reuse is still a
+  question. Counted as `screened_kind`.
+- **Soft kinds.** `analysis.screener_soft_reject_kinds`, default `report`,
+  `article`. Dropped only when the classifier found neither a data-centre
+  sentence nor a heat-reuse sentence; with either, the strong model
+  decides. Counted as `screened_kind` when dropped.
+- **Everything else proceeds.** A missing quote is never a reason to drop.
+  The same replay showed the model failing to quote a data-centre sentence
+  on 14 of her 23 kept pages that the scope gate's regex had matched; a
+  "no quote, drop" rule would have cost 12 keeps (lesson PL-008). The scope
+  gate on source text is the data-centre rule.
+
+Both calls fall open on any failure that is not an authentication error:
+the gate as relevant, the classifier as kind unset, and kind unset always
+proceeds. A parsing failure must never be the reason a real policy is
+dropped. The replay test (`tests/unit/test_screening_replay.py`) runs the
+classifier's rules over recorded answers on every commit: zero lost keeps is
+the bar, and the recording names the prompt hash it was made for.
+
+Measured 1 September, before this change: 636 screened, 445 passed (70
+percent), and the strong model then found nothing in 285 of those 445. One
+Pennsylvania domain (`pa_dep`) passed 199 pages and produced zero rows. The
+second call adds about $0.85 to a scan of that size.
+
+The kind and both quotes are stored on every policy the page produces, as
+`evidence` (`kind`, `dc_quote`, `heat_quote`, `quote_verified`), so a
+reviewer can check the reason a row exists instead of trusting it. See
+[ADR-0011](decisions/ADR-0011-the-screener-asks-three-questions.md), which
+supersedes [ADR-0003](decisions/ADR-0003-recall-first-screening.md).
 
 ### 7. The strong model
 
@@ -331,8 +367,8 @@ each:
 | Not a policy: parliamentary question, written answer, transcript | 46 | At the source. DIP and Folketing already send a document-type field; Kokkai is Diet speeches by design | free | built, WP-3 |
 | Link is a general site, an error page, not the document | 39 | At the source (emit the document URL) and a fetch check before screening | free | built, WP-3 (source) and WP-4 (fetch check) |
 | No data centre in the bill | 14 | The scope gate, on source text | free | built |
-| Not a policy: report, article, opinion, private initiative | 12 | The screener's document-kind question | about $0.002 per page | planned, WP-5 |
-| Data centre present, no heat-reuse substance | 6 | The screener's quote question | about $0.002 per page | planned, WP-5 |
+| Not a policy: report, article, opinion, private initiative | 12 | The screener's document-kind question | about $0.002 per page | built, WP-5 |
+| Data centre present, no heat-reuse substance | 6 | The screener's quote question | about $0.002 per page | built, WP-5 |
 | Duplicate, or news about a policy already kept | 4 | Same-instrument check against kept rows | free | built, WP-4 |
 | Only in Dutch (to be decided, not removed) | 10 | English title backfill, translated-page link | cents | built, not applied |
 | No reason given | 4 | A fixed reason list in the sheet, so the next round can be counted | free | built, WP-2; waits for the reviewer |

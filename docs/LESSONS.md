@@ -197,3 +197,68 @@ is easy to repeat.
 **How it is held.** By the gate: `ring-stale` compares the install's gate
 files with the canonical manifest on every commit. Finish the edit, then
 sync, then commit.
+
+---
+
+## PL-007
+
+- title: A setting defined, documented and tested at the module level was never read from the file
+- first_seen: 2026-09-03
+- last_seen: 2026-09-03
+- recurrences: 1
+- status: mechanized
+- guard: tests/unit/test_settings_wiring.py::TestAnalysisSettingsReachTheModel::test_data_center_required_from_yaml_is_read
+- decision: [ADR-0001](decisions/ADR-0001-scope-requires-a-data-centre-on-source-text.md)
+- class: unwired code (L003)
+
+**The defect.** `analysis.data_center_required` was added to `settings.yaml`,
+to the settings model with a default, and to `src/core/scope.py` with its own
+tests on 2026-08-28. The loader that turns the YAML into the model never
+passed the key on, so the model default applied whatever the file said. The
+default happened to equal the value in the file, so production behaved as
+intended and nothing noticed; an administrator changing the setting would
+have changed nothing.
+
+**Occurrence.** Found on 2026-09-03 by the WP-5 implementation agent reading
+the loader to add its own setting. Cost: none yet, only because the default
+matched. The same shape would have applied to the screener's kind lists had
+the agent not looked.
+
+**How it is held.** `tests/unit/test_settings_wiring.py` copies the real
+config directory, changes the value, loads it through `ConfigLoader`, and
+follows it into the scanner's constructor through the scan manager. A new
+analysis setting should get a row in that test the day it is added.
+
+---
+
+## PL-008
+
+- title: Asking a model for more in the same call changes the answer it already gave
+- first_seen: 2026-09-03
+- last_seen: 2026-09-03
+- recurrences: 3
+- status: mechanized
+- guard: tests/unit/test_screening_replay.py::TestReplayAgainstRecordedFixtures::test_every_reviewer_keep_survives_the_gate
+- decision: [ADR-0011](decisions/ADR-0011-the-screener-asks-three-questions.md)
+- class: verdict depends on an unreliable derived signal
+
+**The defect.** The screener's original yes/no question had a proven recall
+record: every row in the store passed it. Three designs that changed that
+call were replayed against the reviewer's rows with recorded model answers,
+and each lost keeps. Using "no data-centre quote" as a drop lost 12 of 23:
+the model failed to quote a sentence the scope gate's regex had matched on
+14 of the 23 kept pages. Folding the yes/no into the three-question prompt
+lost 8; restoring the original recall-first wording inside that prompt still
+lost 5 (a UK consultation, two Japanese acts, the Amsterdam regulation, a
+Washington program), because asking for quotes in the same breath changed
+the relevance answer.
+
+**Occurrence.** 2026-09-03, three times in one afternoon, before anything
+shipped, because the replay test ran against recorded answers first. Cost:
+about fifty cents of Haiku calls across the recordings and the redesign.
+
+**How it is held.** The gate call is unchanged and separate; the classifier
+is a second call whose only drops are the hard kinds and evidence-less soft
+kinds, which lost zero keeps in replay. The replay test asserts zero lost
+keeps over the recorded classifier answers and fails when the classifier
+prompt changes without a fresh recording.

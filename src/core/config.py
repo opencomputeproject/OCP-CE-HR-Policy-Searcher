@@ -12,7 +12,8 @@ from src.agent.domain_generator import US_STATE_ABBREVS as _US_STATES_REG
 
 from .models import (
     DomainConfig, CrawlSettings, AnalysisSettings, OutputSettings, AppSettings,
-    DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL,
+    DEFAULT_ANALYSIS_MODEL, DEFAULT_SCREENING_MODEL, DEFAULT_SCREENER_REJECT_KINDS,
+    DEFAULT_SCREENER_SOFT_REJECT_KINDS,
 )
 
 logger = logging.getLogger(__name__)
@@ -303,6 +304,13 @@ class ConfigLoader:
             screening_model=_screening_model,
             enable_two_stage=analysis_data.get("enable_two_stage", True),
             screening_min_confidence=analysis_data.get("screening_min_confidence", 5),
+            data_center_required=analysis_data.get("data_center_required", "required"),
+            screener_reject_kinds=analysis_data.get(
+                "screener_reject_kinds", DEFAULT_SCREENER_REJECT_KINDS,
+            ),
+            screener_soft_reject_kinds=analysis_data.get(
+                "screener_soft_reject_kinds", DEFAULT_SCREENER_SOFT_REJECT_KINDS,
+            ),
             default_scan_budget_usd=analysis_data.get("default_scan_budget_usd", 25.0),
         )
         output_data = data.get("output", {})

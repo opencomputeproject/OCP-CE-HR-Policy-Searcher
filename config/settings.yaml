@@ -116,6 +116,32 @@ analysis:
   # previously judged pages are re-decided rather than served from cache.
   data_center_required: "required"
 
+  # WP-5: document kinds the cheap screener drops before any analysis call.
+  # Each one is a reason from the reviewer's column, read 2 September 2026:
+  #   report, article   "Not a policy: report, article, opinion, private
+  #                      initiative" (12 rows)
+  #   speech, question  "Not a policy: parliamentary question, written
+  #                      answer, transcript" (46 rows) - a speech is a
+  #                      transcript (e.g. a Diet floor debate), a question
+  #                      is a written question and its answer (e.g. a
+  #                      German Kleine Anfrage)
+  # Hard drops: a page of one of these kinds is dropped at the screener even
+  # if it quotes both a data centre and a heat-reuse sentence. Neither kind
+  # was ever a keep in the reviewer's 143 rows.
+  screener_reject_kinds:
+    - question
+    - speech
+  # Soft drops: dropped only when the screener found NEITHER a data-centre
+  # sentence NOR a heat-reuse sentence on the page; with either quote the
+  # page goes to the strong model, which decides. Measured 2026-09-03 on the
+  # reviewer's rows: her two kept agency pages and one kept press release
+  # came back as report/article WITH quotes, so a hard drop here would have
+  # lost keeps. Both lists are part of the analysis block, so changing them
+  # changes the rules fingerprint - see src/core/rules_version.py.
+  screener_soft_reject_kinds:
+    - report
+    - article
+
   # Default running-cost cap applied to a scan that omits budget_usd, so an
   # estimate that turns out to be badly wrong cannot run away unnoticed.
   # The full 402-source scan of 2026-09-01 cost $9.05; 25 leaves headroom

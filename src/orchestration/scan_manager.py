@@ -489,6 +489,8 @@ class ScanManager:
                     on_event=self.broadcaster.broadcast,
                     screening_min_confidence=settings.analysis.screening_min_confidence,
                     scope_setting=settings.analysis.data_center_required,
+                    screener_reject_kinds=settings.analysis.screener_reject_kinds,
+                    screener_soft_reject_kinds=settings.analysis.screener_soft_reject_kinds,
                     instrument_index=instrument_index,
                 )
 

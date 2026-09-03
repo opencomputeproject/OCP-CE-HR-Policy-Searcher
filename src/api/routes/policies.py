@@ -21,15 +21,23 @@ router = APIRouter(prefix="/api", tags=["policies"])
 
 
 def _add_read_in_english_url(policy: dict) -> dict:
-    """Attach ``read_in_english_url`` (ADR-0009): a computed, never-stored
-    translated-page link for a non-English source, ``None`` for an English
-    one. Mutates and returns ``policy`` so callers can use it inline in a
-    list comprehension.
+    """Attach ``read_in_english_url`` (ADR-0009) and normalise ``evidence``
+    (WP-5) on a policy dict headed for a public response.
+
+    ``read_in_english_url`` is computed, never stored: a translated-page
+    link for a non-English source, ``None`` for an English one.
+    ``evidence`` (the screener's document kind and its two quotes) is
+    already ``None`` on every policy stored since WP-5 - this only
+    backfills the key for a row stored before the field existed, so a
+    caller always sees the key rather than sometimes having to check for
+    its absence. Mutates and returns ``policy`` so callers can use it
+    inline in a list comprehension.
     """
     source_language = policy.get("source_language") or "English"
     policy["read_in_english_url"] = (
         None if source_language == "English" else translated_url(policy.get("url", ""))
     )
+    policy.setdefault("evidence", None)
     return policy
 
 
