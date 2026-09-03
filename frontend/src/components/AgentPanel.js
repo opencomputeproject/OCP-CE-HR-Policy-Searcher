@@ -74,6 +74,7 @@ function AgentPanel({
         isScanRunning,
         isQueueRunning,
         queuedScanCount,
+        lastFunnelSummary,
         runScanQueue,
         stopActiveScan,
     } = useScanQueue({
@@ -96,12 +97,12 @@ function AgentPanel({
         }
     }, []);
 
-    const scanSelectedRegion = async () => {
+    const scanSelectedRegion = async (budgetOptions = {}) => {
         if (isBusy || selectedRegions.length === 0 || !hasApiKey) return;
 
         let requests;
         try {
-            requests = await buildScanRequests(selectedRegions, scanOptions);
+            requests = await buildScanRequests(selectedRegions, { ...scanOptions, ...budgetOptions });
         } catch (error) {
             pushNotice('error', `Could not resolve selected domains: ${error.message}`);
             return;
@@ -204,6 +205,7 @@ function AgentPanel({
                             queuedScanCount={queuedScanCount}
                             isScanRequestRunning={isScanRequestRunning}
                             isScanRunning={isScanRunning}
+                            funnelSummary={lastFunnelSummary}
                             onScan={scanSelectedRegion}
                             onStop={stopActiveScan}
                         />

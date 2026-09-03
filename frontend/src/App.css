@@ -1870,3 +1870,90 @@ select,
   font-weight: 600;
   color: #475569;
 }
+
+/* --- Last measured run + cost warnings (WP-6b) --- */
+
+.last-actual-line {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.cost-warnings {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border: 1px solid #f5d488;
+  border-radius: 6px;
+  background-color: #fffbeb;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cost-warning-line {
+  margin: 0 0 6px;
+}
+
+.cost-warning-line:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Budget control + confirmation (WP-6b) --- */
+
+.budget-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.budget-control label {
+  font-size: 14px;
+  color: #334155;
+}
+
+.budget-input {
+  width: 100px;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.budget-confirm {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border: 1px solid #e0a640;
+  border-radius: 6px;
+  background-color: #fdecc8;
+  color: #7a4a06;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* --- Post-scan funnel summary (WP-6b) --- */
+
+.funnel-summary {
+  margin-top: 12px;
+}
+
+.funnel-summary-heading {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: #334155;
+  font-size: 14px;
+}
+
+.funnel-summary ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.funnel-summary li {
+  margin-bottom: 2px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.4;
+}

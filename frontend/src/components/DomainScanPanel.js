@@ -41,6 +41,37 @@ function formatUsd(value) {
     return `$${Number(value || 0).toFixed(2)}`;
 }
 
+// Fixed abbreviations rather than Intl.DateTimeFormat: 'en-GB' renders
+// September as "Sept" (four letters), and locale-dependent month/day
+// ordering would make this line read differently depending on the
+// browser's locale - a plain "D Mon YYYY" is unambiguous either way.
+const MONTH_ABBREVIATIONS = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+function formatHumanDate(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return `${date.getDate()} ${MONTH_ABBREVIATIONS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+// WP-6b: the backend names the default budget inside a plain-language
+// warning sentence ("This scan stops itself at $25.00, the default
+// budget...") rather than as its own field - parsed back out here so the
+// budget input can start prefilled with the same number a scan would
+// otherwise be capped at.
+const DEFAULT_BUDGET_WARNING_RE = /stops itself at \$([0-9,]+(?:\.[0-9]+)?)/;
+
+function parseDefaultBudgetFromWarnings(warningsList) {
+    for (let i = 0; i < warningsList.length; i += 1) {
+        const match = DEFAULT_BUDGET_WARNING_RE.exec(warningsList[i]);
+        if (match) return Number(match[1].replace(/,/g, ''));
+    }
+    return null;
+}
+
 // Returns JSX (not a plain string, unlike its Phase-C shape) so the sentence
 // can carry a trailing InfoHotspot - the sentence itself stays in its own
 // <span> so it is still findable as one exact text node.
@@ -91,10 +122,18 @@ function DomainScanPanel({
     queuedScanCount,
     isScanRequestRunning,
     isScanRunning,
+    funnelSummary,
     onScan,
     onStop,
 }) {
     const [isScopePreviewActive, setIsScopePreviewActive] = useState(false);
+    // WP-6b: null means "not yet touched by the admin" - the displayed
+    // value is derived from the estimate's default-budget warning below,
+    // so it stays in sync with the current scope until the admin types
+    // their own number.
+    const [budgetInput, setBudgetInput] = useState(null);
+    const [noBudget, setNoBudget] = useState(false);
+    const [confirmPending, setConfirmPending] = useState(false);
 
     const handleChannelToggle = (channelId, checked) => {
         const nextChannels = checked
@@ -130,6 +169,53 @@ function DomainScanPanel({
             .filter(([, channel]) => Boolean(channel))
         : [];
     const hasCostBreakdown = channelEntries.length > 0;
+
+    // WP-6b: last_actual + warnings ride along on the same cost-estimate
+    // response costEstimate already carries (useCostEstimate spreads the
+    // whole payload through), so no separate fetch is needed here.
+    const lastActual = costStatus === 'ready' && costEstimate ? costEstimate.last_actual : null;
+    const warningsList = costStatus === 'ready' && costEstimate && Array.isArray(costEstimate.warnings)
+        ? costEstimate.warnings
+        : [];
+
+    const defaultBudget = parseDefaultBudgetFromWarnings(warningsList);
+    const displayedBudgetInput = budgetInput !== null
+        ? budgetInput
+        : (defaultBudget != null ? String(defaultBudget) : '');
+    const parsedBudget = displayedBudgetInput !== '' && !Number.isNaN(Number(displayedBudgetInput))
+        ? Number(displayedBudgetInput)
+        : null;
+
+    // A budget more than 3x the last measured run for this scope gets a
+    // confirmation, same as checking "No budget" - both are ways to start
+    // a scan with a much higher ceiling than the evidence on hand supports.
+    const overThreeXRatio = (!noBudget && parsedBudget != null && lastActual && lastActual.cost_usd > 0
+        && parsedBudget > 3 * lastActual.cost_usd)
+        ? parsedBudget / lastActual.cost_usd
+        : null;
+    const needsConfirm = noBudget || overThreeXRatio != null;
+
+    const handleBudgetInputChange = (event) => {
+        setBudgetInput(event.target.value);
+        setConfirmPending(false);
+    };
+
+    const handleNoBudgetChange = (event) => {
+        setNoBudget(event.target.checked);
+        setConfirmPending(false);
+    };
+
+    const handleStartClick = () => {
+        if (needsConfirm && !confirmPending) {
+            setConfirmPending(true);
+            return;
+        }
+        setConfirmPending(false);
+        onScan({
+            budget_usd: noBudget ? null : parsedBudget,
+            no_budget: noBudget,
+        });
+    };
 
     // WP-28: "Where will this search?" - the resolved source list for the
     // current selection, fetched lazily (only once the note is opened).
@@ -196,6 +282,20 @@ function DomainScanPanel({
                         {costEstimateText}
                     </output>
                 </Tooltip>
+                {lastActual && (
+                    <p className="last-actual-line">
+                        {`Last measured run of this scope: ${formatUsd(lastActual.cost_usd)} on `
+                            + `${formatHumanDate(lastActual.completed_at)}, ${lastActual.domains_scanned} `
+                            + `sources, ${lastActual.policies_found} policies`}
+                    </p>
+                )}
+                {warningsList.length > 0 && (
+                    <div className="cost-warnings">
+                        {warningsList.map((sentence) => (
+                            <p key={sentence} className="cost-warning-line" role="status">{sentence}</p>
+                        ))}
+                    </div>
+                )}
             </div>
             <div className="scan-decision">
                 <p className="scan-scope-summary" aria-live="polite">{scanScopeSummary}</p>
@@ -260,11 +360,41 @@ function DomainScanPanel({
                         )}
                     </HelpNote>
                 </div>
+                <div className="budget-control">
+                    <label htmlFor="scan-budget-usd">Budget (USD)</label>
+                    <input
+                        id="scan-budget-usd"
+                        className="budget-input"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={displayedBudgetInput}
+                        onChange={handleBudgetInputChange}
+                        disabled={noBudget}
+                    />
+                    <FormControlLabel
+                        control={(
+                            <Checkbox
+                                size="small"
+                                checked={noBudget}
+                                onChange={handleNoBudgetChange}
+                            />
+                        )}
+                        label="No budget (run uncapped)"
+                    />
+                </div>
+                {confirmPending && (
+                    <p className="budget-confirm" role="alert">
+                        {noBudget
+                            ? 'This run has no cost cap. Start anyway?'
+                            : `This budget is ${overThreeXRatio.toFixed(1)}x the last measured run. Start anyway?`}
+                    </p>
+                )}
                 <div className="agent-action-row">
                     <button
                         type="button"
                         className="scan-button button"
-                        onClick={onScan}
+                        onClick={handleStartClick}
                         disabled={isBusy || selectedRegions.length === 0 || !hasApiKey}
                     >
                         {isQueueRunning
@@ -280,6 +410,16 @@ function DomainScanPanel({
                         Stop scan
                     </button>
                 </div>
+                {Array.isArray(funnelSummary) && funnelSummary.length > 0 && (
+                    <div className="funnel-summary">
+                        <p className="funnel-summary-heading">What happened</p>
+                        <ul>
+                            {funnelSummary.map((sentence) => (
+                                <li key={sentence}>{sentence}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
             {!hasApiKey && (
                 <p className="text-block-small">
