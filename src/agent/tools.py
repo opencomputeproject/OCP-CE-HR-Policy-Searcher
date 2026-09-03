@@ -462,10 +462,13 @@ async def execute_tool(
             # Default running-cost cap (WP-6a/PL-004), same rule as
             # POST /api/scans: an omitted budget_usd gets the configured
             # default unless no_budget asks for an explicitly uncapped run.
-            budget_usd = arguments.get("budget_usd")
-            if budget_usd is None and not arguments.get("no_budget", False):
+            if arguments.get("no_budget", False):
+                budget_usd = None
+            elif arguments.get("budget_usd") is None:
                 default_budget = scan_manager.config.settings.analysis.default_scan_budget_usd
                 budget_usd = default_budget if default_budget else None
+            else:
+                budget_usd = arguments.get("budget_usd")
 
             job = await scan_manager.start_scan(
                 domains_group=arguments.get("domains", "quick"),

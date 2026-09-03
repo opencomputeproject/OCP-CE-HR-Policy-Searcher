@@ -533,6 +533,22 @@ class TestScanRoutes:
         assert mock_manager.start_scan.await_args.kwargs["budget_usd"] is None
         assert uncapped.json()["budget_usd"] is None
 
+    @pytest.mark.medium
+    def test_no_budget_wins_over_a_stray_budget_usd(self, client, mock_manager):
+        """A client that ticks "no budget" but still sends the disabled box's
+        value must get an uncapped run, not a silently capped one."""
+        mock_manager.config.settings.analysis.default_scan_budget_usd = 25.0
+        job = ScanJob(scan_id="s1", status=ScanStatus.RUNNING, domain_count=1)
+        mock_manager.start_scan = AsyncMock(return_value=job)
+
+        response = client.post(
+            "/api/scans",
+            json={"domains": "quick", "skip_llm": True, "no_budget": True, "budget_usd": 40},
+        )
+        assert response.status_code == 200
+        assert mock_manager.start_scan.await_args.kwargs["budget_usd"] is None
+        assert response.json()["budget_usd"] is None
+
     def test_list_scans_empty(self, client):
         response = client.get("/api/scans")
         assert response.status_code == 200
