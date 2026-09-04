@@ -25,6 +25,14 @@ _AMBIENT_ENV = (
 def _no_ambient_env(monkeypatch):
     for name in _AMBIENT_ENV:
         monkeypatch.delenv(name, raising=False)
+    # Deleting the variables is not enough on its own: src.api.app calls
+    # load_dotenv(override=True) at import, so the first test in a process to
+    # import the app re-injected the developer's .env AFTER this fixture had
+    # cleared it, and any non-GET route test run alone got a 401 from the
+    # admin gate while the same test passed inside the full file (where an
+    # earlier test had already paid the import). Lesson PL-009. Neutralise the
+    # loader for the whole test, so an import during a test cannot reach .env.
+    monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: False)
 
 # Proofmark size taxonomy: importing the autouse fixture registers it
 # suite-wide. The plugin lives in gates/ (distributed file, never edited here),

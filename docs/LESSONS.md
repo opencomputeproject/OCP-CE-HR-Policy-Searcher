@@ -262,3 +262,33 @@ is a second call whose only drops are the hard kinds and evidence-less soft
 kinds, which lost zero keeps in replay. The replay test asserts zero lost
 keeps over the recorded classifier answers and fails when the classifier
 prompt changes without a fresh recording.
+
+---
+
+## PL-009
+
+- title: A test's verdict depended on which test had paid an import first
+- first_seen: 2026-09-02
+- last_seen: 2026-09-03
+- recurrences: 1
+- status: mechanized
+- guard: tests/unit/test_env_hermetic.py::test_dotenv_cannot_reinject_secrets_during_a_test
+- class: verdict depends on untracked state (L009)
+
+**The defect.** `src/api/app.py` loads the project `.env` at import with
+`override=True`. The shared autouse fixture cleared `ADMIN_TOKEN` before each
+test, but the first test in a process to import the app re-injected it after
+the clearing, so every non-GET route test that ran first got a 401 from the
+admin gate. Inside the full file an earlier test had already paid the import,
+so the same tests passed. Run alone (`-k budget`), one failed; run together,
+all passed; the verdict depended on the developer's `.env` and on ordering,
+two things git does not track.
+
+**Occurrence.** Seen on 2026-09-02 while adding the default-budget route
+tests, filed as a chip, fixed 2026-09-03. Cost: a confusing red run and the
+time to explain it, twice.
+
+**How it is held.** The autouse fixture now neutralises `dotenv.load_dotenv`
+for the whole test, so an import made during a test cannot reach `.env`. The
+guard test writes a `.env` with a secret, calls the loader, and asserts
+nothing landed in the environment.

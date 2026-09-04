@@ -84,7 +84,10 @@ class TestDotenvOverrideBehavior:
     """load_dotenv(override=True) should replace stale env vars."""
 
     def test_override_replaces_empty_env_var(self, tmp_path):
-        from dotenv import load_dotenv
+        # The shared autouse fixture neutralises dotenv.load_dotenv so the
+        # project .env cannot leak into tests (PL-009); this class tests the
+        # library's real override semantics, so it uses the implementation.
+        from dotenv.main import load_dotenv
 
         env_file = tmp_path / ".env"
         env_file.write_text("TEST_OVERRIDE_KEY=from_file\n")
@@ -95,7 +98,10 @@ class TestDotenvOverrideBehavior:
             assert os.environ["TEST_OVERRIDE_KEY"] == "from_file"
 
     def test_override_replaces_stale_value(self, tmp_path):
-        from dotenv import load_dotenv
+        # The shared autouse fixture neutralises dotenv.load_dotenv so the
+        # project .env cannot leak into tests (PL-009); this class tests the
+        # library's real override semantics, so it uses the implementation.
+        from dotenv.main import load_dotenv
 
         env_file = tmp_path / ".env"
         env_file.write_text("TEST_STALE_KEY=new_value\n")
@@ -106,7 +112,10 @@ class TestDotenvOverrideBehavior:
 
     def test_no_override_keeps_empty_value(self, tmp_path):
         """Without override, empty env var is kept (the bug scenario)."""
-        from dotenv import load_dotenv
+        # The shared autouse fixture neutralises dotenv.load_dotenv so the
+        # project .env cannot leak into tests (PL-009); this class tests the
+        # library's real override semantics, so it uses the implementation.
+        from dotenv.main import load_dotenv
 
         env_file = tmp_path / ".env"
         env_file.write_text("TEST_NOOVERRIDE=from_file\n")
