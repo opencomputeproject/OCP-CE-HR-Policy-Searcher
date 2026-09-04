@@ -14,13 +14,27 @@ lifespan). Every ``TICK_SECONDS`` it walks every enabled schedule whose
    This never disables the schedule - ``month_spend()`` resets at the next
    UTC calendar month, so a paused schedule resumes on its own the first
    time it comes due after the ceiling clears, no admin action needed.
-3. Otherwise clears any stale ``paused_reason`` and fires the scan through
-   ``ScanManager.start_scan`` - the exact same path a manual scan takes -
-   then records the new scan_id and the newly computed ``next_run_at``.
+3. Otherwise clears any stale ``paused_reason``, optionally runs the review
+   import (below), and fires the scan through ``ScanManager.start_scan`` -
+   the exact same path a manual scan takes - then records the new scan_id
+   and the newly computed ``next_run_at``.
 
 Every decision above writes a ``log_audit_event`` (``schedule_fired`` /
 ``schedule_skipped_busy`` / ``schedule_skipped_ceiling``) alongside the
 scan's own ``scan_started`` audit event.
+
+**Review import gate** (WP-2, ADR-0005 proposed - off by default). When
+``manager.config.settings.output.import_reviews_before_scan`` is true,
+``fire_schedule`` runs ``src.output.import_reviews.import_reviews`` (not a
+dry run) immediately before ``start_scan``, so the store's review status
+reflects her column before this scan's own dedup/same-instrument checks run
+against it, and logs the summary. A review import must never block the
+monthly scan: a failure to reach or read the sheet (a gspread API error,
+a missing review header, bad credentials, a filesystem error) is caught
+and logged as a warning, and the scan fires anyway. A programming error
+in the importer is not caught: it should fail loudly, not silently skip. A
+``manager`` with no ``config`` attribute (any test double that does not set
+one) simply skips this step, matching today's behavior.
 
 Resilience: one schedule's ``start_scan`` raising, or the store's
 ``list()``/``month_spend()`` blowing up, must never take the other
@@ -32,12 +46,17 @@ unit-tested without the real 60-second loop (see tests/unit/test_schedule_runner
 
 import asyncio
 import logging
+
+from gspread.exceptions import GSpreadException
 from datetime import datetime
 
 from ..core.log_setup import log_audit_event
 from ..core.models import ScanStatus
 from ..notifications.digest import run_digest_tick_for_data_dir
+from ..eval.golden import GoldenSetError
+from ..output.import_reviews import import_reviews
 from ..storage.schedules import SchedulesStore, compute_next_run
+from ..storage.store import PolicyStore
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +119,28 @@ async def fire_schedule(
 
     if schedule.get("paused_reason"):
         store.update(schedule["id"], paused_reason=None)
+
+    # Review import gate (WP-2, ADR-0005 proposed / off by default) - see
+    # module docstring. manager.config is duck-typed (a ConfigLoader on the
+    # real ScanManager); a test double with none simply skips this.
+    config = getattr(manager, "config", None)
+    if config is not None and config.settings.output.import_reviews_before_scan:
+        try:
+            summary = import_reviews(config, PolicyStore(data_dir=data_dir), dry_run=False)
+            log_audit_event(
+                data_dir=data_dir, event="review_import_before_schedule",
+                schedule_id=schedule["id"], name=schedule["name"],
+                changed=summary.changed, unchanged=summary.unchanged,
+                unmatched=summary.unmatched, tbd=summary.tbd,
+                blank=summary.blank, unreachable=summary.unreachable,
+            )
+        except (GSpreadException, GoldenSetError, ValueError, OSError) as e:
+            # Never blocks the scan - a review import is a convenience for
+            # this run, not a dependency of it.
+            logger.warning(
+                "Review import before schedule %s (%s) failed, scan still "
+                "running: %s", schedule["id"], schedule["name"], e,
+            )
 
     # channels is guaranteed non-empty by the create/update validators; a
     # legacy row could still carry [], so keep a defensive default.

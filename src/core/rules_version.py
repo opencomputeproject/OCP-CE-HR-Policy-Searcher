@@ -84,9 +84,9 @@ def default_parts(config_dir: Path | None = None) -> list[str]:
         analysis = {}
     analysis_part = json.dumps(analysis, sort_keys=True, default=str)
 
-    from .llm import ANALYSIS_PROMPT, SCREENING_PROMPT
+    from .llm import ANALYSIS_PROMPT, CLASSIFY_PROMPT, SCREENING_PROMPT
 
-    return [keywords, analysis_part, SCREENING_PROMPT, ANALYSIS_PROMPT]
+    return [keywords, analysis_part, SCREENING_PROMPT, CLASSIFY_PROMPT, ANALYSIS_PROMPT]
 
 
 def rules_fingerprint(parts: list[str] | None = None) -> str:

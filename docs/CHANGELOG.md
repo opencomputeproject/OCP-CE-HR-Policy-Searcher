@@ -8,6 +8,22 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-03 After the cheap screening question, a second cheap question
+  round asks what kind of document a page is and for the exact sentences
+  about a data centre and about heat reuse. Parliamentary questions and
+  transcripts stop there; reports and articles stop there only when no
+  such sentence was found. Every kept row now carries those quotes, so a
+  reviewer can read why a row exists instead of trusting a score. The
+  rules were checked against the reviewer's own decisions: none of her
+  keeps is lost by them.
+- 2026-09-03 A one-way import (`python -m src.output.import_reviews`) can now
+  read the reviewer's verdicts off the Staging sheet and set each matching
+  policy's review status to match: a keep becomes `reviewed`, a remove
+  becomes `rejected` with her reason recorded. Built and tested this round,
+  but shipped switched off (`output.import_reviews_before_scan: false`) -
+  ADR-0005 is still Proposed, so nothing a visitor or reviewer sees changes
+  yet. Also adds a one-shot `--add-reason-column` command that appends a
+  fixed-dropdown Reason column to Staging, for the next review round.
 - 2026-09-02 A page that is a missing-document placeholder in disguise (a
   "soft 404": a 200 status with "page not found" where the document should
   be) is now dropped before it costs a screening or analysis call, in nine

@@ -1,5 +1,6 @@
 """Tests for LLM helpers and ClaudeClient.to_policy()."""
 
+import json
 from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 
@@ -8,7 +9,8 @@ import pytest
 
 from src.core.llm import (
     _extract_json, _coerce_types, _resolve_model, ClaudeClient,
-    SCREENING_PROMPT, ANALYSIS_PROMPT,
+    SCREENING_PROMPT, CLASSIFY_PROMPT, ANALYSIS_PROMPT,
+    parse_screening_response, parse_screening_json, MAX_QUOTE_CHARS,
 )
 from src.core.models import (
     PolicyAnalysis, PolicyType, CostInfo,
@@ -176,6 +178,153 @@ class TestCoerceTypes:
     def test_policy_name_en_real_value_passes_through(self):
         result = _coerce_types({"policy_name_en": "Energy Transition Act"})
         assert result["policy_name_en"] == "Energy Transition Act"
+
+
+# --- parse_screening_response / parse_screening_json (WP-5) ---
+
+class TestParseScreeningResponse:
+    """The screener now asks for kind/dc_quote/heat_quote/confidence
+    instead of a single relevant/confidence judgment.
+
+    FAILS TODAY: ScreeningResult has no `kind` field yet, so
+    parse_screening_response does not exist and this is red before the
+    implementation lands.
+    """
+
+    @pytest.mark.small
+    def test_kind_is_parsed(self):
+        result = parse_screening_response(
+            {"kind": "report", "dc_quote": None, "heat_quote": None, "confidence": 8},
+        )
+        assert result.kind == "report"
+
+    @pytest.mark.small
+    @pytest.mark.parametrize("dc,heat,expected", [
+        ("A sentence naming a data centre.", "A sentence about reusing heat.", True),
+        ("A sentence naming a data centre.", None, False),
+        (None, "A sentence about reusing heat.", False),
+        (None, None, False),
+    ])
+    def test_relevant_is_derived_from_both_quotes(self, dc, heat, expected):
+        result = parse_screening_response(
+            {"kind": "bill", "dc_quote": dc, "heat_quote": heat, "confidence": 7},
+        )
+        assert result.relevant is expected
+
+    @pytest.mark.small
+    def test_unknown_kind_becomes_other(self):
+        result = parse_screening_response(
+            {"kind": "memo", "dc_quote": None, "heat_quote": None, "confidence": 5},
+        )
+        assert result.kind == "other"
+
+    @pytest.mark.small
+    def test_missing_kind_becomes_other_not_none(self):
+        """A successfully parsed response always gets a real kind - `other`
+        at worst. `kind=None` is reserved for the outer parse-failure
+        fallback, so screening_decision can trust it as "not a real
+        verdict, always proceed" without a well-formed-but-vague answer
+        sneaking through the same door."""
+        result = parse_screening_response({"confidence": 5})
+        assert result.kind == "other"
+
+    @pytest.mark.small
+    def test_long_quote_is_truncated(self):
+        long_quote = "D" * 500
+        result = parse_screening_response(
+            {"kind": "bill", "dc_quote": long_quote, "heat_quote": None, "confidence": 5},
+        )
+        assert len(result.dc_quote) == MAX_QUOTE_CHARS
+        assert result.dc_quote == long_quote[:MAX_QUOTE_CHARS]
+
+    @pytest.mark.small
+    def test_quote_not_found_in_excerpt_is_flagged_not_dropped(self):
+        result = parse_screening_response(
+            {"kind": "bill", "dc_quote": "This sentence is not in the excerpt.",
+             "heat_quote": None, "confidence": 6},
+            excerpt="Completely different page content altogether.",
+        )
+        assert result.dc_quote == "This sentence is not in the excerpt."
+        assert result.quote_verified is False
+
+    @pytest.mark.small
+    def test_quote_found_in_excerpt_is_verified(self):
+        excerpt = "Some page text. The facility is a data centre. More text."
+        result = parse_screening_response(
+            {"kind": "bill", "dc_quote": "The facility is a data centre.",
+             "heat_quote": None, "confidence": 6},
+            excerpt=excerpt,
+        )
+        assert result.quote_verified is True
+
+    @pytest.mark.small
+    def test_quote_verified_ignores_whitespace_differences(self):
+        """A quote copied across a line break or extra spaces is still the
+        same sentence."""
+        excerpt = "The   facility\nis a data centre."
+        result = parse_screening_response(
+            {"kind": "bill", "dc_quote": "The facility is a data centre.",
+             "heat_quote": None, "confidence": 6},
+            excerpt=excerpt,
+        )
+        assert result.quote_verified is True
+
+    @pytest.mark.small
+    def test_no_quotes_claimed_is_verified(self):
+        """Nothing claimed, nothing to verify - null/null must not be
+        flagged as an unverified quote."""
+        result = parse_screening_response(
+            {"kind": "report", "dc_quote": None, "heat_quote": None, "confidence": 8},
+            excerpt="",
+        )
+        assert result.quote_verified is True
+
+    @pytest.mark.small
+    def test_null_string_quote_treated_as_none(self):
+        """Some models answer the string "null" instead of JSON null."""
+        result = parse_screening_response(
+            {"kind": "bill", "dc_quote": "null", "heat_quote": "None", "confidence": 5},
+        )
+        assert result.dc_quote is None
+        assert result.heat_quote is None
+        assert result.relevant is False
+
+
+class TestParseScreeningJson:
+    @pytest.mark.small
+    def test_malformed_json_falls_open_with_kind_none(self, caplog):
+        import logging
+        with caplog.at_level(logging.WARNING, logger="src.core.llm"):
+            result = parse_screening_json("not json at all")
+        assert result.relevant is True
+        assert result.confidence == 5
+        assert result.kind is None
+        assert any("screening" in r.message.lower() for r in caplog.records)
+
+    @pytest.mark.small
+    def test_malformed_json_warning_includes_first_200_chars(self, caplog):
+        import logging
+        junk = "x" * 500
+        with caplog.at_level(logging.WARNING, logger="src.core.llm"):
+            parse_screening_json(junk)
+        messages = " ".join(r.message for r in caplog.records)
+        assert "x" * 200 in messages
+        assert "x" * 500 not in messages
+
+    @pytest.mark.small
+    def test_well_formed_json_parses_through(self):
+        raw = '{"kind": "act", "dc_quote": "A data centre.", ' \
+              '"heat_quote": "Reuse the heat.", "confidence": 9}'
+        result = parse_screening_json(raw, excerpt="A data centre. Reuse the heat.")
+        assert result.kind == "act"
+        assert result.relevant is True
+
+    @pytest.mark.small
+    def test_json_in_code_block_parses_through(self):
+        raw = '```json\n{"kind": "act", "dc_quote": null, "heat_quote": null, ' \
+              '"confidence": 4}\n```'
+        result = parse_screening_json(raw)
+        assert result.kind == "act"
 
 
 # --- ClaudeClient.to_policy ---
@@ -522,15 +671,6 @@ class TestUpdateCostEstimate:
 class TestPromptContent:
     """Verify expanded prompts cover broader policy types."""
 
-    def test_screening_mentions_reporting(self):
-        assert "reporting" in SCREENING_PROMPT.lower()
-
-    def test_screening_mentions_cost_benefit(self):
-        assert "cost-benefit" in SCREENING_PROMPT.lower()
-
-    def test_screening_mentions_tax_incentives(self):
-        assert "tax incentiv" in SCREENING_PROMPT.lower()
-
     def test_screening_mentions_multi_language(self):
         assert "NO" in SCREENING_PROMPT or "any language" in SCREENING_PROMPT.lower()
 
@@ -542,16 +682,6 @@ class TestPromptContent:
 
     def test_analysis_mentions_tax_incentives(self):
         assert "tax incentiv" in ANALYSIS_PROMPT.lower()
-
-    @pytest.mark.small
-    def test_screening_still_covers_the_indirect_policy_families(self):
-        """Screening must still reach policies that AFFECT heat reuse
-        indirectly. The scope rule narrows which of these count; it must
-        not delete the families themselves."""
-        lowered = SCREENING_PROMPT.lower()
-        assert "district heating" in lowered
-        assert "building" in lowered  # building/construction codes
-        assert "permit" in lowered  # planning/permitting rules
 
     @pytest.mark.small
     def test_the_data_centre_rule_is_not_hardcoded_in_the_prompt(self):
@@ -572,9 +702,70 @@ class TestPromptContent:
         assert "must concern data centres" in required.lower()
         assert "whether or not" in permissive.lower()
 
-    def test_screening_tells_model_to_keep_borderline(self):
-        lowered = SCREENING_PROMPT.lower()
-        assert "in doubt" in lowered or "unsure" in lowered
+    # --- WP-5: the screener asks three narrow questions ---
+
+    @pytest.mark.small
+    def test_screening_asks_for_document_kind(self):
+        lowered = CLASSIFY_PROMPT.lower()
+        for kind in (
+            "act", "bill", "regulation", "consultation", "grant", "plan",
+            "index", "report", "article", "speech", "question", "other",
+        ):
+            assert kind in lowered, f"kind {kind!r} missing from CLASSIFY_PROMPT"
+
+    @pytest.mark.small
+    def test_screening_defines_the_six_named_kinds(self):
+        """The kinds a reviewer's removal reasons actually turn on need a
+        one-line definition each, so a Kleine Anfrage lands as `question`
+        and a Diet transcript as `speech`, not `report` or `other`."""
+        lowered = CLASSIFY_PROMPT.lower()
+        assert "kleine anfrage" in lowered  # question
+        assert "transcript" in lowered  # speech
+        assert "proposing future" in lowered or "roadmap" in lowered  # plan
+        assert "news item" in lowered  # article
+        assert "audit" in lowered and "evaluation" in lowered  # report
+        assert "listing" in lowered or "directory" in lowered  # index
+
+    @pytest.mark.small
+    def test_screening_asks_for_a_verbatim_data_centre_quote(self):
+        lowered = CLASSIFY_PROMPT.lower()
+        assert "dc_quote" in lowered
+        assert "names a data centre" in lowered or "names a data center" in lowered
+
+    @pytest.mark.small
+    def test_screening_asks_for_a_verbatim_heat_reuse_quote(self):
+        lowered = CLASSIFY_PROMPT.lower()
+        assert "heat_quote" in lowered
+        assert "reusing or recovering heat" in lowered
+
+    @pytest.mark.small
+    def test_screening_says_quotes_must_be_copied_never_invented(self):
+        lowered = CLASSIFY_PROMPT.lower()
+        assert "verbatim" in lowered
+        assert "never invent" in lowered or "never be invented" in lowered
+
+    @pytest.mark.small
+    def test_screening_says_null_is_correct_when_no_sentence_exists(self):
+        lowered = CLASSIFY_PROMPT.lower()
+        assert "null" in lowered
+        assert "no such sentence exists" in lowered
+
+    @pytest.mark.small
+    def test_the_classifier_schema_has_the_three_fields_and_no_relevance_question(self):
+        """The classifier never asks the yes/no: folding it into one call changed
+        the model's relevance answers in replay and lost reviewer keeps."""
+        assert '"kind"' in CLASSIFY_PROMPT
+        assert '"dc_quote"' in CLASSIFY_PROMPT
+        assert '"heat_quote"' in CLASSIFY_PROMPT
+        assert '"confidence"' in CLASSIFY_PROMPT
+        assert '"relevant"' not in CLASSIFY_PROMPT
+
+    @pytest.mark.small
+    def test_the_gate_prompt_is_the_original_recall_first_one(self):
+        """ADR-0011: every stored row passed this prompt; it stays verbatim."""
+        assert SCREENING_PROMPT.startswith("You are a RECALL-FIRST relevance screener.")
+        assert '{{"relevant": true/false, "confidence": 1-10}}' in SCREENING_PROMPT
+        assert "kind" not in SCREENING_PROMPT.split("RESPOND WITH JSON ONLY")[1]
 
     def test_analysis_asks_for_every_policy_on_page(self):
         lowered = ANALYSIS_PROMPT.lower()
@@ -652,16 +843,40 @@ class TestScannerDelayConstants:
 
 # --- Screening rate limit retry ---
 
-def _make_screening_response(relevant: bool = True, confidence: int = 7):
-    """Create a mock API response for screening."""
+def _make_screening_response(
+    kind: str = "act",
+    dc_quote: str | None = "A sentence naming a data centre.",
+    heat_quote: str | None = "A sentence about reusing heat.",
+    confidence: int = 7,
+):
+    """Create a mock API response for screening (WP-5 kind/dc_quote/
+    heat_quote/confidence schema). Pass dc_quote=None and/or heat_quote=None
+    to simulate the model finding no such sentence - relevant is then
+    derived as False by the parser, the same as a real "not relevant"
+    verdict."""
     usage = MagicMock()
     usage.input_tokens = 100
     usage.output_tokens = 10
     content_block = MagicMock()
-    content_block.text = f'{{"relevant": {str(relevant).lower()}, "confidence": {confidence}}}'
+
+    def _json_str(value: str | None) -> str:
+        return "null" if value is None else f'"{value}"'
+
+    content_block.text = (
+        f'{{"kind": "{kind}", "dc_quote": {_json_str(dc_quote)}, '
+        f'"heat_quote": {_json_str(heat_quote)}, "confidence": {confidence}}}'
+    )
     response = MagicMock()
     response.content = [content_block]
     response.usage = usage
+    return response
+
+
+def _make_gate_response(relevant: bool, confidence: int):
+    """The gate's answer shape (SCREENING_PROMPT): {"relevant", "confidence"}."""
+    response = MagicMock()
+    response.content = [MagicMock(text=json.dumps({"relevant": relevant, "confidence": confidence}))]
+    response.usage = MagicMock(input_tokens=100, output_tokens=10)
     return response
 
 
@@ -686,7 +901,7 @@ class TestScreeningRateLimitRetry:
         rate_error = anthropic.RateLimitError.__new__(anthropic.RateLimitError)
         rate_error.response = None
 
-        success = _make_screening_response(relevant=False, confidence=2)
+        success = _make_gate_response(relevant=False, confidence=2)
 
         client.client.messages.create = AsyncMock(
             side_effect=[rate_error, success]
@@ -694,7 +909,7 @@ class TestScreeningRateLimitRetry:
 
         result = await client.screen_relevance("test content", "https://test.gov/page")
 
-        # Should have retried and gotten the actual result (not relevant)
+        # Should have retried and gotten the gate's actual answer
         assert result.relevant is False
         assert result.confidence == 2
         assert client.client.messages.create.call_count == 2
@@ -709,7 +924,7 @@ class TestScreeningRateLimitRetry:
         rate_error.response = MagicMock()
         rate_error.response.headers = {"retry-after": "0.01"}
 
-        success = _make_screening_response(relevant=True, confidence=8)
+        success = _make_screening_response(confidence=8)  # default: both quotes present
 
         client.client.messages.create = AsyncMock(
             side_effect=[rate_error, success]

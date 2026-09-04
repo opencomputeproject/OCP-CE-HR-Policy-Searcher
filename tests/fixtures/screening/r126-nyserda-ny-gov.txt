@@ -1,0 +1,67 @@
+Language
+back to top
+Back to All Programs
+Heat Recovery
+Harnessing Wasted Heat to Fuel Building Decarbonization
+NYSERDA is working to energize the New York State marketplace for heat recovery solutions. Buildings, which represent around one-third of New York’s greenhouse gas emissions, waste heat (i.e., thermal energy) through a variety of processes, including ventilation, cooling, and wastewater systems. By capturing and repurposing that rejected energy, heat recovery solutions help building owners reduce operating costs and lower carbon emissions.
+To increase awareness and adoption of heat recovery solutions, the Heat Recovery Program aims to advance solutions that can significantly improve thermal efficiency and support planning activities to accelerate a pipeline of successful heat recovery retrofits.
+Heat Recovery Turns a Problem Into an Opportunity
+Heat Recovery recycles wasted thermal energy, reducing a building’s energy consumption and carbon footprint. Recovering wasted heat – energy that building owners have already paid for – and repurposing it directly at point of use or storing it for later represents a promising approach to large building decarbonization.
+Recent Demonstrations Validate the Heat Recovery Opportunity in NYS
+Recent projects, including the
+demonstration projects
+advanced through NYSERDA’s Empire Building Challenge (EBC), have shown that heat recovery is a no-regrets decarbonization strategy for many of New York’s existing building stock. All ten projects awarded by EBC have featured heat recovery in some form as part of a
+phased decarbonization retrofit
+[PDF]
+.
+By building on the successful demonstrations of this technology, this program aims to grow the pool of completed heat recovery projects from 10 to 100.
+Hudson 345
+Learn about Hudson 345—a carefully phased building retrofit that deploys thermal networking to drastically reduce energy demand and eliminate carbon emissions. This creative visionary approach shares and transports heat within and between the building's floors.
+Watch Hudson 345 Video
+55 Water
+Discover how 55 Water Street is setting a new standard for heat recovery, using thermal storage, in New York. This groundbreaking project showcases how a thermal battery system captures, stores, and reuse heat energy to meet both heating and cooling needs of this building – all while complying with Local Law 97.
+Watch 55 Water Video
+Resources for Harnessing Wasted Heat
+We’re looking to work with consulting engineers, heat recovery solution providers, building owners and operators, and other key stakeholders to increase adoption of heat recovery solutions amongst a larger share of NYS buildings. Below are some tools we have developed to help you identify opportunities and plan projects that take advantage of waste heat at your building.
+Explore NYSERDA’s Energy Recovery Analysis Tools:
+Energy Sources and Sinks Inventory Tool
+: Identify where waste energy can be captured (sources) and where it can be reused (sinks) during retrofit planning.
+Energy Recovery Mapping Tool
+: Compare building-specific data for sources and sinks to estimate potential recovery. Built-in assumptions and data help you move quickly from concept to feasibility.
+Explore the list of
+qualified heat recovery solution manufacturers
+and products to support low-carbon building retrofits.
+Recorded Webinars and Publications
+NY-GEO Panel, “Applications of Waste Heat Recovery & Thermal Storage”
+held on March 25, 2026
+Greenbuild Webinar, “Green Buildings Must Prioritize the Recovery of Rejected Energy”
+held on August 27, 2025.
+Heat Recovery Roundtable
+[PDF]
+Review presentations from the Roundtable held May 20, 2025.
+NY-GEO Panel, “Waste Heat Recovery & Thermal Storage for Buildings & Networks”
+held on April 24, 2025.
+Heat Recovery Roundtable
+[PDF]
+featuring Syracuse University Center of Excellence -  Review presentations from the Roundtable held April 9, 2024.
+Heat Recovery Roundtable
+[PDF]
+featuring Starbucks Reserve Empire State Building-  Review presentations from the Roundtable held January 31. 2024.
+Data Center Heat Reuse
+: A management primer from the Uptime Institute on the opportunity to recover waste heat from data centers.
+The Future of Energy Efficiency
+: Learn about holistic energy management solutions, including heat recovery, which is explored further in an article titled “Reject Rejected Energy” on page 44 of the report.
+You Might Also Be Interested In:
+NYSERDA has several programs that provide funding and technical assistance to support energy efficiency upgrades and decarbonization of commercial, industrial, institutional, and multifamily buildings.
+P-12 Schools Initiative:
+Provides resources and programs to pre-kindergarten through grade 12 schools that traditionally lack resources to invest in clean energy infrastructure improvements.
+Empire Building Challenge
+: Advances new design approaches for low-carbon retrofits in New York’s high-rise buildings through partnerships and funding for demonstration projects.
+Flexible Technical Assistance (FlexTech Program)
+: Offers cost-share support to complete an energy study and evaluate opportunities to reduce energy costs and incorporate clean energy into capital planning.
+Contact the team directly at
+[email protected]
+.
+Sign Up For News
+Stay up to date on the Heat Recovery Program, related industry best practices, and more.
+Stay Connected

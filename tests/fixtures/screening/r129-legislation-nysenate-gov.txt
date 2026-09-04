@@ -1,0 +1,114 @@
+                STATE OF NEW YORK
+        ________________________________________________________________________
+                                          9422
+                    IN SENATE
+                                      May 25, 2022
+                                       ___________
+        Introduced  by  Sen.  PARKER -- read twice and ordered printed, and when
+          printed to be committed to the Committee on  Energy  and  Telecommuni-
+          cations
+        AN  ACT to amend the public service law, the transportation corporations
+          law, the labor law and the public  authorities  law,  in  relation  to
+          thermal energy networks
+          The  People of the State of New York, represented in Senate and Assem-
+        bly, do enact as follows:
+     1    Section 1. Short title. This act shall be known and may  be  cited  as
+     2  the "utility thermal energy network and jobs act".
+     3    §  2.  Legislative  findings  and  intent.  The  legislature finds and
+     4  declares that:
+     5    1. New York State has a strong  interest  in  ensuring  that  building
+     6  emissions  goals  of the Climate Leadership and Community Protection Act
+     7  (CLCPA) are met. Buildings are New York's largest source  of  greenhouse
+     8  gasses  and  other  climate  emissions,  due to the combustion of fossil
+     9  fuels for heating, domestic hot water, cooking, and other end uses;
+    10    2. The decarbonization of buildings must be pursued in a  manner  that
+    11  is  affordable,  accessible, preserves and creates living-wage jobs, and
+    12  retains the knowledge and experience of the existing utility union work-
+    13  force;
+    14    3. Thermal energy networks have the potential to decarbonize buildings
+    15  at the community and utility scale and help achieve  the  goals  of  the
+    16  CLCPA;
+    17    4.  Thermal  energy  networks  consist  of pipe loops between multiple
+    18  buildings and energy sources  carrying  water  at  ambient  temperature;
+    19  building  owners can connect to the ambient temperature loops with water
+    20  source heat pumps installed within the building, which can be  used  for
+    21  heating and cooling and hot water services;
+    22    5. Many utilities in New York State have been seeking to develop ther-
+    23  mal  energy  networks, but legal and regulatory barriers and the current
+    24  and outdated public service  law  framework  have  prevented  them  from
+    25  moving these proposals forward;
+         EXPLANATION--Matter in  (underscored) is new; matter in bracketsitalics
+                              [ ] is old law to be omitted. 
+                                                                   LBD15957-02-2
+        S. 9422                             2
+     1    6. New York State has a strong interest in ensuring an adequate supply
+     2  of reliable electrical power and, therefore, needs to promote the devel-
+     3  opment  of  alternative  power sources and take steps to assure reliable
+     4  deliverability. Thermal energy networks  are  highly  efficient  because
+     5  they  utilize  and exchange thermal energy from many underground sources
+     6  and buildings, including recycled thermal energy, minimizing  impact  on
+     7  the electricity grid;
+     8    7.  Access  to thermal energy networks has the potential to reduce the
+     9  up front and operating costs of building electrification for customers;
+    10    8. Utilities' access  to  capital,  their  experience  with  networked
+    11  infrastructure  in  public  rights of way, and the requirement that they
+    12  serve all customers, positions them well to develop  and  scale  thermal
+    13  energy  networks  that are accessible to all customers and to coordinate
+    14  the development of thermal energy networks with any  downsizing  of  the
+    15  utility gas system;
+    16    9. New York State also has a proprietary interest in the efficient and
+    17  reliable  delivery of energy and the energy infrastructure of the state,
+    18  which interest is acknowledged throughout the public service law.  Util-
+    19  ity corporations and other power suppliers share  these  interests  and,
+    20  moreover,  have  a duty to protect proprietary interests in the projects
+    21  they fund and such investments of ratepayer resources can  be  protected
+    22  by establishing effective contractor qualification and performance stan-
+    23  dards,  including  requirements  for  prevailing  wage  rates, bona fide
+    24  apprenticeship criteria, and project labor agreements;
+    25    10. The construction industry is highly skilled and  labor  intensive,
+    26  and  the installation of modern thermal energy networks involves partic-
+    27  ularly complex work, and, therefore, effective  qualification  standards
+    28  for  craft  labor  personnel  employed  on these projects are critically
+    29  needed to promote successful project delivery;
+    30    11. Finally, the legislature finds that  these  facts  are  especially
+    31  vital  now  because the construction industry is experiencing widespread
+    32  skill shortages across the country, which are crippling existing capital
+    33  projects  and  threatening  projects  planned  for   the   future.   The
+    34  construction  of  thermal  energy networks will utilize many of the same
+    35  skills that today's  utility  and  building  trades  workforces  already
+    36  possess;
+    37    12. Thus, it is the intent of the legislature that passage of this act
+    38  is for the following purposes:
+    39    a.  To  remove  the  legal  barriers to utility development of thermal
+    40  energy networks and require the public service commission  to  authorize
+    41  and  direct  utilities  to  immediately commence piloting thermal energy
+    42  networks in each and every utility territory;
+    43    b. To direct and authorize the public service commission to develop  a
+    44  regulatory  structure  for  utility  thermal energy networks that scales
+    45  affordable and accessible building electrification, protects  customers,
+    46  and  balances the role of incumbent monopoly utilities with other market
+    47  and public actors;
+    48    c. To promote the successful planning and delivery of  thermal  energy
+    49  networks  and protect critical investments in such projects by requiring
+    50  the use of appropriate quality craft  labor  policies  that  ensure  the
+    51  development  of and access to an adequate supply of well trained, highly
+    52  skilled craft persons needed to support timely,  reliable,  high-quality
+    53  projects;
+    54    d.  To  promote  strong  economic  development and good jobs for local
+    55  residents in the expanding decarbonized sector by requiring  application
+    56  of  progressive  state  labor and employment policies that ensure public
+        S. 9422                             3
+     1  utility investments and  related  state  subsidies  create  unparalleled
+     2  skill  training  and  employment  opportunities for residents in project
+     3  areas through the use of local prevailing wage standards and successful,
+     4  bona  fide  apprenticeship  programs,  or project labor agreements which
+     5  incorporate prevailing wage and training  standards  and  provide  addi-
+     6  tional benefits for project owners and workers; and
+     7    e. To promote the use of pre-apprenticeship programs that will fortify
+     8  and  expand existing apprenticeship programs through systematic outreach
+     9  efforts to recruit and assist persons from underrepresented and  low-in-
+    10  come  communities  by  providing  such  persons with remedial education,
+    11  social services and unique opportunities for  direct  access  into  high
+    12  quality  apprenticeship  programs  and gainful employment in the growing
+    13  building decarbonization workforce.
+    14    § 3. Section 2 of th

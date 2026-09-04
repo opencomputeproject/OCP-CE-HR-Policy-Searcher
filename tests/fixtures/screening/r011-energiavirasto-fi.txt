@@ -1,0 +1,35 @@
+Reporting from data centres to the European database has started
+14.10.2024
+11.00
+Press release
+Operators of data centres with a power demand of at least 500 kW must report their data to the European Commission’s database from autumn 2024 onwards. In the next years, the reports on the previous year’s activities must be submitted annually by 15 May.
+Operators of data centres with an installed information technology power demand of at least 500 kW shall submit the information listed in Regulation
+(EU) 2024/1364
+to the European Commission’s database. In 2024, data reporting will be carried out for the operations in 2023. The reporting period in 2024 will continue at least until the end of the year, and the schedule will be specified later.
+Data centres to report key information and performance indicators on their activities
+Commission Delegated Regulation (EU) 2024/1364 (on the first phase of the establishment of a common Union rating scheme for data centres) obliges the operator of a data centre with a power demand of at least 500 kW to submit reports and key performance indicators on the data centre annually to a European database, which will allow for a later assessment of the energy efficiency and sustainability of data centres across the EU. The KPIs measure the energy consumption, power utilisation, temperature set points, waste heat utilisation, water usage and use of renewable energy of data centres.
+The Energy Authority coordinates reporting in Finland
+Each EU Member State designates a responsible party to coordinate its reporting and advisory services to data centres. The Energy Authority acts as the national coordinator for reporting in Finland. The reporting schedule has been postponed from the original deadline, meaning that the reporting period will continue at least until the end of 2024. The delay is influenced by issues such as the preparation of the Commission’s database.
+The first step for data centre operators is to read the Energy Authority’s
+guidelines
+. Next, the party subject to the reporting obligation should contact the Energy Authority by e-mail at
+[email protected]
+so that the data centre administrator can activate the user IDs required for submitting reports in the reporting system.
+Increasing focus on energy efficiency in the ICT sector
+The ICT sector is increasingly important for the energy consumption across the whole EU. By 2030, electricity demand in data centres is expected to be 98.5 TWh or 3.2% of total EU demand, up 28% from 2018. EU’s
+Digital Agenda
+has highlighted the need for highly energy efficient and environmentally sustainable data centres and called for transparency measures on the environmental footprint of telecommunications operators.
+It is necessary to collect data on their environmental sustainability in order to establish a Union scheme for the sustainability rating of data centres. Based on the data collected, the common Union scheme allows the identification of key performance and sustainability indicators and the methodology to measure them. The collected data can be used to measure some of the basic characteristics of a sustainable data centre: how effectively it uses energy, how much of that energy comes from renewable energy sources, how waste heat produced by the centre is reused, how efficiently cooling works and how much fresh water it uses. The European database will later be completely publicly available.
+By 15 May 2025, the Commission shall assess the information submitted to it on the energy efficiency of data centres and submit a report to the European Parliament and the Council, accompanied, where appropriate, by legislative proposals to improve the energy efficiency of data centres, including the establishment of minimum performance requirements. Such proposals may set a time frame for existing data centres to meet minimum energy efficiency requirements.
+Further information
+Obligations of data centres (in Finnish)
+European Commission guidelines on data centre reporting
+European Commission Delegated Regulation 2024/1364
+Timo Vihavainen, Senior Technical Adviser, tel. +358 29 5050 099
+Mirjami Ylinen, Legal Adviser, tel. +358 29 5050 123
+e-mail:
+[email protected]
+2024
+Energy efficiency
+News
+energy efficiency

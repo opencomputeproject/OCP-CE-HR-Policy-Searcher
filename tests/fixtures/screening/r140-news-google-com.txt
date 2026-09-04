@@ -1,0 +1,72 @@
+KI-Rechenzentrum
+:
+Brandenburg kriegt die nächste Giga-Fabrik
+In Lübbenau (Brandenburg) entsteht dieses neue Rechenzentrum
+Foto: Schwarz Digits
+Patricia
+Platiel
+17.11.2025 - 07:42 Uhr
+Es ist ein Mega-Projekt. Eines, das Zukunft neu denkt und Deutschland sicherer machen soll. Und das tief im Spreewald, wo die berühmten Gurken wachsen und Hunderte kleine Kanäle Wiesen und Wälder durchziehen.
+Hier in Lübbenau legt die Schwarz Gruppe, der Konzern hinter Lidl und
+Kaufland
+, morgen den Grundstein für Deutschlands größtes Rechenzentrum. Digitalminister Karsten Wildberger hat sich angekündigt und natürlich die Bauherren: Rolf Schumann (45) und Christian Müller (48), die beiden CEOs von Schwarz Digits, der Digitalsparte der Gruppe. B.Z. trifft die beiden Top-Manager zum Gespräch.
+B.Z.: Was genau entsteht in Lübbenau?
+Rolf Schumann:
+„In Zeiten von KI brauchen wir Orte, an denen riesige Datenmengen verarbeitet werden können. Deshalb bauen wir ein Rechenzentrum mit der Größe von 13 Hektar Fläche. Darin werden mehr als hunderttausend Grafik-Chips der neuesten Generation Platz finden, einer allein circa so groß wie ein Pizzakarton.“
+Warum investieren Sie ausgerechnet im schönen Spreewald? Also so weit im Osten, trotz des Russland-Konfliktes.
+Christian Müller:
+„Ich kenne die Gegend gut, ich bin in
+Cottbus
+großgeworden. Mit Kaufland sind wir seit Jahren in Lübbenau verwurzelt. Und natürlich machen wir uns über jeden Standort Gedanken. Das Problem ist aber nicht mehr die physische Bedrohung durch ein Waffensystem, sondern die hybride Bedrohung – und die kennt keine Grenzen, wie etwa Sabotage, Cybersicherheit.“
+So viel Energie braucht das Rechenzentrum in Lübbenau
+Wieviel Geld wird investiert in dieses Mega-Projekt?
+Müller:
+„Die Gesamtinvestition liegt bei 11 Milliarden Euro in der Region. Ende 2027 soll das Rechenzentrum fertig sein.“
+Wie viele Menschen werden dort arbeiten und was machen die da?
+Schumann:
+„Vor Ort brauchen wir überwiegend Sicherheitspersonal und Gärtner. Die meisten Arbeitsplätze entstehen durch das, was mit den Daten gerechnet wird. Das Rechenzentrum ist der zentrale Ort, deswegen spricht man oft von einer Giga Factory. Die echte Anwendung erfolgt dort, wo unsere Talente, unsere Industrie-Experten sitzen.“
+Wieviel Energie braucht so ein Rechenzentrum und wo kommt sie her? Die Kritik lautet ja oft: Auf jeden Fall zu viel …
+Müller:
+„Der größte Einsatz ist die Energie zum Kühlen. Da entsteht Abwärme und wir wollen diese Abwärme ins Fernwärmenetz einspeisen, damit ein ökologischer Kreislauf entsteht. Verträge dazu gibt es bereits.“
+Schumann:
+„Sprich: Wenn im Rechenzentrum Abwärme entsteht, wird diese umgewandelt in Fernwärme – so können 75.000 Haushalte mit Fernwärme versorgt werden. Deshalb haben wir uns entschieden, nicht auf einer grünen Wiese zu bauen, sondern auf einem sogenannten Brownsfield (Industriebrache), einem vorhandenen Kohlekraftwerk. Wir wollen zeigen, dass man die 20.000 Kubikmeter Beton und die 110.000 Tonnen Stahl, die hier verbaut sind, recyceln kann. Damit wird das alte Kraftwerk in unseren Werkstoffkreislauf eingebracht.“
+Sie bauen das größte Rechenzentrum Deutschlands: Christian Müller (48, r.) und Rolf Schumann (45, l.) – die beiden CEOs von Schwarz Digits – treiben die Digitalisierung der Schwarz Gruppe voran. Müller leitete zuvor Lidl Deutschland, Schumann war Top-Tech-Stratege bei SAP – jetzt bauen sie gemeinsam Zukunft in Lübbenau
+Foto: Ralf Günther/BILD
+Werden in
+Lübbenau
+nur Daten für Lidl und Kaufland gerechnet – oder auch für andere Firmen?
+Müller:
+„Sowohl als auch. Wir investieren aus unseren eigenen Mitteln heraus und wir haben das Rechenzentrum in erster Linie für unseren Bedarf gebaut. Und der steigt täglich. Das ist auch klar, angesichts der Größe der Unternehmensgruppe.“
+Geben Sie uns einige Zahlen zur Einordnung?
+Müller:
+„600.000 Mitarbeiter, 14.200 Filialen, verteilt auf 32 Länder weltweit. Dazu haben wir unsere eigene IT, das machen wir alles selbst – 10.000 Mitarbeiter sind zum Großteil dafür da, dass die eigene IT für die gesamte Schwarz Gruppe funktioniert.“
+Eigene Cloud entwickelt
+Sie haben vor Jahren Ihre eigene Cloud entwickelt. Wie kam es dazu, dass ein Lebensmittelkonzern mit „STACKIT“ plötzlich zum Anbieter einer Cloud wird, die weltweit mittlerweile auch andere Firmen, wie beispielsweise der NASDAQ, nutzen?
+Müller:
+„Das hat verschiedene Gründe. Eine große Unabhängigkeit gehörte schon immer zur DNA der Schwarz Gruppe. Aber: In der digitalen Welt wird man immer abhängiger, in der Regel von amerikanischen oder asiatischen Herstellern. Daten sind das Öl des 21. Jahrhunderts, der neue Code, in dem alles Wissen steckt. Und am Ende möchte man doch, dass Daten dort gespeichert werden, wo Gesetze und Werte identisch sind mit ihren Unternehmenswerten.“
+Schumann:
+„Es gab einen Initialmoment: Wir haben im Ausland ein Produkt gestaltet für den Verkauf in unseren Filialen. Ein Markenanbieter aus dem Land war allerdings der Ansicht, dass unsere Verpackung der seines Markenproduktes zu sehr ähnele. Die ausländische Behörde konfiszierte daraufhin all unsere Server, die wir dort hatten. Und auch wenn das Verfahren erfolglos gelaufen ist, war das für uns der Punkt, an dem wir sagten: Wir müssen etwas machen. Wenn wir unsere Daten in unserer Cloud speichern, dann liegen die Daten in Deutschland und dann zählt das deutsche Recht. 2017 haben wir deswegen angefangen, eine eigene Cloud zu entwickeln.“
+Was genau wird auf dieser Cloud gespeichert?
+Schumann:
+„In erster Linie unsere komplette Prozesskette: Waren, Preise. Und die Kundendaten der Loyalty-Programme, wie etwa LidlPLUS.“
+Und was hat der Kunde davon?
+Müller:
+„Jeder will zu Recht wissen, wer auf seine Daten zugreift und was mit den Daten passiert. Denn wenn man Daten hat, kann man damit KI-Modelle trainieren, und somit fließt Wissen ab und Schutz fällt weg. Wir möchten unseren Kunden versprechen, dass mit ihren Einkaufsdaten nur das passiert, was zuvor vereinbart wurde, wie beispielsweise personalisierte Angebote. Da kommt dann eben nicht irgendwann Werbung von anderen.“
+Warum sind die Daten bei Ihnen sicher?
+Aus Konsumentensicht: Warum sind die Daten bei Ihnen sicher? Was spricht dafür, dass Unternehmen die Datensicherung selbst in die Hand nehmen, und welche Rolle spielt der Staat?
+Schumann:
+„Der Staat schafft die Rahmenbedingungen und wir sind ein unabhängiges, inhabergeführtes Unternehmen. Wir leben zum Glück in Europa, in Deutschland – mit einer Datenschutzgrundverordnung. Krass formuliert: In China reguliert der Staat, in den
+USA
+eher die Tech-Konzerne und in Europa haben wir die freiheitliche Grundordnung, dass die Daten dem Urheber gehören.“
+Ist digitale Souveränität also patriotisch?
+Schumann:
+„Was ist die größte Ressource, die wir in Deutschland haben? Das ist unser Wissen, unsere Bildung. Wenn man diese Bildung nutzt, Wissen generiert, Geschäftsideen hat – dann sollte man dies nie aus der Hand geben. (…) Wir glauben an unser Talent, wir glauben an unsere Firmen und unser Wissen. Deswegen ist es so wichtig, diesen Grundnukleus zu schützen, und das geht nur, wenn man seine Daten dort ablegt, wo man weiß, wer Zugriff hat.“
+Müller:
+„Was ist das größte Gut für die Freiheit? Die Selbstbestimmung. Das geht aber nur, wenn ich entscheide, was mit meinen Daten passiert. Wir wollen die Freiheit haben, jederzeit vom Tisch aufzustehen, wir wollen immer auf Augenhöhe diskutieren.“
+Schumann:
+„Gerade in der aktuellen geopolitischen Lage heißt das große Thema Überlebensfähigkeit. Einfach gesprochen: Wenn ich 100 Prozent abhängig bin und jemand schaltet etwas ab – dann ist es nicht mehr da, dann sind die Daten weg. Auch für diesen Fall der Fälle muss man vorbereitet sein.“
+Ihr gigantisches KI-Rechenzentrum in Lübbenau soll Deutschland digital unabhängiger machen: Rolf Schumann (l.) und Christian Müller, die beiden CEOs
+Foto: Ralf Günther/BILD
+Wie steht es um die digitale Souveränität von Deutschland? Vergeben Sie eine Schulnote.
+Schumann:
+„Es ist ungenügend. Dabei ist es doc

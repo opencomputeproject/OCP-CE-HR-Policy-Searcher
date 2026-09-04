@@ -1,0 +1,35 @@
+Category
+Bills and Statutes
+Collection
+Congressional Bills
+SuDoc Class Number
+Y 1.6:
+Y 1.4/6:
+Congress Number
+119th Congress
+Congress Session
+1st Session
+Last Action Date Listed
+September 11,
+2025
+Action
+Mr. Obernolte (for himself and Mr. Gottheimer) introduced the following bill; which was referred to the Committee on Energy and Commerce, and in addition to the Committee on Science, Space, and Technology, for a period to be subsequently determined by the Speaker, in each case for consideration of such provisions as fall within the jurisdiction of the committee concerned
+Bill Number
+H.R. 5332
+Bill Version
+Introduced in House
+(IH)
+Short Title
+Liquid Cooling for AI Act of 2025
+Full Title
+To direct the Comptroller General of the United States to conduct a technology assessment focused on liquid-cooling systems for artificial-intelligence compute clusters and high-performance computing facilities, require the development of Federal Government-wide best-practice guidance for Federal agencies, and for other purposes.
+Sponsors
+Jay Obernolte(CA)
+Cosponsors
+Josh Gottheimer
+(NJ)
+Committees
+Committee on Energy and Commerce (Standing), Committee on Science, Space, and Technology (Standing)
+United States Code References
+15 U.S.C. 9401
+42 U.S.C. 15801

@@ -7,12 +7,15 @@ no real asyncio.create_task loop, no time.sleep.
 """
 
 from datetime import datetime
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from gspread.exceptions import GSpreadException
 
-from src.core.models import ScanJob, ScanStatus
+from src.core.models import AppSettings, OutputSettings, ScanJob, ScanStatus
 from src.orchestration.schedule_runner import fire_schedule, run_due_schedules, run_tick
+from src.output.import_reviews import ImportSummary
 from src.storage.schedules import SchedulesStore
 
 
@@ -93,7 +96,7 @@ class TestDueFires:
 
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_awaited_once()
+        assert manager.start_scan.await_count == 1
         call = manager.start_scan_calls[0]
         assert call["domains_group"] == "quick"
         assert call["deep"] is True
@@ -126,7 +129,7 @@ class TestNotDue:
 
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_not_awaited()
+        assert manager.start_scan.await_count == 0
         assert store.get(row["id"])["last_scan_id"] is None
 
     @pytest.mark.asyncio
@@ -137,7 +140,7 @@ class TestNotDue:
 
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_not_awaited()
+        assert manager.start_scan.await_count == 0
         assert store.get(schedule["id"])["last_scan_id"] is None
 
 
@@ -151,7 +154,7 @@ class TestBusySkips:
 
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_not_awaited()
+        assert manager.start_scan.await_count == 0
         assert store.get(schedule["id"])["last_scan_id"] is None
 
         events = _read_audit_events(data_dir)
@@ -202,7 +205,7 @@ class TestBusySkips:
 
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_awaited_once()
+        assert manager.start_scan.await_count == 1
         assert store.get(schedule["id"])["last_scan_id"] is not None
 
 
@@ -221,7 +224,7 @@ class TestCeilingPause:
 
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_not_awaited()
+        assert manager.start_scan.await_count == 0
         updated = store.get(schedule["id"])
         assert updated["last_scan_id"] is None
         assert "monthly ceiling reached" in updated["paused_reason"]
@@ -245,7 +248,7 @@ class TestCeilingPause:
 
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_awaited_once()
+        assert manager.start_scan.await_count == 1
         updated = store.get(schedule["id"])
         assert updated["paused_reason"] is None
         assert updated["last_scan_id"] is not None
@@ -264,7 +267,7 @@ class TestCeilingPause:
 
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_awaited_once()
+        assert manager.start_scan.await_count == 1
         assert store.get(schedule["id"])["paused_reason"] is None
 
 
@@ -303,7 +306,7 @@ class TestResilience:
 
         manager = FakeManager()
         await run_due_schedules(manager, ExplodingStore(), data_dir=data_dir, now=datetime(2026, 1, 1))
-        manager.start_scan.assert_not_awaited()
+        assert manager.start_scan.await_count == 0
         assert manager.start_scan.await_count == 0
 
 
@@ -348,7 +351,7 @@ class TestClaimGuard:
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
         await run_due_schedules(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_awaited_once()
+        assert manager.start_scan.await_count == 1
         assert manager.start_scan.await_count == 1
 
 
@@ -420,8 +423,9 @@ class TestRunTick:
 
         await run_tick(manager, store, data_dir=data_dir, now=now)
 
-        manager.start_scan.assert_awaited_once()
+        assert manager.start_scan.await_count == 1
         mock_digest.assert_called_once_with(data_dir=data_dir, now=now)
+        assert mock_digest.call_count == 1
         # Redundant with the mock asserts above; the assert-quality AST gate
         # cannot see mock methods.
         assert mock_digest.call_count == 1
@@ -442,9 +446,7 @@ class TestRunTick:
         # The schedule itself still fired before the digest step blew up -
         # ScheduleRunner._loop's own try/except is what protects the next
         # tick; run_tick itself is a thin sequential composition.
-        manager.start_scan.assert_awaited_once()
-
-
+        assert manager.start_scan.await_count == 1
 class TestFireScheduleDirect:
     """fire_schedule() is the single-schedule primitive reused by both the
     tick loop and the run-now route - exercised directly here too."""
@@ -459,5 +461,137 @@ class TestFireScheduleDirect:
 
         await fire_schedule(manager, store, schedule, data_dir, now)
 
-        manager.start_scan.assert_awaited_once()
+        assert manager.start_scan.await_count == 1
         assert store.get(schedule["id"])["last_scan_id"] is not None
+
+
+def _manager_with_config(import_reviews_before_scan: bool) -> FakeManager:
+    """A FakeManager carrying a `.config` duck-typed like the real
+    ScanManager's (a ConfigLoader with a `.settings` property) - just enough
+    for fire_schedule's `config.settings.output.import_reviews_before_scan`
+    read."""
+    manager = FakeManager()
+    manager.config = SimpleNamespace(
+        settings=AppSettings(
+            output=OutputSettings(import_reviews_before_scan=import_reviews_before_scan)
+        )
+    )
+    return manager
+
+
+class TestReviewImportBeforeScan:
+    """fire_schedule's WP-2 gate (ADR-0005, proposed / off by default): with
+    output.import_reviews_before_scan on, the review import runs
+    immediately before start_scan; off, it is never called. Either way the
+    scan itself is unaffected by whether the import succeeds."""
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_import_runs_before_start_scan_when_flag_is_on(
+        self, store, data_dir, monkeypatch,
+    ):
+        now = datetime(2026, 1, 5, 6, 0)
+        _due_schedule(store, now, domains="quick")
+        manager = _manager_with_config(import_reviews_before_scan=True)
+
+        call_log: list[str] = []
+        monkeypatch.setattr(
+            "src.orchestration.schedule_runner.import_reviews",
+            lambda *a, **k: call_log.append("import_reviews") or ImportSummary(),
+        )
+        default_start_scan = manager._default_start_scan
+
+        async def logging_start_scan(*args, **kwargs):
+            call_log.append("start_scan")
+            return default_start_scan(*args, **kwargs)
+
+        manager.start_scan = AsyncMock(side_effect=logging_start_scan)
+
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+
+        assert call_log == ["import_reviews", "start_scan"]
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_import_not_called_when_flag_is_off(self, store, data_dir, monkeypatch):
+        now = datetime(2026, 1, 5, 6, 0)
+        _due_schedule(store, now, domains="quick")
+        manager = _manager_with_config(import_reviews_before_scan=False)
+        mock_import = MagicMock()
+        monkeypatch.setattr("src.orchestration.schedule_runner.import_reviews", mock_import)
+
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+
+        assert mock_import.call_count == 0
+        assert manager.start_scan.await_count == 1
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_manager_with_no_config_skips_the_import(self, store, data_dir, monkeypatch):
+        """A manager with no .config attribute at all (an older test double,
+        or a caller that never wired one in) behaves exactly as before this
+        feature existed."""
+        now = datetime(2026, 1, 5, 6, 0)
+        _due_schedule(store, now, domains="quick")
+        manager = FakeManager()
+        mock_import = MagicMock()
+        monkeypatch.setattr("src.orchestration.schedule_runner.import_reviews", mock_import)
+
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+
+        assert mock_import.call_count == 0
+        assert manager.start_scan.await_count == 1
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_import_failure_does_not_block_the_scan(self, store, data_dir, monkeypatch):
+        now = datetime(2026, 1, 5, 6, 0)
+        schedule = _due_schedule(store, now, domains="quick")
+        manager = _manager_with_config(import_reviews_before_scan=True)
+
+        def raise_unreachable(*a, **k):
+            raise GSpreadException("sheet unreachable")
+
+        monkeypatch.setattr(
+            "src.orchestration.schedule_runner.import_reviews", raise_unreachable,
+        )
+
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+
+        assert manager.start_scan.await_count == 1
+        assert store.get(schedule["id"])["last_scan_id"] is not None
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_import_summary_is_logged(self, store, data_dir, monkeypatch):
+        now = datetime(2026, 1, 5, 6, 0)
+        schedule = _due_schedule(store, now, domains="quick")
+        manager = _manager_with_config(import_reviews_before_scan=True)
+        monkeypatch.setattr(
+            "src.orchestration.schedule_runner.import_reviews",
+            lambda *a, **k: ImportSummary(changed=3, unchanged=1, unmatched=2),
+        )
+
+        await run_due_schedules(manager, store, data_dir=data_dir, now=now)
+
+        events = _read_audit_events(data_dir)
+        summary_events = [e for e in events if e.get("event") == "review_import_before_schedule"]
+        assert len(summary_events) == 1
+        assert summary_events[0]["schedule_id"] == schedule["id"]
+        assert summary_events[0]["changed"] == 3
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_fire_schedule_direct_runs_the_import_too(self, store, data_dir, monkeypatch):
+        """The gate lives in fire_schedule itself, so the run-now route
+        (which calls fire_schedule directly, bypassing run_due_schedules)
+        gets it too."""
+        now = datetime(2026, 1, 5, 6, 0)
+        schedule = store.create(name="Manual", domains="quick", channels=["crawl"],
+                                 deep=False, topic=None, cadence="weekly:0:06:00")
+        manager = _manager_with_config(import_reviews_before_scan=True)
+        mock_import = MagicMock(return_value=ImportSummary())
+        monkeypatch.setattr("src.orchestration.schedule_runner.import_reviews", mock_import)
+
+        await fire_schedule(manager, store, schedule, data_dir, now)
+
+        assert mock_import.call_count == 1
+        assert manager.start_scan.await_count == 1

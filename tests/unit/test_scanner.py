@@ -9,8 +9,11 @@ from src.core.instruments import InstrumentIndex
 from src.core.models import (
     CrawlResult, PageStatus, Policy, PolicyType, PolicyAnalysis,
     ScreeningResult, KeywordResult, KeywordMatch, ExtractedContent,
+    DEFAULT_SCREENER_REJECT_KINDS,
+    DEFAULT_SCREENER_SOFT_REJECT_KINDS,
 )
-from src.core.scanner import DomainScanner
+from src.core.scanner import DomainScanner, screening_decision
+from src.core.scope import REQUIRED
 
 
 def _make_domain(**overrides):
@@ -48,6 +51,58 @@ def _make_extracted():
     )
 
 
+class TestScreeningDecision:
+    """The pure gate function behind Stage 5a (WP-5, ADR-0011): hard kinds
+    drop, soft kinds drop only without evidence, everything else proceeds,
+    and a fallback (kind None) always proceeds."""
+
+    REJECT_KINDS = list(DEFAULT_SCREENER_REJECT_KINDS)
+    SOFT_KINDS = list(DEFAULT_SCREENER_SOFT_REJECT_KINDS)
+
+    def _decide(self, **kw):
+        kw.setdefault("relevant", True)
+        kw.setdefault("confidence", 7)
+        result = ScreeningResult(**kw)
+        return screening_decision(result, self.REJECT_KINDS, self.SOFT_KINDS)
+
+    @pytest.mark.small
+    def test_a_fallback_with_no_kind_always_proceeds(self):
+        assert self._decide(kind=None) == "proceed"
+
+    @pytest.mark.small
+    def test_a_question_drops_even_with_both_quotes(self):
+        assert self._decide(kind="question", dc_quote="a data centre", heat_quote="waste heat") == "drop_kind"
+
+    @pytest.mark.small
+    def test_a_speech_drops(self):
+        assert self._decide(kind="speech") == "drop_kind"
+
+    @pytest.mark.small
+    def test_a_report_without_evidence_drops(self):
+        assert self._decide(kind="report") == "drop_kind"
+
+    @pytest.mark.small
+    def test_a_report_with_a_data_centre_quote_escalates(self):
+        assert self._decide(kind="report", dc_quote="Operators of data centres must report.") == "escalate"
+
+    @pytest.mark.small
+    def test_an_article_with_only_a_heat_quote_escalates(self):
+        assert self._decide(kind="article", heat_quote="Waste heat will warm 1,000 homes.") == "escalate"
+
+    @pytest.mark.small
+    def test_a_bill_with_no_quotes_proceeds_because_quotes_are_evidence_not_a_gate(self):
+        """Lesson PL-008: the replay showed the model failing to quote a
+        data-centre sentence on 14 of 23 kept pages the regex had matched."""
+        assert self._decide(kind="bill") == "proceed"
+
+    @pytest.mark.small
+    def test_custom_lists_are_honoured(self):
+        result = ScreeningResult(relevant=True, confidence=7, kind="grant")
+        assert screening_decision(result, ["grant"], []) == "drop_kind"
+        assert screening_decision(result, [], ["grant"]) == "drop_kind"
+        result_with_quote = ScreeningResult(relevant=True, confidence=7, kind="grant", dc_quote="x")
+        assert screening_decision(result_with_quote, [], ["grant"]) == "escalate"
+
 class TestDomainScannerInit:
     def test_creates_progress(self):
         scanner = DomainScanner(
@@ -73,6 +128,11 @@ class TestDomainScannerScan:
         extractor = MagicMock()
         keyword_matcher = MagicMock()
         llm_client = MagicMock()
+        # WP-5: the classifier is a second cheap call; by default it falls
+        # open (kind None), which screening_decision always lets through.
+        llm_client.classify_document = AsyncMock(
+            return_value=ScreeningResult(relevant=True, confidence=5, kind=None),
+        )
         cache = URLCache()
         verifier = MagicMock()
 
@@ -95,9 +155,15 @@ class TestDomainScannerScan:
         keyword_matcher.is_relevant.return_value = True
         keyword_matcher.check_near_miss.return_value = False
 
-        # LLM screening passes
+        # LLM screening passes: a real kind (not on the reject list) plus
+        # both quotes, so the page proceeds to analysis under WP-5's gate
+        # the same way a bare relevant=True did before it.
         llm_client.screen_relevance = AsyncMock(
-            return_value=ScreeningResult(relevant=True, confidence=8),
+            return_value=ScreeningResult(
+                relevant=True, confidence=8, kind="act",
+                dc_quote="This act applies to data centers.",
+                heat_quote="Operators must reuse waste heat.",
+            ),
         )
         # LLM analysis returns a relevant policy
         analysis = PolicyAnalysis(
@@ -240,6 +306,9 @@ class TestDomainScannerScan:
 
     @pytest.mark.asyncio
     async def test_screening_rejection_counted(self, scanner_deps):
+        # kind="bill" (not on the reject list) with no dc_quote: this drops
+        # under WP-5's drop_no_dc rule, the same filtered_screening counter
+        # a bare relevant=False rejection used before it.
         scanner_deps["llm_client"].screen_relevance = AsyncMock(
             return_value=ScreeningResult(relevant=False, confidence=9),
         )
@@ -274,8 +343,8 @@ class TestDomainScannerScan:
     async def test_low_confidence_rejection_escalates_to_analysis(self, scanner_deps):
         """A barely-confident Haiku rejection must not be final: below
         screening_min_confidence the page escalates to Sonnet analysis."""
-        scanner_deps["llm_client"].screen_relevance = AsyncMock(
-            return_value=ScreeningResult(relevant=False, confidence=3),
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(relevant=False, confidence=3, kind="bill"),
         )
         scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
         policies = await scanner.scan()
@@ -294,6 +363,177 @@ class TestDomainScannerScan:
         policies = await scanner.scan()
         assert len(policies) == 0
         scanner_deps["llm_client"].analyze_policy.assert_not_awaited()
+
+    # --- WP-5: the screener asks three narrow questions ---
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_report_kind_increments_screened_kind_and_skips_analysis(self, scanner_deps):
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(
+                relevant=True, confidence=9, kind="report",
+                dc_quote=None,
+                heat_quote=None,
+            ),
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        policies = await scanner.scan()
+        assert len(policies) == 0
+        assert scanner.progress.screened_kind == 1
+        scanner_deps["llm_client"].analyze_policy.assert_not_awaited()
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_report_kind_logged_and_cached_by_kind(self, scanner_deps, caplog):
+        import logging as _logging
+
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(
+                relevant=True, confidence=9, kind="report",
+                dc_quote=None,
+                heat_quote=None,
+            ),
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        with caplog.at_level(_logging.INFO, logger="src.core.scanner"):
+            await scanner.scan()
+        assert any(
+            "document kind: report" in r.message.lower() and "example.gov" in r.message
+            for r in caplog.records
+        )
+        cached = scanner_deps["cache"].get(
+            "https://example.gov/page",
+            scanner_deps["cache"]._entries["https://example.gov/page"].content_hash,
+        )
+        assert cached.policy_type == "report"
+        assert cached.is_relevant is False
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_bill_with_both_quotes_proceeds_to_analysis(self, scanner_deps):
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(
+                relevant=True, confidence=8, kind="bill",
+                dc_quote="This bill concerns data centers.",
+                heat_quote="Operators must reuse waste heat.",
+            ),
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        policies = await scanner.scan()
+        assert len(policies) == 1
+        scanner_deps["llm_client"].analyze_policy.assert_awaited_once()
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_missing_quotes_are_evidence_not_a_gate_for_a_bill(self, scanner_deps):
+        """Lesson PL-008: a bill the model could not quote still proceeds;
+        the deterministic scope gate is the data-centre rule."""
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(
+                relevant=True, confidence=9, kind="bill",
+                dc_quote=None, heat_quote=None,
+            ),
+        )
+        scanner = DomainScanner(
+            domain=_make_domain(), scan_id="s1",
+            scope_setting=REQUIRED, **scanner_deps,
+        )
+        policies = await scanner.scan()
+        assert len(policies) == 1
+        assert scanner.progress.filtered_screening == 0
+        assert scanner.progress.screened_kind == 0
+        assert scanner_deps["llm_client"].analyze_policy.await_count == 1
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_a_report_without_evidence_drops_at_the_screener(self, scanner_deps):
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(relevant=False, confidence=8, kind="report"),
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        policies = await scanner.scan()
+        assert len(policies) == 0
+        assert scanner.progress.screened_kind == 1
+        assert scanner_deps["llm_client"].analyze_policy.await_count == 0
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_an_article_with_evidence_escalates_to_analysis(self, scanner_deps):
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(
+                relevant=False, confidence=7, kind="article",
+                dc_quote="DOE announces $40 million for data center cooling.",
+            ),
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        policies = await scanner.scan()
+        assert len(policies) == 1
+        assert scanner.progress.screened_kind == 0
+        assert scanner_deps["llm_client"].analyze_policy.await_count == 1
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_evidence_lands_on_the_produced_policy(self, scanner_deps):
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(
+                relevant=True, confidence=8, kind="act",
+                dc_quote="This act concerns data centers.",
+                heat_quote="Operators must reuse waste heat.",
+                quote_verified=True,
+            ),
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        policies = await scanner.scan()
+        assert len(policies) == 1
+        assert policies[0].evidence == {
+            "kind": "act",
+            "dc_quote": "This act concerns data centers.",
+            "heat_quote": "Operators must reuse waste heat.",
+            "quote_verified": True,
+        }
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_custom_reject_kinds_are_honored(self, scanner_deps):
+        """screener_reject_kinds is configurable per scanner, not a
+        hardcoded list - a kind added to the list must start dropping."""
+        scanner_deps["llm_client"].classify_document = AsyncMock(
+            return_value=ScreeningResult(
+                relevant=True, confidence=9, kind="grant",
+                dc_quote="A data centre is named here.",
+                heat_quote="Heat is reused here.",
+            ),
+        )
+        scanner = DomainScanner(
+            domain=_make_domain(), scan_id="s1",
+            screener_reject_kinds=["grant"], **scanner_deps,
+        )
+        policies = await scanner.scan()
+        assert len(policies) == 0
+        assert scanner.progress.screened_kind == 1
+
+    @pytest.mark.small
+    def test_changing_reject_kinds_changes_the_rules_fingerprint(self, tmp_path):
+        """analysis.screener_reject_kinds lives inside the analysis block,
+        so changing it must expire every cached verdict - the same
+        mechanism that already covers data_center_required and the
+        prompts (src/core/rules_version.py)."""
+        import yaml
+
+        from src.core import rules_version
+
+        (tmp_path / "keywords.yaml").write_text("subject: []\n", encoding="utf-8")
+
+        def _fingerprint(reject_kinds):
+            (tmp_path / "settings.yaml").write_text(
+                yaml.safe_dump({"analysis": {"screener_reject_kinds": reject_kinds}}),
+                encoding="utf-8",
+            )
+            return rules_version.rules_fingerprint(rules_version.default_parts(tmp_path))
+
+        before = _fingerprint(["report", "article"])
+        after = _fingerprint(["report", "article", "speech"])
+        assert before != after
 
     @pytest.mark.asyncio
     async def test_api_source_domain_bypasses_crawler(self, scanner_deps):

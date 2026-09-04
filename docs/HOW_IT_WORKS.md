@@ -52,7 +52,9 @@ Numbers are from the first real monthly scan, 1 September 2026 (scan
 Everything above the screening line is free and did almost all of the
 cutting. The strong model took 86 percent of the money, and 285 of its 445
 calls produced no policy. The cheapest improvement is never a stronger model;
-it is a better question asked earlier.
+it is a better question asked earlier. Since WP-5 the screener also stores
+the document kind and the two quotes behind its verdict, so a reviewer can
+check the number instead of trusting it.
 
 ## Stage by stage
 
@@ -182,27 +184,61 @@ Where it sits: after the cache check, where the crawl and structured lanes
 have rejoined, and before the screener. Guarded by
 `tests/unit/test_scope.py` (the rule, the settings, and the placement).
 
-### 6. The cheap screener
+### 6. The cheap screener, in two calls
 
-`SCREENING_PROMPT` in `src/core/llm.py`, model
-`analysis.screening_model` (Haiku). One question today: is this page
-plausibly government policy touching data-centre heat reuse? It is written
-recall-first: "when in doubt, keep it". A rejection only sticks when the
-screener's confidence is at least `screening_min_confidence`; below that the
-page escalates to the strong model.
+`src/core/llm.py`, model `analysis.screening_model` (Haiku).
 
-Measured 1 September: 636 screened, 445 passed (70 percent), and the strong
-model then found nothing in 285 of those 445. One Pennsylvania domain
-(`pa_dep`) passed 199 pages through screening and produced zero rows.
+**The gate** (`SCREENING_PROMPT`, `screen_relevance`) is the original
+recall-first question, unchanged: could this page plausibly affect
+data-centre heat reuse, even indirectly, yes or no, with a confidence.
+Every row in the store passed it. A confident no drops the page (counted
+as `filtered_screening`); below `screening_min_confidence` the page goes to
+the strong model instead. This prompt stays verbatim on purpose: replaying
+the reviewer's rows on 3 September showed that folding further questions
+into it changed the model's answers and lost 5 to 8 of her 23 kept pages.
 
-Planned change (work package WP-5 in the September plan): three narrow
-questions instead of one wide one. What kind of document is this, from a
-fixed list (act, bill, regulation, consultation, grant, plan, index, report,
-article, speech, question)? Quote the sentence that names a data centre.
-Quote the sentence about reusing or recovering heat. A report or an article
-stops there; under `required`, no data-centre quote stops there. The quotes
-are stored so a reviewer can see why a row exists. Same model, same price.
-See [ADR-0003](decisions/ADR-0003-recall-first-screening.md).
+**The classifier** (`CLASSIFY_PROMPT`, `classify_document`, work package
+WP-5) is a second cheap call, only for pages the gate passed. Three narrow
+questions: what kind of document is this, from a fixed list (act, bill,
+regulation, consultation, grant, plan, index, report, article, speech,
+question, other); quote, verbatim, the sentence that names a data centre,
+or say there is none; quote, verbatim, the sentence about reusing or
+recovering heat, or say there is none. The model is told a quote must be
+copied from the page, never invented.
+
+The kind is the second gate; the quotes are evidence:
+
+- **Hard kinds.** `analysis.screener_reject_kinds` in `config/settings.yaml`,
+  default `question`, `speech`. Dropped even when both quotes are present:
+  a parliamentary question about data-centre heat reuse is still a
+  question. Counted as `screened_kind`.
+- **Soft kinds.** `analysis.screener_soft_reject_kinds`, default `report`,
+  `article`. Dropped only when the classifier found neither a data-centre
+  sentence nor a heat-reuse sentence; with either, the strong model
+  decides. Counted as `screened_kind` when dropped.
+- **Everything else proceeds.** A missing quote is never a reason to drop.
+  The same replay showed the model failing to quote a data-centre sentence
+  on 14 of her 23 kept pages that the scope gate's regex had matched; a
+  "no quote, drop" rule would have cost 12 keeps (lesson PL-008). The scope
+  gate on source text is the data-centre rule.
+
+Both calls fall open on any failure that is not an authentication error:
+the gate as relevant, the classifier as kind unset, and kind unset always
+proceeds. A parsing failure must never be the reason a real policy is
+dropped. The replay test (`tests/unit/test_screening_replay.py`) runs the
+classifier's rules over recorded answers on every commit: zero lost keeps is
+the bar, and the recording names the prompt hash it was made for.
+
+Measured 1 September, before this change: 636 screened, 445 passed (70
+percent), and the strong model then found nothing in 285 of those 445. One
+Pennsylvania domain (`pa_dep`) passed 199 pages and produced zero rows. The
+second call adds about $0.85 to a scan of that size.
+
+The kind and both quotes are stored on every policy the page produces, as
+`evidence` (`kind`, `dc_quote`, `heat_quote`, `quote_verified`), so a
+reviewer can check the reason a row exists instead of trusting it. See
+[ADR-0011](decisions/ADR-0011-the-screener-asks-three-questions.md), which
+supersedes [ADR-0003](decisions/ADR-0003-recall-first-screening.md).
 
 ### 7. The strong model
 
@@ -276,6 +312,49 @@ Reading her column into the app is
 [ADR-0005](decisions/ADR-0005-the-reviewers-column-is-the-review-record.md),
 proposed.
 
+**The import** (`src.output.import_reviews`, WP-2) is the mechanism ADR-0005
+proposes, built and tested but shipped switched off. Run a dry run first:
+
+```
+python -m src.output.import_reviews --dry-run
+```
+
+That reports counts (how many rows would change, how many are already
+correct, how many URLs in her column are not yet in the store, how many
+rows are still `tbd`, blank or unreachable) and previews the first ten
+changes as `url: from -> to (note)`, writing nothing. Drop `--dry-run` to
+apply. `--from-csv PATH` reads a CSV export instead of the live sheet (no
+network, no `.env`); `--spreadsheet-id ID` overrides which sheet; `--keep-as
+reviewed|promoted` overrides what a keep verdict maps to.
+
+What it never does: it never writes into her column - read-only against the
+sheet, write-only against the store. It never downgrades a `promoted` row
+to `reviewed` - a person moved that row to the master tab, and a later keep
+verdict does not undo that. And it never blocks a scan: when
+`output.import_reviews_before_scan` is true, `fire_schedule` runs it
+immediately before `start_scan`, but a sheet it cannot reach is logged as a
+warning and the scan fires anyway - a review import is a convenience for
+that run, not a dependency of it.
+
+Two settings, both in `config/settings.yaml` under `output:`, both off/unset
+by default:
+
+- `review_spreadsheet_id` - the reviewer's sheet of record, when it differs
+  from `spreadsheet_id` (production's points at a copy; see ADR-0005's
+  Evidence). Unset falls back to `spreadsheet_id`. Override with
+  `POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID`.
+- `import_reviews_before_scan` - whether the import above runs automatically
+  before each monthly scan. `false` until ADR-0005 is accepted; today's
+  behavior is unchanged either way.
+
+`python -m src.output.import_reviews --add-reason-column` is a separate,
+one-shot command - never run by a scan or the schedule - that appends a
+fixed-dropdown "Reason (fixed list)" column to Staging, after her own
+column, with the same eight categories `src.eval.sheet_labels.CATEGORIES`
+uses, so the next review round can be counted without reading every cell.
+It changes one header and one column's validation rule, nothing else, and
+prints what it did.
+
 ## The reviewer's vocabulary, and which gate answers each reason
 
 From her review of 143 rows on the Staging tab, read 2 September 2026: 32
@@ -288,11 +367,11 @@ each:
 | Not a policy: parliamentary question, written answer, transcript | 46 | At the source. DIP and Folketing already send a document-type field; Kokkai is Diet speeches by design | free | built, WP-3 |
 | Link is a general site, an error page, not the document | 39 | At the source (emit the document URL) and a fetch check before screening | free | built, WP-3 (source) and WP-4 (fetch check) |
 | No data centre in the bill | 14 | The scope gate, on source text | free | built |
-| Not a policy: report, article, opinion, private initiative | 12 | The screener's document-kind question | about $0.002 per page | planned, WP-5 |
-| Data centre present, no heat-reuse substance | 6 | The screener's quote question | about $0.002 per page | planned, WP-5 |
+| Not a policy: report, article, opinion, private initiative | 12 | The screener's document-kind question | about $0.002 per page | built, WP-5 |
+| Data centre present, no heat-reuse substance | 6 | The screener's quote question | about $0.002 per page | built, WP-5 |
 | Duplicate, or news about a policy already kept | 4 | Same-instrument check against kept rows | free | built, WP-4 |
 | Only in Dutch (to be decided, not removed) | 10 | English title backfill, translated-page link | cents | built, not applied |
-| No reason given | 4 | A fixed reason list in the sheet, so the next round can be counted | free | planned, WP-2 |
+| No reason given | 4 | A fixed reason list in the sheet, so the next round can be counted | free | built, WP-2; waits for the reviewer |
 
 Rows carry two reasons where she gave two, so the column does not sum to 88.
 The full mapping, row by row, is in the working document "What Anna's

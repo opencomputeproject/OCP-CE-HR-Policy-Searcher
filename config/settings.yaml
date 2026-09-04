@@ -116,6 +116,32 @@ analysis:
   # previously judged pages are re-decided rather than served from cache.
   data_center_required: "required"
 
+  # WP-5: document kinds the cheap screener drops before any analysis call.
+  # Each one is a reason from the reviewer's column, read 2 September 2026:
+  #   report, article   "Not a policy: report, article, opinion, private
+  #                      initiative" (12 rows)
+  #   speech, question  "Not a policy: parliamentary question, written
+  #                      answer, transcript" (46 rows) - a speech is a
+  #                      transcript (e.g. a Diet floor debate), a question
+  #                      is a written question and its answer (e.g. a
+  #                      German Kleine Anfrage)
+  # Hard drops: a page of one of these kinds is dropped at the screener even
+  # if it quotes both a data centre and a heat-reuse sentence. Neither kind
+  # was ever a keep in the reviewer's 143 rows.
+  screener_reject_kinds:
+    - question
+    - speech
+  # Soft drops: dropped only when the screener found NEITHER a data-centre
+  # sentence NOR a heat-reuse sentence on the page; with either quote the
+  # page goes to the strong model, which decides. Measured 2026-09-03 on the
+  # reviewer's rows: her two kept agency pages and one kept press release
+  # came back as report/article WITH quotes, so a hard drop here would have
+  # lost keeps. Both lists are part of the analysis block, so changing them
+  # changes the rules fingerprint - see src/core/rules_version.py.
+  screener_soft_reject_kinds:
+    - report
+    - article
+
   # Default running-cost cap applied to a scan that omits budget_usd, so an
   # estimate that turns out to be badly wrong cannot run away unnoticed.
   # The full 402-source scan of 2026-09-01 cost $9.05; 25 leaves headroom
@@ -135,6 +161,27 @@ output:
 
   # Name of the staging sheet (will be created if doesn't exist)
   staging_sheet_name: "Staging"
+
+  # The reviewer's sheet of record for src.output.import_reviews (ADR-0005).
+  # Production's spreadsheet_id above points at a copy of the Heat Reuse
+  # Policies Database, not the sheet she actually reviews - this lets the
+  # importer read her real column without changing where exports go.
+  # null falls back to spreadsheet_id (a single-sheet setup needs nothing
+  # here). Override with POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID.
+  review_spreadsheet_id: null
+
+  # Whether the review import runs automatically before each monthly scan.
+  # Off by default: ADR-0005 (the reviewer's column is the review record) is
+  # Proposed, not Accepted - this mechanism is built and tested but shipped
+  # switched off until the owner accepts it. See docs/HOW_IT_WORKS.md "9.
+  # Review" and python -m src.output.import_reviews to run it by hand.
+  import_reviews_before_scan: false
+
+  # The review_status a "keep" verdict in her column maps to: "reviewed" or
+  # "promoted". "promoted" keeps its existing meaning - moved to the master
+  # tab by a person - and a keep verdict never downgrades an already-promoted
+  # row to this value, whatever it is set to.
+  review_keep_status: "reviewed"
 
   # Whether to save page snapshots
   save_snapshots: true

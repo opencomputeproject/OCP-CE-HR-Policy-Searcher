@@ -1,0 +1,30 @@
+Overskudsvarme og cost-benefit-analyser
+Pr. 1. juli 2025 blev det tidligere overskudsvarmeprisloft afskaffet, og i oktober 2025 implementerede Energistyrelsen nye krav om udarbejdelse og godkendelse af cost-benefit-analyser vedr. overskudsvarme. Læs mere nedenfor.
+Regulering af overskudsvarme
+For at gøre det mere attraktivt for fjernvarmevirksomheder at investere i løsninger, der udnytter overskudsvarme fra virksomheder og produktion, indgik et flertal i Folketinget den 17. januar 2025 en aftale om nye regler for overskudsvarme.
+Det blev på den baggrund aftalt at afskaffe prisloftet på overskudsvarme. Det betyder, at der ikke længere er en fast øvre grænse for, de omkostninger fjernvarmevirksomheder kan opkræve hos forbrugerne for at udnytte overskudsvarme. Kravet om at varmeprisen for forbrugerne ikke må være højere end de nødvendige omkostninger, gælder dog stadigvæk.
+De virksomheder, der leverer overskudsvarme til en fjernvarmevirksomhed er fortsat ikke omfattet af varmeforsyningslovens prisregulering for deres leverancer af overskudsvarme. Hvis virksomhederne derimod leverer anden varme til fjernvarmenettet, herunder fra varmepumper der har hævet temperaturen på overskudsvarme, vil denne anden varme dog være omfattet af varmeforsyningslovens prisregulering.
+De nye regler for overskudsvarme trådte i kraft den 1. juli 2025.
+Læs Aftale om afskaffelse af prisloft på overskudsvarme
+Monitorering over udnyttelsen af overskudsvarme 2020-2023
+Det er i ”
+Opfølgende aftale ifm. Klimaaftale for energi og industri mv.
+" af 7. september 2021 besluttet, at ”udviklingen i udnyttelsen af overskudsvarme monitoreres og afrapporteres til aftalepartierne”.
+Læs den fulde rapport for 2023 og den tidligere rapport for 2022 herunder:
+Monitorering af udnyttelsen af overskudsvarme 2023
+Monitorering af udnyttelsen af overskudsvarme 2022
+Udarbejdelse og godkendelse af cost-benefit-analyser for industrianlæg, servicefaciliteter og datacentre
+Energistyrelsen implementerede den 11. oktober 2025 nye EU-krav, der skal sikre en bedre udnyttelse af overskudsvarme. Det betyder, at visse virksomheder skal udarbejde en cost-benefit-analyse, når de opfører eller gennemfører større renoveringer af deres anlæg.
+Kravet gælder for virksomheder, der har eller vil få ansvaret for driften af et industrianlæg over 8 MW, en servicefacilitet over 7 MW eller et datacenter over 1 MW.
+Analysen har til formål at undersøge, om det er økonomisk rentabelt at udnytte overskudsvarme fra én af de førnævnte typer af anlæg til f.eks. brug i fjernvarmeforsyningen.
+Virksomheder skal sende cost-benefit-analysen digitalt til Energistyrelsen, som godkender den. Energistyrelsen skal godkende analysen, før der kan søges om godkendelse af det pågældende overskudsvarmeprojekt efter reglerne i bekendtgørelse om godkendelse af projekter for kollektive varmeforsyningsanlæg (projektbekendtgørelsen) eller bekendtgørelse om godkendelse af projekter for fjernkølingsanlæg (kølebekendtgørelsen).
+Ovennævnte krav følger af en ny bekendtgørelse om cost-benefit-analyser, som kan findes
+her
+.
+Send cost-benefit-analyse
+Cost-benefit-analyser og eventuelle spørgsmål skal sendes til Energistyrelsen på mail:
+varme@ens.dk
+.
+Kontakt
+Varme
+varme@ens.dk
