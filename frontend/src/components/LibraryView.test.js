@@ -338,3 +338,48 @@ describe('LibraryView English title (WP-35)', () => {
     expect(container.querySelector('.original-name')).not.toBeInTheDocument();
   });
 });
+
+describe('LibraryView Read in English link (WP-9b)', () => {
+  it('surfaces the Read in English link in the expanded detail card when read_in_english_url is present', async () => {
+    global.fetch = mockFetch({
+      policies: [{
+        ...POLICY_NEW,
+        source_language: 'nl',
+        policy_name: 'Wet collectieve warmte',
+        policy_name_en: 'Collective Heat Act',
+        read_in_english_url: 'https://example.translate.goog/wet-collectieve-warmte',
+      }],
+    });
+    const { container } = render(<LibraryView />);
+
+    await screen.findByText('Collective Heat Act');
+    fireEvent.click(screen.getByRole('button', { name: /Collective Heat Act/ }));
+    await screen.findByText('A summary of Alpha');
+
+    // The library row's own expand only mounts the SavedPolicy card; its
+    // detail section (where the source links live) needs its own header
+    // click, so target it by class rather than by name to avoid matching
+    // the library row's button, which shares the same visible text.
+    fireEvent.click(container.querySelector('.saved-policy-header'));
+
+    const readLink = await screen.findByRole('link', { name: 'Read in English' });
+    expect(readLink).toHaveAttribute(
+      'href', 'https://example.translate.goog/wet-collectieve-warmte',
+    );
+    expect(readLink).toHaveAttribute('target', '_blank');
+  });
+
+  it('shows no Read in English link when read_in_english_url is null', async () => {
+    global.fetch = mockFetch({
+      policies: [{ ...POLICY_NEW, read_in_english_url: null }],
+    });
+    const { container } = render(<LibraryView />);
+
+    await screen.findByText('Alpha Act');
+    fireEvent.click(screen.getByRole('button', { name: 'Alpha Act' }));
+    await screen.findByText('A summary of Alpha');
+    fireEvent.click(container.querySelector('.saved-policy-header'));
+
+    expect(screen.queryByRole('link', { name: 'Read in English' })).not.toBeInTheDocument();
+  });
+});

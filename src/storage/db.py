@@ -138,6 +138,18 @@ CREATE TABLE IF NOT EXISTS scan_domains (
     policies_found INTEGER,
     errors INTEGER,
     completed_at TEXT,
+    -- Rejection-breakdown counters (WP-6a): filled in from DomainProgress's
+    -- fuller counter set, DEFAULT 0 so a pre-existing row (added via the
+    -- guarded ALTER below, before this scan was ever re-run) reads as "none
+    -- of this kind" rather than NULL/unknown.
+    filtered_short_content INTEGER DEFAULT 0,
+    filtered_excluded INTEGER DEFAULT 0,
+    filtered_out_of_scope INTEGER DEFAULT 0,
+    near_misses INTEGER DEFAULT 0,
+    filtered_doc_type INTEGER DEFAULT 0,
+    filtered_link INTEGER DEFAULT 0,
+    filtered_duplicate INTEGER DEFAULT 0,
+    screened_kind INTEGER DEFAULT 0,
     PRIMARY KEY (scan_id, domain_id)
 );
 
@@ -178,14 +190,15 @@ CREATE INDEX IF NOT EXISTS idx_notification_subscriptions_email
 
 _SCHEMA_FTS5 = """
 CREATE VIRTUAL TABLE IF NOT EXISTS policies_fts USING fts5(
-    policy_name, summary, key_requirements, jurisdiction,
+    policy_name, policy_name_en, summary, key_requirements, jurisdiction,
     content='policies', content_rowid='rowid'
 );
 
 CREATE TRIGGER IF NOT EXISTS policies_fts_ai AFTER INSERT ON policies BEGIN
-    INSERT INTO policies_fts(rowid, policy_name, summary, key_requirements, jurisdiction)
+    INSERT INTO policies_fts(rowid, policy_name, policy_name_en, summary, key_requirements, jurisdiction)
     VALUES (
         new.rowid, new.policy_name,
+        json_extract(new.raw, '$.policy_name_en'),
         json_extract(new.raw, '$.summary'),
         json_extract(new.raw, '$.key_requirements'),
         new.jurisdiction
@@ -193,9 +206,10 @@ CREATE TRIGGER IF NOT EXISTS policies_fts_ai AFTER INSERT ON policies BEGIN
 END;
 
 CREATE TRIGGER IF NOT EXISTS policies_fts_ad AFTER DELETE ON policies BEGIN
-    INSERT INTO policies_fts(policies_fts, rowid, policy_name, summary, key_requirements, jurisdiction)
+    INSERT INTO policies_fts(policies_fts, rowid, policy_name, policy_name_en, summary, key_requirements, jurisdiction)
     VALUES (
         'delete', old.rowid, old.policy_name,
+        json_extract(old.raw, '$.policy_name_en'),
         json_extract(old.raw, '$.summary'),
         json_extract(old.raw, '$.key_requirements'),
         old.jurisdiction
@@ -203,16 +217,18 @@ CREATE TRIGGER IF NOT EXISTS policies_fts_ad AFTER DELETE ON policies BEGIN
 END;
 
 CREATE TRIGGER IF NOT EXISTS policies_fts_au AFTER UPDATE ON policies BEGIN
-    INSERT INTO policies_fts(policies_fts, rowid, policy_name, summary, key_requirements, jurisdiction)
+    INSERT INTO policies_fts(policies_fts, rowid, policy_name, policy_name_en, summary, key_requirements, jurisdiction)
     VALUES (
         'delete', old.rowid, old.policy_name,
+        json_extract(old.raw, '$.policy_name_en'),
         json_extract(old.raw, '$.summary'),
         json_extract(old.raw, '$.key_requirements'),
         old.jurisdiction
     );
-    INSERT INTO policies_fts(rowid, policy_name, summary, key_requirements, jurisdiction)
+    INSERT INTO policies_fts(rowid, policy_name, policy_name_en, summary, key_requirements, jurisdiction)
     VALUES (
         new.rowid, new.policy_name,
+        json_extract(new.raw, '$.policy_name_en'),
         json_extract(new.raw, '$.summary'),
         json_extract(new.raw, '$.key_requirements'),
         new.jurisdiction
@@ -266,12 +282,36 @@ def _ensure_scans_estimate_columns(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+_SCAN_DOMAINS_COUNTER_COLUMNS = (
+    "filtered_short_content", "filtered_excluded", "filtered_out_of_scope",
+    "near_misses", "filtered_doc_type", "filtered_link", "filtered_duplicate",
+    "screened_kind",
+)
+
+
+def _ensure_scan_domains_columns(conn: sqlite3.Connection) -> None:
+    """Guarded ALTER migration (WP-6a): a ``scan_domains`` table that
+    predates the fuller rejection-breakdown counters gets them added in
+    place, ``DEFAULT 0`` so pre-existing rows read as "none of this kind"
+    rather than NULL. Same pattern as ``_ensure_scans_estimate_columns``:
+    ``PRAGMA table_info`` first so a re-run never re-issues ``ALTER TABLE
+    ADD COLUMN`` for a column that's already there.
+    """
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(scan_domains)")}
+    for column in _SCAN_DOMAINS_COUNTER_COLUMNS:
+        if column not in existing:
+            conn.execute(f"ALTER TABLE scan_domains ADD COLUMN {column} INTEGER DEFAULT 0")
+    conn.commit()
+
+
 def _ensure_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(_SCHEMA_CORE)
     if fts5_supported():
         conn.executescript(_SCHEMA_FTS5)
     conn.commit()
     _ensure_scans_estimate_columns(conn)
+    _ensure_scan_domains_columns(conn)
+    _ensure_fts_has_policy_name_en(conn)
 
 
 def _rebuild_jurisdictions(conn: sqlite3.Connection) -> None:
@@ -287,6 +327,57 @@ def _rebuild_jurisdictions(conn: sqlite3.Connection) -> None:
             (j.slug, j.name, j.kind, j.iso3, j.iso_numeric, j.parent)
             for j in by_slug.values()
         ],
+    )
+    conn.commit()
+
+
+def _ensure_fts_has_policy_name_en(conn: sqlite3.Connection) -> None:
+    """Guarded rebuild migration (WP-9a / ADR-0009): a ``policies_fts``
+    index built before ``policy_name_en`` joined the tracked columns is
+    dropped and recreated with it, so English-name search works on a
+    database that predates this change as well as a fresh one.
+
+    ``CREATE VIRTUAL TABLE IF NOT EXISTS`` in ``_SCHEMA_FTS5`` is a no-op
+    against an already-existing table - unlike a plain table, an FTS5
+    virtual table cannot take an ``ALTER TABLE ADD COLUMN`` (the shape
+    ``_ensure_scans_estimate_columns`` uses), so the only way to add a
+    tracked column is to drop and recreate the table and its triggers, then
+    repopulate the (now empty) index. FTS5 tables answer
+    ``PRAGMA table_info`` like an ordinary table, so the presence check is
+    the same guarded shape as ``_ensure_scans_estimate_columns``. No-ops
+    when FTS5 isn't supported (nothing to rebuild) or the column is already
+    there.
+
+    Repopulating is a plain ``INSERT ... SELECT`` rather than FTS5's own
+    ``INSERT INTO policies_fts(policies_fts) VALUES('rebuild')`` command:
+    'rebuild' only knows how to pull column values straight off same-named
+    columns on the content table (``policies``), but ``policy_name_en``,
+    ``summary`` and ``key_requirements`` are not real ``policies`` columns -
+    like the triggers above, they only exist inside its ``raw`` JSON blob,
+    reached with ``json_extract``. 'rebuild' fails outright against that
+    shape (``OperationalError: no such column: T.policy_name_en``, proven
+    live against this exact schema before writing this); the explicit
+    ``SELECT`` below runs the same ``json_extract`` expressions the triggers
+    use, in bulk, which is what 'rebuild' would have done if it could.
+    """
+    if not fts5_supported() or not fts5_enabled(conn):
+        return
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(policies_fts)")}
+    if "policy_name_en" in columns:
+        return
+    conn.executescript(
+        "DROP TRIGGER IF EXISTS policies_fts_ai;"
+        "DROP TRIGGER IF EXISTS policies_fts_ad;"
+        "DROP TRIGGER IF EXISTS policies_fts_au;"
+        "DROP TABLE IF EXISTS policies_fts;"
+    )
+    conn.executescript(_SCHEMA_FTS5)
+    conn.execute(
+        "INSERT INTO policies_fts"
+        " (rowid, policy_name, policy_name_en, summary, key_requirements, jurisdiction)"
+        " SELECT rowid, policy_name, json_extract(raw, '$.policy_name_en'),"
+        " json_extract(raw, '$.summary'), json_extract(raw, '$.key_requirements'), jurisdiction"
+        " FROM policies"
     )
     conn.commit()
 

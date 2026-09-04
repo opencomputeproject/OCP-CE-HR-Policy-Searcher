@@ -13,10 +13,24 @@ from ...agent.tools import jurisdiction_matches
 from ...core import jurisdictions
 from ...core.log_setup import log_audit_event
 from ...core.models import LIFECYCLE_STAGES
+from ...core.urls import translated_url
 from ...orchestration.scan_manager import ScanManager
 from ...storage.store import PolicyStore
 
 router = APIRouter(prefix="/api", tags=["policies"])
+
+
+def _add_read_in_english_url(policy: dict) -> dict:
+    """Attach ``read_in_english_url`` (ADR-0009): a computed, never-stored
+    translated-page link for a non-English source, ``None`` for an English
+    one. Mutates and returns ``policy`` so callers can use it inline in a
+    list comprehension.
+    """
+    source_language = policy.get("source_language") or "English"
+    policy["read_in_english_url"] = (
+        None if source_language == "English" else translated_url(policy.get("url", ""))
+    )
+    return policy
 
 
 def _validate_lifecycle_stage(lifecycle_stage: Optional[str]) -> None:
@@ -130,6 +144,7 @@ def list_policies(
     if place_jur is not None:
         stored = [p for p in stored if _matches_place(place_jur, p.get("jurisdiction"))]
 
+    stored = [_add_read_in_english_url(p) for p in stored]
     return {"policies": stored, "count": len(stored)}
 
 
@@ -167,6 +182,7 @@ def search_policies_text(
         limit=limit,
         **filter_kwargs,
     )
+    results = [_add_read_in_english_url(p) for p in results]
     return {"policies": results, "total": len(results), "query": q}
 
 

@@ -117,6 +117,13 @@ domains:
       Structured source added 2026-07-12, discovery expansion plan.
       No API key required.
 
+      WP-3 (2026-09-02): drops § 20-spørgsmål and Aktstykke cases
+      (typeid not in FolketingSource.DEFAULT_DOCUMENT_TYPE_IDS, [3, 5, 9])
+      before any page is fetched, and cites the bill's own document file
+      instead of the case-overview page where one is found. Override the
+      allow-list with source_params.document_types; see
+      src/sources/folketing.py.
+
   - name: "EUR-Lex National Implementing Measures Tracker"
     id: "eurlex_nim_tracker"
     enabled: true
@@ -202,6 +209,12 @@ domains:
     notes: |
       Structured source added 2026-07-12, discovery expansion plan.
       Requires DIP_API_KEY; self-disables until set.
+
+      WP-3 (2026-09-02): drops parliamentary questions (vorgangstyp not in
+      DipBundestagSource.DEFAULT_DOCUMENT_TYPES) before any page is fetched,
+      and cites the linked document's PDF instead of the vorgang overview
+      page where one exists. Override the allow-list with
+      source_params.document_types; see src/sources/dip_bundestag.py.
 
   # ---------------------------------------------------------------------------
   # Wave 1 keyless sources (added 2026-07-17). All live-verified on the day;
@@ -337,6 +350,12 @@ domains:
       framework regulating waste heat, while acknowledging the data-centre
       build-out. NDL asks for no bursts and no parallel calls; the client
       sleeps 2s between requests.
+
+      WP-3 (2026-09-02): a source_params.lane: "signals" mode exists
+      (writes leads instead of policies, see src/sources/kokkai.py) but is
+      NOT enabled here - ADR-0007 proposing it is still Proposed, not
+      Accepted. This entry's behaviour is unchanged: default lane
+      "policies", same as before.
 
   - id: "stortinget_api"
     name: "Stortinget (Parliament of Norway)"

@@ -189,6 +189,36 @@ class PolicyStore:
         self._conn.commit()
         return cur.rowcount > 0
 
+    def add_related_url(self, url: str, related_url: str) -> bool:
+        """Record ``related_url`` as the same instrument as the policy
+        stored under ``url`` (WP-4's same-instrument fold) - a news story
+        about a kept policy, or a second structured-source copy of the same
+        act, that was folded rather than stored as its own row.
+
+        Appended to a ``related_urls`` list inside the policy's ``raw``
+        JSON (created if absent), deduplicated, and the policy's own URL is
+        never added to its own list. Returns False when no policy is
+        stored under ``url``.
+        """
+        row = self._conn.execute(
+            "SELECT raw FROM policies WHERE url = ?", (url,)
+        ).fetchone()
+        if row is None:
+            return False
+
+        if related_url != url:
+            record = json.loads(row[0])
+            related = list(record.get("related_urls") or [])
+            if related_url not in related:
+                related.append(related_url)
+                record["related_urls"] = related
+                self._conn.execute(
+                    "UPDATE policies SET raw = ? WHERE url = ?",
+                    (json.dumps(record, ensure_ascii=False, default=str), url),
+                )
+                self._conn.commit()
+        return True
+
     def update_policy_name_en(self, url: str, value: str) -> bool:
         """Set a policy's English title (WP-35 backfill) by URL.
 
@@ -419,26 +449,29 @@ class PolicyStore:
             all_params = [match_query, *params]
             if conditions:
                 sql += " AND " + " AND ".join(conditions)
-            # Name matches rank far above summary/requirements/jurisdiction hits.
-            sql += " ORDER BY bm25(policies_fts, 10.0, 1.0, 1.0, 1.0) LIMIT ?"
+            # Name matches (original-language or English) rank far above
+            # summary/requirements/jurisdiction hits.
+            sql += " ORDER BY bm25(policies_fts, 10.0, 10.0, 1.0, 1.0, 1.0) LIMIT ?"
             all_params.append(limit)
             rows = self._conn.execute(sql, all_params).fetchall()
             return [json.loads(row[0]) for row in rows]
 
         # LIKE fallback: every token must substring-match at least one of
-        # the four indexed fields, case-insensitively.
+        # the five indexed fields, case-insensitively.
         like_conditions = []
         like_params: list = []
         for token in query.split():
             escaped = f"%{storage_db.escape_like(token.lower())}%"
             like_conditions.append(
                 "(LOWER(policies.policy_name) LIKE ? ESCAPE '\\' "
+                "OR LOWER(COALESCE(json_extract(policies.raw, '$.policy_name_en'), '')) "
+                "LIKE ? ESCAPE '\\' "
                 "OR LOWER(COALESCE(json_extract(policies.raw, '$.summary'), '')) LIKE ? ESCAPE '\\' "
                 "OR LOWER(COALESCE(json_extract(policies.raw, '$.key_requirements'), '')) "
                 "LIKE ? ESCAPE '\\' "
                 "OR LOWER(policies.jurisdiction) LIKE ? ESCAPE '\\')"
             )
-            like_params.extend([escaped] * 4)
+            like_params.extend([escaped] * 5)
 
         sql = "SELECT policies.raw FROM policies"
         all_conditions = conditions + like_conditions

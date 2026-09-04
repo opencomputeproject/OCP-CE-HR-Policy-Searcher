@@ -409,3 +409,162 @@ describe('DomainScanPanel scope preview - "Where will this search?" (WP-28)', ()
     expect(await screen.findByText('Pick a place or sources first.')).toBeInTheDocument();
   });
 });
+
+const READY_ESTIMATE_WITH_ACTUAL = {
+  ...READY_ESTIMATE,
+  last_actual: {
+    scan_id: '86463134',
+    cost_usd: 9.05,
+    completed_at: '2026-09-01T14:32:10.123456',
+    domains_scanned: 402,
+    policies_found: 71,
+  },
+  warnings: [
+    'The estimate is 20.8x the last measured run for this scope ($9.05 on 2026-09-01). '
+      + 'The measured number is usually the better guide.',
+    'This scan stops itself at $25.00, the default budget. Pass budget_usd to change it.',
+  ],
+};
+
+const scanButtonQuery = { name: 'Scan', exact: true };
+
+describe('DomainScanPanel last measured run + warnings (WP-6b)', () => {
+  it('renders the last-measured line and both warnings, and prefills the budget input from the default-budget warning', async () => {
+    await renderPanel({
+      selectedRegions: ['group:eu'],
+      costStatus: 'ready',
+      costEstimate: READY_ESTIMATE_WITH_ACTUAL,
+    });
+
+    expect(screen.getByText(
+      'Last measured run of this scope: $9.05 on 1 Sep 2026, 402 sources, 71 policies',
+    )).toBeInTheDocument();
+
+    const [warning1, warning2] = READY_ESTIMATE_WITH_ACTUAL.warnings;
+    expect(screen.getByText(warning1)).toHaveAttribute('role', 'status');
+    expect(screen.getByText(warning2)).toHaveAttribute('role', 'status');
+
+    expect(screen.getByLabelText('Budget (USD)')).toHaveValue(25);
+  });
+
+  it('renders neither the last-measured line nor a warning box when last_actual is null and warnings is empty', async () => {
+    const { container } = await renderPanel({
+      selectedRegions: ['group:eu'],
+      costStatus: 'ready',
+      costEstimate: { ...READY_ESTIMATE, last_actual: null, warnings: [] },
+    });
+
+    expect(screen.queryByText(/Last measured run of this scope/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/stops itself at/)).not.toBeInTheDocument();
+    expect(container.querySelector('.last-actual-line')).not.toBeInTheDocument();
+    expect(container.querySelector('.cost-warnings')).not.toBeInTheDocument();
+  });
+
+  it('leaves the budget input blank when no warning names a default budget', async () => {
+    await renderPanel({
+      selectedRegions: ['group:eu'],
+      costStatus: 'ready',
+      costEstimate: { ...READY_ESTIMATE, last_actual: null, warnings: [] },
+    });
+
+    expect(screen.getByLabelText('Budget (USD)')).toHaveValue(null);
+  });
+});
+
+describe('DomainScanPanel budget control and confirmation (WP-6b)', () => {
+  it('requires a second click to start when "No budget" is checked, then calls onScan with no_budget: true', async () => {
+    const onScan = jest.fn();
+    await renderPanel({
+      selectedRegions: ['group:eu'],
+      costStatus: 'ready',
+      costEstimate: READY_ESTIMATE_WITH_ACTUAL,
+      onScan,
+    });
+
+    fireEvent.click(screen.getByLabelText('No budget (run uncapped)'));
+    fireEvent.click(screen.getByRole('button', scanButtonQuery));
+
+    const confirmLine = screen.getByRole('alert');
+    expect(confirmLine).toHaveTextContent('This run has no cost cap. Start anyway?');
+    expect(onScan).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', scanButtonQuery));
+    expect(onScan).toHaveBeenCalledWith({ budget_usd: null, no_budget: true });
+  });
+
+  it('shows a 3x confirmation for a budget far above the last measured cost, but starts directly for a modest one', async () => {
+    const onScan = jest.fn();
+    await renderPanel({
+      selectedRegions: ['group:eu'],
+      costStatus: 'ready',
+      costEstimate: READY_ESTIMATE_WITH_ACTUAL,
+      onScan,
+    });
+
+    const budgetInput = screen.getByLabelText('Budget (USD)');
+    fireEvent.change(budgetInput, { target: { value: '100' } });
+    fireEvent.click(screen.getByRole('button', scanButtonQuery));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This budget is 11.0x the last measured run. Start anyway?',
+    );
+    expect(onScan).not.toHaveBeenCalled();
+
+    fireEvent.change(budgetInput, { target: { value: '20' } });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', scanButtonQuery));
+    expect(onScan).toHaveBeenCalledWith({ budget_usd: 20, no_budget: false });
+  });
+
+  it('starts directly, with an omitted budget, when the user changes nothing and there is no default-budget warning', async () => {
+    const onScan = jest.fn();
+    await renderPanel({
+      selectedRegions: ['group:eu'],
+      costStatus: 'ready',
+      costEstimate: { ...READY_ESTIMATE, last_actual: null, warnings: [] },
+      onScan,
+    });
+
+    fireEvent.click(screen.getByRole('button', scanButtonQuery));
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(onScan).toHaveBeenCalledWith({ budget_usd: null, no_budget: false });
+  });
+
+  it('labels the budget input and the no-budget checkbox', async () => {
+    await renderPanel({ selectedRegions: ['group:eu'] });
+
+    expect(screen.getByLabelText('Budget (USD)')).toBeInTheDocument();
+    expect(screen.getByLabelText('No budget (run uncapped)')).toBeInTheDocument();
+  });
+});
+
+describe('DomainScanPanel funnel summary after a scan (WP-6b)', () => {
+  const FUNNEL_SENTENCES = [
+    '35,402 pages fetched',
+    '7,909 dropped for no data-centre mention, free',
+  ];
+
+  it('renders each funnel_summary sentence', async () => {
+    await renderPanel({
+      selectedRegions: ['group:eu'],
+      funnelSummary: FUNNEL_SENTENCES,
+    });
+
+    FUNNEL_SENTENCES.forEach((sentence) => {
+      expect(screen.getByText(sentence)).toBeInTheDocument();
+    });
+  });
+
+  it('renders nothing when funnelSummary is empty or absent', async () => {
+    const { container } = await renderPanel({ selectedRegions: ['group:eu'] });
+    expect(container.querySelector('.funnel-summary')).not.toBeInTheDocument();
+
+    const { container: container2 } = await renderPanel({
+      selectedRegions: ['group:eu'],
+      funnelSummary: [],
+    });
+    expect(container2.querySelector('.funnel-summary')).not.toBeInTheDocument();
+  });
+});

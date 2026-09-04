@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.core.cache import URLCache
+from src.core.instruments import InstrumentIndex
 from src.core.models import (
     CrawlResult, PageStatus, Policy, PolicyType, PolicyAnalysis,
     ScreeningResult, KeywordResult, KeywordMatch, ExtractedContent,
@@ -24,12 +25,17 @@ def _make_domain(**overrides):
     return defaults
 
 
-def _make_crawl_result(url="https://example.gov/page", content="<html><body><p>Policy content about data center heat reuse requirements</p></body></html>"):
+def _make_crawl_result(
+    url="https://example.gov/page",
+    content="<html><body><p>Policy content about data center heat reuse requirements</p></body></html>",
+    title=None,
+):
     return CrawlResult(
         url=url,
         status=PageStatus.SUCCESS,
         content=content,
         content_length=len(content),
+        title=title,
     )
 
 
@@ -316,6 +322,34 @@ class TestDomainScannerScan:
         assert len(policies) == 1
 
     @pytest.mark.asyncio
+    @pytest.mark.medium
+    async def test_source_dropped_doc_type_is_added_to_progress(self, scanner_deps):
+        """A structured source's own document-type allow-list (DIP,
+        Folketing; WP-3) counts its drops on the domain's progress, so the
+        cost of the rule is visible rather than silent."""
+        from src.sources import SOURCE_REGISTRY
+        from src.sources.base import PolicySource
+
+        class _StubSourceWithDrops(PolicySource):
+            id = "stub_doc_type_drops"
+
+            async def fetch(self, domain):
+                self.dropped_doc_type = 3
+                return [_make_crawl_result(url="https://parliament.example.gov/bill/11")]
+
+        SOURCE_REGISTRY["stub_doc_type_drops"] = _StubSourceWithDrops
+        try:
+            scanner = DomainScanner(
+                domain=_make_domain(source_type="stub_doc_type_drops"),
+                scan_id="s1", **scanner_deps,
+            )
+            await scanner.scan()
+        finally:
+            SOURCE_REGISTRY.pop("stub_doc_type_drops", None)
+
+        assert scanner.progress.filtered_doc_type == 3
+
+    @pytest.mark.asyncio
     async def test_source_lifecycle_stage_lands_on_policy(self, scanner_deps):
         """A source-declared stage (e.g. bill status) overrides analysis."""
         from src.sources import SOURCE_REGISTRY
@@ -518,3 +552,168 @@ class TestDomainScannerScan:
         args = scanner_deps["verifier"].verify_batch.call_args
         assert len(args[0][0]) == 1  # One policy verified
         assert args[0][1] == ["us"]  # Domain regions passed
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_same_instrument_duplicate_is_folded_before_screening(self, scanner_deps):
+        """WP-4: a crawl page describing an instrument already kept under a
+        different URL folds into it instead of reaching the model.
+
+        FAILS TODAY (before instrument_index wiring): the page proceeds all
+        the way to Sonnet analysis like any other new page - screen_relevance
+        is called and a policy comes back. After: filtered_duplicate counts
+        it, scanner.duplicates records the fold, and screen_relevance is
+        never awaited.
+        """
+        existing_url = "https://www.gesetze-im-internet.de/enefg/"
+        index = InstrumentIndex.from_rows([
+            {"policy_name": "Energy Efficiency Act (EnEfG)", "url": existing_url},
+        ])
+        page_url = "https://bundestag.de/referentenentwurf-enefg"
+        result = _make_crawl_result(
+            url=page_url,
+            title="Energieeffizienzgesetz (EnEfG) - Referentenentwurf",
+        )
+
+        scanner = DomainScanner(
+            domain=_make_domain(), scan_id="s1",
+            instrument_index=index, **scanner_deps,
+        )
+        policies = await scanner._process_page_isolated(result)
+
+        assert policies == []
+        assert scanner.progress.filtered_duplicate == 1
+        assert scanner.duplicates == [(existing_url, page_url)]
+        scanner_deps["llm_client"].screen_relevance.assert_not_awaited()
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_instrument_index_off_by_default_keeps_old_behavior(self, scanner_deps):
+        """No instrument_index passed (every construction site that
+        predates WP-4) means the check never runs, even for a title that
+        would otherwise match nothing anyway - this just pins that the
+        default keeps every old call site working."""
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        result = _make_crawl_result(title="Some Other Act (SOA)")
+        policies = await scanner._process_page_isolated(result)
+
+        assert len(policies) == 1
+        assert scanner.progress.filtered_duplicate == 0
+        assert scanner.duplicates == []
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_soft_404_page_is_dropped_before_screening(self, scanner_deps):
+        scanner_deps["extractor"].extract.return_value = ExtractedContent(
+            text="Page not found. Sorry, the page you requested does not exist.",
+            title="404", language="en", word_count=11,
+        )
+        scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)
+        result = _make_crawl_result(url="https://example.gov/missing")
+        policies = await scanner._process_page_isolated(result)
+
+        assert policies == []
+        assert scanner.progress.filtered_link == 1
+        scanner_deps["llm_client"].screen_relevance.assert_not_awaited()
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_soft_404_never_checked_for_structured_records(self, scanner_deps):
+        """Structured records are API records, never pages - the link
+        check must not run for them, even when their thin content would
+        otherwise look exactly like a soft 404. Mentions a data centre so
+        the scope gate (an unrelated, later stage) does not also drop it,
+        keeping this test isolated to the link check alone."""
+        scanner_deps["extractor"].extract.return_value = ExtractedContent(
+            text="404 data center bill", title="404", language="en", word_count=4,
+        )
+        scanner = DomainScanner(
+            domain=_make_domain(source_type="legiscan"), scan_id="s1", **scanner_deps,
+        )
+        result = _make_crawl_result(url="https://leginfo.ca.gov/AB1")
+        policies = await scanner._process_page_isolated(result)
+
+        assert scanner.progress.filtered_link == 0
+        assert len(policies) == 1  # reached analysis, same as any structured hit
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_two_policies_from_one_page_with_same_keys_fold_into_one(self, scanner_deps):
+        page_url = "https://example.gov/index-page"
+        scanner_deps["llm_client"].to_policies.return_value = [
+            Policy(
+                url=page_url, policy_name="Heat Recovery Act (HRA)",
+                jurisdiction="US", policy_type=PolicyType.LAW,
+                summary="x", relevance_score=7,
+            ),
+            Policy(
+                url=page_url, policy_name="Heat Recovery Act (HRA)",
+                jurisdiction="US", policy_type=PolicyType.LAW,
+                summary="x", relevance_score=7,
+            ),
+        ]
+        scanner = DomainScanner(
+            domain=_make_domain(), scan_id="s1",
+            instrument_index=InstrumentIndex(), **scanner_deps,
+        )
+        result = _make_crawl_result(url=page_url)
+        policies = await scanner._process_page_isolated(result)
+
+        assert len(policies) == 1
+        assert scanner.progress.filtered_duplicate == 1
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_policy_matching_an_existing_row_is_dropped_and_recorded(self, scanner_deps):
+        existing_url = "https://www.gesetze-im-internet.de/enefg/"
+        index = InstrumentIndex.from_rows([
+            {"policy_name": "Energy Efficiency Act (EnEfG)", "url": existing_url},
+        ])
+        page_url = "https://example.gov/enefg-news"
+        scanner_deps["llm_client"].to_policies.return_value = [Policy(
+            url=page_url, policy_name="Energieeffizienzgesetz (EnEfG)",
+            jurisdiction="Germany", policy_type=PolicyType.LAW,
+            summary="x", relevance_score=6,
+        )]
+        scanner = DomainScanner(
+            domain=_make_domain(), scan_id="s1",
+            instrument_index=index, **scanner_deps,
+        )
+        result = _make_crawl_result(url=page_url)
+        policies = await scanner._process_page_isolated(result)
+
+        assert policies == []
+        assert scanner.progress.filtered_duplicate == 1
+        assert scanner.duplicates == [(existing_url, page_url)]
+
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_surviving_policy_is_added_so_a_later_page_folds_into_it(self, scanner_deps):
+        """A policy that survives Stage 6b is registered in the shared
+        index, so the second LegiScan copy of the same act - found on a
+        later page in the same scan - folds into the first."""
+        index = InstrumentIndex()
+        first_url = "https://example.gov/first-copy"
+        scanner_deps["llm_client"].to_policies.return_value = [Policy(
+            url=first_url, policy_name="Shared Act (SHA)",
+            jurisdiction="US", policy_type=PolicyType.LAW,
+            summary="x", relevance_score=7,
+        )]
+        scanner = DomainScanner(
+            domain=_make_domain(), scan_id="s1", instrument_index=index, **scanner_deps,
+        )
+        first_result = _make_crawl_result(url=first_url)
+        first_policies = await scanner._process_page_isolated(first_result)
+        assert len(first_policies) == 1
+
+        second_url = "https://example.gov/second-copy"
+        scanner_deps["llm_client"].to_policies.return_value = [Policy(
+            url=second_url, policy_name="Shared Act (SHA)",
+            jurisdiction="US", policy_type=PolicyType.LAW,
+            summary="x", relevance_score=7,
+        )]
+        second_result = _make_crawl_result(url=second_url)
+        second_policies = await scanner._process_page_isolated(second_result)
+
+        assert second_policies == []
+        assert scanner.duplicates == [(first_url, second_url)]

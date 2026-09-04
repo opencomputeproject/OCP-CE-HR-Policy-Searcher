@@ -39,6 +39,10 @@ function useScanQueue({ onNotice }) {
     const [isScanRequestRunning, setIsScanRequestRunning] = useState(false);
     const [activeScanId, setActiveScanId] = useState(null);
     const [queuedScanCount, setQueuedScanCount] = useState(0);
+    // WP-6b: the completed scan's funnel_summary (GET /api/scans/{id}),
+    // fetched once the WebSocket reports scan_complete - null while a scan
+    // is running or before any scan has completed this session.
+    const [lastFunnelSummary, setLastFunnelSummary] = useState(null);
     const isScanRunning = Boolean(activeScanId);
     const isQueueRunning = queuedScanCount > 0;
 
@@ -74,6 +78,17 @@ function useScanQueue({ onNotice }) {
             if (payload.type === 'scan_complete' || payload.type === 'error') {
                 if (payload.type === 'scan_complete') {
                     notifyPolicyDataChanged();
+                    // Fire-and-forget: the funnel summary is a nice-to-have
+                    // explanation, not something the completion flow should
+                    // block or fail on.
+                    fetch(apiUrl(`/api/scans/${scanId}`), { headers: adminHeaders() })
+                        .then((res) => (res.ok ? res.json() : null))
+                        .then((data) => {
+                            setLastFunnelSummary(
+                                data && Array.isArray(data.funnel_summary) ? data.funnel_summary : null,
+                            );
+                        })
+                        .catch(() => {});
                 }
                 finish(payload.type === 'scan_complete');
                 setActiveScanId(null);
@@ -105,6 +120,7 @@ function useScanQueue({ onNotice }) {
 
     const startScanRequest = useCallback(async (request, index, total) => {
         setIsScanRequestRunning(true);
+        setLastFunnelSummary(null);
         onNotice(
             'system',
             request.discover
@@ -237,6 +253,7 @@ function useScanQueue({ onNotice }) {
         isScanRunning,
         isQueueRunning,
         queuedScanCount,
+        lastFunnelSummary,
         runScanQueue,
         stopActiveScan,
     };

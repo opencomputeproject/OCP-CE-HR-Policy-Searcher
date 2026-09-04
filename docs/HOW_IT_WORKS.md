@@ -81,11 +81,53 @@ the 143 rows the reviewer saw came from them; about 9 came from crawled
 pages). That fact decides where every precision rule has to sit; see
 [ADR-0002](decisions/ADR-0002-structured-sources-bypass-the-keyword-gate.md).
 
+**Document types at the source.** DIP and Folketing both tag every record
+with the publisher's own document-type field, and both now check it before
+returning anything: `source_params.document_types` in
+`config/domains/api_sources.yaml` is an allow-list, defaulting to
+`DEFAULT_DOCUMENT_TYPES` (`Gesetzgebung`, `Rechtsverordnung`, `Verordnung`,
+`Antrag`) in `src/sources/dip_bundestag.py` for DIP's `vorgangstyp`, and to
+`DEFAULT_DOCUMENT_TYPE_IDS` (`[3, 5, 9]`, Lovforslag, Beslutningsforslag,
+Forslag til vedtagelse) in `src/sources/folketing.py` for Folketing's
+`typeid`. A record whose type is not on the list is dropped before any page
+is fetched or any model is called, and counted as `filtered_doc_type` on
+the domain's progress rather than folded into a total that would hide it.
+Both sources also now cite the underlying document (a PDF where one is
+found) instead of the case-overview page, falling back to the overview page
+only when no document URL resolves.
+
 ### 2. Extracting text
 
 HTML and PDF become plain text (`src/core/extractor.py`). A page under fifty
 words is skipped for crawled pages only; structured records are often short
 by nature and go through.
+
+#### The link check
+
+Before that short-content check, `src/core/soft404.py` asks whether a
+crawled page is a soft 404: a missing-page placeholder answered with an
+HTTP 200, so nothing upstream ever sees an error to catch. When the
+extracted text is under 400 words, a title or the first 300 characters
+matching a pattern from a table covering nine languages ("page not found",
+"Seite nicht gefunden", "ページが見つかりません", and others), or a bare
+"404" / "Not Found" / "Error" title on a page under thirty words, drops the
+page before any model call and counts it as `filtered_link`. It never fires
+on a long page, even one that happens to contain the word "404" somewhere.
+Structured records are API records, never pages, so they skip this
+entirely, the same way they skip the keyword gate. Costs nothing: it runs
+on already-extracted text, before the cache check and before either model
+call.
+
+Deliberately narrow: a genuine landing page can be just as short as a soft
+404, so the signals require an actual not-found phrase, or a bare
+error-shaped title, rather than short length alone - one of her kept rows
+is a bare host, and a length-only rule would have dropped it.
+
+Why: the reviewer's rows, read 2 September 2026 - "not a real website" and
+"link is an error page" among the 39 rows grouped below as "Link is a
+general site, an error page, not the document". Guarded by
+`tests/unit/test_soft404.py` and the wiring tests in
+`tests/unit/test_scanner.py`.
 
 ### 3. The keyword gate (crawled pages only)
 
@@ -181,6 +223,37 @@ sheet's Link column. Everything is stored in `data/policypulse.db`, and each
 domain's finds are appended to the Staging tab as the domain completes, so a
 crash mid-scan loses nothing already found.
 
+#### Same instrument, one row
+
+Deduplication by URL only catches the same link seen twice. It does not
+catch the same instrument reached by two different links - a news story
+about a policy already kept, a second structured-source copy of one act.
+`src/core/instruments.py` turns a policy name into a small set of keys (the
+normalised full name, plus a parenthesised abbreviation like "EnEfG" when
+one is present) and `InstrumentIndex` looks a page's own title, and
+separately every policy the analysis model extracts from it, up against
+every policy already kept. A match folds the new page in instead of
+creating a second row: a title match before screening is counted as
+`filtered_duplicate` and dropped outright, for free; a policy that matches
+an existing row after analysis is dropped from the batch instead of stored.
+Either way the fold is recorded on the kept row's `related_urls`
+(`PolicyStore.add_related_url`), so a reviewer can see what folded into it.
+Costs nothing: name matching, no model call, and it runs before the
+screener would otherwise have been asked to look at the page at all.
+
+Why: the reviewer's rows, read 2 September 2026 - three news stories about
+EnEfG (the German data-centre energy efficiency act, kept under
+`https://www.gesetze-im-internet.de/enefg/`) and one repeat of a row
+already above it, grouped below as "Duplicate, or news about a policy
+already kept".
+
+Deliberately name-key and abbreviation matching only for now; matching on
+referenced/cited legislation is a separate, later idea. See
+[ADR-0010](decisions/ADR-0010-same-instrument-folds-into-the-existing-row.md).
+A genuinely new instrument whose abbreviation happens to collide with an
+existing one would be folded too, wrongly - the "Folded into `<url>`" log
+line at INFO is what makes that visible to catch.
+
 ### 9. Review
 
 The reviewer works in the Google Sheet, not the app. The sheet of record is
@@ -190,6 +263,11 @@ headed *Review (Is website trustworthy? Is the policy focused on data center
 heat reuse explicitly? Is it duplicative? Is it actually a policy? Are
 proposed and enacted policies differentiated?)*, is the review record: a
 verdict word, a hyphen, a reason, in her words.
+
+The writer aligns every export to the sheet's actual header row and never
+overwrites a column it did not create, so her column - or any other reviewer
+addition to the header row - is safe across scans, wherever it sits
+([ADR-0009](decisions/ADR-0009-one-row-per-document-both-languages.md)).
 
 Review states in the app are `new`, `reviewed`, `promoted`, `rejected`. Who
 sees which is set by the public visibility posture; see
@@ -207,12 +285,12 @@ each:
 
 | Her reason | Rows | Where it can be caught | Cost | State |
 |---|---|---|---|---|
-| Not a policy: parliamentary question, written answer, transcript | 46 | At the source. DIP and Folketing already send a document-type field; Kokkai is Diet speeches by design | free | planned, WP-3 |
-| Link is a general site, an error page, not the document | 39 | At the source (emit the document URL) and a fetch check before screening | free | planned, WP-3 and WP-4 |
+| Not a policy: parliamentary question, written answer, transcript | 46 | At the source. DIP and Folketing already send a document-type field; Kokkai is Diet speeches by design | free | built, WP-3 |
+| Link is a general site, an error page, not the document | 39 | At the source (emit the document URL) and a fetch check before screening | free | built, WP-3 (source) and WP-4 (fetch check) |
 | No data centre in the bill | 14 | The scope gate, on source text | free | built |
 | Not a policy: report, article, opinion, private initiative | 12 | The screener's document-kind question | about $0.002 per page | planned, WP-5 |
 | Data centre present, no heat-reuse substance | 6 | The screener's quote question | about $0.002 per page | planned, WP-5 |
-| Duplicate, or news about a policy already kept | 4 | Same-instrument check against kept rows | free | planned, WP-4 |
+| Duplicate, or news about a policy already kept | 4 | Same-instrument check against kept rows | free | built, WP-4 |
 | Only in Dutch (to be decided, not removed) | 10 | English title backfill, translated-page link | cents | built, not applied |
 | No reason given | 4 | A fixed reason list in the sheet, so the next round can be counted | free | planned, WP-2 |
 
@@ -272,9 +350,35 @@ Column Teaches" (2 September 2026).
   `config/pricing.yaml`) multiplies assumptions; once two scans have
   completed it prefers measured rates. On 1 September it said $188.46 and
   the scan cost $9.05, because two assumptions were off in the same
-  direction. See [lesson PL-004](LESSONS.md#pl-004).
+  direction, and a third stage - the scope gate - was not modeled at all.
+  The static defaults now come from that same scan (measured, not guessed):
+  token sizes per call, and pass rates for the keyword gate (26%), the
+  scope gate (15% of keyword-gate passes), and screening (70%). See
+  [lesson PL-004](LESSONS.md#pl-004) and
+  [ADR-0008](decisions/ADR-0008-every-scan-has-a-budget-by-default.md).
+- **The last actual, beside the estimate.** Every estimate also carries
+  `last_actual` - the most recently completed run for the same scope, when
+  one exists - and `warnings`: a plain sentence when the fresh estimate
+  disagrees with that actual by more than 3x either way ("the measured
+  number is usually the better guide"), and one whenever a scan started
+  from this estimate will stop itself at the default budget. The CLI agent
+  prints both under the dollar figure it already shows before a scan
+  starts.
+- **Every scan has a budget by default.** `analysis.default_scan_budget_usd`
+  (`config/settings.yaml`, $25) applies to any scan whose request omits
+  `budget_usd` - the same running-cost stop `start_scan` already had
+  (WP-22b), just filled in by default instead of left uncapped. Pass
+  `no_budget: true` for one deliberately uncapped run, or set the setting
+  to `0` to turn the default off everywhere. `POST /api/scans` and the
+  agent's `start_scan` tool both apply it and report the `budget_usd` that
+  actually applied. Schedules are unaffected - they keep their own ceiling.
+  See [ADR-0008](decisions/ADR-0008-every-scan-has-a-budget-by-default.md).
 - **Cost per stored policy** on 1 September: $0.13. At the reviewer's 27
   percent keep rate, about $0.47 per kept policy.
+  `ScanHistoryStore.stats()` now tracks this per scope over time too -
+  `cost_per_policy_usd` (total completed cost over total completed
+  policies) and `last_cost_per_policy_usd`, both shown in
+  `GET /api/cost-projection`.
 
 ## Assumptions
 
@@ -305,10 +409,15 @@ What has to be true for the output to mean what it appears to mean.
   Finnish, Icelandic, Hungarian, Japanese, Korean, Arabic) match on substrings
   rather than word boundaries, to handle compound words and scripts without
   word separators. That raises false positives in those languages.
-- Every row keeps its original-language name and its original link. The
-  summary is written in English by the analysis model. An English name is
-  filled where the model or the backfill supplied one. One row per
-  document, never one per language.
+- Every row keeps its original-language name and its original link, an
+  English summary written by the analysis model, and an optional English
+  name (`policy_name_en`) filled by the analysis model or by
+  `python -m src.output.backfill_english`. One row per document, never one
+  per language. Free-text search matches the English name as well as the
+  original-language one, and a source that is not in English gets a
+  computed "Read in English" link (Google's website-translator proxy,
+  never fetched or stored by this tool) alongside it. See
+  [ADR-0009](decisions/ADR-0009-one-row-per-document-both-languages.md).
 
 **Retrieval**
 
@@ -321,11 +430,21 @@ What has to be true for the output to mean what it appears to mean.
 
 **Measurement**
 
-- Precision and recall are **not yet measured in the deployed tool**. The
-  evaluation harness exists in `src/eval/` and a protected-recall list is
-  checked, but no golden set has been built. As of 2 September 2026 the
-  labels exist: the reviewer's column holds 134 verdicts, and building the
-  first golden set from it is work package WP-1. Until then, treat any
+- Precision and recall are **not yet measured in the deployed tool**: the
+  evaluation harness lives in `src/eval/`, but nothing has scored a live scan
+  against it yet. What changed on 2 September 2026 (work package WP-1): the
+  golden set now exists, built from the reviewer's own column
+  (`tests/fixtures/golden/v1.jsonl`, 120 decided rows, her 32 keeps and 88
+  removes, each reject carrying a reason category; her 13 to-be-decided rows,
+  9 blank cells and 1 unreachable link are counted but not labelled, since
+  none of those is yet a decision). Rebuild it from the live sheet with
+  `python -m src.eval.golden --from-sheet --out data/golden/v1.jsonl` once
+  production points at the sheet of record rather than the copy (see
+  [ADR-0005](decisions/ADR-0005-the-reviewers-column-is-the-review-record.md)),
+  or from a fresh CSV export with `--from-csv PATH`. Score the live store
+  against a golden set with `python -m src.eval.score`, or against the
+  committed one with `python -m src.eval.score --golden-dir
+  tests/fixtures/golden`. Until a scan has been scored this way, treat any
   quality claim about this tool as unquantified.
 
 ## Reading the output
@@ -370,14 +489,8 @@ are prompts for a reviewer, not rejections.
 
 ### Known gaps
 
-- Four of the eight per-domain funnel counters have no database column, so
-  out-of-scope, short-content, excluded and near-miss counts are discarded at
-  the end of each scan. Filter rates cannot yet be reported per scan (work
-  package WP-6).
 - Reviewer rejection reasons are free text, so review rounds cannot be
   counted without reading every cell (work package WP-2).
-- The cost estimate shown before a scan can be an order of magnitude high
-  until two scans have completed (lesson PL-004).
 
 ## Glossary
 

@@ -126,16 +126,22 @@ class TestRealPricingFile:
         assert sonnet.output_per_mtok == 15.00
 
     def test_real_pricing_yaml_has_estimator_assumptions(self):
+        # WP-6a/PL-004: these were measured on scan 86463134 (2026-09-01),
+        # replacing unmeasured guesses that priced the same scope at
+        # $188.46 against a $9.05 actual.
         loader = PricingLoader(config_dir="config")
         estimator = loader.estimator
 
-        assert estimator["screening_input"] == 2000
-        assert estimator["screening_output"] == 50
-        assert estimator["analysis_input"] == 20000
-        assert estimator["analysis_output"] == 1000
+        assert estimator["screening_input"] == 1900
+        assert estimator["screening_output"] == 20
+        assert estimator["analysis_input"] == 3200
+        assert estimator["analysis_output"] == 550
         assert estimator["auditor_input"] == 5000
         assert estimator["auditor_output"] == 2000
         assert estimator["structured_items_per_source"] == 40
+        assert estimator["keyword_pass_rate"] == 0.26
+        assert estimator["scope_pass_rate"] == 0.15
+        assert estimator["screening_pass_rate"] == 0.70
 
 
 # ---------------------------------------------------------------------------

@@ -52,7 +52,10 @@ class TestProjectGroupEstimateOnly:
         # per_month_usd still comes from the estimate (2.0), not the single
         # actual run (5.0) - one data point isn't a trustworthy average.
         assert result["per_month_usd"] == 2.0
-        assert result["history"] == {"runs": 1, "mean_cost_usd": 5.0, "last_cost_usd": 5.0}
+        assert result["history"] == {
+            "runs": 1, "mean_cost_usd": 5.0, "last_cost_usd": 5.0,
+            "cost_per_policy_usd": None, "last_cost_per_policy_usd": None,
+        }
 
 
 class TestProjectGroupActualsBlend:
@@ -83,14 +86,18 @@ class TestProjectGroupActualsBlend:
 
     def test_history_excludes_mean_policies_field(self):
         """The response's `history` shape is exactly {runs, mean_cost_usd,
-        last_cost_usd} - mean_policies is internal to stats(), not part of
-        the documented cost-projection contract."""
+        last_cost_usd, cost_per_policy_usd, last_cost_per_policy_usd} -
+        mean_policies is internal to stats(), not part of the documented
+        cost-projection contract."""
         estimate = {"estimated_cost_usd": 1.0}
         stats = {"runs": 2, "mean_cost_usd": 1.0, "last_cost_usd": 1.0, "mean_policies": 9.0}
 
         result = _project_group("quick", estimate, stats, runs_per_month=1.0)
 
-        assert set(result["history"].keys()) == {"runs", "mean_cost_usd", "last_cost_usd"}
+        assert set(result["history"].keys()) == {
+            "runs", "mean_cost_usd", "last_cost_usd",
+            "cost_per_policy_usd", "last_cost_per_policy_usd",
+        }
 
 
 # ---------------------------------------------------------------------------

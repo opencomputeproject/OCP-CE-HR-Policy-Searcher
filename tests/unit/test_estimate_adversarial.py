@@ -40,6 +40,7 @@ def _manager_with_config(
     settings.analysis.min_keyword_score = 3.0
     settings.analysis.screening_model = screening_model or DEFAULT_SCREENING_MODEL
     settings.analysis.analysis_model = analysis_model or DEFAULT_ANALYSIS_MODEL
+    settings.analysis.default_scan_budget_usd = 25.0
     config.settings = settings
     return ScanManager(config=config, broadcaster=MagicMock())
 

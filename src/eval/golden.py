@@ -11,25 +11,39 @@ much smaller list of documents that any change must still retrieve, no
 matter what it does to precision.
 
 **Where the protected list comes from matters.** These are not documents
-chosen because they are convenient to retrieve. Twelve of the thirteen are
-the curated master tab of the Heat Reuse Policies Database, which is what a
-human reviewer decided to keep, seven of them entered by hand. The
-thirteenth is Virginia HB 323, the first state law on data centre heat
-reuse, which was absent from the production database on 2026-08-28 and is
-the reason any of this work happened.
+chosen because they are convenient to retrieve. Most of the original
+thirteen were the curated master tab of the Heat Reuse Policies Database,
+which is what a human reviewer decided to keep, seven of them entered by
+hand. One, Virginia HB 323, is the first state law on data centre heat
+reuse, absent from the production database on 2026-08-28 and the reason any
+of this work happened.
 
 Measured on 2026-08-28, applying the required scope rule to the name and
-description held in the sheet, three of the thirteen would be dropped: the
-NYSERDA Heat Recovery Program, the EMB3RS heat and cold matching platform,
-and the New York Utility Thermal Energy Network and Jobs Act. That is an
-upper bound rather than a prediction, because the live gate reads the full
-source document and those three may well name a data centre somewhere in
-it. Which is exactly why they are listed: the test says the day the rule
-drops one, instead of the rule dropping it quietly.
+description held in the sheet, three of the original thirteen looked likely
+to be dropped: the NYSERDA Heat Recovery Program, the EMB3RS heat and cold
+matching platform, and the New York Utility Thermal Energy Network and Jobs
+Act. That was an upper bound rather than a prediction, because the live
+gate reads the full source document and those three might still name a
+data centre somewhere in it.
+
+The reviewer's own column, read 2026-09-02 (WP-1), settled one of those
+three: she marked the New York Utility Thermal Energy Network and Jobs Act
+Remove ("no reference to data centers"), so it comes off the list below
+rather than staying as a floor the tool is asked to keep meeting forever.
+NYSERDA and EMB3RS remain, still at risk from the scope rule and still
+listed so the test says the day it costs one, instead of it happening
+quietly. Separately, she also marked the Climate Neutral Data Centre Pact
+Remove ("private sector initiative") - unrelated to the scope-rule risk
+above, but the same column, the same read, and the same reason to drop it
+from the floor. Her 32 keeps join the list too (deduplicated against the
+entries already here), each carrying her own reason so a failure names what
+she said rather than only that something was lost.
 """
 
+import argparse
 import json
 import logging
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -39,6 +53,14 @@ GOLDEN_DIR = Path("data") / "golden"
 
 #: The reasons a reviewer rejects an item, drawn from the categories the
 #: research review actually produced. "other" always carries a note.
+#:
+#: `bad_link`, `no_data_centre`, `no_heat_reuse`, `private_initiative` and
+#: `unexplained` were added for WP-1, one per category in
+#: `src.eval.sheet_labels.CATEGORIES` that had no existing equivalent here  - 
+#: see `sheet_labels._CATEGORY_TO_REJECTION_REASON` for the full mapping,
+#: including the categories that reuse an existing name
+#: (`proceedings_or_transcript`, `report_about_policy`, `duplicate`) rather
+#: than duplicate it under a second one.
 REJECTION_REASONS = (
     "wrong_document_type",
     "thermal_network_without_data_centre",
@@ -46,12 +68,26 @@ REJECTION_REASONS = (
     "proceedings_or_transcript",
     "report_about_policy",
     "duplicate",
+    "bad_link",
+    "no_data_centre",
+    "no_heat_reuse",
+    "private_initiative",
+    "unexplained",
     "other",
 )
 
 #: Documents any rule change must still retrieve. URL first, then why it is
 #: here, so a failure message can say what was lost rather than only that
 #: something was.
+#:
+#: Two entries from the original thirteen are gone as of WP-1 (2026-09-02):
+#: the Climate Neutral Data Centre Pact and the New York Utility Thermal
+#: Energy Network and Jobs Act, both marked Remove in the reviewer's column.
+#: A list that still demanded them back would be a floor set to the wrong
+#: height, not a safety margin. The rest of the original list stands, and
+#: her 32 keeps from the same column join it below, deduplicated against
+#: what was already here (ten of the 32 already appeared in the curated
+#: list above and are not repeated).
 PROTECTED_RECALL = (
     ("https://lis.virginia.gov/bill-details/20261/HB323",
      "Virginia HB 323, the first state law on data centre heat reuse. "
@@ -61,9 +97,6 @@ PROTECTED_RECALL = (
      "marked not exclusive to data centres."),
     ("https://www.gesetze-im-internet.de/enefg/",
      "German Energy Efficiency Act. Curated keep, marked not exclusive."),
-    ("https://legislation.nysenate.gov/pdf/bills/2021/S9422",
-     "New York Utility Thermal Energy Network and Jobs Act. Curated keep, and "
-     "the case the data-centre scope rule is most likely to cost us."),
     ("https://www.nyserda.ny.gov/All-Programs/Heat-Recovery-Program",
      "NYSERDA Heat Recovery Program. Curated keep, at risk from the scope rule."),
     ("https://www.emb3rs.eu/",
@@ -75,8 +108,6 @@ PROTECTED_RECALL = (
      "Norway's data centre heat reuse assessment mandate. Curated keep."),
     ("https://lokaleregelgeving.overheid.nl/CVDR646404",
      "Noord-Holland data centre heat reuse requirement. Curated keep."),
-    ("https://www.climateneutraldatacentre.net/",
-     "Climate Neutral Data Centre Pact. Curated keep."),
     ("https://lis.virginia.gov/bill-details/20251/HB2578",
      "Virginia HB 2578, failed 2025. Curated keep, and the recall case for "
      "bills that did not pass."),
@@ -84,6 +115,68 @@ PROTECTED_RECALL = (
      "DOE COOLERCHIPS funding. Curated keep."),
     ("https://bidenwhitehouse.archives.gov/briefing-room/presidential-actions/2025/01/14/executive-order-on-advancing-united-states-leadership-in-artificial-intelligence-infrastructure/",
      "Executive order on AI infrastructure, waste heat planning. Curated keep."),
+
+    # Her 32 keeps, column AC, read 2026-09-02 (WP-1). Ten of the 32 already
+    # appear above (Noord-Holland, the German EnEfG, Norway's mandate, the
+    # EU EED, the WA program, NYSERDA, EMB3RS, HB 2578, DOE COOLERCHIPS, the
+    # AI executive order) and are not repeated here.
+    ("https://www.energimyndigheten.se/en/climate/climate/data-centre-energy-performance-reporting/",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://www.regeringen.se/rattsliga-dokument/departementsserien-och-promemorior/2025/07/genomforande-av-delar-av-det-omarbetade-energieffektivitetsdirektivet",
+     "reviewer keep (column AC, 2026-09-02): implementation of EU's Energy "
+     "Efficiency Directive"),
+    ("https://www.riksdagen.se/sv/dokument-och-lagar/dokument/proposition/nya-regler-for-datacenter-och-hallbara-branslen_hc03131/html/",
+     "reviewer keep (column AC, 2026-09-02): implementation of EU's Energy "
+     "Efficiency Directive"),
+    ("https://www.riksdagen.se/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/lag-2025570-om-offentliggorande-av-information_sfs-2025-570/",
+     "reviewer keep (column AC, 2026-09-02): implementation of EU's Energy "
+     "Efficiency Directive"),
+    ("https://ens.dk/forsyning-og-forbrug/overskudsvarme",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://energiavirasto.fi/en/energy-efficiency",
+     "reviewer keep (column AC, 2026-09-02): implementation of EU's Energy "
+     "Efficiency Directive"),
+    ("https://energiavirasto.fi/en/-/reporting-from-data-centres-to-the-european-database-has-started",
+     "reviewer keep (column AC, 2026-09-02): implementation of EU's Energy "
+     "Efficiency Directive"),
+    ("https://www.njleg.state.nj.us/bill-search/2026/S2274",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://www.njleg.state.nj.us/bill-search/2026/A4696",
+     "reviewer keep (column AC, 2026-09-02): reporting requirements for "
+     "waste heat amounts"),
+    ("https://www.govinfo.gov/app/details/BILLS-119hr5332ih",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://www.parl.ca/legisinfo/en/bill/45-1/s-4",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://www.parl.ca/legisinfo/en/bill/45-1/c-269",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://www.gov.uk/government/consultations/proposals-for-heat-network-zoning-2023",
+     "reviewer keep (column AC, 2026-09-02): references waste heat from "
+     "data centers"),
+    ("https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/12889",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/15813",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/17452",
+     "reviewer keep (column AC, 2026-09-02): references waste heat recovery "
+     "at data centers"),
+    ("https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/16035",
+     "reviewer keep (column AC, 2026-09-02): references waste heat recovery "
+     "at data centers"),
+    ("https://www.stortinget.no/no/Saker-og-publikasjoner/Saker/Sak/?p=200381",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://www.stortinget.no/no/Saker-og-publikasjoner/Saker/Sak/?p=200132",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://laws.e-gov.go.jp/law/347AC0000000088",
+     "reviewer keep (column AC, 2026-09-02): establishes regulatory "
+     "framework for heat reuse"),
+    ("https://laws.e-gov.go.jp/law/354M50000400074",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
+    ("https://news.google.com/rss/articles/CBMinwFBVV95cUxOSFhuXzFBS1M5aml6"
+     "XzhoWktmaVJzSF9zaFBkbGlOYTZrY1F1cUtQNzZQdV9pT3NsZzBrRE9WZzRWejI4aEhXdU4x"
+     "cmZDZ09rNElMRTBWbzVucHVNajRoVl9nc3VZc2R0WjJEWEZyUWdxQkJGOWJMTDctWmE5cHhs"
+     "ZGZOam5uR0pUSHpsMDVKOVBWb2VlNmVmQnAybEhYYWc?oc=5",
+     "reviewer keep (column AC, 2026-09-02): no reason given"),
 )
 
 
@@ -222,5 +315,115 @@ def _report_missing() -> int:
     return 1
 
 
+#: The sheet of record, "Heat Reuse Policies Database" (see ADR-0005).
+#: Deliberately not read from the `SPREADSHEET_ID` env var: production
+#: points that at "Copy of Heat Reuse Policies Database" instead, which is
+#: not what the golden set must be built from.
+SHEET_OF_RECORD_ID = "1Az2Pz14eAGhre68BWmrpegg1PJ27decO0HRClKejJE8"
+
+
+def _rows_from_csv(path: Path) -> list[dict]:
+    import csv
+
+    from .sheet_labels import staging_rows_from_csv_export
+
+    with path.open(newline="", encoding="utf-8") as f:
+        csv_rows = list(csv.DictReader(f))
+    return staging_rows_from_csv_export(csv_rows)
+
+
+def _rows_from_sheet(spreadsheet_id: str) -> list[dict]:  # pragma: no cover - needs live creds
+    import os
+
+    from ..output.sheets import SheetsClient
+
+    client = SheetsClient(
+        credentials_b64=os.environ.get("GOOGLE_CREDENTIALS", ""),
+        spreadsheet_id=spreadsheet_id,
+    )
+    client.connect()
+    return client.read_staging_rows()
+
+
+def _build_golden(args: argparse.Namespace) -> int:
+    """`--from-csv`/`--from-sheet`: parse her column into a golden set.
+
+    Prints counts by verdict and by category either way, since that is the
+    number a reviewer or a curator wants regardless of whether a file gets
+    written. `--dry-run` stops there.
+    """
+    from .sheet_labels import labels_to_golden, read_review_labels
+
+    rows = (
+        _rows_from_csv(Path(args.from_csv)) if args.from_csv
+        else _rows_from_sheet(args.spreadsheet_id or SHEET_OF_RECORD_ID)
+    )
+    labels = read_review_labels(rows)
+
+    by_verdict: dict[str, int] = {}
+    by_category: dict[str, int] = {}
+    for label in labels:
+        by_verdict[label.verdict] = by_verdict.get(label.verdict, 0) + 1
+        for category in label.categories:
+            by_category[category] = by_category.get(category, 0) + 1
+
+    print(f"rows read: {len(labels)}")
+    print("by verdict:")
+    for verdict, count in sorted(by_verdict.items()):
+        print(f"  {verdict:<12} {count}")
+    print("by category:")
+    for category, count in sorted(by_category.items()):
+        print(f"  {category:<24} {count}")
+
+    if args.dry_run:
+        print("(dry run - no file written)")
+        return 0
+
+    if not args.out:
+        print("Could not build the golden set: --out is required unless --dry-run",
+              file=sys.stderr)
+        return 1
+
+    golden_rows = labels_to_golden(labels, reviewer=args.reviewer, read_on=args.read_on)
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", encoding="utf-8", newline="\n") as f:
+        for row in golden_rows:
+            f.write(json.dumps(row, sort_keys=True) + "\n")
+    print(f"wrote {len(golden_rows)} golden rows to {out_path}")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Build the golden set from the reviewer's column, or "
+        "(with no arguments) check protected recall against the store.")
+    parser.add_argument("--from-csv", default=None,
+                        help="Build from a CSV export of the reviewer's column "
+                        "(row,country,name,link,discovered_at,review_status,anna_review).")
+    parser.add_argument("--from-sheet", action="store_true",
+                        help="Build by reading the live Staging sheet.")
+    parser.add_argument("--spreadsheet-id", default=None,
+                        help=f"Sheet id for --from-sheet (default: the sheet of "
+                        f"record, {SHEET_OF_RECORD_ID}).")
+    parser.add_argument("--out", default=None,
+                        help="Where to write the golden set (.jsonl). Required "
+                        "unless --dry-run.")
+    parser.add_argument("--reviewer", default="",
+                        help="Attribution recorded on every golden row.")
+    parser.add_argument("--read-on", default="",
+                        help="Date the column was read, YYYY-MM-DD.")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Print counts by verdict and category; write nothing.")
+    args = parser.parse_args(argv)
+
+    if args.from_csv and args.from_sheet:
+        parser.error("--from-csv and --from-sheet are mutually exclusive")
+    if args.from_csv or args.from_sheet:
+        return _build_golden(args)
+
+    return _report_missing()
+
+
 if __name__ == "__main__":  # pragma: no cover - thin CLI wrapper
-    raise SystemExit(_report_missing())
+    raise SystemExit(main())

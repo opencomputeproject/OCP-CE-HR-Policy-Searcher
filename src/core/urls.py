@@ -13,7 +13,7 @@ than raising - a dedupe key that fails to normalize should still work as a
 (less effective) literal key, not crash the sweep.
 """
 
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 # Google Analytics campaign params, plus the common click-id trackers
 # ("fbclid-style") that ad platforms append. Stripping these means
@@ -71,3 +71,52 @@ def normalize_url(url: str) -> str:
     ]
     query = urlencode(query_pairs)
     return urlunsplit((scheme, netloc, path, query, ""))
+
+
+def translated_url(url: str, target: str = "en") -> str:
+    """Build a Google website-translator link for ``url``, rendering the
+    page in ``target`` (default English). Used for the "Read in English"
+    link on a non-English source (ADR-0009) - never fetched or stored by
+    this tool, computed fresh at render time.
+
+    Verified live 2026-09-02 against ``https://www.riksdagen.se/``: the
+    direct ``<host-with-dots-as-dashes>.translate.goog`` form built here
+    resolves. A GET of
+    ``https://www-riksdagen-se.translate.goog/?_x_tr_sl=auto&_x_tr_tl=en
+    &_x_tr_hl=en`` returned ``302`` to ``.../sv/?...`` - the same single
+    same-origin redirect the untranslated ``https://www.riksdagen.se/``
+    itself makes to ``/sv/`` (riksdagen.se's own root/locale redirect, not
+    a property of Google's proxy) - and following that one hop landed on
+    the translate.goog domain with ``200``. The older
+    ``https://translate.google.com/translate?sl=auto&tl=en&u=<url>`` form
+    was also probed and confirmed to ``302`` straight to this same direct
+    form, confirming it is now just an extra hop in front of it - so the
+    direct form is what is built here.
+
+    An existing dash in the host is doubled (translate.goog reserves a
+    single dash as the dot-replacement marker) before every dot becomes a
+    single dash. The original path and query string are preserved: each
+    path segment is percent-encoded (idempotent against a segment that is
+    already percent-encoded, so non-ASCII characters survive either way),
+    and the translator's own ``_x_tr_*`` params are appended after any
+    existing query string rather than replacing it.
+
+    Best-effort like :func:`normalize_url`: a URL with no scheme/host is
+    returned unchanged rather than raising, since this only ever feeds a
+    display link, never a fetch.
+    """
+    if not url:
+        return url
+    parts = urlsplit(url)
+    if not parts.scheme or not parts.hostname:
+        return url
+
+    host = parts.hostname.replace("-", "--").replace(".", "-")
+    netloc = f"{host}.translate.goog"
+
+    path = "/".join(quote(segment, safe="%") for segment in parts.path.split("/")) or "/"
+
+    tr_params = f"_x_tr_sl=auto&_x_tr_tl={target}&_x_tr_hl={target}"
+    query = f"{parts.query}&{tr_params}" if parts.query else tr_params
+
+    return urlunsplit(("https", netloc, path, query, ""))
