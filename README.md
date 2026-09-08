@@ -372,8 +372,13 @@ This starts an interactive session where you can ask questions in plain English.
 ### Run the REST API (for frontend development)
 
 ```bash
-uvicorn src.api.app:app --port 8000
+python -m src.api --port 8000
 ```
+
+`python -m src.api` loads your `.env` and then starts uvicorn. Running
+`uvicorn src.api.app:app` directly also works, but nothing reads `.env` for
+you then - the variables must already be in the environment, which is how
+the Docker image runs (compose `env_file`).
 
 Open [http://localhost:8000/docs](http://localhost:8000/docs) for the interactive API documentation.
 
@@ -703,11 +708,14 @@ During scans, the agent uses adaptive polling intervals to avoid burning API cal
 ### REST API Server
 
 ```bash
-# Development (auto-reload)
-uvicorn src.api.app:app --reload --port 8000
+# Development (auto-reload); loads .env, then starts uvicorn
+python -m src.api --reload --port 8000
 
-# Production
-uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --workers 4
+# Production outside Docker
+python -m src.api --host 0.0.0.0 --port 8000 --workers 4
+
+# Inside Docker the variables come from compose env_file, so the image runs
+# uvicorn directly:  uvicorn src.api.app:app --host 0.0.0.0 --port 8000
 ```
 
 The server provides:

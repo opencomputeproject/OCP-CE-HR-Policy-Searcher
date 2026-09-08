@@ -1,10 +1,12 @@
 """Shared test fixtures.
 
-src/api/app.py loads the project .env at import time (override=True), so a
-developer's real credentials leak into the test process and break tests that
-assume a clean environment (the admin gate flips on; Sheets/keys look
-configured). Strip the ambient config by default; tests that need a value set
-it themselves via monkeypatch.setenv.
+src/api/app.py used to load the project .env at import time (override=True),
+so a developer's real credentials leaked into the test process and broke tests
+that assume a clean environment (the admin gate flips on; Sheets/keys look
+configured) - lesson PL-009. The root cause is gone (loading moved to
+`python -m src.api`); the ambient config is still stripped by default and the
+loader still neutralised, so no future import can bring the leak back
+quietly. Tests that need a value set it themselves via monkeypatch.setenv.
 """
 
 import sys
@@ -25,13 +27,12 @@ _AMBIENT_ENV = (
 def _no_ambient_env(monkeypatch):
     for name in _AMBIENT_ENV:
         monkeypatch.delenv(name, raising=False)
-    # Deleting the variables is not enough on its own: src.api.app calls
-    # load_dotenv(override=True) at import, so the first test in a process to
-    # import the app re-injected the developer's .env AFTER this fixture had
-    # cleared it, and any non-GET route test run alone got a 401 from the
-    # admin gate while the same test passed inside the full file (where an
-    # earlier test had already paid the import). Lesson PL-009. Neutralise the
-    # loader for the whole test, so an import during a test cannot reach .env.
+    # Deleting the variables was not enough on its own: src.api.app used to
+    # call load_dotenv(override=True) at import, so the first test in a process
+    # to import the app re-injected the developer's .env AFTER this fixture had
+    # cleared it (lesson PL-009). That call is gone; the loader stays
+    # neutralised for the whole test as the second lock, so an import made
+    # during a test can never reach .env even if someone adds the call back.
     monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: False)
 
 # Proofmark size taxonomy: importing the autouse fixture registers it

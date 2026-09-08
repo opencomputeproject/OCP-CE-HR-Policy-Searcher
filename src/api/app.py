@@ -7,7 +7,6 @@ from pathlib import Path
 
 import math
 
-from dotenv import load_dotenv
 from fastapi import Depends, FastAPI
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -28,10 +27,12 @@ from .routes import (
 )
 from .static_site import mount_frontend
 
-# Resolve .env from project root (2 levels up from src/api/app.py)
-# so credentials load regardless of the process working directory.
+# This module does NOT read .env. It used to, at import, with override=True,
+# and the developer's real ADMIN_TOKEN leaked into any test that imported the
+# app (lesson PL-009). Loading the file is an entry point's job:
+# `python -m src.api` (src/api/__main__.py) does it before starting uvicorn,
+# and the deployed container gets its variables from compose `env_file`.
 _project_root = Path(__file__).resolve().parents[2]
-load_dotenv(_project_root / ".env", override=True)
 
 if not os.environ.get("OCP_DATA_DIR"):
     os.environ["OCP_DATA_DIR"] = str(_project_root / "data")
