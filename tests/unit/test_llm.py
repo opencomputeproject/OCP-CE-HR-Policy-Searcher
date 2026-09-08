@@ -880,9 +880,21 @@ def _make_gate_response(relevant: bool, confidence: int):
     return response
 
 
-@pytest.mark.large  # real-sleep backoff timing: ~40s for the class
+@pytest.mark.medium  # async: pytest-socket cannot guard the Windows Proactor loop
 class TestScreeningRateLimitRetry:
-    """Verify that screen_relevance retries on 429 instead of failing open."""
+    """Verify that screen_relevance retries on 429 instead of failing open.
+
+    The backoff sleep is patched and RECORDED: each test asserts the delay
+    the client asked for (BASE_DELAY doubling, or the retry-after header),
+    not that the seconds elapsed. Until 2026-09-08 this class slept for
+    real - 40 seconds of every push - and asserted nothing about the delay
+    (PL-010).
+    """
+
+    @pytest.fixture(autouse=True)
+    def _record_sleeps(self, monkeypatch):
+        self.sleeps = AsyncMock()
+        monkeypatch.setattr("src.core.llm.asyncio.sleep", self.sleeps)
 
     def _build_client(self):
         """Create a ClaudeClient with mocked async client (skips validation)."""
@@ -913,6 +925,7 @@ class TestScreeningRateLimitRetry:
         assert result.relevant is False
         assert result.confidence == 2
         assert client.client.messages.create.call_count == 2
+        self.sleeps.assert_awaited_once_with(ClaudeClient.BASE_DELAY)
 
     @pytest.mark.asyncio
     async def test_screening_uses_retry_after_header(self):
@@ -934,6 +947,7 @@ class TestScreeningRateLimitRetry:
 
         assert result.relevant is True
         assert client.client.messages.create.call_count == 2
+        self.sleeps.assert_awaited_once_with(0.01)
 
     @pytest.mark.asyncio
     async def test_screening_fails_open_after_exhausting_retries(self):
@@ -953,6 +967,10 @@ class TestScreeningRateLimitRetry:
         assert result.relevant is True
         assert result.confidence == 5
         assert client.client.messages.create.call_count == ClaudeClient.MAX_RETRIES
+        # BASE_DELAY, then doubled: two waits before the third and last attempt
+        assert [c.args[0] for c in self.sleeps.await_args_list] == [
+            ClaudeClient.BASE_DELAY, ClaudeClient.BASE_DELAY * 2,
+        ]
 
     @pytest.mark.asyncio
     async def test_screening_auth_error_not_retried(self):

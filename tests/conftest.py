@@ -41,3 +41,24 @@ _pm_gates = str(Path(__file__).resolve().parents[1] / "gates")
 if _pm_gates not in sys.path:
     sys.path.insert(0, _pm_gates)
 from proofmark_sizes import _proofmark_size_guard  # noqa: E402,F401
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--live", action="store_true", default=False,
+        help="run the tests marked `live`; they reach the public internet",
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """`live` tests stay COLLECTED - the test-count floor counts them, and
+    they do run, in .github/workflows/live-probes.yml every Monday - but skip
+    in every ordinary run, so pre-push, CI and a contributor's `pytest` never
+    depend on a remote server being up. `pytest -m live --live` runs them by
+    hand. See docs/SESSION_BRIEF.md, Hermeticity."""
+    if config.getoption("--live"):
+        return
+    skip = pytest.mark.skip(reason="needs the public internet: run with --live")
+    for item in items:
+        if item.get_closest_marker("live"):
+            item.add_marker(skip)

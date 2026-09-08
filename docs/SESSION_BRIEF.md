@@ -32,7 +32,17 @@ Proofmark's installer; the three sections marked TODO need a human once.
 
 - No test may reach the network or a real API: unit tests mock every LLM,
   Sheets, and HTTP call; integration tests run the full pipeline against
-  mocks too. A test that needs the live internet does not belong in `tests/`.
+  mocks too. The one declared exception is the `live` marker: a test that
+  must ask the public internet something (today, that the Virginia LIS store
+  still serves the file names the source expects) carries `@pytest.mark.live`
+  plus `large`, is collected but skipped in every ordinary run, and executes
+  only under `pytest -q -m live --live` - by hand, or every Monday in
+  `.github/workflows/live-probes.yml`. Pre-push never runs it.
+- No test may wait on the clock or launch a browser. Retry tests patch the
+  module's `asyncio.sleep` with a recorder and assert the delays the code
+  asked for; `test_crawler.py` blocks Playwright's launcher file-wide, because
+  the JS-shell fallback fires on any short HTML fixture and used to start a
+  real Chromium (PL-010).
 - No test may write to the repo's `data/` - use `tmp_path`. The SQLite
   stores take a `data_dir`; pass the fixture.
 - `tests/conftest.py` strips `ADMIN_TOKEN` so the suite runs in open mode,
@@ -44,9 +54,17 @@ Proofmark's installer; the three sections marked TODO need a human once.
   checkout: the app auto-serves it when present, which flips the root and
   docs-gating route tests. Delete stale local builds; production builds
   happen inside Docker only.
-- Two known slow-tier truths: `tests/integration/` is all `large` (marked
-  by its conftest), and the two retry-backoff classes in `test_agent.py` /
-  `test_llm.py` are `large` because they sleep for real.
+- One known slow-tier truth: `tests/integration/` is all `large` (marked by
+  its conftest). The retry-backoff classes in `test_agent.py` / `test_llm.py`
+  were `large` because they slept for real; since 2026-09-08 they are
+  `medium` and finish in under a second.
+- Wall time to expect, measured 2026-09-08 on the maintainer's machine:
+  `pytest tests -q` about 3 minutes; the pre-push gate's run under coverage
+  about 2m15s with the `sysmon` coverage core set in `pyproject.toml` (it was
+  9m56s before that day: 113s of real sleeps, 16s of real browser launches,
+  and a coverage tracer that doubled everything). If a push waits five
+  minutes again, measure first: `pytest tests -q -p no:cacheprovider
+  --durations=30`.
 
 ## What the gate already enforces, so you do not have to
 

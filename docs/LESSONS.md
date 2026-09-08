@@ -292,3 +292,42 @@ time to explain it, twice.
 for the whole test, so an import made during a test cannot reach `.env`. The
 guard test writes a `.env` with a secret, calls the loader, and asserts
 nothing landed in the environment.
+
+---
+
+## PL-010
+
+- title: Tests paid the clock and the network for nothing - real sleeps, a real browser, and no assertion about either
+- first_seen: 2026-09-08
+- last_seen: 2026-09-08
+- recurrences: 1
+- status: mechanized
+- guard: tests/unit/test_crawler.py::TestNoRealBrowser::test_the_fallback_takes_the_not_installed_path
+- class: verdict depends on untracked state (L009); cost paid outside the assertion
+
+**The defect.** Two retry classes (`test_agent.py::TestAgentRateLimitRetry`,
+`test_llm.py::TestScreeningRateLimitRetry`) let the code under test call
+`asyncio.sleep` for real: 113 seconds of every full run, and not one
+assertion about the delay that was requested, so the wait bought nothing.
+Three crawler tests fed `crawl_domain` HTML with under 200 visible
+characters, which is exactly what the JS-shell fallback looks for, so each
+launched a real headless Chromium and fetched `example.gov` over the public
+internet - 16 seconds, a browser install, and a remote host, none of it
+declared, in tests with no size marker. Both were labelled `large` or left
+unmarked and nobody looked again, because the suite was green.
+
+**Occurrence.** Found 2026-09-08 by measuring (`--durations=40`) after the
+pre-push suite had grown from about 5 to 9-10 minutes. The handoff blamed
+live network probes; the live test took under a second. The five sleepers
+and three browser launches were 41% of the plain wall time.
+
+**How it is held.** The retry classes patch the module's `asyncio.sleep`
+with a recorder and assert the exact delays asked for (10s then 40s; the
+retry-after header when present). `test_crawler.py` has an autouse fixture
+that replaces Playwright's launcher with one that raises, so a real browser
+cannot start anywhere in that file; the guard test proves the block is in
+place. Tests that need the public internet on purpose now carry `live` and
+skip unless `--live` is passed (`.github/workflows/live-probes.yml`, every
+Monday), so the ordinary suite is hermetic in fact and not only in the brief.
+The rule: a test asserts what the code asked for, never how long the world
+took to answer.

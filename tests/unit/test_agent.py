@@ -222,9 +222,20 @@ def _make_text_response(text: str):
     return response
 
 
-@pytest.mark.large  # real-sleep backoff timing: ~70s for the class
+@pytest.mark.medium  # async: pytest-socket cannot guard the Windows Proactor loop
 class TestAgentRateLimitRetry:
-    """Test that the agent loop retries on rate limit errors."""
+    """Test that the agent loop retries on rate limit errors.
+
+    The backoff sleep is patched and RECORDED: each test asserts the delays
+    the loop asked for (10s, then 40s), not that the seconds elapsed. Until
+    2026-09-08 this class slept for real - 73 seconds of every push - and
+    asserted nothing about the delay at all (PL-010).
+    """
+
+    @pytest.fixture(autouse=True)
+    def _record_sleeps(self, monkeypatch):
+        self.sleeps = AsyncMock()
+        monkeypatch.setattr("src.agent.orchestrator.asyncio.sleep", self.sleeps)
 
     def _build_agent(self):
         """Create a PolicyAgent without real API key (for testing)."""
@@ -267,6 +278,7 @@ class TestAgentRateLimitRetry:
         assert mock_client.messages.create.call_count == 2
         # Check that user was notified about the retry
         assert any("Rate limited" in t or "waiting" in t for t in text_output)
+        self.sleeps.assert_awaited_once_with(10.0)
 
     @pytest.mark.asyncio
     async def test_rate_limit_retry_exhausted(self):
@@ -287,6 +299,8 @@ class TestAgentRateLimitRetry:
         assert "Rate limit exceeded" in result
         assert "saved" in result.lower() or "search_policies" in result
         assert mock_client.messages.create.call_count == MAX_API_RETRIES
+        # 10s * 4^(attempt-1): two waits before the third and last attempt
+        assert [c.args[0] for c in self.sleeps.await_args_list] == [10.0, 40.0]
 
     @pytest.mark.asyncio
     async def test_overload_error_retries(self):
@@ -310,6 +324,7 @@ class TestAgentRateLimitRetry:
 
         assert "Done" in result
         assert mock_client.messages.create.call_count == 2
+        self.sleeps.assert_awaited_once_with(10.0)
 
     @pytest.mark.asyncio
     async def test_auth_error_no_retry(self):
