@@ -13,10 +13,11 @@ if (!fs.existsSync(pythonPath)) {
   process.exit(1);
 }
 
+// python -m src.api loads .env, then starts uvicorn on src.api.app:app.
+// (Importing the app module alone does not read .env - lesson PL-009.)
 const args = [
   '-m',
-  'uvicorn',
-  'src.api.app:app',
+  'src.api',
   '--host',
   '127.0.0.1',
   '--port',

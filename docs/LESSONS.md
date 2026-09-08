@@ -293,6 +293,15 @@ for the whole test, so an import made during a test cannot reach `.env`. The
 guard test writes a `.env` with a secret, calls the loader, and asserts
 nothing landed in the environment.
 
+**Root cause removed, 2026-09-08.** `src/api/app.py` no longer reads `.env`
+at all. Loading moved to a real entry point, `python -m src.api`
+(`src/api/__main__.py`), beside the agent's and the MCP server's, and the
+deployed container never used the file (compose `env_file`, `.dockerignore`).
+`tests/unit/test_env_hermetic.py::test_importing_the_api_module_does_not_read_dotenv`
+reloads the module with a spy on the loader and asserts zero calls and an
+unchanged environment; `test_env_loading.py` asserts the module's source has
+no `load_dotenv(` call. The fixture above stays as the second lock.
+
 ---
 
 ## PL-010

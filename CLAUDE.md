@@ -17,7 +17,7 @@ Built for the Open Compute Project (OCP) Heat Reuse subproject.
 - `cd frontend && CI=true npx react-scripts test --watchAll=false` — run frontend tests (153, across 18 suites)
 - `cd frontend && npm run e2e` — real-pointer Playwright smoke (needs the dev stack running and `npx playwright install chromium` once). **If your `.env` sets `ADMIN_TOKEN`, pass the same value as `E2E_ADMIN_TOKEN`** or the 13 admin-gated specs fail on the sign-in dialog rather than on anything real: `E2E_ADMIN_TOKEN=$(grep ^ADMIN_TOKEN= ../.env | cut -d= -f2-) npm run e2e`. One spec, `map.spec.js`'s admin toggle, assumes the opposite — a backend with no `ADMIN_TOKEN`, where clicking Admin reveals the panels directly — so it fails either way on an authed stack. Measured 2026-08-28: 26 of 27 pass with the token, 14 of 27 without.
 - `ruff check src/ tests/` — lint (must pass before commits)
-- `uvicorn src.api.app:app --port 8000` — run FastAPI server (there is no src.api __main__)
+- `python -m src.api --port 8000` — run FastAPI server (loads `.env`, then uvicorn; extra args pass through to uvicorn). Importing `src.api.app` never reads `.env` - PL-009.
 - `npm run dev` — run backend + React frontend together
 - `python -m src.output.import_sheet [--dry-run]` — seed/refresh `data/policies.json` from the Google Sheets Staging worksheet (idempotent, dedupes by URL; `--dry-run` previews without writing)
 

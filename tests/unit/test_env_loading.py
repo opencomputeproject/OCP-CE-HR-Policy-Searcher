@@ -1,9 +1,13 @@
 """Tests for .env loading with explicit project-root path resolution.
 
-All three entry points (agent, MCP server, API) resolve the .env file
-relative to their own ``__file__`` so that credentials load correctly
+All three entry points (agent, MCP server, API runner) resolve the .env
+file relative to their own ``__file__`` so that credentials load correctly
 even when the process working directory is *not* the project root
 (e.g. when started as a Claude Code MCP subprocess).
+
+The API *module* (src/api/app.py) is deliberately not on that list: it is
+imported by ninety-odd test files and must not read .env as a side effect
+(lesson PL-009). Its entry point is src/api/__main__.py.
 """
 
 import base64
@@ -39,9 +43,9 @@ class TestProjectRootResolution:
         resolved = server_file.resolve().parents[2]
         assert (resolved / ".env").exists() or (resolved / "config").is_dir()
 
-    def test_api_app_resolves_project_root(self):
-        """src/api/app.py should resolve project root 2 levels up."""
-        api_file = self.project_root / "src" / "api" / "app.py"
+    def test_api_runner_resolves_project_root(self):
+        """src/api/__main__.py should resolve project root 2 levels up."""
+        api_file = self.project_root / "src" / "api" / "__main__.py"
         assert api_file.exists()
         resolved = api_file.resolve().parents[2]
         assert (resolved / ".env").exists() or (resolved / "config").is_dir()
@@ -65,16 +69,23 @@ class TestLoadDotenvUsesExplicitPath:
         source = self._read_source("src/mcp/server.py")
         assert 'load_dotenv(_project_root / ".env"' in source
 
-    def test_api_uses_explicit_env_path(self):
-        source = self._read_source("src/api/app.py")
+    def test_api_runner_uses_explicit_env_path(self):
+        source = self._read_source("src/api/__main__.py")
         assert 'load_dotenv(_project_root / ".env"' in source
+
+    @pytest.mark.small
+    def test_the_api_module_itself_never_loads_dotenv(self):
+        """PL-009, at the source: the module 90-odd tests import has no
+        load_dotenv call. The behavioural half is in test_env_hermetic.py."""
+        source = self._read_source("src/api/app.py")
+        assert "load_dotenv(" not in source
 
     def test_all_use_override_true(self):
         """override=True is required so .env wins over stale system vars."""
         for path in [
             "src/agent/__main__.py",
             "src/mcp/server.py",
-            "src/api/app.py",
+            "src/api/__main__.py",
         ]:
             source = self._read_source(path)
             assert "override=True" in source, f"{path} missing override=True"
