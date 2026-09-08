@@ -1,5 +1,7 @@
 """Tests for HtmlExtractor."""
 
+from pathlib import Path
+
 import pytest
 
 from src.core.extractor import HtmlExtractor
@@ -150,3 +152,91 @@ class TestMaxLength:
         html = "<html><body><p>" + "a" * 100 + "</p></body></html>"
         result = extractor.extract(html)
         assert len(result.text) <= 20
+
+
+# ---------------------------------------------------------------------------
+# PL-011: the reviewer's keeps that extracted to nothing (2026-09-08)
+# ---------------------------------------------------------------------------
+
+FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "extraction"
+
+POLICY = " ".join(["Data centres shall recover waste heat for district heating."] * 20)
+
+
+class TestABoilerplateMatchCannotDeleteThePage:
+    """`sidebar` matches `no-sidebar`, `cookie` matches `alert__has-cookie`:
+    layout-state classes on wrappers. A banner is never half the page."""
+
+    @pytest.mark.small
+    def test_a_no_sidebar_wrapper_keeps_its_content(self, extractor):
+        # emb3rs.eu: <div class="no-sidebar"> wraps the whole site -> 49 chars
+        html = f'<html><body><div class="no-sidebar"><div class="content"><p>{POLICY}</p></div></div></body></html>'
+        assert "waste heat" in extractor.extract(html).text
+
+    @pytest.mark.small
+    def test_a_cookie_state_class_on_body_keeps_its_content(self, extractor):
+        # bidenwhitehouse.archives.gov: <body class="alert__has-cookie"> -> 0 chars
+        html = f'<html><body class="alert__has-cookie"><main><p>{POLICY}</p></main></body></html>'
+        assert "waste heat" in extractor.extract(html).text
+
+    @pytest.mark.small
+    def test_a_has_sidebar_layout_wrapper_keeps_its_content(self, extractor):
+        html = f'<html><body><div class="has-sidebar"><article><p>{POLICY}</p></article></div></body></html>'
+        assert "waste heat" in extractor.extract(html).text
+
+    @pytest.mark.small
+    def test_a_real_cookie_banner_is_still_removed(self, extractor):
+        html = (
+            f'<html><body><div class="cookie-banner">We use cookies. Accept?</div>'
+            f'<main><p>{POLICY}</p></main></body></html>'
+        )
+        text = extractor.extract(html).text
+        assert "waste heat" in text
+        assert "cookies" not in text
+
+
+class TestTheMainContentPickIsTheBiggestCandidate:
+    @pytest.mark.small
+    def test_an_empty_article_before_the_content_does_not_win(self, extractor):
+        # ec.europa.eu Have Your Say: the first <article> is an empty shell
+        html = (
+            f'<html><body><article></article>'
+            f'<div class="page-content"><p>{POLICY}</p></div></body></html>'
+        )
+        assert "waste heat" in extractor.extract(html).text
+
+    @pytest.mark.small
+    def test_a_one_character_content_class_does_not_win(self, extractor):
+        # eur-lex.europa.eu: <div class="modal-content">x</div> came first
+        html = (
+            f'<html><body><div class="modal-content">x</div>'
+            f'<div id="text-content"><p>{POLICY}</p></div></body></html>'
+        )
+        text = extractor.extract(html).text
+        assert "waste heat" in text and text.strip() != "x"
+
+    @pytest.mark.small
+    def test_a_small_main_falls_back_to_the_body(self, extractor):
+        html = f'<html><body><main>Skip to content</main><div><p>{POLICY}</p></div></body></html>'
+        assert "waste heat" in extractor.extract(html).text
+
+
+class TestRecordedPages:
+    """The real pages, as fetched 2026-09-08, that produced 0 characters."""
+
+    @pytest.mark.small
+    def test_have_your_say_initiative_rendered_by_playwright(self, extractor):
+        html = (FIXTURES / "r083-ec-europa-eu.rendered.html").read_text(encoding="utf-8")
+        text = extractor.extract(html, "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/12889").text
+        # The pick is the portal's ecl-main-content block: the initiative
+        # summary, type of act, feedback windows. 656 chars; it was 0.
+        assert len(text) > 500, len(text)
+        assert "energy efficiency first" in text.lower()
+        assert "Type of act" in text
+
+    @pytest.mark.small
+    def test_white_house_executive_order_over_httpx(self, extractor):
+        html = (FIXTURES / "r131-bidenwhitehouse-archives-gov.html").read_text(encoding="utf-8")
+        text = extractor.extract(html).text
+        assert len(text) > 20000, len(text)
+        assert "Sec. 2." in text

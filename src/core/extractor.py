@@ -38,8 +38,30 @@ _DEFAULT_CONTENT_INDICATORS = [
 ]
 
 
+def _text_len(el) -> int:
+    return len(el.get_text(" ", strip=True)) if isinstance(el, Tag) else 0
+
+
 class HtmlExtractor:
-    """HTML content extractor with boilerplate removal."""
+    """HTML content extractor with boilerplate removal.
+
+    Two rules keep the boilerplate patterns from eating the page, both
+    learned from the reviewer's own keeps (PL-011, 2026-09-08):
+
+    - A boilerplate match is removed only if it holds less than
+      WRAPPER_SHARE of the page's text. "sidebar" also matches the layout
+      class `no-sidebar` on a site's outer wrapper and "cookie" matches
+      `alert__has-cookie` on a `<body>`; a banner is never half the page,
+      so a match that big is a wrapper wearing a state class, not
+      boilerplate.
+    - The main-content pick is the candidate with the MOST text, and only
+      if it holds at least MAIN_SHARE of the page; the first `<article>`
+      on the Have Your Say portal is empty and EUR-Lex's first "content"
+      class is a one-character modal. Otherwise the whole body is used.
+    """
+
+    WRAPPER_SHARE = 0.5
+    MAIN_SHARE = 0.2
 
     def __init__(self, config_dir: str = "config"):
         cfg = self._load_config(config_dir)
@@ -74,23 +96,17 @@ class HtmlExtractor:
             for el in soup.find_all(tag_name):
                 el.decompose()
 
-        # Remove elements matching boilerplate patterns
+        # Remove elements matching boilerplate patterns - unless the match
+        # is the page itself (see the class docstring).
+        page_len = _text_len(soup.body or soup)
         to_remove = []
         for el in soup.find_all(True):
-            if not isinstance(el, Tag):
+            if not isinstance(el, Tag) or el.name in ("html", "body"):
                 continue
-            classes = el.get("class", [])
-            if isinstance(classes, str):
-                classes = [classes]
-            el_id = el.get("id", "")
-
-            for pattern in self._remove_patterns:
-                if any(pattern.search(cls) for cls in classes):
-                    to_remove.append(el)
-                    break
-                if el_id and pattern.search(el_id):
-                    to_remove.append(el)
-                    break
+            if self._matches_any(el, self._remove_patterns):
+                if page_len and _text_len(el) >= self.WRAPPER_SHARE * page_len:
+                    continue
+                to_remove.append(el)
 
         for el in to_remove:
             el.decompose()
@@ -130,29 +146,42 @@ class HtmlExtractor:
             word_count=len(text.split()),
         )
 
+    @staticmethod
+    def _matches_any(el: Tag, patterns) -> bool:
+        classes = el.get("class", [])
+        if isinstance(classes, str):
+            classes = [classes]
+        el_id = el.get("id", "")
+        return any(
+            any(p.search(cls) for cls in classes) or (el_id and p.search(el_id))
+            for p in patterns
+        )
+
     def _find_main_content(self, soup: BeautifulSoup) -> Tag:
-        """Find main content area using semantic HTML and heuristics."""
-        for selector in [
-            lambda: soup.find("main"),
-            lambda: soup.find("article"),
-            lambda: soup.find(role="main"),
-        ]:
-            result = selector()
-            if result:
-                return result
+        """The main content area: semantic HTML first, then class/id hints,
+        the body as the fallback. Among candidates the one with the most
+        text wins, and a winner must hold at least MAIN_SHARE of the page's
+        text - an empty `<article>` or a one-character "content" modal is
+        not the page."""
+        body = soup.body or soup
+        page_len = _text_len(body)
 
-        # Try content indicators in class/id
-        for pattern in self._content_patterns:
-            for el in soup.find_all(True):
-                if not isinstance(el, Tag):
-                    continue
-                classes = el.get("class", [])
-                if isinstance(classes, str):
-                    classes = [classes]
-                el_id = el.get("id", "")
-                if any(pattern.search(cls) for cls in classes):
-                    return el
-                if el_id and pattern.search(el_id):
-                    return el
+        def best(candidates):
+            candidates = [c for c in candidates if isinstance(c, Tag)]
+            if not candidates:
+                return None
+            top = max(candidates, key=_text_len)
+            return top if _text_len(top) >= self.MAIN_SHARE * page_len else None
 
-        return soup.body or soup
+        semantic = soup.find_all("main") + soup.find_all("article") + soup.find_all(role="main")
+        pick = best(semantic)
+        if pick is not None:
+            return pick
+
+        indicated = [
+            el for el in soup.find_all(True)
+            if isinstance(el, Tag) and el.name not in ("html", "body")
+            and self._matches_any(el, self._content_patterns)
+        ]
+        pick = best(indicated)
+        return pick if pick is not None else body
