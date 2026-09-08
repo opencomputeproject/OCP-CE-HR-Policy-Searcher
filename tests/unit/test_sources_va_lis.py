@@ -227,6 +227,7 @@ class TestRegistration:
 
 
 class TestAgainstTheLiveStore:
+    @pytest.mark.live   # skipped unless --live: see tests/conftest.py
     @pytest.mark.large
     @pytest.mark.asyncio
     async def test_every_lis_file_name_resolves(self):

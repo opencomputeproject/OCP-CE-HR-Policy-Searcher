@@ -9,6 +9,36 @@ import pytest
 from src.core.crawler import AsyncCrawler, _diagnose_response
 
 
+@pytest.fixture(autouse=True)
+def _no_real_browser(monkeypatch):
+    """No test in this file may launch Chromium.
+
+    crawl_domain's JS-shell fallback fires on any HTML page with under 200
+    visible characters - which is every fixture here - and until 2026-09-08
+    three tests launched a real headless browser and fetched example.gov
+    over the internet, 16 seconds of every run (PL-010). A blocked launcher
+    sends the crawler down its "Playwright unavailable" path; tests that
+    exercise the browser set `_pw_browser` to a mock or install their own
+    fake launcher and never reach this one.
+    """
+    import playwright.async_api as pa
+
+    def _blocked():
+        raise RuntimeError("test tried to launch a real browser (PL-010)")
+
+    monkeypatch.setattr(pa, "async_playwright", _blocked)
+
+
+class TestNoRealBrowser:
+    @pytest.mark.medium
+    @pytest.mark.asyncio
+    async def test_the_fallback_takes_the_not_installed_path(self):
+        """The guard for PL-010: a real launch is impossible in this file."""
+        crawler = AsyncCrawler()
+        with pytest.raises(RuntimeError, match="real browser"):
+            await crawler._ensure_playwright()
+
+
 # --- _diagnose_response ---
 
 class TestDiagnoseResponse:
@@ -134,6 +164,7 @@ class TestExtractLinks:
         assert crawler._url_priority("https://a.gov/statute.pdf") > \
             crawler._url_priority("https://a.gov/about-us")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_crawl_fetches_promising_links_first(self):
         """With a tight page budget, law-like URLs must win over press."""
@@ -167,6 +198,7 @@ class TestExtractLinks:
         assert len(fetched) == 2
         assert fetched[1].endswith("/laws/heat-act")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_sitemap_seeds_deep_urls(self):
         """sitemap.xml enumerates deep law URLs the BFS would never reach."""
@@ -389,14 +421,17 @@ class TestAsyncCrawlerFetch:
         result = await crawler._fetch_with_retry(mock_client, "https://example.gov/api")
         assert result.status.value == "rate_limited"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_fetch_timeout_retries(self):
         crawler = AsyncCrawler(delay_seconds=0, max_retries=2)
         mock_client = AsyncMock()
         mock_client.get = AsyncMock(side_effect=httpx.TimeoutException("timeout"))
-        result = await crawler._fetch_with_retry(mock_client, "https://example.gov/slow")
+        with patch("src.core.crawler.asyncio.sleep", new=AsyncMock()) as sleeper:
+            result = await crawler._fetch_with_retry(mock_client, "https://example.gov/slow")
         assert result.status.value == "timeout"
         assert mock_client.get.call_count == 2
+        sleeper.assert_awaited_once_with(2)  # 2 ** attempt, one wait before the retry
 
     @pytest.mark.asyncio
     async def test_fetch_500_returns_unknown_error(self):
@@ -600,6 +635,7 @@ class TestCrawlDomainPlaywright:
         assert results[0].status.value == "success"
         assert results[0].domain_id == "test_spa"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_crawl_domain_uses_httpx_by_default(self):
         crawler = AsyncCrawler(delay_seconds=0, max_depth=0, max_pages=1)

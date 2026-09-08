@@ -49,8 +49,16 @@ markers = [
     "small: hermetic - no network (enforced via pytest-socket), no real clock, no data/",
     "medium: may touch localhost and tmp_path",
     "large: slow; excluded from the pre-commit fast run, always runs at push",
+    "live: needs the public internet; collected but skipped unless pytest runs with --live (the live-probes workflow)",
     "e2e: end-to-end through a running stack",
 ]
+
+# The pre-push gate runs the whole suite under coverage. With the default C
+# tracer that took 5m27s on 2026-09-08; with the sys.monitoring core it took
+# 2m13s for byte-identical totals (11224 statements, 1348 missed, 88%). The
+# core needs Python 3.12+, which both the venv (3.13) and CI (3.12) run.
+[tool.coverage.run]
+core = "sysmon"
 
 [tool.ruff]
 target-version = "py311"
