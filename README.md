@@ -1,6 +1,6 @@
 # OCP CE HR Policy Searcher
 
-**Automated discovery of government data center heat reuse policies across 380+ domains in 40+ countries.**
+**Automated discovery of government data center heat reuse policies across 400 government domains in 36 countries and the EU** (counted 2026-09-08 from `config/domains/`).
 
 OCP CE HR Policy Searcher crawls government websites and legislation databases (HTML and PDF), extracts policy content, scores it with multi-language keyword matching, and uses Claude AI for structured policy analysis. Talk to it in natural language through the CLI agent or the web interface, and it handles everything — discovering websites, scanning pages, and delivering organized results.
 
@@ -89,7 +89,7 @@ A stat strip above the map keeps the big picture honest at a glance: total track
 - [Using the App (Visitors)](#using-the-app-visitors)
 - [World Map](#world-map)
 - [Key Features](#key-features)
-- [Geographic Coverage](#geographic-coverage) — 40+ countries, coverage depth
+- [Geographic Coverage](#geographic-coverage) — countries and coverage depth
 - [What This Tool Produces](#what-this-tool-produces) — the two surfaces, and who sees unreviewed records
 - [Documentation](#documentation) — how it works, decisions, lessons, changelog
 - [Architecture](#architecture)
@@ -122,7 +122,7 @@ A stat strip above the map keeps the big picture honest at a glance: total track
 - **Natural language AI agent** — ask questions in plain English, the agent handles scanning, discovery, and analysis
 - **Web interface** — React front end with chat, region-based scanning, a filterable policy list, and API key management (`npm run dev`)
 - **Web search + auto-discovery** — finds new government websites via web search and permanently adds them to the database
-- **380+ government domains** across 40+ countries, including searchable legislation databases (EUR-Lex, Legifrance, wetten.overheid.nl, RIS, Finlex, Riigi Teataja, e-Gov Japan, law.go.kr, and US state legislatures)
+- **402 government domains** across 36 countries and the EU (2026-09-08), including searchable legislation databases (EUR-Lex, Legifrance, wetten.overheid.nl, RIS, Finlex, Riigi Teataja, e-Gov Japan, law.go.kr, and US state legislatures)
 - **PDF ingestion** — statutes published as PDFs are fetched and text-extracted, not skipped
 - **Recall-first screening** — policies that merely AFFECT heat reuse (district heating mandates, building codes, EED transpositions, permitting rules) are kept, not only pages that name data centers; low-confidence rejections escalate to the stronger model
 - **Structured sources (early signals)** — query legislation APIs directly instead of crawling: Sweden, UK, Canada, Denmark work with no keys; LegiScan (50 US states), GovInfo, regulations.gov, and Germany's DIP activate when their free API keys are set. The EU transposition tracker diffs each directive's national implementing measures and surfaces newly notified national laws
@@ -151,7 +151,7 @@ A stat strip above the map keeps the big picture honest at a glance: total track
 
 ## Geographic Coverage
 
-381 government domains across 40+ countries, organized by depth of coverage:
+402 government domains across 36 countries and the EU (counted 2026-09-08 from `config/domains/`), organized by depth of coverage:
 
 | Coverage | Countries / Regions | Domains |
 |----------|-------------------|---------|
@@ -1153,7 +1153,7 @@ analysis:
   min_keyword_score: 2.0    # was 3.0
 ```
 
-**Cost estimate:** A full scan of all 360+ domains at default settings costs ~$3.50. With `--deep`, expect ~$10-15. Use `estimate_cost` before scanning to check.
+**Cost:** the last full scan at default settings (1 September 2026, 402 domains) cost $9.05; see [Cost Estimation](#cost-estimation) and `docs/HOW_IT_WORKS.md`. `--deep` costs more. Every scan carries a $25 budget by default; run `estimate_cost` before scanning.
 
 ### Domain Configuration (config/domains/*.yaml)
 
@@ -1390,9 +1390,9 @@ OCP-CE-HR-Policy-Searcher/
 ├── setup.sh                    # One-command setup (Linux/macOS)
 ├── setup.ps1                   # One-command setup (Windows PowerShell)
 ├── config/
-│   ├── domains/                # 80+ YAML files defining 360+ domains
+│   ├── domains/                # 84 YAML files defining 402 domains (2026-09-08)
 │   │   ├── eu.yaml
-│   │   ├── us_states/          # 51 US state domain files
+│   │   ├── us/                 # one file per US state (51 files)
 │   │   └── ...
 │   ├── groups.yaml             # Domain group definitions
 │   ├── keywords.yaml           # 7 categories x 20 languages
@@ -1434,10 +1434,10 @@ OCP-CE-HR-Policy-Searcher/
 │   ├── output/                  # Export integrations
 │   │   └── sheets.py            # Google Sheets export
 │   ├── mcp/
-│   │   └── server.py           # MCP server (11 tools, advanced)
+│   │   └── server.py           # MCP server (one `Tool(` per tool; 12 on 2026-09-08)
 │   └── storage/
 │       └── store.py            # JSON persistence
-├── tests/                      # 1085+ tests (+ 3 skipped)
+├── tests/                      # the suite; never fewer than gates/min_test_count.txt
 │   ├── unit/
 │   │   ├── test_agent.py       # Agent tool + dispatch + rate limit tests
 │   │   ├── test_api.py         # FastAPI endpoint tests
@@ -1445,7 +1445,7 @@ OCP-CE-HR-Policy-Searcher/
 │   │   ├── test_crawler.py     # Web crawler tests
 │   │   ├── test_domain_generator.py  # Domain ID/region tests
 │   │   ├── test_extractor.py   # HTML extraction tests
-│   │   ├── test_keywords.py    # Keyword matcher tests (53 tests, 20 languages)
+│   │   ├── test_keywords.py    # Keyword matcher tests (20 languages)
 │   │   ├── test_llm.py         # Claude client tests
 │   │   ├── test_logging.py     # Logging, audit, redaction, API endpoints, CLI viewer
 │   │   ├── test_scanner.py     # Domain scanner tests
@@ -1486,12 +1486,12 @@ ruff format src/
 ### Testing
 
 ```bash
-pytest                    # Run all 1085+ backend tests (plus 3 skipped)
+pytest                    # Run the whole backend suite (its floor: gates/min_test_count.txt)
 pytest tests/unit/        # Unit tests only
 pytest tests/integration/ # Integration tests only
 pytest --cov=src          # With coverage report
 
-cd frontend && CI=true npx react-scripts test --watchAll=false  # 153 frontend tests across 18 suites
+cd frontend && CI=true npx react-scripts test --watchAll=false  # frontend suite (547 tests in 42 suites on 2026-09-08)
 ```
 
 ### Adding a New Domain
@@ -1538,15 +1538,14 @@ keywords:
 
 ## Cost Estimation
 
-Approximate costs per full scan (all 361 domains):
-
-| Stage | Model | Est. Calls | Est. Cost |
-|-------|-------|-----------|-----------|
-| Keyword filtering | — | ~27,500 pages | $0.00 |
-| Haiku screening | claude-haiku | ~2,750 | ~$0.50 |
-| Sonnet analysis | claude-sonnet | ~1,375 | ~$3.00 |
-| Post-scan auditor | claude-sonnet | 1 | ~$0.05 |
-| **Total** | | | **~$3.55** |
+Measured, not estimated. The first real monthly scan (1 September 2026,
+402 domains) fetched 35,402 pages and cost $9.05 over 9 hours 43 minutes;
+`docs/HOW_IT_WORKS.md` breaks that down stage by stage, funnel counts
+included. Every scan now carries a $25 budget by default (a second click
+removes it), and the estimator's defaults are calibrated to that scan so
+`estimate_cost` lands in the right decade. Earlier versions of this
+section quoted about $3.50 for a full scan; that figure was the estimator's,
+not a measurement, and it was 2.5x low.
 
 Use the cost estimate endpoint before scanning: `POST /api/cost-estimate?domains=all`
 

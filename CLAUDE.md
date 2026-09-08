@@ -13,8 +13,8 @@ Built for the Open Compute Project (OCP) Heat Reuse subproject.
 ## Commands
 - `python -m src.agent` — run CLI agent (interactive mode)
 - `python -m src.agent "message"` — single command mode
-- `pytest` — run all tests (1085+, plus 3 skipped; must all pass before commits)
-- `cd frontend && CI=true npx react-scripts test --watchAll=false` — run frontend tests (153, across 18 suites)
+- `pytest` — run the whole backend suite (never fewer tests than the floor in `gates/min_test_count.txt`; must all pass before commits)
+- `cd frontend && CI=true npx react-scripts test --watchAll=false` — run the frontend suite (547 tests in 42 suites on 2026-09-08)
 - `cd frontend && npm run e2e` — real-pointer Playwright smoke (needs the dev stack running and `npx playwright install chromium` once). **If your `.env` sets `ADMIN_TOKEN`, pass the same value as `E2E_ADMIN_TOKEN`** or the 13 admin-gated specs fail on the sign-in dialog rather than on anything real: `E2E_ADMIN_TOKEN=$(grep ^ADMIN_TOKEN= ../.env | cut -d= -f2-) npm run e2e`. One spec, `map.spec.js`'s admin toggle, assumes the opposite — a backend with no `ADMIN_TOKEN`, where clicking Admin reveals the panels directly — so it fails either way on an authed stack. Measured 2026-08-28: 26 of 27 pass with the token, 14 of 27 without.
 - `ruff check src/ tests/` — lint (must pass before commits)
 - `python -m src.api --port 8000` — run FastAPI server (loads `.env`, then uvicorn; extra args pass through to uvicorn). Importing `src.api.app` never reads `.env` - PL-009.
@@ -29,7 +29,7 @@ src/
 ├── orchestration/ # Parallel scan_manager, events, auditor
 ├── api/          # FastAPI REST API + WebSocket (routes/ subpackage)
 ├── output/       # Google Sheets export (gspread + tenacity retry), Staging sheet import
-├── mcp/          # MCP server (11 tools)
+├── mcp/          # MCP server (12 tools on 2026-09-08; one `Tool(` each in server.py)
 └── storage/      # JSON persistence (PolicyStore with atomic writes)
 ```
 Config: `config/` — YAML files for domains, keywords, groups, settings, jurisdictions.
