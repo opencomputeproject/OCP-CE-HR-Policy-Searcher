@@ -1,7 +1,180 @@
-An official website of the European Union
-An official EU website
-How do you know?
-All official European Union website addresses are in the
-europa.eu
-domain.
-See all EU institutions and bodies
+Document 32023L1791
+Help
+Print
+​
+Directive (EU) 2023/1791 of the European Parliament and of the Council of 13 September 2023 on energy efficiency and amending Regulation (EU) 2023/955 (recast) (Text with EEA relevance)
+Directive (EU) 2023/1791 of the European Parliament and of the Council of 13 September 2023 on energy efficiency and amending Regulation (EU) 2023/955 (recast) (Text with EEA relevance)
+Directive (EU) 2023/1791 of the European Parliament and of the Council of 13 September 2023 on energy efficiency and amending Regulation (EU) 2023/955 (recast) (Text with EEA relevance)
+PE/15/2023/INIT
+OJ L 231, 20.9.2023, pp. 1–111
+(BG, ES, CS, DA, DE, ET, EL, EN, FR, GA, HR, IT, LV, LT, HU, MT, NL, PL, PT, RO, SK, SL, FI, SV)
+In force: This act has been changed.
+Current consolidated version:
+05/08/2026
+ELI:
+http://data.europa.eu/eli/dir/2023/1791/oj
+Expand all
+Collapse all
+Languages, formats and link to OJ
+BG
+ES
+CS
+DA
+DE
+ET
+EL
+EN
+FR
+GA
+HR
+IT
+LV
+LT
+HU
+MT
+NL
+PL
+PT
+RO
+SK
+SL
+FI
+SV
+HTML
+EN
+BG
+ES
+CS
+DA
+DE
+ET
+EL
+EN
+FR
+GA
+HR
+IT
+LV
+LT
+HU
+MT
+NL
+PL
+PT
+RO
+SK
+SL
+FI
+SV
+PDF
+EN
+BG
+ES
+CS
+DA
+DE
+ET
+EL
+EN
+FR
+GA
+HR
+IT
+LV
+LT
+HU
+MT
+NL
+PL
+PT
+RO
+SK
+SL
+FI
+SV
+Official Journal
+EN
+BG
+ES
+CS
+DA
+DE
+ET
+EL
+EN
+FR
+GA
+HR
+IT
+LV
+LT
+HU
+MT
+NL
+PL
+PT
+RO
+SK
+SL
+FI
+SV
+Multilingual display
+Text
+20.9.2023
+EN
+Official Journal of the European Union
+L 231/1
+DIRECTIVE (EU) 2023/1791 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL
+of 13 September 2023
+on energy efficiency and amending Regulation (EU) 2023/955 (recast)
+(Text with EEA relevance)
+THE EUROPEAN PARLIAMENT AND THE COUNCIL OF THE EUROPEAN UNION,
+Having regard to the Treaty on the Functioning of the European Union, and in particular Article 194(2) thereof,
+Having regard to the proposal from the European Commission,
+After transmission of the draft legislative act to the national Parliaments,
+Having regard to the opinion of the European Economic and Social Committee
+(
+1
+)
+,
+Having regard to the opinion of the Committee of the Regions
+(
+2
+)
+,
+Acting in accordance with the ordinary legislative procedure
+(
+3
+)
+,
+Whereas:
+(1)
+Directive 2012/27/EU of the European Parliament and of the Council
+(
+4
+)
+has been substantially amended several times
+(
+5
+)
+. Since further amendments are to be made, that Directive should be recast in the interests of clarity.
+(2)
+In its communication of 17 September 2020 on ‘Stepping up Europe’s 2030 climate ambition – Investing in a climate-neutral future for the benefit of our people’ (the ‘Climate Target Plan’), the Commission proposed to raise the Union’s climate ambition by increasing the greenhouse gas (GHG) emissions target to at least 55 % below 1990 levels by 2030. That is a substantial increase compared to the existing 40 % reduction target. The proposal delivered on the commitment made in the communication of the Commission of 11 December 2019 on ‘The European Green Deal’ (the ‘European Green Deal’) to put forward a comprehensive plan to increase the Union’s target for 2030 towards 55 % in a responsible way. It is also in accordance with the objectives of the Paris Agreement adopted on 12 December 2015 under the United Nations Framework Convention on Climate Change (the ‘Paris Agreement’) to keep the global temperature increase to well below 2 °C and pursue efforts to keep it to 1,5 °C.
+(3)
+The conclusions of the European Council of 10-11 December 2020 endorsed the Union’s binding domestic reduction target for net GHG emissions of at least 55 % by 2030 compared to 1990. The European Council concluded that the climate ambition needed to be raised in a manner that would spur sustainable economic growth, create jobs, deliver health and environmental benefits for Union citizens, and contribute to the long-term global competitiveness of the Union’s economy by promoting innovation in green technologies.
+(4)
+To implement those objectives, the Commission, in its communication of 19 October 2020 on ‘Commission Work Programme 2021 – A Union of vitality in a world of fragility’, announced a legislative package to reduce GHG emissions by at least 55 % by 2030 (the ‘Fit for 55 package’), and to achieve a climate-neutral European Union by 2050. That package covers a range of policy areas including energy efficiency, renewable energy, land use, land change and forestry, energy taxation, effort sharing and emissions trading.
+(5)
+The purpose of the Fit for 55 package is to safeguard and create jobs in the Union and to enable the Union to become a world leader in the development and uptake of clean technologies in the global energy transition, including energy efficiency solutions.
+(6)
+Projections indicate that, with the full implementation of current policies, GHG emission reductions by 2030 would be around 45 % compared to 1990 levels, when excluding land use emissions and absorptions, and around 47 %, when including them. The Climate Target Plan therefore provides for a set of required actions across all sectors of the economy and revisions of the key legislative instruments to reach that increased climate ambition.
+(7)
+In its communication of 28 November 2018 on ‘A Clean Planet for all – A European strategic long-term vision for a prosperous, modern, competitive and climate neutral economy’, the Commission stated that energy efficiency is a key area of action, without which the full decarbonisation of the Union’s economy cannot be achieved. The need to capture the cost-effective energy saving opportunities has led to the Union’s current energy efficiency policy. In December 2018, a new 2030 Union headline energy efficiency target of at least 32,5 %, compared to projected energy use in 2030, was included as part of the Clean Energy for All Europeans package, which aimed at putting energy efficiency first, achieving global leadership in renewable energies and providing a fair deal for consumers.
+(8)
+The impact assessment accompanying the Climate Target Plan demonstrated that, to achieve the increased climate ambition, energy efficiency improvements will need to be significantly raised from the current level of 32,5 %.
+(9)
+An increase in the Union’s 2030 energy efficiency target can reduce energy prices and be crucial in reducing GHG emissions, accompanied by an increase and uptake of electrification, hydrogen, e-fuels and other relevant technologies necessary for the green transition, including in the transport sector. Even with the rapid growth of renewable electricity generation, energy efficiency can reduce the need of new power generation capacity and the costs relating to storage, transmission and distribution. Increased energy efficiency is also particularly important for the security of the energy supply of the Union, by lowering the Union’s dependence on the import of fuels from third countries. Energy efficiency is one of the cleanest and most cost-efficient measures by which to address that dependence.
+(10)
+The sum of national contributions communicated by Member States in their national energy and climate plans falls short of the Union’s target of 32,5 %. The contributions would collectively lead to a reduction of 29,7 % for primary energy consumption and 29,4 % for final energy consumption compared to the projections from the Commission’s 2007 EU Reference Scenario for 2030. That would translate in a collective gap of 2,8 percentage points for primary energy consumption and 3,1 percentage points for final energy consumption for the EU-27.
+(11)
+A number of Member States presented ambitious national energy and climate plans, which were assessed by the Commission as ‘sufficient’, and which contained measures that allow those Member States to contribute to reaching the collective targets for energy efficiency with a ratio larger than the Union average. In addition, a number of Member States have documented ‘early efforts’ in achieving energy savings, namely energy savings above the Union average trajectories in the last years. Both cases are significant efforts that should be recognised and should be included in the Union’s

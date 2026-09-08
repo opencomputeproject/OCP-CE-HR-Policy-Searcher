@@ -8,7 +8,7 @@
   "reason_text": "",
   "chars": 6738,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -20,7 +20,7 @@
   "reason_text": "implementation of EU's Energy Efficiency Directive",
   "chars": 3600,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -32,7 +32,7 @@
   "reason_text": "implementation of EU's Energy Efficiency Directive",
   "chars": 8000,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -44,7 +44,7 @@
   "reason_text": "implementation of EU's Energy Efficiency Directive",
   "chars": 2865,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -56,7 +56,7 @@
   "reason_text": "",
   "chars": 3223,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -68,7 +68,7 @@
   "reason_text": "does not reference heat reuse",
   "chars": 3112,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -80,7 +80,7 @@
   "reason_text": "not a policy but a report",
   "chars": 8000,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -92,7 +92,7 @@
   "reason_text": "not a policy but blog post on the EU's Energy Efficiency Directive",
   "chars": 3468,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -104,7 +104,7 @@
   "reason_text": "implementation of EU's Energy Efficiency Directive",
   "chars": 3543,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -116,7 +116,7 @@
   "reason_text": "implementation of EU's Energy Efficiency Directive",
   "chars": 4247,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -128,9 +128,8 @@
   "reason_text": "not a real website",
   "chars": 0,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": false
  },
  {
   "slug": "r013-njleg-state-nj-us",
@@ -141,7 +140,7 @@
   "reason_text": "TENs policy",
   "chars": 415,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -153,7 +152,7 @@
   "reason_text": "TENs policy",
   "chars": 1374,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -165,7 +164,7 @@
   "reason_text": "TENs policy",
   "chars": 2456,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -177,7 +176,7 @@
   "reason_text": "",
   "chars": 433,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -189,7 +188,7 @@
   "reason_text": "reporting requirements for waste heat amounts",
   "chars": 441,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -199,9 +198,9 @@
   "verdict": "remove",
   "reason": "no_data_centre",
   "reason_text": "TENs policy",
-  "chars": 3804,
+  "chars": 3800,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -211,9 +210,9 @@
   "verdict": "remove",
   "reason": "no_heat_reuse",
   "reason_text": "no reference to heat reuse",
-  "chars": 3104,
+  "chars": 3100,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -223,9 +222,9 @@
   "verdict": "remove",
   "reason": "no_heat_reuse",
   "reason_text": "no reference to heat reuse",
-  "chars": 1224,
+  "chars": 1220,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -237,7 +236,7 @@
   "reason_text": "refering to waste heat to electricity generation",
   "chars": 737,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -249,7 +248,7 @@
   "reason_text": "",
   "chars": 1257,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -261,7 +260,7 @@
   "reason_text": "no reference to data centers",
   "chars": 1051,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -273,7 +272,7 @@
   "reason_text": "",
   "chars": 1001,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -285,7 +284,7 @@
   "reason_text": "repeat from above",
   "chars": 1136,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -297,7 +296,7 @@
   "reason_text": "no reference to heat reuse",
   "chars": 8000,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -309,7 +308,7 @@
   "reason_text": "not a policy",
   "chars": 2095,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -321,7 +320,7 @@
   "reason_text": "not specific to data centers",
   "chars": 416,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -333,7 +332,7 @@
   "reason_text": "no reference to heat reuse",
   "chars": 1694,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -345,7 +344,7 @@
   "reason_text": "no reference to data centers",
   "chars": 1115,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -357,7 +356,7 @@
   "reason_text": "no reference to heat from data centers or even commercial buildings",
   "chars": 942,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -369,7 +368,7 @@
   "reason_text": "",
   "chars": 3777,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -381,7 +380,7 @@
   "reason_text": "",
   "chars": 2099,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -391,11 +390,10 @@
   "verdict": "remove",
   "reason": "no_data_centre",
   "reason_text": "does not reference data centers directly; pre-dates EU Energy Efficiency Directive",
-  "chars": 191,
-  "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "script shell or redirect stub, under 300 characters"
+  "chars": 1093,
+  "fetch": "httpx",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r080-gov-uk",
@@ -406,7 +404,7 @@
   "reason_text": "references waste heat from data centers",
   "chars": 2546,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -416,11 +414,10 @@
   "verdict": "remove",
   "reason": "no_heat_reuse",
   "reason_text": "no reference to heat reuse",
-  "chars": 0,
-  "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "chars": 2992,
+  "fetch": "playwright",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r083-ec-europa-eu",
@@ -429,11 +426,10 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "",
-  "chars": 0,
-  "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "chars": 656,
+  "fetch": "playwright",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r084-ec-europa-eu",
@@ -442,11 +438,10 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "",
-  "chars": 0,
-  "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "chars": 588,
+  "fetch": "playwright",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r085-ec-europa-eu",
@@ -455,11 +450,10 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "references waste heat recovery at data centers",
-  "chars": 0,
-  "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "chars": 3008,
+  "fetch": "playwright",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r086-ec-europa-eu",
@@ -468,11 +462,10 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "references waste heat recovery at data centers",
-  "chars": 0,
-  "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "chars": 1969,
+  "fetch": "playwright",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r097-legislature-mi-gov",
@@ -483,7 +476,7 @@
   "reason_text": "no reference to heat reuse",
   "chars": 1122,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -495,7 +488,7 @@
   "reason_text": "no reference to heat reuse",
   "chars": 968,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -507,7 +500,7 @@
   "reason_text": "no reference to data centers",
   "chars": 1859,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -519,7 +512,7 @@
   "reason_text": "",
   "chars": 738,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -531,7 +524,7 @@
   "reason_text": "",
   "chars": 1686,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -543,7 +536,7 @@
   "reason_text": "does not reference data centers",
   "chars": 8000,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -555,7 +548,7 @@
   "reason_text": "does not reference data centers",
   "chars": 8000,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -567,7 +560,7 @@
   "reason_text": "does not reference data centers, but references infrastructure for waste heat recovery and utilization",
   "chars": 8000,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -579,7 +572,7 @@
   "reason_text": "",
   "chars": 8000,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -591,7 +584,7 @@
   "reason_text": "establishes regulatory framework for heat reuse",
   "chars": 8000,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -603,7 +596,7 @@
   "reason_text": "",
   "chars": 8000,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -613,9 +606,9 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "",
-  "chars": 436,
+  "chars": 8000,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -627,7 +620,7 @@
   "reason_text": "",
   "chars": 1887,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -639,9 +632,8 @@
   "reason_text": "",
   "chars": 0,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": false
  },
  {
   "slug": "r123-eur-lex-europa-eu",
@@ -650,11 +642,10 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "",
-  "chars": 191,
-  "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "script shell or redirect stub, under 300 characters"
+  "chars": 8000,
+  "fetch": "httpx",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r124-climateneutraldatacentre-net",
@@ -663,11 +654,10 @@
   "verdict": "remove",
   "reason": "private_initiative",
   "reason_text": "private sector initiative",
-  "chars": 0,
+  "chars": 5488,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r125-app-leg-wa-gov",
@@ -678,7 +668,7 @@
   "reason_text": "",
   "chars": 2115,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -690,7 +680,7 @@
   "reason_text": "",
   "chars": 5389,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -700,11 +690,10 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "",
-  "chars": 49,
+  "chars": 1958,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "script shell or redirect stub, under 300 characters"
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r128-lis-virginia-gov",
@@ -715,7 +704,7 @@
   "reason_text": "",
   "chars": 2508,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -727,7 +716,7 @@
   "reason_text": "no reference to data centers",
   "chars": 8000,
   "fetch": "httpx-pdf",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -739,7 +728,7 @@
   "reason_text": "",
   "chars": 7421,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -749,11 +738,10 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "",
-  "chars": 0,
+  "chars": 8000,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r132-epw-senate-gov",
@@ -764,7 +752,7 @@
   "reason_text": "link is an error page",
   "chars": 351,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -774,11 +762,10 @@
   "verdict": "remove",
   "reason": "not_a_policy_article",
   "reason_text": "news article, no reference to policy",
-  "chars": 109,
+  "chars": 510,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "script shell or redirect stub, under 300 characters"
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r134-news-google-com",
@@ -787,9 +774,9 @@
   "verdict": "remove",
   "reason": "not_a_policy_article",
   "reason_text": "project news article",
-  "chars": 5572,
+  "chars": 5651,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -799,11 +786,10 @@
   "verdict": "keep",
   "reason": "",
   "reason_text": "",
-  "chars": 92,
+  "chars": 8000,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "script shell or redirect stub, under 300 characters"
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r137-news-google-com",
@@ -812,11 +798,10 @@
   "verdict": "remove",
   "reason": "unexplained",
   "reason_text": "",
-  "chars": 0,
-  "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "chars": 4661,
+  "fetch": "playwright",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": true
  },
  {
   "slug": "r138-news-google-com",
@@ -825,9 +810,9 @@
   "verdict": "remove",
   "reason": "unexplained",
   "reason_text": "",
-  "chars": 4551,
+  "chars": 4606,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -837,9 +822,9 @@
   "verdict": "remove",
   "reason": "not_a_policy_article",
   "reason_text": "project article",
-  "chars": 5258,
+  "chars": 5175,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -851,7 +836,7 @@
   "reason_text": "project news article",
   "chars": 8000,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -861,9 +846,9 @@
   "verdict": "remove",
   "reason": "not_a_policy_article",
   "reason_text": "news article about a policy already included",
-  "chars": 6120,
+  "chars": 6198,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -875,9 +860,8 @@
   "reason_text": "news article about a policy already included",
   "chars": 0,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
-  "usable": false,
-  "why_unusable": "no text fetched"
+  "fetched_at": "2026-09-08T23:23:38+00:00",
+  "usable": false
  },
  {
   "slug": "r143-news-google-com",
@@ -888,7 +872,7 @@
   "reason_text": "news article about a policy already included",
   "chars": 859,
   "fetch": "playwright",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  },
  {
@@ -900,7 +884,7 @@
   "reason_text": "no reference to heat reuse",
   "chars": 4390,
   "fetch": "httpx",
-  "fetched_at": "2026-09-03T04:36:07+00:00",
+  "fetched_at": "2026-09-08T23:23:38+00:00",
   "usable": true
  }
 ]

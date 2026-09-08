@@ -241,3 +241,22 @@ class TestFixtureAbsenceFailsLoudly:
         index, responses = _load_fixtures()
         assert index == []
         assert responses == {}
+
+
+@pytest.mark.small
+def test_usable_means_the_scan_itself_would_not_skip_the_page():
+    """The replay's `usable` flag and the scan's short-content rule are one
+    rule (scanner.MIN_CONTENT_WORDS), applied to the recorded window. Until
+    2026-09-08 the flag was hand-added to index.json and the recorder never
+    wrote it, so a fresh recording silently emptied the replay set."""
+    from src.core.scanner import MIN_CONTENT_WORDS
+
+    index, _ = _load_fixtures()
+    for row in index:
+        window = FIXTURES_DIR / f"{row['slug']}.txt"
+        words = len(window.read_text(encoding="utf-8").split()) if window.exists() else 0
+        assert row["usable"] == (words >= MIN_CONTENT_WORDS), (
+            f"{row['slug']}: usable={row['usable']} but the window has {words} words "
+            f"against the scan's {MIN_CONTENT_WORDS}-word rule"
+        )
+

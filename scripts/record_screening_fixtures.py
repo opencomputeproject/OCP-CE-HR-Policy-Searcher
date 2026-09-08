@@ -35,6 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.core.crawler import AsyncCrawler  # noqa: E402
 from src.core.extractor import HtmlExtractor  # noqa: E402
+from src.core.scanner import MIN_CONTENT_WORDS  # noqa: E402
 from src.core.llm import screening_excerpt  # noqa: E402
 from src.eval.sheet_labels import parse_verdict  # noqa: E402
 
@@ -85,6 +86,9 @@ async def _fetch_text(crawler: AsyncCrawler, client: httpx.AsyncClient, url: str
 
 
 async def main() -> int:
+    # Windows consoles default to cp1252; a Swedish or Japanese answer in the
+    # progress line killed the run mid-way on 2026-09-08 (nothing was saved).
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     rows = list(csv.DictReader(CSV_PATH.open(encoding="utf-8")))
     crawler = AsyncCrawler(delay_seconds=1.0, timeout_seconds=30)
@@ -111,6 +115,9 @@ async def main() -> int:
             window = screening_excerpt(text, None) if text else ""
             entry["fetch"] = how
             entry["chars"] = len(window)
+            # The same fifty-word rule the scan applies (scanner.MIN_CONTENT_WORDS):
+            # a row the pipeline would skip is not evidence for the replay either.
+            entry["usable"] = len(window.split()) >= MIN_CONTENT_WORDS
             if window:
                 (OUT_DIR / f"{slug}.txt").write_text(window, encoding="utf-8", newline="\n")
             index.append(entry)
