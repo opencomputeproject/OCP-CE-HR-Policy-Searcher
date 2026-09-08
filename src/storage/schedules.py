@@ -26,6 +26,7 @@ import re
 import sqlite3
 import uuid
 from datetime import datetime, timedelta
+from ..core.clock import utcnow
 from pathlib import Path
 from typing import Optional
 
@@ -149,7 +150,7 @@ class SchedulesStore:
         monthly_ceiling_usd: Optional[float] = None,
     ) -> dict:
         """Insert a new schedule. Raises InvalidCadenceError for a bad cadence."""
-        now = datetime.utcnow()
+        now = utcnow()
         next_run_at = compute_next_run(cadence, now)
         schedule_id = uuid.uuid4().hex
 
@@ -197,7 +198,7 @@ class SchedulesStore:
         params: list = []
 
         if "cadence" in fields:
-            next_run_at = compute_next_run(fields["cadence"], datetime.utcnow())
+            next_run_at = compute_next_run(fields["cadence"], utcnow())
             set_clauses.append("next_run_at = ?")
             params.append(next_run_at.isoformat())
 

@@ -9,7 +9,7 @@ import asyncio
 import logging
 import sqlite3
 import uuid
-from datetime import datetime
+from ..core.clock import utcnow
 from pathlib import Path
 from typing import Optional
 
@@ -151,7 +151,7 @@ class ScanManager:
         job = ScanJob(
             scan_id=scan_id,
             status=ScanStatus.RUNNING,
-            started_at=datetime.utcnow(),
+            started_at=utcnow(),
             domain_group=domains_group,
             domain_count=len(domains),
             progress=ScanProgress(
@@ -179,7 +179,7 @@ class ScanManager:
 
         if dry_run:
             job.status = ScanStatus.COMPLETED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = utcnow()
             return job
 
         # Launch background task
@@ -777,7 +777,7 @@ class ScanManager:
                     logger.warning(f"Rejected-status sheet reconciliation failed: {e}")
 
             job.status = ScanStatus.COMPLETED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = utcnow()
 
             log_audit_event(
                 data_dir=self.data_dir,
@@ -820,7 +820,7 @@ class ScanManager:
 
         except asyncio.CancelledError:
             job.status = ScanStatus.CANCELLED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = utcnow()
             _persist_domain_funnel()
             history.record_completion(
                 scan_id=scan_id,
@@ -835,7 +835,7 @@ class ScanManager:
         except Exception as e:
             logger.error(f"Scan {scan_id} failed: {e}")
             job.status = ScanStatus.FAILED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = utcnow()
             _persist_domain_funnel()
             history.record_completion(
                 scan_id=scan_id,
@@ -871,7 +871,7 @@ class ScanManager:
             job = self._jobs.get(scan_id)
             if job:
                 job.status = ScanStatus.CANCELLED
-                job.completed_at = datetime.utcnow()
+                job.completed_at = utcnow()
             return True
         return False
 

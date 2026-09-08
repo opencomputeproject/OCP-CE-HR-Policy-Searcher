@@ -14,6 +14,7 @@ accidentally break.
 import logging
 import sqlite3
 from datetime import datetime, time, timedelta
+from ..core.clock import utcnow
 from typing import Optional
 
 from ..storage.notifications import (
@@ -215,7 +216,7 @@ def run_digest_tick(
     tick that did anything, without one frequency's write clobbering the
     other's when both are due at once (Monday 06:30 UTC).
     """
-    now = now or datetime.utcnow()
+    now = now or utcnow()
     fired: dict[str, dict] = {}
 
     for frequency, due in _DUE_CHECKS.items():

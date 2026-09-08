@@ -18,6 +18,7 @@ key on.
 
 import os
 from datetime import datetime, timezone
+from ...core.clock import utcnow
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -208,6 +209,6 @@ async def run_schedule_now(
         raise HTTPException(status_code=404, detail=f"Schedule '{schedule_id}' not found")
 
     data_dir = os.environ.get("OCP_DATA_DIR", "data")
-    await fire_schedule(manager, store, schedule, data_dir, datetime.utcnow())
+    await fire_schedule(manager, store, schedule, data_dir, utcnow())
 
     return _with_cost(store.get(schedule_id), manager, history)

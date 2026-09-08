@@ -59,8 +59,11 @@ Proofmark's installer; the three sections marked TODO need a human once.
   were `large` because they slept for real; since 2026-09-08 they are
   `medium` and finish in under a second.
 - Wall time to expect, measured 2026-09-08 on the maintainer's machine:
-  `pytest tests -q` about 3 minutes; the pre-push gate's run under coverage
-  about 2m15s with the `sysmon` coverage core set in `pyproject.toml` (it was
+  `pytest tests -q` about 2 minutes (config files load through libyaml's C
+  parser - `_YAML_LOADER` in `src/core/config.py` - which took every
+  ConfigLoader setup from ~1s to ~0.1s); the pre-push gate's run under
+  coverage about 2 minutes with the `sysmon` coverage core set in
+  `pyproject.toml` (it was
   9m56s before that day: 113s of real sleeps, 16s of real browser launches,
   and a coverage tracer that doubled everything). If a push waits five
   minutes again, measure first: `pytest tests -q -p no:cacheprovider
