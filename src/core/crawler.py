@@ -15,7 +15,7 @@ import heapq
 import logging
 import re
 import warnings
-from datetime import datetime
+from .clock import utcnow
 from typing import Optional, Callable, Awaitable
 from urllib.parse import urljoin, urlparse
 
@@ -149,7 +149,7 @@ class AsyncCrawler:
     async def _fetch_playwright(self, url: str) -> CrawlResult:
         """Fetch a URL using Playwright headless Chromium (for JavaScript SPAs)."""
         await self._rate_limit()
-        start = datetime.utcnow()
+        start = utcnow()
         browser = await self._ensure_playwright()
 
         page = None
@@ -166,7 +166,7 @@ class AsyncCrawler:
                     url=url,
                     status=PageStatus.UNKNOWN_ERROR,
                     error_message="Playwright: no response from page",
-                    response_time_ms=int((datetime.utcnow() - start).total_seconds() * 1000),
+                    response_time_ms=int((utcnow() - start).total_seconds() * 1000),
                 )
 
             status_code = response.status
@@ -179,19 +179,19 @@ class AsyncCrawler:
                 return CrawlResult(
                     url=url,
                     status=status_map[status_code],
-                    response_time_ms=int((datetime.utcnow() - start).total_seconds() * 1000),
+                    response_time_ms=int((utcnow() - start).total_seconds() * 1000),
                     error_message=f"HTTP {status_code} (Playwright)",
                 )
             elif status_code >= 400:
                 return CrawlResult(
                     url=url,
                     status=PageStatus.UNKNOWN_ERROR,
-                    response_time_ms=int((datetime.utcnow() - start).total_seconds() * 1000),
+                    response_time_ms=int((utcnow() - start).total_seconds() * 1000),
                     error_message=f"HTTP {status_code} (Playwright)",
                 )
 
             content = await page.content()
-            elapsed = int((datetime.utcnow() - start).total_seconds() * 1000)
+            elapsed = int((utcnow() - start).total_seconds() * 1000)
 
             logger.debug("Playwright fetched %s (%d chars, %dms)", url, len(content), elapsed)
 
@@ -212,7 +212,7 @@ class AsyncCrawler:
                 url=url,
                 status=PageStatus.TIMEOUT if is_timeout else PageStatus.UNKNOWN_ERROR,
                 error_message=f"Playwright: {error_msg}",
-                response_time_ms=int((datetime.utcnow() - start).total_seconds() * 1000),
+                response_time_ms=int((utcnow() - start).total_seconds() * 1000),
             )
         finally:
             if page:
@@ -389,11 +389,11 @@ class AsyncCrawler:
 
         for attempt in range(1, self.max_retries + 1):
             await self._rate_limit()
-            start = datetime.utcnow()
+            start = utcnow()
 
             try:
                 response = await client.get(url)
-                elapsed = int((datetime.utcnow() - start).total_seconds() * 1000)
+                elapsed = int((utcnow() - start).total_seconds() * 1000)
 
                 status_map = {
                     403: PageStatus.ACCESS_DENIED,

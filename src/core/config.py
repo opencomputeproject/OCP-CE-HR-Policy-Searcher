@@ -216,12 +216,21 @@ def _resolve_google_credentials(
     return stripped
 
 
+# libyaml's C parser reads the whole config tree (87 files) in 0.09s; PyYAML's
+# pure-Python parser, which `yaml.safe_load` uses, took 1.4s. Every
+# ConfigLoader.load() paid that - the app on every reload, and about fifteen
+# tests per suite run in their setup. Same safe constructor, same result:
+# tests/unit/test_config.py::TestYamlLoader proves the two agree on every
+# file under config/. SafeLoader is the fallback for a build without libyaml.
+_YAML_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+
+
 def _load_yaml(path: Path) -> dict:
     """Load a YAML file, returning empty dict if file doesn't exist."""
     if not path.exists():
         return {}
     with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+        return yaml.load(f, Loader=_YAML_LOADER) or {}
 
 
 def _load_domains_directory(domains_dir: Path) -> list[dict]:

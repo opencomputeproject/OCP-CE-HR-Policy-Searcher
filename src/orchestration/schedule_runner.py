@@ -49,6 +49,7 @@ import logging
 
 from gspread.exceptions import GSpreadException
 from datetime import datetime
+from ..core.clock import utcnow
 
 from ..core.log_setup import log_audit_event
 from ..core.models import ScanStatus
@@ -170,7 +171,7 @@ async def run_due_schedules(
     Never raises - a failure listing schedules, or firing any individual
     one, is logged and the tick otherwise continues.
     """
-    now = now or datetime.utcnow()
+    now = now or utcnow()
 
     try:
         schedules = store.list()

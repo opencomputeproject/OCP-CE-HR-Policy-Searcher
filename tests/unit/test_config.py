@@ -8,6 +8,36 @@ def test_new_zealand_is_a_valid_region():
     assert "new_zealand" in VALID_REGIONS
 
 
+class TestYamlLoader:
+    """_load_yaml goes through libyaml's C parser when the build has it."""
+
+    @pytest.mark.small
+    def test_the_c_loader_is_used_when_libyaml_is_present(self):
+        import yaml
+
+        from src.core import config
+
+        if not yaml.__with_libyaml__:
+            pytest.skip("this PyYAML build has no libyaml; SafeLoader fallback applies")
+        assert config._YAML_LOADER is yaml.CSafeLoader
+
+    @pytest.mark.small
+    def test_every_config_file_reads_identically_under_both_parsers(self):
+        """The speed-up is only free if the two parsers agree on every file
+        the app actually loads - not a sample, all of them."""
+        from pathlib import Path
+
+        import yaml
+
+        from src.core.config import _load_yaml
+
+        files = sorted((Path(__file__).resolve().parents[2] / "config").rglob("*.yaml"))
+        assert files, "no config files found - wrong repo root?"
+        for path in files:
+            pure = yaml.load(path.read_text(encoding="utf-8"), Loader=yaml.SafeLoader) or {}
+            assert _load_yaml(path) == pure, path.name
+
+
 class TestReviewSpreadsheetIdFallback:
     """output.review_spreadsheet_id (WP-2, ADR-0005): falls back to
     spreadsheet_id when unset, and the POLICYSEARCH__OUTPUT__... env

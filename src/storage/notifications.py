@@ -35,10 +35,10 @@ KV_LAST_DIGEST = "notifications_last_digest"
 
 def parse_naive_utc(value: str) -> datetime:
     """Parse an ISO datetime string to a naive UTC datetime, so it can be
-    compared directly against ``datetime.utcnow()`` regardless of whether
+    compared directly against ``core.clock.utcnow()`` regardless of whether
     the stored value carries a timezone offset (e.g. ``SweepSummary.ts``,
     which uses ``datetime.now(timezone.utc)``) or is already naive UTC (the
-    ``datetime.utcnow()`` convention most of this codebase uses).
+    convention most of this codebase uses; see ``src/core/clock.py``).
     """
     dt = datetime.fromisoformat(value)
     if dt.tzinfo is not None:

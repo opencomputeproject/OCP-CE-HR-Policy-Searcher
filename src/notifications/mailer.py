@@ -10,6 +10,7 @@ import os
 import smtplib
 import ssl
 from datetime import datetime, timedelta
+from ..core.clock import utcnow
 from email.message import EmailMessage
 from pathlib import Path
 from typing import Optional
@@ -149,7 +150,7 @@ def notify_immediate(
     ``Mailer``'s docstring; tests inject a fake so this never opens a real
     socket.
     """
-    now = now or datetime.utcnow()
+    now = now or utcnow()
     state = NotificationStateStore(data_dir=data_dir)
 
     last_sent = state.get_immediate_last_sent(topic)
