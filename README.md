@@ -57,15 +57,88 @@ Found 3 policies:
 
 ---
 
-## Using the App (Visitors)
+## Who this is for
 
-Anyone can browse the deployed web interface for free - no account, API key, or sign-in required:
+PolicyPulse has two audiences, and the same deployment serves both. The public
+reads a curated library of government heat reuse policy. A small group of
+administrators runs the machinery that fills and curates it.
 
-- **Explore the map** — click a country to see the policies found there; double-click to drill into its states or provinces.
-- **View found policies** — filter, search, and expand any result in the policy list below the map.
-- **Ask questions** — the "Ask about found policies" box answers in your own language, using only what has already been discovered.
+### For visitors (public)
 
-Scanning for *new* policies costs API credits (Anthropic + LegiScan) and lives behind the collapsible **Admin** area — that part is for operators running their own deployment. See [Quick Start](#quick-start) to set one up.
+A live instance is at https://policypulse.ascentrainnovations.com. Anyone can
+use it for free: no account, no API key, no sign-in, and nothing a visitor does
+can spend money.
+
+What the public gets:
+
+- **One place to see the world's data center heat reuse rules.** Government
+  websites and legislation databases across Europe, North America, Asia and
+  beyond are watched (the current list is in [Geographic Coverage](#geographic-coverage)),
+  and every policy found is linked back to the official page or statute it came
+  from, so a reader can verify it at the source.
+- **Explore the map.** Click a country for the policies found there; double-click
+  the US, Germany, or Belgium to drill into states and provinces. Two grays keep
+  "nobody has looked yet" distinct from "watched, nothing found".
+- **Browse the policy list.** Filter by place, search by text, and split
+  Upcoming (proposed, in consultation, in committee) from Enacted, so a reader
+  can see what is coming as well as what is already law.
+- **Ask questions in your own language.** The "Ask about policies" box answers
+  from the stored library only, citing official URLs. It runs a restricted
+  read-only agent that cannot scan, search the web, or add sources, and its
+  daily budget is set by the administrator.
+- **Know what has been checked.** Every record carries a review status. Rejected
+  records are never shown to the public, and a "reviewed only" toggle lets a
+  reader hide anything a human has not yet confirmed.
+
+Who benefits: policymakers comparing what neighbouring jurisdictions require,
+operators siting facilities where heat reuse is mandated, district heating
+utilities looking for supply-side obligations, and researchers and journalists
+who need the primary sources rather than a summary. The library is built once
+and shared, instead of every organisation re-doing the same multilingual search.
+
+### For administrators (internal)
+
+Click **Admin** in the header and sign in with the deployment's ADMIN_TOKEN.
+The admin area opens with a banner reminding you that actions here can spend
+money and change what the public sees. The panels, in the order you use them:
+
+1. **API key settings.** Store the Anthropic key, pick a cost level (low,
+   standard, high) that selects the models for every scan, discovery, and public
+   answer, and set the daily cap and on/off switch for public "Ask" questions.
+2. **Public visibility.** Choose what unreviewed records the public sees:
+   everything except rejected, reviewed by default with a toggle, or reviewed
+   only. A general-audience instance should pick one of the last two.
+3. **Find new policies.** Type a place in plain language and PolicyPulse picks
+   the sources. Under **Advanced** you pick individual regions and source
+   families (website crawling, law databases, EU transposition, news signals),
+   choose standard or deep mode, and see the cost estimate before anything runs.
+   A running scan can be stopped.
+4. **Agent chat.** The same agent as the CLI, for discovery, questions about the
+   database, and multi-step tasks.
+5. **New finds to review.** Every policy a scan keeps arrives here as `new`.
+   Mark it reviewed, promoted, or rejected. Statuses sync both ways with the
+   `Staging` tab of the Google Sheet, so curators can work in either place.
+6. **Library.** Everything in the database, including what the public cannot
+   see, with the same filters.
+7. **Cost planner.** Projected cost per scope group before committing, and the
+   recent scans with what each one actually cost.
+8. **Sources.** What PolicyPulse watches, with per-domain overrides.
+9. **Keywords.** What counts as relevant: the weight of each category and the
+   matching terms for every supported language.
+10. **Schedules.** Recurring scans, run from inside the app. This is the only
+    scheduler; there is no separate cron to keep in step.
+11. **Email notifications.** Subscribers choose early-look finds (policies not
+    yet settled law), operational alerts, or both, delivered immediately, daily,
+    or weekly.
+12. **How PolicyPulse works.** The pipeline, stage by stage, for anyone new to
+    the admin role.
+
+Below the policy list, **Tips (early signals)** holds leads from the weekly news
+sweep. An administrator chases a tip (full analysis, spends credits) or
+dismisses it, so model spend stays a human decision.
+
+To run your own instance, see [Quick Start](#quick-start). For the day-to-day
+operator's view, see [docs/OPERATIONS.md](docs/OPERATIONS.md).
 
 ---
 
@@ -86,7 +159,7 @@ A stat strip above the map keeps the big picture honest at a glance: total track
 
 ## Table of Contents
 
-- [Using the App (Visitors)](#using-the-app-visitors)
+- [Who this is for](#who-this-is-for) — visitors (public) and administrators (internal)
 - [World Map](#world-map)
 - [Key Features](#key-features)
 - [Geographic Coverage](#geographic-coverage) — countries and coverage depth
