@@ -8,6 +8,11 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-09 The monthly scan now has exactly one trigger, the in-app
+  schedule. The server cron line that started a second, empty scan on
+  1 September and the GitHub workflow that had failed every month are both
+  retired, so October's scan runs once and its funnel numbers describe one
+  run.
 - 2026-09-08 Pages that used to arrive at screening with no text now arrive
   whole. A site-wide layout class such as `no-sidebar` or a cookie-state
   class on the page body used to match a boilerplate pattern and delete the
