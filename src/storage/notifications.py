@@ -88,7 +88,7 @@ def _row_to_dict(row: tuple) -> dict:
     }
 
 
-class NotificationSubscriptionsStore:
+class NotificationSubscriptionsStore(storage_db.ConnectionOwner):
     """SQLite-backed CRUD for the ``notification_subscriptions`` table.
 
     ``topics``/``frequency`` are validated here too (not just at the API
@@ -177,7 +177,7 @@ class NotificationSubscriptionsStore:
         return cur.rowcount > 0
 
 
-class NotificationStateStore:
+class NotificationStateStore(storage_db.ConnectionOwner):
     """kv-table persistence for notification sending state.
 
     Four small, independently-written records (see the KV_* names above)

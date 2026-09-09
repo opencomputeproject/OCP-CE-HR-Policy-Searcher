@@ -44,7 +44,11 @@ Proofmark's installer; the three sections marked TODO need a human once.
   the JS-shell fallback fires on any short HTML fixture and used to start a
   real Chromium (PL-010).
 - No test may write to the repo's `data/` - use `tmp_path`. The SQLite
-  stores take a `data_dir`; pass the fixture.
+  stores take a `data_dir`; pass the fixture. Stores are context managers
+  (PL-012): a store built for one job goes in a `with`; in the app the
+  ScanManager and `deps` own the long-lived ones and close them at
+  shutdown. The harness closes anything a test leaks, so a leak in a test
+  is quiet; a leak in `src/` is not.
 - `tests/conftest.py` strips `ADMIN_TOKEN` so the suite runs in open mode,
   and `src/api/app.py` calls `load_dotenv(override=True)` at import - any
   test that reloads the app module must neutralize dotenv first (see

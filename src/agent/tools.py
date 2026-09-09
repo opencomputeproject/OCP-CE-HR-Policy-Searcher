@@ -21,7 +21,6 @@ from ..core.llm import ClaudeClient, LLMError
 from ..core.log_setup import log_audit_event
 from ..core.verifier import Verifier
 from ..orchestration.scan_manager import ScanManager
-from ..storage.store import PolicyStore
 import yaml
 
 from .domain_generator import (
@@ -418,10 +417,8 @@ async def execute_tool(
             # available through agent chat.
             from ..core.overrides import apply_domain_overrides
             from ..storage.domain_overrides import DomainOverridesStore
-            domains = apply_domain_overrides(
-                domains,
-                DomainOverridesStore(data_dir=scan_manager.data_dir).get_all(),
-            )
+            with DomainOverridesStore(data_dir=scan_manager.data_dir) as overrides_store:
+                domains = apply_domain_overrides(domains, overrides_store.get_all())
             category = arguments.get("category")
             tags = arguments.get("tags")
             region = arguments.get("region")
@@ -606,7 +603,7 @@ async def execute_tool(
                             for policy in found:
                                 policy.verification_flags = verifier.verify(policy)
 
-                            store = PolicyStore(data_dir=scan_manager.data_dir)
+                            store = scan_manager.policy_store()
                             added = store.add_policies(found)
 
                             primary = found[0]
@@ -649,7 +646,7 @@ async def execute_tool(
             }
 
         elif name == "search_policies":
-            store = PolicyStore(data_dir=scan_manager.data_dir)
+            store = scan_manager.policy_store()
             jurisdiction = arguments.get("jurisdiction")
             policy_type = arguments.get("policy_type")
             min_score = arguments.get("min_score")
@@ -692,7 +689,7 @@ async def execute_tool(
             }
 
         elif name == "get_policy_stats":
-            store = PolicyStore(data_dir=scan_manager.data_dir)
+            store = scan_manager.policy_store()
             policies = store.get_all()
             seen_urls = {p.get("url") for p in policies}
             for policy in scan_manager.get_all_policies():

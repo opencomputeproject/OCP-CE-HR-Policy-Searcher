@@ -34,7 +34,7 @@ class PublicVisibilitySettings(BaseModel):
     mode: PostureMode = "default_all"
 
 
-class PublicVisibilityStore:
+class PublicVisibilityStore(storage_db.ConnectionOwner):
     """kv-table persistence for the public review visibility posture."""
 
     def __init__(self, data_dir: str = "data"):

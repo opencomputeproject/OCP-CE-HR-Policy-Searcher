@@ -63,3 +63,31 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if item.get_closest_marker("live"):
             item.add_marker(skip)
+
+
+@pytest.fixture(autouse=True)
+def _close_leaked_connections(monkeypatch):
+    """Every sqlite connection a test opens through src.storage.db.connect is
+    closed at teardown. Stores are context managers now (PL-012), but a
+    test that builds one inline and never closes it should not leave a
+    ResourceWarning for the garbage collector to raise inside some later,
+    unrelated test. Production code has no such net: it closes its own."""
+    import sqlite3
+
+    import src.storage.db as storage_db
+
+    real_connect = storage_db.connect
+    opened: list[sqlite3.Connection] = []
+
+    def tracked(data_dir):
+        conn = real_connect(data_dir)
+        opened.append(conn)
+        return conn
+
+    monkeypatch.setattr(storage_db, "connect", tracked)
+    yield
+    for conn in opened:
+        try:
+            conn.close()
+        except sqlite3.ProgrammingError:  # the test closed it itself
+            pass

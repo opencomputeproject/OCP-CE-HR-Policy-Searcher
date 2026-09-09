@@ -295,7 +295,8 @@ def _report_missing() -> int:
     """
     from ..storage.store import PolicyStore
 
-    stored = {(p.get("url") or "").strip() for p in PolicyStore().get_all()}
+    with PolicyStore() as store:
+        stored = {(p.get("url") or "").strip() for p in store.get_all()}
     missing = missing_protected(stored)
 
     total = len(protected_urls())

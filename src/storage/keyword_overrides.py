@@ -21,7 +21,7 @@ KV_NAME = "keyword_overrides"
 _EMPTY = {"categories": {}, "thresholds": {}}
 
 
-class KeywordOverridesStore:
+class KeywordOverridesStore(storage_db.ConnectionOwner):
     """kv-table persistence for the keyword overlay.
 
     Shape::

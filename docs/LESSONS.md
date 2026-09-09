@@ -379,3 +379,42 @@ hold at least a fifth of the page, else the body is used. Seven synthetic
 shape tests plus two recorded real pages (Have Your Say rendered, the White
 House order over httpx) pin both rules in `test_extractor.py`. The rule: a
 filter that can remove content must know how much it is removing.
+
+---
+
+## PL-012
+
+- title: A resource nobody owned - stores opened a database connection and none of them could close it
+- first_seen: 2026-09-08
+- last_seen: 2026-09-08
+- recurrences: 1
+- status: mechanized
+- guard: tests/unit/test_store_lifecycle.py::TestEveryStoreOwnsItsConnection::test_a_store_used_as_a_context_manager_leaves_nothing_for_the_collector
+- class: lifetime of a resource left to the garbage collector
+
+**The defect.** Every store in `src/storage/` opened a `sqlite3` connection
+in `__init__` and had no `close()`. The API's cached dependencies were fine
+(one store per process), but a scan built two stores per run, an agent tool
+call built one per call, the digest tick five per tick, the mailer two per
+immediate send, and each CLI entry point its own - all left for the garbage
+collector, which in CPython closes them whenever the refcount happens to
+drop and emits a `ResourceWarning` when it does. The suite emitted 3,139 of
+them. Every one of those constructions also re-ran the schema check and
+rebuilt the jurisdictions table from YAML, because `connect()` does that on
+every call.
+
+**Occurrence.** Found 2026-09-08 while attributing the suite's remaining
+warnings after the `utcnow` cleanup (#48): essentially every one was
+"unclosed database", blamed on whatever module was running when collection
+happened. Cost: nondeterministic connection lifetime in the app, a
+jurisdictions rebuild per scan and per tool call, and a warning flood that
+hid anything else the suite might have said.
+
+**How it is held.** `storage_db.ConnectionOwner` gives every store `close()`
+and context-manager support; the ScanManager and the API's `deps` own
+long-lived stores and close them at shutdown (`deps.close_stores()` from the
+lifespan); every one-shot site is a `with` block. The guard builds each
+store class as a context manager, drops it, collects, and asserts no
+`ResourceWarning`; it fails on the old classes. The harness additionally
+closes any connection a test leaked. The rule: a resource with an open and
+no close has no owner, and the collector is not an owner.

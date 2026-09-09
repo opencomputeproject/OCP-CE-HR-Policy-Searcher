@@ -526,11 +526,12 @@ def main():
         data_dir = os.environ.get("OCP_DATA_DIR", "data")
         config = ConfigLoader(config_dir=os.environ.get("OCP_CONFIG_DIR", "config"))
         config.load()
-        summary = asyncio.run(run_news_signals(
-            config.get_signals_config(),
-            LeadStore(data_dir=data_dir),
-            api_key=os.environ.get("ANTHROPIC_API_KEY"),
-        ))
+        with LeadStore(data_dir=data_dir) as leads:
+            summary = asyncio.run(run_news_signals(
+                config.get_signals_config(),
+                leads,
+                api_key=os.environ.get("ANTHROPIC_API_KEY"),
+            ))
         print(
             f"News signals: {summary.get('items_seen', 0)} items seen, "
             f"{summary.get('leads_added', 0)} new tips "

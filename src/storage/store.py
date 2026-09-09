@@ -40,7 +40,7 @@ def _review_status_conditions(
     return conditions, params
 
 
-class PolicyStore:
+class PolicyStore(storage_db.ConnectionOwner):
     """Persistent storage for discovered policies."""
 
     def __init__(self, data_dir: str = "data"):

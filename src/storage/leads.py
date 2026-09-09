@@ -71,7 +71,7 @@ class Lead(BaseModel):
     chase_error: Optional[str] = None  # reason text, only set for fetch_failed
 
 
-class LeadStore:
+class LeadStore(storage_db.ConnectionOwner):
     """SQLite-backed persistence for leads, deduplicated by source_url."""
 
     def __init__(self, data_dir: str = "data"):

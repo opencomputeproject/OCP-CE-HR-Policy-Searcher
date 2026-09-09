@@ -132,7 +132,7 @@ def _row_to_dict(row: tuple) -> dict:
     }
 
 
-class SchedulesStore:
+class SchedulesStore(storage_db.ConnectionOwner):
     """SQLite-backed persistence for the ``schedules`` table."""
 
     def __init__(self, data_dir: str = "data"):

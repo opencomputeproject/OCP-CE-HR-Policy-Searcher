@@ -234,6 +234,6 @@ def build_keyword_matcher(config, data_dir: str) -> "KeywordMatcher":
     from ..storage.keyword_overrides import KeywordOverridesStore
     from .overrides import apply_keyword_overrides
 
-    store = KeywordOverridesStore(data_dir=data_dir)
-    merged = apply_keyword_overrides(config.keywords_config, store.get())
+    with KeywordOverridesStore(data_dir=data_dir) as store:
+        merged = apply_keyword_overrides(config.keywords_config, store.get())
     return KeywordMatcher(merged)

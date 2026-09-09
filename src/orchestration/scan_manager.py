@@ -68,10 +68,38 @@ class ScanManager:
         # deps.get_scan_manager() wires in the real (persisted) store.
         self.scan_history_store = scan_history_store
         self._pricing = PricingLoader()
+        # Built on first use, closed by close(). Until 2026-09-08 every scan
+        # built its own PolicyStore and ScanHistoryStore (and every agent
+        # tool call its own PolicyStore), each opening a connection nothing
+        # closed and re-running the schema check and jurisdictions rebuild.
+        self._own_policy_store: Optional[PolicyStore] = None
+        self._own_history_store: Optional[ScanHistoryStore] = None
 
         self._jobs: dict[str, ScanJob] = {}
         self._policies: dict[str, list[Policy]] = {}  # scan_id → policies
         self._tasks: dict[str, asyncio.Task] = {}
+
+    def policy_store(self) -> PolicyStore:
+        """The manager's one PolicyStore (lazy; see __init__)."""
+        if self._own_policy_store is None:
+            self._own_policy_store = PolicyStore(data_dir=self.data_dir)
+        return self._own_policy_store
+
+    def history_store(self) -> ScanHistoryStore:
+        """The wired ScanHistoryStore when deps supplied one, else the manager's own."""
+        if self.scan_history_store is not None:
+            return self.scan_history_store
+        if self._own_history_store is None:
+            self._own_history_store = ScanHistoryStore(data_dir=self.data_dir)
+        return self._own_history_store
+
+    def close(self) -> None:
+        """Close the stores this manager built. Wired-in stores belong to deps."""
+        for store in (self._own_policy_store, self._own_history_store):
+            if store is not None and not store.closed:
+                store.close()
+        self._own_policy_store = None
+        self._own_history_store = None
 
     def _overlay_domains(self, domains: list[dict]) -> list[dict]:
         """Drop any domain the admin overlay has disabled (WP-8/WP-9).
@@ -295,7 +323,7 @@ class ScanManager:
         # Persisted scan history (WP-5) - a row per scan, next to the audit
         # trail above. Written at start, updated at completion/failure/
         # cancellation (see the three record_completion() calls below).
-        history = ScanHistoryStore(data_dir=self.data_dir)
+        history = self.history_store()
 
         # Estimate-vs-actual ledger (WP-24): the same estimate a cost-preview
         # call would have returned for this exact scope/channels/deep,
@@ -374,7 +402,7 @@ class ScanManager:
         # Per-domain persistence - saves policies to data/policies.json as each
         # domain completes, so results survive crashes. Uses atomic writes and
         # deduplication by URL.
-        store = PolicyStore(data_dir=self.data_dir)
+        store = self.policy_store()
 
         # Same-instrument duplicate check (WP-4): seeded from every kept
         # policy already in the store (excluding rejected ones - a rejected

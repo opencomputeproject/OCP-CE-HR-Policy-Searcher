@@ -218,3 +218,35 @@ def get_scan_manager() -> ScanManager:
             scan_history_store=get_scan_history_store(),
         )
     return _scan_manager_state["instance"]
+
+
+# Every cached store above, in one place, so shutdown can close them. A new
+# get_*_store() getter belongs in this tuple too.
+_STORE_GETTERS = (
+    get_policy_store,
+    get_lead_store,
+    get_public_visibility_store,
+    get_scan_history_store,
+    get_domain_overrides_store,
+    get_keyword_overrides_store,
+    get_schedules_store,
+    get_signals_status_store,
+    get_notification_subscriptions_store,
+    get_notification_state_store,
+    get_mailer,
+)
+
+
+def close_stores() -> None:
+    """Close every store this module has built and forget it, so the next
+    getter call builds a fresh one. The app's lifespan calls this at
+    shutdown; tests that swap OCP_DATA_DIR can call it between runs."""
+    for getter in _STORE_GETTERS:
+        if getter.cache_info().currsize:
+            store = getter()
+            if not store.closed:
+                store.close()
+        getter.cache_clear()
+    manager = _scan_manager_state["instance"]
+    if manager is not None:
+        manager.close()

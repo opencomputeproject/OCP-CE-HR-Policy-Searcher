@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 KV_NAME = "domain_overrides"
 
 
-class DomainOverridesStore:
+class DomainOverridesStore(storage_db.ConnectionOwner):
     """kv-table persistence for per-domain enabled overrides.
 
     Shape: ``{domain_id: {"enabled": bool}}``. A domain with no entry has no

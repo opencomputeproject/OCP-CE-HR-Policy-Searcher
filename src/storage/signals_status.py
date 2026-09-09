@@ -42,7 +42,7 @@ class SweepSummary(BaseModel):
     failures: list[FeedFailure] = Field(default_factory=list)
 
 
-class SignalsStatusStore:
+class SignalsStatusStore(storage_db.ConnectionOwner):
     """kv-table persistence for the latest news-sweep summary."""
 
     def __init__(self, data_dir: str = "data"):
