@@ -49,6 +49,7 @@ RSS_PAYLOAD = """<?xml version="1.0"?>
 """
 
 
+@pytest.mark.small
 class TestParsers:
     def test_parse_gdelt(self):
         items = parse_gdelt(GDELT_PAYLOAD, origin_query="overskudsvarme")
@@ -69,6 +70,7 @@ class TestParsers:
         assert parse_rss("<not-rss>", origin_query="feed:test") == []
 
 
+@pytest.mark.small
 class TestDedupe:
     def test_dedupes_by_url_and_title(self):
         items = [
@@ -435,6 +437,7 @@ class TestUrlVariantSweepIdempotency:
         assert len(store.list()) == 1
 
 
+@pytest.mark.medium
 class TestRunNewsSignals:
     @pytest.mark.asyncio
     async def test_produces_leads_without_api_key(self, signals_config, tmp_path):

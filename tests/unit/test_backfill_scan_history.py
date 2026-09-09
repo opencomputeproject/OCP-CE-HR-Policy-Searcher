@@ -13,6 +13,8 @@ import pytest
 from src.storage.backfill_scan_history import backfill
 from src.storage.scan_history import ScanHistoryStore
 
+pytestmark = pytest.mark.medium
+
 
 def _write_audit_log(data_dir, events: list[dict]) -> None:
     log_dir = data_dir / "logs"

@@ -4,6 +4,8 @@ import pytest
 
 from src.core.pdf import PDFExtractionError, extract_pdf_text, looks_like_pdf
 
+pytestmark = pytest.mark.small
+
 
 def _minimal_pdf(text: str = "Hello Policy") -> bytes:
     """Assemble a minimal valid single-page PDF with computed xref offsets."""

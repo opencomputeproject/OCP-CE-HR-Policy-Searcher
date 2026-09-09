@@ -13,6 +13,8 @@ from unittest.mock import MagicMock
 from src.core.models import Policy, PolicyType
 from src.storage.store import PolicyStore
 
+pytestmark = pytest.mark.medium
+
 
 def _policy(url, name, jurisdiction="Sweden", review_status="new", lifecycle_stage="unknown",
             score=5):

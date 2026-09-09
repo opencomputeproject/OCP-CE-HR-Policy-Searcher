@@ -1,8 +1,10 @@
 """Tests for ConfigLoader.get_signals_config() (config/signals.yaml)."""
 
+import pytest
 from src.core.config import ConfigLoader, DEFAULT_SIGNALS_CONFIG
 
 
+@pytest.mark.small
 class TestSignalsConfigLoading:
     """The real config/signals.yaml should load with the documented shape."""
 
@@ -32,6 +34,7 @@ class TestSignalsConfigLoading:
         assert any("overskudsvarme" in q for q in queries)
 
 
+@pytest.mark.medium
 class TestSignalsConfigMissingFile:
     """Missing config/signals.yaml must not raise — returns disabled default."""
 

@@ -26,6 +26,7 @@ def app_module(monkeypatch):
 
 
 class TestDocsGatedByAdminToken:
+    @pytest.mark.medium
     def test_admin_token_set_hides_openapi_and_docs(self, monkeypatch, app_module):
         monkeypatch.setenv("ADMIN_TOKEN", "secret")
         importlib.reload(app_module)
@@ -38,6 +39,7 @@ class TestDocsGatedByAdminToken:
             monkeypatch.delenv("ADMIN_TOKEN", raising=False)
             importlib.reload(app_module)
 
+    @pytest.mark.medium
     def test_admin_token_unset_keeps_docs(self, monkeypatch, app_module):
         monkeypatch.delenv("ADMIN_TOKEN", raising=False)
         importlib.reload(app_module)
@@ -49,6 +51,7 @@ class TestDocsGatedByAdminToken:
         finally:
             importlib.reload(app_module)
 
+    @pytest.mark.small
     def test_root_listing_regression_still_works_after_reload(self, monkeypatch, app_module):
         """app.openapi() (used by test_api.py's route-listing check) must
         keep working regardless of docs_url/openapi_url - it's a plain

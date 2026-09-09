@@ -44,6 +44,7 @@ def _api_key(monkeypatch):
     monkeypatch.setenv("DIP_API_KEY", "test-key")
 
 
+@pytest.mark.medium
 class TestKeyMissing:
     @pytest.mark.asyncio
     async def test_missing_key_returns_empty_and_makes_no_call(self, monkeypatch):
@@ -54,6 +55,7 @@ class TestKeyMissing:
         mock_client_cls.assert_not_called()
 
 
+@pytest.mark.medium
 class TestHappyPath:
     @pytest.mark.asyncio
     async def test_enacted_lifecycle_and_content(self):
@@ -99,6 +101,7 @@ class TestHappyPath:
         assert results[0].lifecycle_stage == "in_committee"
 
 
+@pytest.mark.medium
 class TestMalformed:
     @pytest.mark.asyncio
     async def test_malformed_response_returns_empty(self):
@@ -211,6 +214,7 @@ class TestDocumentTypesOverride:
 
 
 class TestCap:
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_respected(self):
         items = [

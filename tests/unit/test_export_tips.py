@@ -46,6 +46,7 @@ def sheets_env(monkeypatch):
     yield
 
 
+@pytest.mark.medium
 class TestExportTipsToSheet:
     def test_exports_all_queued_tips(self, sheets_env, tmp_path):
         store = LeadStore(data_dir=str(tmp_path))
@@ -89,6 +90,7 @@ class TestExportTipsToSheet:
 class TestExportTipsCLI:
     """CLI argument wiring — export_tips_to_sheet itself is stubbed here."""
 
+    @pytest.mark.small
     def test_prints_summary_and_returns_zero(self, monkeypatch, capsys):
         fake_summary = ExportSummary(total_tips=5, exported=5)
         monkeypatch.setattr(
@@ -102,6 +104,7 @@ class TestExportTipsCLI:
         assert "Tips in queue: 5" in out
         assert "Exported to sheet: 5" in out
 
+    @pytest.mark.medium
     def test_data_dir_and_sheet_name_flags_passed_through(self, monkeypatch, tmp_path):
         captured = {}
 
@@ -117,6 +120,7 @@ class TestExportTipsCLI:
         assert captured["data_dir"] == str(tmp_path)
         assert captured["sheet_name"] == "TipsStaging"
 
+    @pytest.mark.small
     def test_not_configured_returns_one(self, monkeypatch, capsys):
         def fake_export(**kwargs):
             raise ValueError("Google Sheets is not configured — set GOOGLE_CREDENTIALS.")

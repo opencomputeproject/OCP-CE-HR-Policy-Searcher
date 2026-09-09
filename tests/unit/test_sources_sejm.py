@@ -72,12 +72,15 @@ def _process(*, number="123", passed=None, closure_date=None):
 
 
 class TestSejmSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["sejm"] is SejmSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert SejmSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_are_polish_stems(self):
         """Measured on all 3107 term-10 prints (2026-07-17): stem ciepł 19,
         energ 97, klimat 64; full phrases like "centrum danych" matched 0.
@@ -86,6 +89,7 @@ class TestSejmSource:
         assert "ciepł" in DEFAULT_TERMS
         assert "energ" in DEFAULT_TERMS
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([
@@ -110,6 +114,7 @@ class TestSejmSource:
         assert r.title == TITLE
         assert "Pełny tekst projektu ustawy." in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_matching_is_case_insensitive(self):
         client = _mock_client([
@@ -128,6 +133,7 @@ class TestSejmSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_non_matching_print_is_skipped(self):
         client = _mock_client([
@@ -141,6 +147,7 @@ class TestSejmSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_newest_prints_processed_first(self):
         """The prints list arrives in ascending print-number order (oldest
@@ -164,6 +171,7 @@ class TestSejmSource:
         assert len(results) == 1
         assert results[0].url.startswith("https://api.sejm.gov.pl/sejm/term10/prints/3/")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_open_process_is_proposed(self):
         client = _mock_client([
@@ -182,6 +190,7 @@ class TestSejmSource:
             )
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_closed_and_passed_process_is_passed(self):
         client = _mock_client([
@@ -200,6 +209,7 @@ class TestSejmSource:
             )
         assert results[0].lifecycle_stage == "passed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_closed_without_passage_leaves_stage_for_the_model(self):
         """A closed process without passed=true may have been rejected or
@@ -221,6 +231,7 @@ class TestSejmSource:
             )
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_print_without_attachment_uses_process_page(self):
         client = _mock_client([
@@ -234,6 +245,7 @@ class TestSejmSource:
         assert len(results) == 1
         assert results[0].url == "https://api.sejm.gov.pl/sejm/term10/prints/123"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_process_detail_failure_still_yields_result(self):
         import httpx as _httpx
@@ -254,6 +266,7 @@ class TestSejmSource:
         assert len(results) == 1
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_term_param_configurable(self):
         client = _mock_client([_mock_response(json_data=[])])
@@ -263,6 +276,7 @@ class TestSejmSource:
             )
         assert "term11" in str(client.get.call_args.args[0])
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         prints = [_print(number=str(n)) for n in range(8)]
@@ -282,6 +296,7 @@ class TestSejmSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -292,6 +307,7 @@ class TestSejmSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"not": "a list"})])
@@ -301,6 +317,7 @@ class TestSejmSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_duplicate_print_numbers_deduped(self):
         client = _mock_client([

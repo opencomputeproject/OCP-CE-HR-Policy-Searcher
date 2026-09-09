@@ -1,6 +1,9 @@
 """Tests for SSRF guard on externally-supplied URLs."""
 
+import pytest
 from src.core.url_safety import is_public_http_url
+
+pytestmark = pytest.mark.small
 
 
 def _resolver(mapping):

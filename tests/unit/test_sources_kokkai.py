@@ -77,17 +77,21 @@ def _payload(speeches):
 
 
 class TestKokkaiSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["kokkai"] is KokkaiSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert KokkaiSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_include_both_waste_heat_kanji(self):
         from src.sources.kokkai import DEFAULT_TERMS
         assert "排熱" in DEFAULT_TERMS
         assert "廃熱" in DEFAULT_TERMS
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([_mock_response(json_data=_payload([_speech()]))])
@@ -102,6 +106,7 @@ class TestKokkaiSource:
         assert "環境委員会" in r.title
         assert "排熱を規制する仕組みはございません" in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_speaker_and_meeting_context_are_in_content(self):
         """Who said it and where decides whether a remark carries weight."""
@@ -115,6 +120,7 @@ class TestKokkaiSource:
         assert "環境省大臣官房環境保健部長" in content
         assert "2026-06-12" in content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_lifecycle_stage_is_left_unset(self):
         """A speech has no lifecycle. Declaring one would override the
@@ -125,6 +131,7 @@ class TestKokkaiSource:
             results = await KokkaiSource().fetch({"source_params": {"terms": ["排熱"]}})
         assert results[0].lifecycle_stage in (None, "")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_requests_are_spaced_not_bursted(self):
         """NDL asks for seconds between calls and no parallelism. Two terms
@@ -141,6 +148,7 @@ class TestKokkaiSource:
         assert sleep.await_count >= 1
         assert sleep.await_args[0][0] >= 1.0
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_short_speech_is_skipped(self):
         """Procedural one-liners ("次に、○○君") are noise, not signal."""
@@ -152,6 +160,7 @@ class TestKokkaiSource:
             results = await KokkaiSource().fetch({"source_params": {"terms": ["排熱"]}})
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dedupes_same_speech_across_terms(self):
         client = _mock_client([
@@ -165,6 +174,7 @@ class TestKokkaiSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         speeches = [
@@ -179,6 +189,7 @@ class TestKokkaiSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_speech_without_url_is_skipped(self):
         client = _mock_client([
@@ -189,6 +200,7 @@ class TestKokkaiSource:
             results = await KokkaiSource().fetch({"source_params": {"terms": ["排熱"]}})
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -198,6 +210,7 @@ class TestKokkaiSource:
             results = await KokkaiSource().fetch({"source_params": {"terms": ["排熱"]}})
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"nope": 1})])

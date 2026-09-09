@@ -96,12 +96,15 @@ def _no_sleep():
 
 
 class TestRiigikoguSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["riigikogu"] is RiigikoguSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert RiigikoguSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_use_substring_stems(self):
         """Estonian inflects: kaugküte (nominative) matched 0 titles while
         the stem kaugküt matched 61 (catching genitive kaugkütte), measured
@@ -111,6 +114,7 @@ class TestRiigikoguSource:
         assert "kaugküte" not in DEFAULT_TERMS
         assert "soojus" in DEFAULT_TERMS
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path_prefers_public_pdf(self):
         client = _mock_client([
@@ -136,6 +140,7 @@ class TestRiigikoguSource:
         assert "Dokumendi täistekst." in r.content
         assert "Euroopa Liidu asjade komisjon" in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_no_pdf_falls_back_to_document_api_url(self):
         client = _mock_client([
@@ -149,6 +154,7 @@ class TestRiigikoguSource:
         assert results[0].url == f"https://api.riigikogu.ee/api/documents/{DOC_UUID}"
         assert TITLE in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_restricted_pdf_is_not_used(self):
         """accessRestrictionType != PUBLIC means the download link will not
@@ -170,6 +176,7 @@ class TestRiigikoguSource:
             )
         assert results[0].url == f"https://api.riigikogu.ee/api/documents/{DOC_UUID}"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_requests_are_spaced(self, _no_sleep):
         """429 at 2 req/s measured on this API; the client must sleep
@@ -191,6 +198,7 @@ class TestRiigikoguSource:
             )
         assert _no_sleep.await_count >= 2
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_title_param_is_sent(self):
         client = _mock_client([_mock_response(json_data=_listing([]))])
@@ -200,6 +208,7 @@ class TestRiigikoguSource:
             )
         assert client.get.call_args.kwargs["params"]["title"] == "soojus"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_duplicate_uuid_across_terms_deduped(self):
         client = _mock_client([
@@ -219,6 +228,7 @@ class TestRiigikoguSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         docs = [_doc(uuid=f"uuid-{n}") for n in range(8)]
@@ -232,6 +242,7 @@ class TestRiigikoguSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_detail_failure_falls_back_to_list_metadata(self):
         import httpx as _httpx
@@ -246,6 +257,7 @@ class TestRiigikoguSource:
         assert len(results) == 1
         assert TITLE in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -256,6 +268,7 @@ class TestRiigikoguSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"nope": 1})])
@@ -265,6 +278,7 @@ class TestRiigikoguSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_document_without_uuid_is_skipped(self):
         doc = _doc()
@@ -276,6 +290,7 @@ class TestRiigikoguSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_no_lifecycle_stage_claimed(self):
         """The documents index mixes bills, EU positions, letters and

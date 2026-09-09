@@ -66,12 +66,15 @@ def _payload(items):
 
 
 class TestEGovJapanSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["egov_japan"] is EGovJapanSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert EGovJapanSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_include_both_waste_heat_kanji(self):
         """Japanese writes waste heat two ways. Live counts: 排熱 -> 1 law,
         廃熱 -> 10 laws. Shipping only one silently loses most results."""
@@ -79,6 +82,7 @@ class TestEGovJapanSource:
         assert "排熱" in DEFAULT_TERMS
         assert "廃熱" in DEFAULT_TERMS
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([_mock_response(json_data=_payload([_item()]))])
@@ -94,6 +98,7 @@ class TestEGovJapanSource:
         assert r.title == "大気汚染防止法施行令"
         assert "廃熱" in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_reads_items_key_not_laws(self):
         """Regression: the catalog documented the list key as "laws"; the
@@ -107,6 +112,7 @@ class TestEGovJapanSource:
             )
         assert results == []  # "laws" is not the real key, so nothing parses
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_span_highlights_are_stripped_from_content(self):
         client = _mock_client([_mock_response(json_data=_payload([_item()]))])
@@ -117,6 +123,7 @@ class TestEGovJapanSource:
         assert "<span>" not in results[0].content
         assert "</span>" not in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_enforced_law_is_enacted(self):
         client = _mock_client([
@@ -128,6 +135,7 @@ class TestEGovJapanSource:
             )
         assert results[0].lifecycle_stage == "enacted"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_scheduled_enforcement_is_passed_not_enacted(self):
         """A law with a future enforcement date has passed but is not yet in
@@ -144,6 +152,7 @@ class TestEGovJapanSource:
         assert results[0].lifecycle_stage == "passed"
         assert "2027-04-01" in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dedupes_same_law_across_terms(self):
         client = _mock_client([
@@ -156,6 +165,7 @@ class TestEGovJapanSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         items = [_item(law_id=f"LAW{n}") for n in range(8)]
@@ -166,6 +176,7 @@ class TestEGovJapanSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_item_without_law_id_is_skipped(self):
         bad = _item()
@@ -177,6 +188,7 @@ class TestEGovJapanSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_item_without_sentences_still_yields_metadata(self):
         client = _mock_client([
@@ -189,6 +201,7 @@ class TestEGovJapanSource:
         assert len(results) == 1
         assert "大気汚染防止法施行令" in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_zero_results_is_not_an_error(self):
         """total_count can be absent entirely on a no-hit query."""
@@ -199,6 +212,7 @@ class TestEGovJapanSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx

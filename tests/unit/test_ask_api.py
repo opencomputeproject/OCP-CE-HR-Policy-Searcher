@@ -35,6 +35,7 @@ def _mock_answer(answer="Here are the policies.", tool_calls=1):
     return AsyncMock(return_value={"answer": answer, "tool_calls": tool_calls})
 
 
+@pytest.mark.medium
 class TestAskValidation:
     def test_question_too_short_rejected(self, client):
         assert client.post("/api/ask", json={"question": "hi"}).status_code == 422
@@ -46,6 +47,7 @@ class TestAskValidation:
         assert client.post("/api/ask", json={}).status_code == 422
 
 
+@pytest.mark.medium
 class TestAskAccess:
     def test_open_without_admin_token_even_when_gate_active(
         self, tmp_path, cost_store, monkeypatch
@@ -82,6 +84,7 @@ class TestAskAccess:
         assert response.status_code == 503
 
 
+@pytest.mark.medium
 class TestAskAnswers:
     def test_success_returns_answer(self, client):
         with patch(
@@ -105,6 +108,7 @@ class TestAskAnswers:
 
 
 class TestClientIp:
+    @pytest.mark.small
     def test_prefers_forwarded_for_leftmost(self):
         from src.api.routes.ask import _client_ip
 
@@ -115,6 +119,7 @@ class TestClientIp:
 
         assert _client_ip(_Req()) == "203.0.113.7"
 
+    @pytest.mark.small
     def test_falls_back_to_client_host(self):
         from src.api.routes.ask import _client_ip
 
@@ -125,6 +130,7 @@ class TestClientIp:
 
         assert _client_ip(_Req()) == "198.51.100.9"
 
+    @pytest.mark.medium
     def test_distinct_forwarded_ips_get_separate_buckets(self, client, cost_store):
         """Behind a proxy, two real users must not share one rate bucket."""
         cost_store.update(CostSettings(ask_rate_per_minute=1, ask_daily_limit=100))
@@ -141,6 +147,7 @@ class TestClientIp:
         assert r2.status_code == 200  # different client, not throttled
 
 
+@pytest.mark.medium
 class TestAskLimits:
     def test_per_minute_rate_limit(self, client, cost_store):
         cost_store.update(CostSettings(ask_rate_per_minute=2, ask_daily_limit=100))

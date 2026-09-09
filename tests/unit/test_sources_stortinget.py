@@ -68,6 +68,7 @@ def _detail(*, ferdigbehandlet=True,
     }
 
 
+@pytest.mark.small
 class TestParseWcfDate:
     def test_parses_wcf_epoch_millis(self):
         """Stortinget serves .NET WCF dates, not ISO 8601."""
@@ -79,12 +80,15 @@ class TestParseWcfDate:
 
 
 class TestStortingetSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["stortinget"] is StortingetSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert StortingetSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_are_broad_not_domain_phrases(self):
         """Regression, same lesson as Ireland. Measured on all 650 saker of
         session 2025-2026: the catalog's suggested "spillvarme" and
@@ -96,6 +100,7 @@ class TestStortingetSource:
         assert "overskuddsvarme" in DEFAULT_TERMS
         assert "spillvarme" not in DEFAULT_TERMS
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([
@@ -114,6 +119,7 @@ class TestStortingetSource:
         assert r.title == TITLE
         assert "overskuddsvarme" in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_non_matching_sak_is_skipped(self):
         client = _mock_client([
@@ -128,6 +134,7 @@ class TestStortingetSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_unfinished_case_is_proposed(self):
         client = _mock_client([
@@ -140,6 +147,7 @@ class TestStortingetSource:
             )
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_finished_case_leaves_stage_for_the_model(self):
         """ferdigbehandlet means "processed", not "adopted" — the Storting
@@ -155,6 +163,7 @@ class TestStortingetSource:
             )
         assert results[0].lifecycle_stage in (None, "")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_wcf_date_appears_in_content_as_iso(self):
         client = _mock_client([
@@ -168,6 +177,7 @@ class TestStortingetSource:
         assert "2026-06-25" in results[0].content
         assert "/Date(" not in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_session_param_is_sent(self):
         client = _mock_client([_mock_response(json_data=_liste([]))])
@@ -177,6 +187,7 @@ class TestStortingetSource:
             )
         assert client.get.call_args.kwargs["params"]["sesjonid"] == "2024-2025"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         saker = [_sak(sak_id=n) for n in range(8)]
@@ -190,6 +201,7 @@ class TestStortingetSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_detail_failure_falls_back_to_list_metadata(self):
         import httpx as _httpx
@@ -204,6 +216,7 @@ class TestStortingetSource:
         assert len(results) == 1
         assert TITLE in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -214,6 +227,7 @@ class TestStortingetSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"nope": 1})])

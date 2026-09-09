@@ -4,7 +4,10 @@ Mirrors src/storage/public_visibility.py's store pattern: a small blob in the
 shared SQLite kv table, keyed by domain id -> {"enabled": bool}.
 """
 
+import pytest
 from src.storage.domain_overrides import DomainOverridesStore
+
+pytestmark = pytest.mark.medium
 
 
 class TestFreshStore:

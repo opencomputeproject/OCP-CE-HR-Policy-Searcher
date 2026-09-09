@@ -63,6 +63,7 @@ def sheets_env(monkeypatch):
     yield
 
 
+@pytest.mark.small
 class TestMapRowToPolicy:
     def test_valid_row_maps(self):
         policy = _make_policy(jurisdiction="Germany")
@@ -107,6 +108,7 @@ class TestMapRowToPolicy:
         assert mapped.url == policy.url
 
 
+@pytest.mark.medium
 class TestImportFromSheet:
     def test_imports_valid_rows(self, sheets_env, tmp_path):
         FakeSheetsClient.rows = [
@@ -199,6 +201,7 @@ class TestImportFromSheet:
 class TestMainCLI:
     """CLI argument wiring — import_from_sheet itself is stubbed here."""
 
+    @pytest.mark.small
     def test_prints_summary_and_returns_zero(self, monkeypatch, capsys):
         fake_summary = ImportSummary(
             rows_read=3, imported=2, duplicates=1, invalid=0, invalid_rows=[],
@@ -216,6 +219,7 @@ class TestMainCLI:
         assert "Duplicates skipped: 1" in out
         assert "Invalid skipped: 0" in out
 
+    @pytest.mark.small
     def test_reports_invalid_row_numbers(self, monkeypatch, capsys):
         fake_summary = ImportSummary(
             rows_read=2, imported=1, duplicates=0, invalid=1, invalid_rows=[3],
@@ -228,6 +232,7 @@ class TestMainCLI:
 
         assert "Invalid row numbers: 3" in capsys.readouterr().out
 
+    @pytest.mark.medium
     def test_dry_run_and_data_dir_flags_passed_through(self, monkeypatch, tmp_path, capsys):
         captured = {}
 
@@ -244,6 +249,7 @@ class TestMainCLI:
         assert captured["data_dir"] == str(tmp_path)
         assert "dry run" in capsys.readouterr().out
 
+    @pytest.mark.small
     def test_not_configured_returns_one(self, monkeypatch, capsys):
         def fake_import(**kwargs):
             raise ValueError("Google Sheets is not configured — set GOOGLE_CREDENTIALS.")

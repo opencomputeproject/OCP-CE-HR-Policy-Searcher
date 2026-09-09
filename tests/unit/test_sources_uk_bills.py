@@ -32,15 +32,18 @@ def _search_payload(items):
 
 
 class TestUKBillsSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["uk_bills"] is UKBillsSource
 
+    @pytest.mark.small
     def test_default_terms_include_broad_heat_word(self):
         # Regression: phrase-only defaults ("heat networks") matched no live
         # UK bills. A broad single word must be present so a scan isn't empty.
         from src.sources.uk_bills import DEFAULT_TERMS
         assert "heat" in DEFAULT_TERMS
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         search_resp = _mock_response(json_data=_search_payload([
@@ -64,6 +67,7 @@ class TestUKBillsSource:
         assert results[0].status == PageStatus.SUCCESS
         assert results[0].lifecycle_stage == "in_committee"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_thin_content_falls_back_to_metadata(self):
         search_resp = _mock_response(json_data=_search_payload([
@@ -84,6 +88,7 @@ class TestUKBillsSource:
         assert "District Heating Bill" in results[0].content
         assert results[0].lifecycle_stage == "enacted"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         search_resp = _mock_response(json_data={"unexpected": "shape"})
@@ -95,6 +100,7 @@ class TestUKBillsSource:
 
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_cap_respected(self):
         items = [
@@ -122,6 +128,7 @@ class TestUKBillsSource:
 
         assert len(results) == 4
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dedupe_within_fetch(self):
         item = {

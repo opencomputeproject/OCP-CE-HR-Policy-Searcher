@@ -11,6 +11,8 @@ from fastapi.testclient import TestClient
 
 from src.storage.scan_history import ScanHistoryStore
 
+pytestmark = pytest.mark.medium
+
 
 @pytest.fixture
 def history(tmp_path):

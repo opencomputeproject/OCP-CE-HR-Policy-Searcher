@@ -26,6 +26,7 @@ def _mock_client(get_side_effect):
 
 
 class TestFolketingSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["folketing"] is FolketingSource
 
@@ -114,6 +115,7 @@ class TestFolketingSource:
 
 
 class TestDocumentTypeFilter:
+    @pytest.mark.small
     def test_default_ids_are_bill_resolution_and_motion(self):
         assert DEFAULT_DOCUMENT_TYPE_IDS == [3, 5, 9]
 

@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from src.core.search_plan import resolve_place, suggested_places
 
 
+@pytest.mark.small
 class TestSuggestedPlaces:
     def test_every_suggestion_resolves(self):
         for name in suggested_places():
@@ -40,6 +41,7 @@ class TestSuggestedPlaces:
         assert "Nordic countries" not in names
 
 
+@pytest.mark.small
 class TestResolveNaturalVariants:
     """Common human phrasings should resolve instead of erroring."""
 
@@ -64,6 +66,7 @@ def client(monkeypatch):
         yield c
 
 
+@pytest.mark.medium
 class TestPlacesEndpoint:
     def test_returns_alphabetized_names(self, client):
         resp = client.get("/api/search/places")

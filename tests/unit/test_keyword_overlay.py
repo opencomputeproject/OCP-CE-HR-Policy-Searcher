@@ -9,6 +9,7 @@ directly, so an admin's added/removed terms and threshold overrides reach
 every consumer without a restart.
 """
 
+import pytest
 from src.core.keywords import KeywordMatcher, build_keyword_matcher
 from src.core.overrides import apply_keyword_overrides
 from src.storage.keyword_overrides import KeywordOverridesStore
@@ -39,6 +40,7 @@ def _keywords_config():
 # apply_keyword_overrides (pure)
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestApplyKeywordOverridesNoOp:
     def test_empty_overrides_leaves_config_unchanged(self):
         config = _keywords_config()
@@ -54,6 +56,7 @@ class TestApplyKeywordOverridesNoOp:
         assert config["keywords"]["subject"]["terms"]["en"] == ["waste heat"]
 
 
+@pytest.mark.small
 class TestApplyKeywordOverridesAdd:
     def test_added_term_appended_to_existing_language(self):
         config = _keywords_config()
@@ -80,6 +83,7 @@ class TestApplyKeywordOverridesAdd:
         assert merged["keywords"]["subject"]["terms"]["en"] == ["waste heat"]
 
 
+@pytest.mark.small
 class TestApplyKeywordOverridesRemove:
     def test_removed_term_dropped(self):
         config = _keywords_config()
@@ -102,6 +106,7 @@ class TestApplyKeywordOverridesRemove:
         assert merged["keywords"]["subject"]["terms"]["en"] == ["waste heat"]
 
 
+@pytest.mark.small
 class TestApplyKeywordOverridesThresholds:
     def test_overrides_replace_given_keys_only(self):
         config = _keywords_config()
@@ -128,6 +133,7 @@ class _FakeConfig:
         self.keywords_config = keywords_config
 
 
+@pytest.mark.medium
 class TestBuildKeywordMatcher:
     def test_no_overrides_behaves_like_plain_construction(self, tmp_path):
         config = _FakeConfig(_keywords_config())

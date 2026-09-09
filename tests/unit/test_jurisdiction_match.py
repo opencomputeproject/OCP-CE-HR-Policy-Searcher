@@ -7,7 +7,10 @@ match must be alias-aware and bidirectional — without false positives
 like "US" matching "Belarus".
 """
 
+import pytest
 from src.agent.tools import jurisdiction_matches
+
+pytestmark = pytest.mark.small
 
 
 class TestUsAliases:

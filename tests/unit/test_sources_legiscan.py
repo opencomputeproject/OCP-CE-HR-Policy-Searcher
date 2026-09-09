@@ -70,6 +70,7 @@ def _api_key(monkeypatch):
     monkeypatch.setenv("LEGISCAN_API_KEY", "test-key")
 
 
+@pytest.mark.medium
 class TestKeyMissing:
     @pytest.mark.asyncio
     async def test_missing_key_returns_empty_and_makes_no_call(self, monkeypatch):
@@ -80,6 +81,7 @@ class TestKeyMissing:
         mock_client_cls.assert_not_called()
 
 
+@pytest.mark.medium
 class TestHappyPath:
     @pytest.mark.asyncio
     async def test_official_url_lifecycle_and_content(self):
@@ -109,6 +111,7 @@ class TestHappyPath:
         assert r.content and "Waste Heat Recovery" in r.content
 
 
+@pytest.mark.medium
 class TestMalformed:
     @pytest.mark.asyncio
     async def test_results_list_shape_is_parsed(self):
@@ -138,6 +141,7 @@ class TestMalformed:
         assert results == []
 
 
+@pytest.mark.medium
 class TestCap:
     @pytest.mark.asyncio
     async def test_max_documents_respected(self):
@@ -161,6 +165,7 @@ class TestCap:
         assert len(results) == 1
 
 
+@pytest.mark.medium
 class TestNoStateLinkSkipped:
     @pytest.mark.asyncio
     async def test_bill_without_state_link_is_skipped(self):
@@ -172,6 +177,7 @@ class TestNoStateLinkSkipped:
         assert results == []
 
 
+@pytest.mark.medium
 class TestUnchangedSkipped:
     @pytest.mark.asyncio
     async def test_unchanged_change_hash_skips_getbill_call(self, tmp_path):
@@ -188,6 +194,7 @@ class TestUnchangedSkipped:
         assert len(fake_client.calls) == 1  # only the search call, getBill never called
 
 
+@pytest.mark.medium
 class TestApiCallBudget:
     @pytest.mark.asyncio
     async def test_budget_stops_cleanly(self):
@@ -205,6 +212,7 @@ class TestMonthlyBudget:
     """The 30,000-query/month public limit is enforced with a persistent
     per-calendar-month ledger, so big scans cannot silently overspend."""
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_usage_recorded_after_run(self):
         hit = {"bill_id": 7, "change_hash": "h7", "title": "T", "last_action": ""}
@@ -216,6 +224,7 @@ class TestMonthlyBudget:
         assert usage["used"] == 2          # one search + one getBill
         assert usage["remaining"] == legiscan.MONTHLY_QUERY_LIMIT - 2
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_run_capped_by_monthly_remaining(self):
         # Pre-seed near the limit: only 1 query left this month
@@ -228,6 +237,7 @@ class TestMonthlyBudget:
             )
         assert len(fake.calls) == 1        # stopped at the 1 remaining query
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_at_limit_makes_no_calls(self):
         legiscan._record_usage(legiscan.MONTHLY_QUERY_LIMIT)
@@ -237,12 +247,14 @@ class TestMonthlyBudget:
         assert results == []
         assert len(fake.calls) == 0
 
+    @pytest.mark.small
     def test_month_rollover_resets(self, monkeypatch):
         legiscan.USAGE_FILE.write_text('{"month": "2000-01", "queries": 12345}', encoding="utf-8")
         usage = legiscan.monthly_usage()
         assert usage["used"] == 0          # stale month is ignored
 
 
+@pytest.mark.medium
 class TestApiStatusError:
     """The Crash Course requires checking the JSON 'status' field. An ERROR
     (e.g. monthly limit exhausted or bad key) returns HTTP 200, so it must be
@@ -264,6 +276,7 @@ class TestApiStatusError:
         assert len(fake_client.calls) == 1
 
 
+@pytest.mark.medium
 class TestStateScoping:
     @pytest.mark.asyncio
     async def test_default_searches_all_states(self):
@@ -291,6 +304,7 @@ class TestStateScoping:
         assert fake.calls[0]["state"] == "CA"
 
 
+@pytest.mark.small
 class TestEarlySignalTerms:
     def test_default_terms_cover_early_us_bill_vocabulary(self):
         # Real early-stage US bills (NJ A4490, CT HB05337, MN HF4348) are

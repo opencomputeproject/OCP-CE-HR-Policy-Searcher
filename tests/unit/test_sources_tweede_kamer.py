@@ -62,18 +62,22 @@ LONG_HTML = "<html><body>" + ("Restwarmte bepalingen. " * 30) + "</body></html>"
 
 
 class TestTweedeKamerSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["tweede_kamer"] is TweedeKamerSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert TweedeKamerSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_are_dutch(self):
         """English terms match nothing in a Dutch corpus."""
         from src.sources.tweede_kamer import DEFAULT_TERMS
         assert "restwarmte" in DEFAULT_TERMS
         assert "warmtenet" in DEFAULT_TERMS
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_search_is_server_side_contains(self):
         client = _mock_client([_mock_response(json_data=_odata([]))])
@@ -85,6 +89,7 @@ class TestTweedeKamerSource:
         assert "contains(Onderwerp,'restwarmte')" in params["$filter"]
         assert params["$expand"] == "Document"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([
@@ -105,6 +110,7 @@ class TestTweedeKamerSource:
         )
         assert "Restwarmte bepalingen." in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_pending_case_is_proposed(self):
         client = _mock_client([
@@ -117,6 +123,7 @@ class TestTweedeKamerSource:
             )
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_finished_case_leaves_stage_unset_for_the_model(self):
         """Afgedaan means "handled", not "enacted" — the API cannot tell us
@@ -132,6 +139,7 @@ class TestTweedeKamerSource:
             )
         assert results[0].lifecycle_stage in (None, "")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_default_soorten_exclude_written_questions(self):
         """Schriftelijke vragen are questions, not policy. Including them by
@@ -140,6 +148,7 @@ class TestTweedeKamerSource:
         assert "Wetgeving" in DEFAULT_SOORTEN
         assert "Schriftelijke vragen" not in DEFAULT_SOORTEN
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_soort_outside_allowlist_is_skipped(self):
         client = _mock_client([
@@ -151,6 +160,7 @@ class TestTweedeKamerSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_zaak_without_document_is_skipped(self):
         zaak = _zaak()
@@ -162,6 +172,7 @@ class TestTweedeKamerSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dedupes_same_document_across_terms(self):
         client = _mock_client([
@@ -175,6 +186,7 @@ class TestTweedeKamerSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         zaken = [_zaak(nummer=f"2025Z{n}", doc_id=f"doc-{n}") for n in range(8)]
@@ -188,6 +200,7 @@ class TestTweedeKamerSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_falls_back_to_metadata_when_pdf_fails(self):
         client = _mock_client([
@@ -201,6 +214,7 @@ class TestTweedeKamerSource:
         assert len(results) == 1
         assert "restwarmte" in results[0].content.lower()
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -211,6 +225,7 @@ class TestTweedeKamerSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"nope": 1})])
