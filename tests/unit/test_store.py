@@ -22,6 +22,7 @@ def _make_policy(url: str = "https://a.gov/p1", **overrides) -> Policy:
     return Policy(**defaults)
 
 
+@pytest.mark.medium
 class TestPolicyStoreInit:
     def test_init_creates_empty_list(self, tmp_path):
         store = PolicyStore(data_dir=str(tmp_path))
@@ -41,6 +42,7 @@ class TestPolicyStoreInit:
         assert store.get_all() == []
 
 
+@pytest.mark.medium
 class TestAddPolicies:
     def test_add_policies(self, tmp_path):
         store = PolicyStore(data_dir=str(tmp_path))
@@ -68,6 +70,7 @@ class TestAddPolicies:
         assert len(store2.get_all()) == 1
 
 
+@pytest.mark.medium
 class TestSearch:
     @pytest.fixture
     def store_with_data(self, tmp_path):
@@ -104,6 +107,7 @@ class TestSearch:
         assert len(results) == 1
 
 
+@pytest.mark.medium
 class TestReviewVisibilityFiltering:
     """exclude_review_status / review_status_in on get_all/search/search_text —
     the WHERE-clause filtering WP-3's public visibility clamp relies on
@@ -154,6 +158,7 @@ class TestReviewVisibilityFiltering:
         assert statuses == {"promoted"}
 
 
+@pytest.mark.medium
 class TestGetStats:
     def test_stats_empty_store(self, tmp_path):
         store = PolicyStore(data_dir=str(tmp_path))
@@ -177,6 +182,7 @@ class TestGetStats:
         assert stats["by_score_range"]["1-3"] == 1
 
 
+@pytest.mark.medium
 class TestCorruptFileRecovery:
     """Tests for corrupt file backup instead of silent data loss."""
 
@@ -231,6 +237,7 @@ class TestCorruptFileRecovery:
         assert any("corrupted" in r.message.lower() for r in caplog.records)
 
 
+@pytest.mark.medium
 class TestSave:
     def test_save_creates_directory(self, tmp_path):
         data_dir = tmp_path / "sub" / "dir"

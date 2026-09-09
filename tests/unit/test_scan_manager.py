@@ -25,6 +25,7 @@ def _settings_with_min_score(value: float) -> MagicMock:
     return settings
 
 
+@pytest.mark.small
 class TestKeywordScoreDefault:
     """settings.analysis.min_keyword_score must reach the keyword gate.
 
@@ -63,6 +64,7 @@ class TestKeywordScoreDefault:
         assert result["min_keyword_score"] == 2.0
 
 
+@pytest.mark.small
 class TestDomainChannel:
     """_domain_channel() classifies a domain by its source_type."""
 
@@ -89,6 +91,7 @@ def _manager_with_domains(domains: list[dict]) -> ScanManager:
     return ScanManager(config=config, broadcaster=MagicMock())
 
 
+@pytest.mark.medium
 class TestStartScanChannels:
     """start_scan() filters domains by channel and records the choice.
 
@@ -150,6 +153,7 @@ class TestStartScanChannels:
         assert job.options["channels"] == ["news"]
 
 
+@pytest.mark.medium
 class TestStructuredSourcesRunFirst:
     """Law APIs dispatch ahead of crawls.
 
@@ -209,6 +213,7 @@ class TestStructuredSourcesRunFirst:
 class TestSourceParamsOverride:
     """Per-request source_params reach structured sources, never crawl."""
 
+    @pytest.mark.small
     def test_merges_into_structured_domain(self):
         domain = {
             "id": "legiscan_api", "source_type": "legiscan",
@@ -217,6 +222,7 @@ class TestSourceParamsOverride:
         result = ScanManager._with_source_params(domain, {"state": "CA"})
         assert result["source_params"] == {"max_documents": 10, "state": "CA"}
 
+    @pytest.mark.small
     def test_request_params_win_over_config(self):
         domain = {
             "id": "legiscan_api", "source_type": "legiscan",
@@ -225,20 +231,24 @@ class TestSourceParamsOverride:
         result = ScanManager._with_source_params(domain, {"terms": ["new"]})
         assert result["source_params"]["terms"] == ["new"]
 
+    @pytest.mark.small
     def test_crawl_domain_untouched(self):
         domain = {"id": "site1", "base_url": "https://a.gov"}
         result = ScanManager._with_source_params(domain, {"state": "CA"})
         assert "source_params" not in result
 
+    @pytest.mark.small
     def test_original_not_mutated(self):
         domain = {"id": "legiscan_api", "source_type": "legiscan"}
         ScanManager._with_source_params(domain, {"state": "CA"})
         assert "source_params" not in domain
 
+    @pytest.mark.small
     def test_none_override_is_noop(self):
         domain = {"id": "legiscan_api", "source_type": "legiscan"}
         assert ScanManager._with_source_params(domain, None) is domain
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_start_scan_applies_source_params(self, monkeypatch):
         from unittest.mock import AsyncMock
@@ -272,6 +282,7 @@ def _policy(url: str, review_status: str) -> Policy:
     )
 
 
+@pytest.mark.medium
 class TestRejectedUrlStatuses:
     """ScanManager._rejected_url_statuses feeds the scan-end Sheets
     reconciliation pass (~src/orchestration/scan_manager.py's "Final Google
@@ -332,6 +343,7 @@ class TestEstimateCost:
     scope.
     """
 
+    @pytest.mark.small
     def test_unknown_scope_raises_configuration_error(self):
         manager = _manager_with_config(
             get_enabled_domains_side_effect=ConfigurationError("Unknown group/region/domain: 'bogus'")
@@ -339,6 +351,7 @@ class TestEstimateCost:
         with pytest.raises(ConfigurationError):
             manager.estimate_cost("bogus")
 
+    @pytest.mark.small
     def test_valid_scope_returns_expected_shape(self):
         """WP-21/WP-26: every pre-existing key is kept (frontend depends on
         them); WP-21 adds channels/auditor_cost_usd/assumptions, WP-26 adds
@@ -371,6 +384,7 @@ class TestEstimateCost:
         assert isinstance(result["assumptions"], list)
         assert all(isinstance(a, str) for a in result["assumptions"])
 
+    @pytest.mark.small
     def test_deep_estimate_is_strictly_higher_than_standard(self):
         domains = [{"id": f"d{i}", "name": f"D{i}"} for i in range(5)]
         manager = _manager_with_config(get_enabled_domains_return=domains)
@@ -380,6 +394,7 @@ class TestEstimateCost:
 
         assert deep["estimated_cost_usd"] > standard["estimated_cost_usd"]
 
+    @pytest.mark.small
     def test_channels_filter_narrows_the_domain_count(self):
         # A schedule scoped to only law databases must not be costed as if it
         # also crawled every website (review finding). crawl=3, law_apis=2.
@@ -396,6 +411,7 @@ class TestEstimateCost:
         assert apis_only["domain_count"] == 2
         assert apis_only["estimated_cost_usd"] < all_channels["estimated_cost_usd"]
 
+    @pytest.mark.small
     def test_channels_none_counts_all_domains(self):
         # Callers that don't pass channels (e.g. cost_projection) are unchanged.
         domains = [{"id": f"d{i}", "name": f"D{i}"} for i in range(4)]
@@ -814,6 +830,7 @@ class TestScanHistoryWiring:
         )
         return manager, data_dir
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_completed_scan_writes_history_row(self, tmp_path, monkeypatch):
         manager, data_dir = self._manager(tmp_path, monkeypatch, domain_scan_result=[])
@@ -834,6 +851,7 @@ class TestScanHistoryWiring:
         assert row["started_at"] is not None
         assert row["completed_at"] is not None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_crawl_filters_snapshotted_once_per_scan(self, tmp_path, monkeypatch):
         """POST /api/config/reload reassigns manager.config on the live
@@ -879,6 +897,7 @@ class TestScanHistoryWiring:
         assert [k["skip_extensions"] for k in crawler_kwargs] == [[".one"], [".one"]]
         assert skip_mock.call_count == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_deep_scan_records_deep_mode(self, tmp_path, monkeypatch):
         manager, data_dir = self._manager(tmp_path, monkeypatch, domain_scan_result=[])
@@ -889,6 +908,7 @@ class TestScanHistoryWiring:
         row = ScanHistoryStore(data_dir=str(data_dir)).list()[0]
         assert row["mode"] == "deep"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_failed_scan_records_failed_status(self, tmp_path, monkeypatch):
         """A domain-level exception is caught inside scan_domain() itself
@@ -931,6 +951,7 @@ class TestScanHistoryWiring:
         assert "disk full" in args[2]
         assert kwargs["data_dir"] == str(data_dir)
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dry_run_writes_no_history_row(self, tmp_path, monkeypatch):
         manager, data_dir = self._manager(tmp_path, monkeypatch, domain_scan_result=[])

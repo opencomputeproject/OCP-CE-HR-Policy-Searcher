@@ -9,6 +9,7 @@ from src.core.cache import CacheEntry, CacheStats, URLCache, compute_content_has
 
 # --- CacheEntry ---
 
+@pytest.mark.small
 class TestCacheEntry:
     def test_not_expired_with_future_date(self):
         future = (datetime.now(timezone.utc) + timedelta(days=10)).isoformat()
@@ -47,6 +48,7 @@ class TestCacheEntry:
 
 # --- CacheStats ---
 
+@pytest.mark.small
 class TestCacheStats:
     def test_hit_rate_with_hits(self):
         stats = CacheStats(hits=3, misses=7)
@@ -68,6 +70,7 @@ class TestCacheStats:
 
 # --- URLCache ---
 
+@pytest.mark.small
 class TestURLCache:
     def test_set_and_get(self):
         cache = URLCache(expiry_days=30)
@@ -113,6 +116,7 @@ class TestURLCache:
 
 
 class TestContentHash:
+    @pytest.mark.small
     def test_change_beyond_10k_chars_is_detected(self):
         """Amendments often appear late in a statute; the hash must cover
         the full document, not just its head."""
@@ -121,6 +125,7 @@ class TestContentHash:
         amended = base + " Section 26 amended: waste heat mandatory."
         assert compute_content_hash(base) != compute_content_hash(amended)
 
+    @pytest.mark.small
     def test_get_content_matches(self):
         cache = URLCache()
         cache.set("https://a.gov", is_relevant=True, content_hash="same")
@@ -128,12 +133,14 @@ class TestContentHash:
         assert entry is not None
         assert cache.stats.hits == 1
 
+    @pytest.mark.small
     def test_contains(self):
         cache = URLCache()
         cache.set("https://a.gov", is_relevant=True)
         assert cache.contains("https://a.gov")
         assert not cache.contains("https://b.gov")
 
+    @pytest.mark.small
     def test_clean_expired(self):
         cache = URLCache()
         past = (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()
@@ -146,12 +153,14 @@ class TestContentHash:
         assert not cache.contains("expired")
         assert cache.contains("valid")
 
+    @pytest.mark.small
     def test_stats_total_entries(self):
         cache = URLCache()
         cache.set("https://a.gov", is_relevant=True)
         cache.set("https://b.gov", is_relevant=False)
         assert cache.stats.total_entries == 2
 
+    @pytest.mark.medium
     def test_save_and_load(self, tmp_path):
         cache_path = tmp_path / "cache.json"
         cache = URLCache(expiry_days=30, cache_path=cache_path)
@@ -166,16 +175,19 @@ class TestContentHash:
         assert entry is not None
         assert entry.relevance_score == 9
 
+    @pytest.mark.medium
     def test_load_nonexistent_file(self, tmp_path):
         cache = URLCache.load(tmp_path / "nope.json")
         assert cache.stats.total_entries == 0
 
+    @pytest.mark.medium
     def test_load_corrupt_json(self, tmp_path):
         bad_file = tmp_path / "bad.json"
         bad_file.write_text("NOT JSON", encoding="utf-8")
         cache = URLCache.load(bad_file)
         assert cache.stats.total_entries == 0
 
+    @pytest.mark.medium
     def test_load_corrupt_json_logs_error(self, tmp_path, caplog):
         """Corrupt cache should log at ERROR level with context."""
         import logging
@@ -186,6 +198,7 @@ class TestContentHash:
         assert any("corrupted" in r.message.lower() for r in caplog.records)
         assert any("performance impact" in r.message.lower() for r in caplog.records)
 
+    @pytest.mark.medium
     def test_load_generic_error_logs_at_error_level(self, tmp_path, caplog, monkeypatch):
         """Non-JSON errors during cache load should log at ERROR level."""
         import logging
@@ -201,6 +214,7 @@ class TestContentHash:
         assert cache.stats.total_entries == 0
         assert any("failed to load cache" in r.message.lower() for r in caplog.records)
 
+    @pytest.mark.medium
     def test_save_creates_parent_dir(self, tmp_path):
         cache_path = tmp_path / "sub" / "dir" / "cache.json"
         cache = URLCache(cache_path=cache_path)
@@ -211,6 +225,7 @@ class TestContentHash:
 
 # --- compute_content_hash ---
 
+@pytest.mark.small
 class TestComputeContentHash:
     def test_same_content_same_hash(self):
         h1 = compute_content_hash("hello world")

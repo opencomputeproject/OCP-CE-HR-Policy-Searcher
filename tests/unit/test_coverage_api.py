@@ -50,6 +50,7 @@ def _by_slug(supra, slug):
     return next((s for s in supra if s["slug"] == slug), None)
 
 
+@pytest.mark.small
 class TestPolicyAttribution:
     """The real jurisdiction strings resolve to the right map bucket."""
 
@@ -97,6 +98,7 @@ class TestPolicyAttribution:
         assert _by_iso(cov["countries"], _iso("Germany"))["policies"] == 1
 
 
+@pytest.mark.small
 class TestSumInvariant:
     """Every policy lands somewhere: country + supranational == total."""
 
@@ -119,6 +121,7 @@ class TestSumInvariant:
         assert cov["totals"]["policies"] == len(policies)
 
 
+@pytest.mark.small
 class TestTopPolicyNames:
     def test_top_names_capped_at_three_and_ranked_by_score(self):
         policies = [
@@ -133,6 +136,7 @@ class TestTopPolicyNames:
         assert swe["top_policy_names"] == ["high", "mid", "low"]
 
 
+@pytest.mark.small
 class TestCountrySlug:
     """Every country entry carries the registry slug the map/panel need to
     call /api/policies?place=<slug> - added alongside iso_numeric, not in
@@ -153,6 +157,7 @@ class TestCountrySlug:
         assert dk["slug"] == "denmark"
 
 
+@pytest.mark.small
 class TestSourceAttribution:
     def _domains(self):
         return [
@@ -186,6 +191,7 @@ class TestSourceAttribution:
         assert dk is not None and dk["sources"] == 1 and dk["policies"] == 0
 
 
+@pytest.mark.small
 class TestDiagnostics:
     def test_unresolved_policy_string_is_reported(self):
         cov = compute_coverage([_pol("Kingdom of Atlantis", "x")], [])
@@ -203,6 +209,7 @@ class TestDiagnostics:
         assert cov["diagnostics"]["unresolved_region_slugs"] == []
 
 
+@pytest.mark.small
 class TestNullIsoCountries:
     """A country the registry has no iso_numeric for (Kosovo today) belongs in
     the off-map tray keyed by slug - never in countries under a None key, and
@@ -249,6 +256,7 @@ class TestNullIsoCountries:
         assert cov["countries"] == []
 
 
+@pytest.mark.small
 class TestUnresolvedEdges:
     def test_policy_without_jurisdiction_key_does_not_crash(self):
         cov = compute_coverage(
@@ -339,6 +347,7 @@ def _coverage_client(store, manager, config):
     return app
 
 
+@pytest.mark.medium
 class TestRouteWiring:
     def test_coverage_endpoint_shape(self, client):
         resp = client.get("/api/coverage")
@@ -364,6 +373,7 @@ class TestRouteWiring:
         assert body["unresolved_region_slugs"] == []
 
 
+@pytest.mark.medium
 class TestFreshness:
     """Coverage must reflect in-memory scan results, not just the persisted
     snapshot - the same freshness /api/policies gives (merge, dedupe by URL)."""
@@ -401,6 +411,7 @@ class TestFreshness:
 # So, like test_jurisdictions.py, the real strings are pinned here as literals
 # rather than read from the live file at test time.
 
+@pytest.mark.small
 class TestChildrenOfCountry:
     """The exact strings + counts that resolve to a US state in
     data/policies.json today (17 total): New Jersey x5, Minnesota x4,
@@ -467,6 +478,7 @@ class TestChildrenOfCountry:
         assert len(nj["top_policy_names"]) == 3
 
 
+@pytest.mark.small
 class TestChildrenSourcesBucketing:
     """Sources bucket per-region-tag (a domain tagged for a child slug counts
     for that child; tagged for the country slug counts for national), so a
@@ -505,6 +517,7 @@ class TestChildrenSourcesBucketing:
         assert bucket_sum >= result["totals"]["sources"]
 
 
+@pytest.mark.small
 class TestChildrenNoDataOmitted:
     def test_child_with_zero_sources_and_zero_policies_is_omitted(self):
         # Switzerland has one registered subnational child (zurich) but no
@@ -526,6 +539,7 @@ class TestChildrenNoDataOmitted:
         assert result["totals"] == {"sources": dk["sources"], "policies": dk["policies"]}
 
 
+@pytest.mark.small
 class TestChildrenUnknownParent:
     def test_unknown_slug_returns_none(self):
         assert compute_children("atlantis", [], []) is None
@@ -538,6 +552,7 @@ class TestChildrenUnknownParent:
         assert compute_children("eu", [], []) is None
 
 
+@pytest.mark.small
 class TestChildrenGenericInvariant:
     """Not hardcoded to the US: walks every country the registry currently
     gives child jurisdictions to, and proves BOTH totals fields reconcile with
@@ -622,6 +637,7 @@ def children_client():
     app.dependency_overrides.clear()
 
 
+@pytest.mark.medium
 class TestChildrenRouteWiring:
     def test_children_endpoint_shape_for_us(self, children_client):
         resp = children_client.get("/api/coverage/children", params={"parent": "us"})

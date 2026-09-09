@@ -13,6 +13,7 @@ def extractor():
     return HtmlExtractor(config_dir="__nonexistent__")
 
 
+@pytest.mark.small
 class TestExtractBasicContent:
     def test_extracts_text_from_body(self, extractor):
         html = "<html><body><p>Hello World</p></body></html>"
@@ -45,6 +46,7 @@ class TestExtractBasicContent:
         assert result.word_count == 0
 
 
+@pytest.mark.small
 class TestBoilerplateRemoval:
     def test_removes_nav(self, extractor):
         html = """
@@ -104,6 +106,7 @@ class TestBoilerplateRemoval:
         assert "Links here" not in result.text
 
 
+@pytest.mark.small
 class TestMainContentDetection:
     def test_finds_main_tag(self, extractor):
         html = """
@@ -141,6 +144,7 @@ class TestMainContentDetection:
         assert "Just body" in result.text
 
 
+@pytest.mark.small
 class TestMaxLength:
     def test_respects_max_length(self):
         extractor = HtmlExtractor.__new__(HtmlExtractor)

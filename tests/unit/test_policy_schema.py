@@ -23,6 +23,7 @@ def _row(policy: Policy) -> dict:
     return dict(zip(STAGING_HEADERS, to_staging_row(policy)))
 
 
+@pytest.mark.small
 class TestStagingHeaders:
     def test_master_headers_first_thirteen(self):
         assert STAGING_HEADERS[:13] == MASTER_HEADERS
@@ -33,6 +34,7 @@ class TestStagingHeaders:
         assert STAGING_HEADERS.index("Link") == 10
 
 
+@pytest.mark.small
 class TestSplitJurisdiction:
     def test_us_state_full_name(self):
         assert split_jurisdiction("New Jersey") == ("North America", "USA", "New Jersey")
@@ -110,6 +112,7 @@ class TestSplitJurisdiction:
         )
 
 
+@pytest.mark.small
 class TestTypeLabel:
     def test_known_types(self):
         assert type_label("law") == "Legislation"
@@ -122,6 +125,7 @@ class TestTypeLabel:
         assert type_label("nonsense") == ""
 
 
+@pytest.mark.small
 class TestStatusLabel:
     def test_known_stages(self):
         assert status_label("enacted") == "Enacted"
@@ -134,6 +138,7 @@ class TestStatusLabel:
         assert status_label(None) == ""
 
 
+@pytest.mark.small
 class TestFromStagingRow:
     """Test from_staging_row() — the inverse mapping used by import_sheet."""
 

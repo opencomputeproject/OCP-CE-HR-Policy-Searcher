@@ -17,6 +17,8 @@ from src.core.models import Policy, PolicyType
 from src.storage.public_visibility import PublicVisibilityStore, PublicVisibilitySettings
 from src.storage.store import PolicyStore
 
+pytestmark = pytest.mark.medium
+
 REVIEW_STATUSES = ["new", "reviewed", "promoted", "rejected"]
 POSTURES = ["default_all", "default_reviewed", "reviewed_only"]
 

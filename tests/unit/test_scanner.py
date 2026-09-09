@@ -103,6 +103,7 @@ class TestScreeningDecision:
         result_with_quote = ScreeningResult(relevant=True, confidence=7, kind="grant", dc_quote="x")
         assert screening_decision(result_with_quote, [], ["grant"]) == "escalate"
 
+@pytest.mark.small
 class TestDomainScannerInit:
     def test_creates_progress(self):
         scanner = DomainScanner(
@@ -198,6 +199,7 @@ class TestDomainScannerScan:
             "verifier": verifier,
         }
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_structured_source_bypasses_keyword_and_short_gates(self, scanner_deps):
         """A LegiScan/GovInfo hit is a one-line bill already matched by the
@@ -223,6 +225,7 @@ class TestDomainScannerScan:
         assert scanner.progress.filtered_keywords == 0
         assert scanner.progress.filtered_short_content == 0
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_full_pipeline_finds_policy(self, scanner_deps):
         scanner = DomainScanner(
@@ -236,6 +239,7 @@ class TestDomainScannerScan:
         assert scanner.progress.policies_found == 1
         assert scanner.progress.status.value == "completed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_skips_failed_pages(self, scanner_deps):
         scanner_deps["crawler"].crawl_domain = AsyncMock(return_value=[
@@ -246,6 +250,7 @@ class TestDomainScannerScan:
         assert len(policies) == 0
         assert scanner.progress.errors == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_filters_short_content(self, scanner_deps):
         scanner_deps["extractor"].extract.return_value = ExtractedContent(
@@ -257,6 +262,7 @@ class TestDomainScannerScan:
         assert scanner.progress.pages_filtered == 1
         assert scanner.progress.filtered_short_content == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_filters_excluded_content(self, scanner_deps):
         scanner_deps["keyword_matcher"].match.return_value = KeywordResult(
@@ -268,6 +274,7 @@ class TestDomainScannerScan:
         assert scanner.progress.pages_filtered == 1
         assert scanner.progress.filtered_excluded == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_filters_low_keyword_score(self, scanner_deps):
         scanner_deps["keyword_matcher"].is_relevant.return_value = False
@@ -277,6 +284,7 @@ class TestDomainScannerScan:
         assert len(policies) == 0
         assert scanner.progress.filtered_keywords == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_keyword_rejection_is_logged_visibly(self, scanner_deps, caplog):
         """A dropped page must leave a trace at INFO, the default log level."""
@@ -292,6 +300,7 @@ class TestDomainScannerScan:
             for r in caplog.records
         )
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_near_miss_counted_and_logged(self, scanner_deps, caplog):
         import logging as _logging
@@ -304,6 +313,7 @@ class TestDomainScannerScan:
         assert scanner.progress.near_misses == 1
         assert any("near miss" in r.message.lower() for r in caplog.records)
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_screening_rejection_counted(self, scanner_deps):
         # kind="bill" (not on the reject list) with no dc_quote: this drops
@@ -316,6 +326,7 @@ class TestDomainScannerScan:
         await scanner.scan()
         assert scanner.progress.filtered_screening == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_skips_llm_when_disabled(self, scanner_deps):
         scanner = DomainScanner(
@@ -329,6 +340,7 @@ class TestDomainScannerScan:
         assert len(policies) == 0
         scanner_deps["llm_client"].screen_relevance.assert_not_awaited()
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_screening_rejection(self, scanner_deps):
         scanner_deps["llm_client"].screen_relevance = AsyncMock(
@@ -339,6 +351,7 @@ class TestDomainScannerScan:
         assert len(policies) == 0
         scanner_deps["llm_client"].analyze_policy.assert_not_awaited()
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_low_confidence_rejection_escalates_to_analysis(self, scanner_deps):
         """A barely-confident Haiku rejection must not be final: below
@@ -351,6 +364,7 @@ class TestDomainScannerScan:
         scanner_deps["llm_client"].analyze_policy.assert_awaited_once()
         assert len(policies) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_screening_min_confidence_is_configurable(self, scanner_deps):
         scanner_deps["llm_client"].screen_relevance = AsyncMock(
@@ -535,6 +549,7 @@ class TestDomainScannerScan:
         after = _fingerprint(["report", "article", "speech"])
         assert before != after
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_api_source_domain_bypasses_crawler(self, scanner_deps):
         """A domain with source_type != crawl fetches via its PolicySource
@@ -589,6 +604,7 @@ class TestDomainScannerScan:
 
         assert scanner.progress.filtered_doc_type == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_source_lifecycle_stage_lands_on_policy(self, scanner_deps):
         """A source-declared stage (e.g. bill status) overrides analysis."""
@@ -623,6 +639,7 @@ class TestDomainScannerScan:
 
         assert policies[0].lifecycle_stage == "in_committee"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_multiple_policies_from_one_page(self, scanner_deps):
         """An index page listing several laws yields several records."""
@@ -640,6 +657,7 @@ class TestDomainScannerScan:
         assert len(policies) == 3
         assert scanner.progress.policies_found == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_referenced_urls_are_followed(self, scanner_deps):
         """Same-site referenced_urls from analysis feed back into the scan."""
@@ -662,6 +680,7 @@ class TestDomainScannerScan:
         assert "https://example.gov/related-act" in fetched
         assert not any("elsewhere.org" in u for u in fetched)
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_llm_error_on_one_page_does_not_abort_domain(self, scanner_deps):
         """Rate-limit exhaustion on one page must not lose the rest of the
@@ -687,6 +706,7 @@ class TestDomainScannerScan:
         assert scanner.progress.errors == 1
         assert scanner.progress.status.value == "completed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_auth_error_still_aborts_domain(self, scanner_deps):
         """An invalid API key affects every page: continuing is pointless."""
@@ -700,6 +720,7 @@ class TestDomainScannerScan:
         assert len(policies) == 0
         assert scanner.progress.status.value == "failed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_cache_hit_skips_llm(self, scanner_deps):
         # Pre-populate cache
@@ -727,6 +748,7 @@ class TestDomainScannerScan:
         assert len(policies) == 0
         scanner_deps["llm_client"].screen_relevance.assert_not_awaited()
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_handles_scan_error_gracefully(self, scanner_deps):
         scanner_deps["crawler"].crawl_domain = AsyncMock(side_effect=Exception("Network error"))
@@ -736,6 +758,7 @@ class TestDomainScannerScan:
         assert scanner.progress.status.value == "failed"
         assert "Network error" in scanner.progress.error_message
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_emits_events(self, scanner_deps):
         events = []
@@ -754,6 +777,7 @@ class TestDomainScannerScan:
         assert "domain_started" in event_types
         assert "domain_complete" in event_types
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_no_llm_client(self, scanner_deps):
         scanner_deps["llm_client"] = None
@@ -761,6 +785,7 @@ class TestDomainScannerScan:
         policies = await scanner.scan()
         assert len(policies) == 0
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_no_llm_client_logs_info(self, scanner_deps, caplog):
         """When LLM is unavailable, keyword matches should be logged (not silent)."""
@@ -772,6 +797,7 @@ class TestDomainScannerScan:
         assert any("keyword match" in r.message.lower() and "unavailable" in r.message.lower()
                     for r in caplog.records)
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_skip_llm_logs_info(self, scanner_deps, caplog):
         """When LLM is explicitly skipped, keyword matches should be logged."""
@@ -784,6 +810,7 @@ class TestDomainScannerScan:
         assert any("keyword match" in r.message.lower() and "disabled" in r.message.lower()
                     for r in caplog.records)
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_verifier_called_on_policies(self, scanner_deps):
         scanner = DomainScanner(domain=_make_domain(), scan_id="s1", **scanner_deps)

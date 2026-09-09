@@ -8,6 +8,8 @@ import pytest
 from src.core.models import Policy, PolicyType
 from src.storage.store import PolicyStore
 
+pytestmark = pytest.mark.medium
+
 
 def _policy(url, name, jurisdiction, score, **overrides):
     defaults = dict(

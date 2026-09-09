@@ -22,6 +22,7 @@ from src.storage.schedules import InvalidCadenceError, SchedulesStore, compute_n
 # compute_next_run
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestComputeNextRunWeekly:
     def test_later_this_week_before_target_time_today(self):
         # 2026-01-05 is a Monday (weekday()==0).
@@ -47,6 +48,7 @@ class TestComputeNextRunWeekly:
         assert result == datetime(2026, 1, 12, 6, 30)
 
 
+@pytest.mark.small
 class TestComputeNextRunMonthly:
     def test_before_target_day_this_month(self):
         now = datetime(2026, 1, 1, 0, 0)
@@ -80,6 +82,7 @@ class TestComputeNextRunMonthly:
         assert result == datetime(2028, 2, 29, 6, 0)
 
 
+@pytest.mark.small
 class TestComputeNextRunInvalid:
     @pytest.mark.parametrize("cadence", [
         "",
@@ -107,6 +110,7 @@ def store(tmp_path):
     return SchedulesStore(data_dir=str(tmp_path))
 
 
+@pytest.mark.medium
 class TestCreate:
     def test_creates_row_with_defaults(self, store):
         row = store.create(
@@ -149,6 +153,7 @@ class TestCreate:
         assert row["monthly_ceiling_usd"] == 25.0
 
 
+@pytest.mark.medium
 class TestGetAndList:
     def test_get_missing_returns_none(self, store):
         assert store.get("nonexistent") is None
@@ -171,6 +176,7 @@ class TestGetAndList:
         assert names == {"A", "B"}
 
 
+@pytest.mark.medium
 class TestUpdate:
     def test_update_missing_returns_none(self, store):
         assert store.update("nonexistent", name="X") is None
@@ -209,6 +215,7 @@ class TestUpdate:
         assert updated["monthly_ceiling_usd"] is None
 
 
+@pytest.mark.medium
 class TestDelete:
     def test_delete_missing_returns_false(self, store):
         assert store.delete("nonexistent") is False
@@ -220,6 +227,7 @@ class TestDelete:
         assert store.get(created["id"]) is None
 
 
+@pytest.mark.medium
 class TestMarkRan:
     def test_mark_ran_updates_fields(self, store):
         created = store.create(name="A", domains="quick", channels=["crawl"],
@@ -233,9 +241,11 @@ class TestMarkRan:
 
 
 class TestMonthSpend:
+    @pytest.mark.medium
     def test_no_scans_is_zero(self, store):
         assert store.month_spend("quick", datetime(2026, 1, 15)) == 0.0
 
+    @pytest.mark.medium
     def test_sums_completed_scans_in_current_month(self, store):
         conn = store._conn
         conn.execute(
@@ -251,6 +261,7 @@ class TestMonthSpend:
         conn.commit()
         assert store.month_spend("quick", datetime(2026, 1, 31)) == pytest.approx(7.5)
 
+    @pytest.mark.medium
     def test_excludes_other_months(self, store):
         conn = store._conn
         conn.execute(
@@ -261,6 +272,7 @@ class TestMonthSpend:
         conn.commit()
         assert store.month_spend("quick", datetime(2026, 1, 1)) == 0.0
 
+    @pytest.mark.medium
     def test_excludes_other_scopes(self, store):
         conn = store._conn
         conn.execute(
@@ -271,6 +283,7 @@ class TestMonthSpend:
         conn.commit()
         assert store.month_spend("quick", datetime(2026, 1, 31)) == 0.0
 
+    @pytest.mark.medium
     def test_excludes_non_completed_scans(self, store):
         conn = store._conn
         conn.execute(

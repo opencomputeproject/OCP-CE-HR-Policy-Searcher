@@ -17,6 +17,8 @@ from src.core.config import ConfigurationError
 from src.core.models import ScanJob, ScanStatus
 from src.storage.schedules import SchedulesStore
 
+pytestmark = pytest.mark.medium
+
 
 def _config():
     config = MagicMock()

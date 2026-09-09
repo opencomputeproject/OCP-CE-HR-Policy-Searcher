@@ -77,12 +77,15 @@ def _with_key(monkeypatch):
 
 
 class TestNZPCOSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["nz_pco"] is NZPCOSource
 
+    @pytest.mark.small
     def test_declares_key_env(self):
         assert NZPCOSource.api_key_env == "NZ_PCO_API_KEY"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_disabled_without_key(self, monkeypatch):
         monkeypatch.delenv("NZ_PCO_API_KEY", raising=False)
@@ -92,6 +95,7 @@ class TestNZPCOSource:
         assert results == []
         client.get.assert_not_awaited()
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_key_sent_in_header_never_in_url(self, _with_key):
         client = _mock_client([_mock_response(json_data=_payload([]))])
@@ -104,6 +108,7 @@ class TestNZPCOSource:
         params = client.get.call_args.kwargs["params"]
         assert "test-key-value" not in str(params.values())
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_multiword_terms_are_phrase_quoted(self, _with_key):
         """Unquoted "waste heat" would match every act containing "waste"
@@ -115,6 +120,7 @@ class TestNZPCOSource:
             )
         assert client.get.call_args.kwargs["params"]["search_term"] == '"waste heat"'
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_searches_content_not_title(self, _with_key):
         """Full-text is why this source earns precise domain phrases; a
@@ -126,6 +132,7 @@ class TestNZPCOSource:
             )
         assert client.get.call_args.kwargs["params"]["search_field"] == "content"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self, _with_key):
         client = _mock_client([_mock_response(json_data=_payload([_work()]))])
@@ -148,6 +155,7 @@ class TestNZPCOSource:
         assert "Full text of the bill." in r.content
         assert "Ministry for the Environment" in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_matched_term_is_written_into_content(self, _with_key):
         """The document body is WAF-blocked (www.legislation.govt.nz
@@ -167,6 +175,7 @@ class TestNZPCOSource:
             )
         assert 'matched "waste heat"' in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_current_bill_is_proposed(self, _with_key):
         client = _mock_client([_mock_response(json_data=_payload([_work()]))])
@@ -182,6 +191,7 @@ class TestNZPCOSource:
             )
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_enacted_bill_is_enacted(self, _with_key):
         client = _mock_client([
@@ -199,6 +209,7 @@ class TestNZPCOSource:
             )
         assert results[0].lifecycle_stage == "enacted"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_terminated_bill_leaves_stage_for_the_model(self, _with_key):
         """Terminated covers defeated, withdrawn and lapsed - finished is
@@ -218,6 +229,7 @@ class TestNZPCOSource:
             )
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_in_force_act_is_enacted(self, _with_key):
         client = _mock_client([
@@ -240,6 +252,7 @@ class TestNZPCOSource:
             )
         assert results[0].lifecycle_stage == "enacted"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_not_in_force_act_leaves_stage_for_the_model(self, _with_key):
         """not_in_force is ambiguous: repealed and not-yet-commenced look
@@ -263,6 +276,7 @@ class TestNZPCOSource:
             )
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_work_without_html_format_falls_back_to_pdf(self, _with_key):
         formats = [{"type": "pdf", "url": "https://www.legislation.govt.nz/x.pdf"}]
@@ -281,6 +295,7 @@ class TestNZPCOSource:
             )
         assert results[0].url == "https://www.legislation.govt.nz/x.pdf"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_work_without_any_format_url_is_skipped(self, _with_key):
         client = _mock_client([
@@ -292,6 +307,7 @@ class TestNZPCOSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_duplicate_work_across_terms_deduped(self, _with_key):
         client = _mock_client([
@@ -310,6 +326,7 @@ class TestNZPCOSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self, _with_key):
         works = [_work(work_id=f"bill_government_2026_{n}") for n in range(8)]
@@ -326,6 +343,7 @@ class TestNZPCOSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self, _with_key):
         import httpx as _httpx
@@ -336,6 +354,7 @@ class TestNZPCOSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self, _with_key):
         client = _mock_client([_mock_response(json_data={"nope": 1})])
