@@ -182,26 +182,31 @@ sets cost level to `high` and/or chases every single weekly lead.
 
 ## Scheduled Jobs on the Server
 
-The weekly/monthly jobs above are what GitHub Actions already runs as a
-"belt and braces" copy against the `ci-data` branch (see
-`.github/workflows/weekly-signals.yml` and `monthly-scan.yml`) — that
-stays in place regardless of self-hosting. Running the *same* jobs on the
-server too means the live database gets updated directly, without
-waiting on a human to pull GitHub Actions output back in.
+**The monthly scan has one trigger: the in-app schedule** ("Monthly full
+scan", Admin > Schedules; 1st of the month, 06:00 UTC, ceiling $50). It
+runs inside the container, records its estimate and its actual, and
+refuses to start while another scan is running. Do not add a cron line or
+a workflow for it: on 1 September 2026 a server cron line started a second
+scan 22 seconds after the schedule's own, and the GitHub Actions workflow
+that used to exist had failed every month for want of a secret. Both were
+retired on 9 September 2026 ([ADR-0006](decisions/ADR-0006-one-monthly-trigger.md)).
+If the container is down at 06:00 on the 1st, the scan does not run that
+month; `next_run_at` shows it and **Run now** covers it.
 
-**cron** (edit with `crontab -e`, running as whatever user owns the
-`docker compose` checkout):
+**The weekly signals sweep** still runs from cron (GitHub Actions runs the
+same sweep against the `ci-data` branch as a belt-and-braces copy, see
+`.github/workflows/weekly-signals.yml`):
 
 ```cron
 # Weekly signals sweep — Monday 06:30
 30 6 * * 1 cd /opt/policypulse && docker compose exec -T policypulse python -m src.agent --signals >> data/logs/cron.log 2>&1
-
-# Monthly full scan — 1st of the month, 06:00
-0 6 1 * * cd /opt/policypulse && docker compose exec -T policypulse python -m src.agent "Scan the all group and report results" >> data/logs/cron.log 2>&1
 ```
 
-Or as a **systemd timer** (one example; duplicate for the monthly job with
-its own `OnCalendar`):
+Edit the crontab by read-modify-write, never by piping into `crontab -`:
+`crontab -l > backup`, edit a copy, check the diff, `crontab copy`. A pipe
+of a partial list once replaced every job on the host.
+
+Or as a **systemd timer**:
 
 ```ini
 # /etc/systemd/system/policypulse-signals.service

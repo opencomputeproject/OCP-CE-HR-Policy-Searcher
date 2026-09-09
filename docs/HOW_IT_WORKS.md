@@ -439,9 +439,12 @@ Column Teaches" (2 September 2026).
 ## How scans run, and what they cost
 
 - **The in-app schedule** ("Monthly full scan", 1st of the month, 06:00 UTC,
-  ceiling $50) is the owner of the monthly run; it records the estimate and
-  the actual. Admin, Schedules, has **Run now**. The proposal to make it the
-  only trigger is [ADR-0006](decisions/ADR-0006-one-monthly-trigger.md).
+  ceiling $50) is the only thing that starts the monthly run, and it records
+  the estimate and the actual. Admin, Schedules, has **Run now**. Until
+  9 September 2026 a server cron line and a GitHub Actions workflow also
+  tried to; the cron line double-fired the 1 September scan and the workflow
+  had failed every month. [ADR-0006](decisions/ADR-0006-one-monthly-trigger.md)
+  retired both.
 - **By hand, scoped**: pick a group in the scanner panel (`us`, `us_federal`,
   `us_states`, `eu`, `nordic`, and the rest of `config/groups.yaml`), tick the
   channels, read the estimate, start. Or on the server:
