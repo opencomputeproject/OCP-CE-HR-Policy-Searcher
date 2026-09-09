@@ -1,6 +1,7 @@
 """Tests for the domain generator — ID generation, region detection, YAML formatting."""
 
 
+import pytest
 from src.agent.domain_generator import (
     generate_domain_id,
     detect_region,
@@ -8,6 +9,8 @@ from src.agent.domain_generator import (
     build_domain_entry,
     format_domain_yaml,
 )
+
+pytestmark = pytest.mark.small
 
 
 class TestGenerateDomainId:

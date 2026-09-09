@@ -80,6 +80,7 @@ def client(mock_config, mock_store, mock_manager, mock_broadcaster):
 
 # --- Root & Health ---
 
+@pytest.mark.medium
 class TestRootAndHealth:
     def test_root(self, client):
         response = client.get("/")
@@ -96,6 +97,7 @@ class TestRootAndHealth:
 
 # --- Domains ---
 
+@pytest.mark.medium
 class TestDomainRoutes:
     def test_list_domains(self, client):
         response = client.get("/api/domains")
@@ -152,6 +154,7 @@ class TestDomainRoutes:
 # --- Policies ---
 
 class TestPolicyRoutes:
+    @pytest.mark.medium
     def test_list_policies_empty(self, client):
         response = client.get("/api/policies")
         assert response.status_code == 200
@@ -159,6 +162,7 @@ class TestPolicyRoutes:
         assert data["policies"] == []
         assert data["count"] == 0
 
+    @pytest.mark.medium
     def test_list_policies_with_store_data(self, client, mock_store):
         mock_store.search.return_value = [
             {"url": "https://a.gov/p1", "policy_name": "P1", "jurisdiction": "US"},
@@ -167,6 +171,7 @@ class TestPolicyRoutes:
         data = response.json()
         assert data["count"] == 1
 
+    @pytest.mark.medium
     def test_list_policies_merges_in_memory(self, client, mock_manager):
         mock_manager.get_all_policies.return_value = [
             Policy(
@@ -182,6 +187,7 @@ class TestPolicyRoutes:
         data = response.json()
         assert data["count"] == 1
 
+    @pytest.mark.medium
     def test_list_policies_deduplicates(self, client, mock_store, mock_manager):
         mock_store.search.return_value = [
             {"url": "https://a.gov/p1", "policy_name": "P1"},
@@ -200,10 +206,12 @@ class TestPolicyRoutes:
         data = response.json()
         assert data["count"] == 1  # deduplicated
 
+    @pytest.mark.medium
     def test_list_policies_filters(self, client):
         response = client.get("/api/policies?jurisdiction=US&min_score=5")
         assert response.status_code == 200
 
+    @pytest.mark.medium
     def test_policy_stats(self, client):
         response = client.get("/api/policies/stats")
         assert response.status_code == 200
@@ -262,6 +270,7 @@ class TestPolicyRoutes:
 
 # --- Analysis ---
 
+@pytest.mark.medium
 class TestAnalysisRoutes:
     def test_analyze_route_is_registered(self, client):
         # An invalid body must fail validation (422), not routing (404).
@@ -350,6 +359,7 @@ class TestConfigSettingsSecurity:
         }
         mock_config.settings = settings
 
+    @pytest.mark.medium
     def test_admin_gets_settings_without_the_credentials_blob(self, client, mock_config):
         self._settings_with_secret(mock_config)
         resp = client.get("/api/config/settings")  # testclient host == admin
@@ -358,6 +368,7 @@ class TestConfigSettingsSecurity:
         assert "google_credentials_b64" not in output
         assert output["spreadsheet_id"] == "sheet-abc"  # non-secret field kept
 
+    @pytest.mark.medium
     def test_non_admin_cannot_read_settings(
         self, mock_config, mock_store, mock_manager, mock_broadcaster
     ):
@@ -371,6 +382,7 @@ class TestConfigSettingsSecurity:
         finally:
             app.dependency_overrides.clear()
 
+    @pytest.mark.medium
     def test_non_admin_cannot_read_keywords_or_logs_or_api_key(
         self, mock_config, mock_store, mock_manager, mock_broadcaster
     ):
@@ -392,6 +404,7 @@ class TestConfigSettingsSecurity:
 # --- Scans ---
 
 class TestScanRoutes:
+    @pytest.mark.medium
     def test_start_scan_passes_deep_flag(self, client, mock_manager):
         job = ScanJob(
             scan_id="s1",
@@ -412,6 +425,7 @@ class TestScanRoutes:
         mock_manager.start_scan.assert_awaited_once()
         assert mock_manager.start_scan.await_args.kwargs["deep"] is True
 
+    @pytest.mark.medium
     def test_start_scan_discover_runs_agent_prompt(self, client, monkeypatch):
         monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
 
@@ -435,6 +449,7 @@ class TestScanRoutes:
         prompt = agent.run.await_args.args[0]
         assert "Discover new coverage for Poland" in prompt
 
+    @pytest.mark.medium
     def test_start_scan_rejects_multiple_modes(self, client):
         response = client.post(
             "/api/scans",
@@ -443,6 +458,7 @@ class TestScanRoutes:
 
         assert response.status_code == 422
 
+    @pytest.mark.medium
     def test_start_scan_rejects_invalid_channel(self, client):
         response = client.post(
             "/api/scans",
@@ -452,6 +468,7 @@ class TestScanRoutes:
         data = response.json()
         assert "bogus" in str(data["detail"])
 
+    @pytest.mark.medium
     def test_start_scan_defaults_to_crawl_channel(self, client, mock_manager):
         job = ScanJob(
             scan_id="s1",
@@ -467,6 +484,7 @@ class TestScanRoutes:
         mock_manager.start_scan.assert_awaited_once()
         assert mock_manager.start_scan.await_args.kwargs["channels"] == ["crawl"]
 
+    @pytest.mark.medium
     def test_start_scan_passes_requested_channels(self, client, mock_manager):
         job = ScanJob(
             scan_id="s1",
@@ -549,11 +567,13 @@ class TestScanRoutes:
         assert mock_manager.start_scan.await_args.kwargs["budget_usd"] is None
         assert response.json()["budget_usd"] is None
 
+    @pytest.mark.medium
     def test_list_scans_empty(self, client):
         response = client.get("/api/scans")
         assert response.status_code == 200
         assert response.json() == []
 
+    @pytest.mark.medium
     def test_cost_estimate_unknown_scope_returns_400(self, client, mock_manager):
         from src.core.config import ConfigurationError
 
@@ -564,6 +584,7 @@ class TestScanRoutes:
         assert response.status_code == 400
         assert "bogus" in response.json()["detail"]
 
+    @pytest.mark.medium
     def test_cost_estimate_valid_scope_returns_shape(self, client, mock_manager):
         mock_manager.estimate_cost.return_value = {
             "domain_count": 3,
@@ -580,6 +601,7 @@ class TestScanRoutes:
         assert data["estimated_cost_usd"] == 1.23
         mock_manager.estimate_cost.assert_called_once_with("quick", deep=False)
 
+    @pytest.mark.medium
     def test_cost_estimate_deep_flag_passed_through(self, client, mock_manager):
         mock_manager.estimate_cost.return_value = {
             "domain_count": 3,
@@ -593,6 +615,7 @@ class TestScanRoutes:
         assert response.status_code == 200
         mock_manager.estimate_cost.assert_called_once_with("quick", deep=True)
 
+    @pytest.mark.medium
     def test_list_scans_with_job(self, client, mock_manager):
         job = ScanJob(scan_id="s1", status=ScanStatus.COMPLETED, domain_count=2, policy_count=1)
         mock_manager.jobs = {"s1": job}
@@ -602,12 +625,14 @@ class TestScanRoutes:
         assert len(data) == 1
         assert data[0]["scan_id"] == "s1"
 
+    @pytest.mark.medium
     def test_get_scan_not_found(self, client):
         response = client.get("/api/scans/nonexistent")
         assert response.status_code == 404
         data = response.json()
         assert "detail" in data
 
+    @pytest.mark.medium
     def test_get_scan_detail(self, client, mock_manager):
         job = ScanJob(
             scan_id="s1",
@@ -641,6 +666,7 @@ class TestScanRoutes:
         assert response.status_code == 200
         assert response.json()["budget_reached"] is True
 
+    @pytest.mark.medium
     def test_cancel_scan_not_found(self, client, mock_manager):
         mock_manager.stop_scan = AsyncMock(return_value=False)
         response = client.delete("/api/scans/nonexistent")

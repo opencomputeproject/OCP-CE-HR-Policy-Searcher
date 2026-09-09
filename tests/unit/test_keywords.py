@@ -4,6 +4,8 @@ import pytest
 
 from src.core.keywords import KeywordMatcher, COMPOUND_LANGUAGES
 
+pytestmark = pytest.mark.small
+
 
 def _make_config(**overrides):
     """Create a minimal keyword config for testing."""

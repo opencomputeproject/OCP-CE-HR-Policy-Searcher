@@ -1,10 +1,13 @@
 """Tests for Verifier — deterministic policy verification."""
 
+import pytest
 from datetime import date, timedelta
 
 
 from src.core.models import Policy, PolicyType, VerificationFlag
 from src.core.verifier import Verifier
+
+pytestmark = pytest.mark.small
 
 
 def _make_policy(**overrides) -> Policy:

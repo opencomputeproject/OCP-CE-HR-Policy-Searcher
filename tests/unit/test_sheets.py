@@ -15,6 +15,7 @@ from src.core.policy_schema import POLICYPULSE_APPENDED_HEADERS, STAGING_HEADERS
 from src.storage.leads import Lead
 
 
+@pytest.mark.small
 class TestPolicySheetHeaders:
     """Test Policy.sheet_headers()."""
 
@@ -51,6 +52,7 @@ class TestPolicySheetHeaders:
             assert isinstance(h, str)
 
 
+@pytest.mark.small
 class TestPolicyToSheetRow:
     """Test to_staging_row(), the Staging serialisation."""
 
@@ -177,6 +179,7 @@ class TestPolicyToSheetRow:
         assert len(to_staging_row(policy)) == len(Policy.sheet_headers())
 
 
+@pytest.mark.small
 class TestSheetsClient:
     """Test SheetsClient with mocked gspread."""
 
@@ -693,6 +696,7 @@ class TestSheetsClientAddReasonColumn:
         assert [v["userEnteredValue"] for v in condition["values"]] == ["x", "y"]
 
 
+@pytest.mark.small
 class TestSheetsClientUpdateReviewStatuses:
     """SheetsClient.update_review_statuses — one-way (app -> sheet), URL-matched
     batch write to the Review Status column. Used by the scan-end
@@ -780,6 +784,7 @@ class TestSheetsClientUpdateReviewStatuses:
         assert client.update_review_statuses({"https://a.gov/p1": "rejected"}) == 0
 
 
+@pytest.mark.small
 class TestSheetsClientExportTips:
     """SheetsClient.export_tips — one-way batch export to the Tips worksheet."""
 

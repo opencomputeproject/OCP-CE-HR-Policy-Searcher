@@ -67,12 +67,15 @@ LONG_HTML = "<html><body>" + ("District heating provisions. " * 30) + "</body></
 
 
 class TestOireachtasSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["oireachtas"] is OireachtasSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert OireachtasSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_use_irish_english_spelling(self):
         # Ireland writes "data centre", never "data center". A US-spelled
         # term list would silently match nothing.
@@ -81,6 +84,7 @@ class TestOireachtasSource:
         assert "data centre" in joined
         assert "data center" not in joined
 
+    @pytest.mark.small
     def test_default_terms_are_broad_single_words(self):
         """Regression: title-only matching needs breadth, not domain phrases.
 
@@ -92,6 +96,7 @@ class TestOireachtasSource:
         assert "heat" in DEFAULT_TERMS
         assert "energy" in DEFAULT_TERMS
 
+    @pytest.mark.small
     def test_broad_term_catches_title_without_domain_phrase(self):
         """"Prevention of Energy Wastage Bill" must match, though it never
         says "waste heat"."""
@@ -100,6 +105,7 @@ class TestOireachtasSource:
         from src.sources.oireachtas import DEFAULT_TERMS
         assert OireachtasSource._matches(bill, [t.lower() for t in DEFAULT_TERMS])
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path_matches_title_and_fetches_bill_page(self):
         list_resp = _mock_response(json_data=_payload([_bill()]))
@@ -119,6 +125,7 @@ class TestOireachtasSource:
         assert result.title == "Heat Networks Bill 2026"
         assert "District heating provisions." in result.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_non_matching_bill_is_skipped(self):
         list_resp = _mock_response(json_data=_payload([
@@ -134,6 +141,7 @@ class TestOireachtasSource:
 
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_matches_long_title_when_short_title_does_not(self):
         list_resp = _mock_response(json_data=_payload([
@@ -150,6 +158,7 @@ class TestOireachtasSource:
 
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_match_is_case_insensitive(self):
         list_resp = _mock_response(json_data=_payload([
@@ -165,6 +174,7 @@ class TestOireachtasSource:
 
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_enacted_status_maps_to_enacted(self):
         list_resp = _mock_response(json_data=_payload([
@@ -180,6 +190,7 @@ class TestOireachtasSource:
 
         assert results[0].lifecycle_stage == "enacted"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_committee_stage_maps_to_in_committee(self):
         list_resp = _mock_response(json_data=_payload([
@@ -195,6 +206,7 @@ class TestOireachtasSource:
 
         assert results[0].lifecycle_stage == "in_committee"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_current_bill_defaults_to_proposed(self):
         list_resp = _mock_response(json_data=_payload([_bill(stage="Second Stage")]))
@@ -208,6 +220,7 @@ class TestOireachtasSource:
 
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_falls_back_to_titles_when_page_fetch_is_thin(self):
         """A failed page fetch must still yield the bill, not drop it."""
@@ -225,6 +238,7 @@ class TestOireachtasSource:
         # HTML tags from longTitleEn must not leak into content.
         assert "<p>" not in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         bills = [_bill(bill_no=str(n)) for n in range(10)]
@@ -239,6 +253,7 @@ class TestOireachtasSource:
 
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_duplicate_bills_are_deduped(self):
         list_resp = _mock_response(json_data=_payload([_bill(), _bill()]))
@@ -252,6 +267,7 @@ class TestOireachtasSource:
 
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -262,6 +278,7 @@ class TestOireachtasSource:
 
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         # One response per default status (Current, Enacted).
@@ -273,6 +290,7 @@ class TestOireachtasSource:
 
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_default_queries_both_current_and_enacted(self):
         """Enacted law matters as much as pending bills; both must be asked for."""

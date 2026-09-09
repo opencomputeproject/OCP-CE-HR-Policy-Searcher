@@ -56,6 +56,7 @@ def _write_log_lines(log_file, entries: list[dict]):
 # Session ID
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestSessionID:
     """Test that a unique session ID is generated per process."""
 
@@ -78,9 +79,11 @@ class TestSessionID:
 class TestFlushingHandler:
     """Test the crash-safe flushing file handler."""
 
+    @pytest.mark.small
     def test_inherits_rotating_handler(self):
         assert issubclass(FlushingRotatingFileHandler, logging.handlers.RotatingFileHandler)
 
+    @pytest.mark.medium
     def test_flush_on_emit(self, tmp_path):
         """Handler should flush after each emit for crash safety."""
         log_file = tmp_path / "test.log"
@@ -105,6 +108,7 @@ class TestFlushingHandler:
 # setup_logging
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestSetupLogging:
     """Test the unified logging configuration."""
 
@@ -156,6 +160,7 @@ class TestSetupLogging:
 # Sensitive data redaction
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestRedaction:
     """Test that API keys and tokens are stripped from log output."""
 
@@ -211,6 +216,7 @@ class TestRedaction:
 # Audit log
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestAuditLog:
     """Test the crash-safe audit log (audit.jsonl)."""
 
@@ -266,6 +272,7 @@ class TestAuditLog:
 # Log readers
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestReadLogs:
     """Test the read_logs() function for the CLI viewer and API."""
 
@@ -360,6 +367,7 @@ class TestReadLogs:
         assert len(entries) == 2
 
 
+@pytest.mark.medium
 class TestReadAuditLog:
     """Test the read_audit_log() function."""
 
@@ -398,6 +406,7 @@ class TestReadAuditLog:
 # Log file paths
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestGetLogFilePaths:
     """Test get_log_file_paths() for CLI and API info endpoints."""
 
@@ -425,6 +434,7 @@ class TestGetLogFilePaths:
 # CLI log viewer helpers
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestFormatSize:
     """Test the _format_size() helper in __main__.py."""
 
@@ -443,6 +453,7 @@ class TestFormatSize:
         assert "MB" in result
 
 
+@pytest.mark.medium
 class TestHandleLogsCommand:
     """Test the _handle_logs_command() CLI handler."""
 
@@ -498,6 +509,7 @@ class TestHandleLogsCommand:
 # API log endpoints
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestLogAPI:
     """Test the /api/logs endpoints via FastAPI TestClient."""
 
@@ -564,6 +576,7 @@ class TestLogAPI:
 # Edge cases
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestEdgeCases:
     """Edge case tests for logging robustness."""
 

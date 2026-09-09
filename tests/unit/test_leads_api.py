@@ -12,6 +12,8 @@ from fastapi.testclient import TestClient
 
 from src.storage.leads import Lead, LeadStore
 
+pytestmark = pytest.mark.medium
+
 
 @pytest.fixture
 def lead_store(tmp_path):

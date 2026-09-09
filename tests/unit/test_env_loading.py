@@ -22,6 +22,7 @@ import pytest
 # Project-root resolution
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestProjectRootResolution:
     """Each entry point must resolve .env from the project root, not CWD."""
 
@@ -61,14 +62,17 @@ class TestLoadDotenvUsesExplicitPath:
     def _read_source(self, relative_path: str) -> str:
         return (self.project_root / relative_path).read_text(encoding="utf-8")
 
+    @pytest.mark.small
     def test_agent_uses_explicit_env_path(self):
         source = self._read_source("src/agent/__main__.py")
         assert 'load_dotenv(_project_root / ".env"' in source
 
+    @pytest.mark.small
     def test_mcp_server_uses_explicit_env_path(self):
         source = self._read_source("src/mcp/server.py")
         assert 'load_dotenv(_project_root / ".env"' in source
 
+    @pytest.mark.small
     def test_api_runner_uses_explicit_env_path(self):
         source = self._read_source("src/api/__main__.py")
         assert 'load_dotenv(_project_root / ".env"' in source
@@ -80,6 +84,7 @@ class TestLoadDotenvUsesExplicitPath:
         source = self._read_source("src/api/app.py")
         assert "load_dotenv(" not in source
 
+    @pytest.mark.small
     def test_all_use_override_true(self):
         """override=True is required so .env wins over stale system vars."""
         for path in [
@@ -91,6 +96,7 @@ class TestLoadDotenvUsesExplicitPath:
             assert "override=True" in source, f"{path} missing override=True"
 
 
+@pytest.mark.medium
 class TestDotenvOverrideBehavior:
     """load_dotenv(override=True) should replace stale env vars."""
 
@@ -140,6 +146,7 @@ class TestDotenvOverrideBehavior:
 # Google Sheets credential validation
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestSheetsClientCredentialValidation:
     """SheetsClient.connect() should reject clearly invalid credentials."""
 
@@ -203,6 +210,7 @@ class TestResolveGoogleCredentials:
     }
     SAMPLE_JSON = '{"type":"service_account","project_id":"test"}'
 
+    @pytest.mark.medium
     def test_file_env_var_loads_and_encodes(self, tmp_path):
         from src.core.config import _resolve_google_credentials
 
@@ -215,6 +223,7 @@ class TestResolveGoogleCredentials:
         expected = base64.b64encode(self.SAMPLE_JSON.encode("utf-8")).decode("ascii")
         assert result == expected
 
+    @pytest.mark.small
     def test_file_env_var_missing_file_falls_through(self):
         from src.core.config import _resolve_google_credentials
 
@@ -222,6 +231,7 @@ class TestResolveGoogleCredentials:
             result = _resolve_google_credentials(None, self.PLACEHOLDERS)
         assert result is None
 
+    @pytest.mark.medium
     def test_file_env_var_takes_priority_over_raw(self, tmp_path):
         from src.core.config import _resolve_google_credentials
 
@@ -235,6 +245,7 @@ class TestResolveGoogleCredentials:
         expected = base64.b64encode(self.SAMPLE_JSON.encode("utf-8")).decode("ascii")
         assert result == expected
 
+    @pytest.mark.small
     def test_raw_json_auto_encoded(self):
         from src.core.config import _resolve_google_credentials
 
@@ -245,6 +256,7 @@ class TestResolveGoogleCredentials:
         expected = base64.b64encode(self.SAMPLE_JSON.encode("utf-8")).decode("ascii")
         assert result == expected
 
+    @pytest.mark.medium
     def test_json_file_path_in_value(self, tmp_path):
         from src.core.config import _resolve_google_credentials
 
@@ -258,6 +270,7 @@ class TestResolveGoogleCredentials:
         expected = base64.b64encode(self.SAMPLE_JSON.encode("utf-8")).decode("ascii")
         assert result == expected
 
+    @pytest.mark.small
     def test_base64_passthrough(self):
         from src.core.config import _resolve_google_credentials
 
@@ -269,6 +282,7 @@ class TestResolveGoogleCredentials:
 
         assert result == pre_encoded
 
+    @pytest.mark.small
     def test_placeholder_returns_none(self):
         from src.core.config import _resolve_google_credentials
 
@@ -278,6 +292,7 @@ class TestResolveGoogleCredentials:
                 result = _resolve_google_credentials(placeholder, self.PLACEHOLDERS)
                 assert result is None, f"Placeholder '{placeholder}' should return None"
 
+    @pytest.mark.small
     def test_empty_and_none_return_none(self):
         from src.core.config import _resolve_google_credentials
 
@@ -286,6 +301,7 @@ class TestResolveGoogleCredentials:
             assert _resolve_google_credentials(None, self.PLACEHOLDERS) is None
             assert _resolve_google_credentials("", self.PLACEHOLDERS) is None
 
+    @pytest.mark.small
     def test_nonexistent_json_path_returns_none(self):
         from src.core.config import _resolve_google_credentials
 
@@ -296,6 +312,7 @@ class TestResolveGoogleCredentials:
         assert result == "/no/such/creds.json"
 
 
+@pytest.mark.small
 class TestConfigLoaderCredentials:
     """ConfigLoader should pass env vars through to OutputSettings."""
 
@@ -396,6 +413,7 @@ def _has_uncommented_google_creds(env_content: str) -> bool:
     return False
 
 
+@pytest.mark.small
 class TestSetupScriptCredentialDetection:
     """Verify the setup script logic correctly distinguishes commented vs active creds.
 
@@ -477,6 +495,7 @@ class TestSetupScriptCredentialDetection:
         assert _has_uncommented_google_creds(content)
 
 
+@pytest.mark.small
 class TestSetupScriptRegexConsistency:
     """The regex patterns in setup.sh and setup.ps1 must match our Python logic."""
 
@@ -508,6 +527,7 @@ class TestSetupScriptRegexConsistency:
 # Dependency checks
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestDotenvDependency:
     """python-dotenv must be listed as a project dependency."""
 

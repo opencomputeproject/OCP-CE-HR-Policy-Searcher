@@ -28,6 +28,7 @@ def scan_manager(config):
     return ScanManager(config=config, broadcaster=broadcaster, data_dir="data")
 
 
+@pytest.mark.small
 class TestToolDefinitions:
     """Verify tool definitions match Anthropic API format."""
 
@@ -66,6 +67,7 @@ class TestToolDefinitions:
         assert "full-text" in query_description.lower()
 
 
+@pytest.mark.medium
 class TestToolDispatch:
     """Test that execute_tool dispatches correctly."""
 
@@ -136,6 +138,7 @@ class TestToolDispatch:
         assert "not found" in result["error"]
 
 
+@pytest.mark.small
 class TestSystemPrompt:
     """Test system prompt generation."""
 
@@ -170,6 +173,7 @@ class TestSystemPrompt:
 
 # --- _get_retry_delay ---
 
+@pytest.mark.small
 class TestGetRetryDelay:
     """Test retry delay extraction and exponential backoff."""
 
@@ -348,6 +352,7 @@ class TestAgentRateLimitRetry:
 
 # --- Conversation Memory ---
 
+@pytest.mark.medium
 class TestConversationMemory:
     """Test that conversation history persists across run() calls."""
 
@@ -444,6 +449,7 @@ class TestConversationMemory:
 
 # --- Conversation Trimming ---
 
+@pytest.mark.small
 class TestConversationTrimming:
     """Test that conversation history is trimmed to stay within limits."""
 
@@ -498,12 +504,14 @@ class TestConversationTrimming:
 class TestListScansTool:
     """Test the list_scans tool."""
 
+    @pytest.mark.small
     def test_list_scans_tool_exists(self):
         """list_scans should be in the tool list."""
         tools = get_all_tools()
         names = [t.get("name") for t in tools]
         assert "list_scans" in names
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_list_scans_empty(self, config, scan_manager):
         """list_scans with no scans returns empty list."""
@@ -511,6 +519,7 @@ class TestListScansTool:
         assert result["count"] == 0
         assert result["scans"] == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_list_scans_shows_running(self, config, scan_manager):
         """list_scans shows running scans."""

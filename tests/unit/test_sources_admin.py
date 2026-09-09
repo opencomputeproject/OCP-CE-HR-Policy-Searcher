@@ -20,6 +20,7 @@ from src.storage.domain_overrides import DomainOverridesStore
 # Pure function: build_source_rows
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestBuildSourceRows:
     def test_crawl_domain_has_no_key_status(self):
         domains = [{"id": "d1", "name": "D1", "region": ["sweden"]}]
@@ -130,6 +131,7 @@ def client_and_store(monkeypatch, tmp_path):
     app.dependency_overrides.clear()
 
 
+@pytest.mark.medium
 class TestStatusRouteAdminGate:
     def test_local_open_mode_returns_200(self, client_and_store, monkeypatch):
         monkeypatch.delenv("ADMIN_TOKEN", raising=False)
@@ -155,6 +157,7 @@ class TestStatusRouteAdminGate:
         assert allowed.status_code == 200
 
 
+@pytest.mark.medium
 class TestStatusRouteShape:
     def test_response_shape(self, client_and_store, monkeypatch):
         monkeypatch.delenv("ADMIN_TOKEN", raising=False)
@@ -185,6 +188,7 @@ class TestStatusRouteShape:
 # PUT /api/sources/{id}/enabled
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestPutEnabled:
     def test_set_false_persists_override(self, client_and_store, monkeypatch):
         monkeypatch.delenv("ADMIN_TOKEN", raising=False)
@@ -235,6 +239,7 @@ class TestPutEnabled:
 # Overlay integration: PUT disable -> excluded from /api/domains and coverage
 # ---------------------------------------------------------------------------
 
+@pytest.mark.medium
 class TestOverlayIntegration:
     def test_disabling_via_put_excludes_from_domains_group_listing(self, monkeypatch, tmp_path):
         monkeypatch.delenv("ADMIN_TOKEN", raising=False)

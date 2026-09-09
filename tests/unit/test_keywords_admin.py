@@ -13,6 +13,8 @@ from fastapi.testclient import TestClient
 
 from src.storage.keyword_overrides import KeywordOverridesStore
 
+pytestmark = pytest.mark.medium
+
 
 def _keywords_config():
     return {

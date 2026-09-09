@@ -22,6 +22,7 @@ from src.core.pricing import PricingLoader
 
 # --- _extract_json ---
 
+@pytest.mark.small
 class TestExtractJson:
     def test_raw_json(self):
         text = '{"relevant": true, "confidence": 8}'
@@ -52,47 +53,58 @@ class TestExtractJson:
 # --- _coerce_types ---
 
 class TestCoerceTypes:
+    @pytest.mark.small
     def test_string_true_to_bool(self):
         result = _coerce_types({"is_relevant": "true"})
         assert result["is_relevant"] is True
 
+    @pytest.mark.small
     def test_string_yes_to_bool(self):
         result = _coerce_types({"is_relevant": "yes"})
         assert result["is_relevant"] is True
 
+    @pytest.mark.small
     def test_string_ja_to_bool(self):
         result = _coerce_types({"is_relevant": "ja"})
         assert result["is_relevant"] is True
 
+    @pytest.mark.small
     def test_string_false_to_bool(self):
         result = _coerce_types({"is_relevant": "false"})
         assert result["is_relevant"] is False
 
+    @pytest.mark.small
     def test_int_to_bool(self):
         result = _coerce_types({"is_relevant": 1})
         assert result["is_relevant"] is True
 
+    @pytest.mark.small
     def test_float_score_to_int(self):
         result = _coerce_types({"relevance_score": 7.5})
         assert result["relevance_score"] == 7
 
+    @pytest.mark.small
     def test_string_score_to_int(self):
         result = _coerce_types({"relevance_score": "8/10"})
         assert result["relevance_score"] == 8
 
+    @pytest.mark.small
     def test_score_clamped_to_10(self):
         result = _coerce_types({"relevance_score": 15})
         assert result["relevance_score"] == 10
 
+    @pytest.mark.small
     def test_score_clamped_to_0(self):
         result = _coerce_types({"relevance_score": -5})
         assert result["relevance_score"] == 0
 
+    @pytest.mark.small
     def test_unparseable_score_defaults_to_zero(self):
         """Completely unparseable score string should default to 0."""
         result = _coerce_types({"relevance_score": "very high"})
         assert result["relevance_score"] == 0
 
+    @pytest.mark.small
     def test_unparseable_score_logs_warning(self, caplog):
         """Unparseable score should produce a warning log."""
         import logging
@@ -100,6 +112,7 @@ class TestCoerceTypes:
             _coerce_types({"relevance_score": "not a number"})
         assert any("unparseable" in r.message.lower() for r in caplog.records)
 
+    @pytest.mark.small
     def test_null_values_normalized(self):
         result = _coerce_types({
             "policy_name": "null",
@@ -118,30 +131,36 @@ class TestCoerceTypes:
         assert result["effective_date"] is None
         assert result["bill_number"] is None
 
+    @pytest.mark.small
     def test_missing_relevance_explanation(self):
         result = _coerce_types({})
         assert result["relevance_explanation"] == "No explanation provided"
 
+    @pytest.mark.small
     def test_policy_type_default_when_not_relevant(self):
         result = _coerce_types({"is_relevant": False, "policy_type": None})
         assert result["policy_type"] == "not_relevant"
 
+    @pytest.mark.small
     def test_policy_type_default_when_relevant(self):
         result = _coerce_types({"is_relevant": True, "policy_type": "null"})
         assert result["policy_type"] == "unknown"
 
+    @pytest.mark.small
     def test_coerce_referenced_policies_from_null(self):
         """Null referenced_policies should become empty list."""
         result = _coerce_types({"referenced_policies": None, "referenced_urls": "null"})
         assert result["referenced_policies"] == []
         assert result["referenced_urls"] == []
 
+    @pytest.mark.small
     def test_coerce_referenced_policies_from_string(self):
         """Single string referenced_policies should become one-element list."""
         result = _coerce_types({"referenced_policies": "EU EED", "referenced_urls": ""})
         assert result["referenced_policies"] == ["EU EED"]
         assert result["referenced_urls"] == []
 
+    @pytest.mark.small
     def test_coerce_referenced_policies_filters_nulls(self):
         """List with null-like values should have them filtered out."""
         result = _coerce_types({
@@ -151,6 +170,7 @@ class TestCoerceTypes:
         assert result["referenced_policies"] == ["EU EED"]
         assert result["referenced_urls"] == ["https://x.com"]
 
+    @pytest.mark.small
     def test_coerce_referenced_policies_missing_key(self):
         """Missing referenced_policies key should be added as empty list."""
         result = _coerce_types({})
@@ -337,6 +357,7 @@ class TestToPolicy:
         client.cost = CostInfo()
         return client
 
+    @pytest.mark.medium
     def test_converts_analysis_to_policy(self, client):
         analysis = PolicyAnalysis(
             is_relevant=True,
@@ -358,6 +379,7 @@ class TestToPolicy:
         assert policy.domain_id == "dom1"
         assert policy.scan_id == "scan1"
 
+    @pytest.mark.medium
     def test_returns_none_when_not_relevant(self, client):
         analysis = PolicyAnalysis(
             is_relevant=False,
@@ -365,6 +387,7 @@ class TestToPolicy:
         )
         assert client.to_policy(analysis, "https://a.gov", "en") is None
 
+    @pytest.mark.medium
     def test_unnamed_relevant_policy_gets_synthesized_name(self, client):
         """A relevant policy without a crisp title must not be dropped."""
         analysis = PolicyAnalysis(
@@ -380,6 +403,7 @@ class TestToPolicy:
         assert policy.policy_name  # synthesized, never empty
         assert "Netherlands" in policy.policy_name
 
+    @pytest.mark.medium
     def test_to_policies_extracts_all_policies_on_page(self, client):
         """Index pages listing several laws must yield several records."""
         analysis = PolicyAnalysis(
@@ -408,6 +432,7 @@ class TestToPolicy:
         assert names == {"Heat Act", "Heat Supply Order", "Waste Heat Tax Relief"}
         assert all(p.url == "https://a.gov/laws" for p in policies)
 
+    @pytest.mark.medium
     def test_to_policies_skips_irrelevant_additionals(self, client):
         analysis = PolicyAnalysis(
             is_relevant=True, relevance_score=8, policy_type="law",
@@ -419,6 +444,7 @@ class TestToPolicy:
         policies = client.to_policies(analysis, "https://a.gov", "en")
         assert len(policies) == 1
 
+    @pytest.mark.medium
     def test_invalid_policy_type_becomes_unknown(self, client):
         analysis = PolicyAnalysis(
             is_relevant=True,
@@ -428,6 +454,7 @@ class TestToPolicy:
         policy = client.to_policy(analysis, "https://a.gov", "en")
         assert policy.policy_type == PolicyType.UNKNOWN
 
+    @pytest.mark.medium
     def test_invalid_date_ignored(self, client):
         analysis = PolicyAnalysis(
             is_relevant=True,
@@ -437,6 +464,7 @@ class TestToPolicy:
         policy = client.to_policy(analysis, "https://a.gov", "en")
         assert policy.effective_date is None
 
+    @pytest.mark.medium
     def test_missing_jurisdiction_defaults_to_unknown(self, client):
         analysis = PolicyAnalysis(
             is_relevant=True,
@@ -446,6 +474,7 @@ class TestToPolicy:
         policy = client.to_policy(analysis, "https://a.gov", "en")
         assert policy.jurisdiction == "Unknown"
 
+    @pytest.mark.medium
     def test_to_policy_preserves_referenced_policies(self, client):
         """referenced_policies and referenced_urls should flow through to Policy."""
         analysis = PolicyAnalysis(
@@ -475,6 +504,7 @@ class TestToPolicy:
         assert row[STAGING_HEADERS.index("Referenced URLs")] == \
             "https://eur-lex.europa.eu/eli/dir/2023/1791"
 
+    @pytest.mark.medium
     def test_to_policy_empty_references_default(self, client):
         """Policy with no references should have empty lists."""
         analysis = PolicyAnalysis(
@@ -671,15 +701,19 @@ class TestUpdateCostEstimate:
 class TestPromptContent:
     """Verify expanded prompts cover broader policy types."""
 
+    @pytest.mark.small
     def test_screening_mentions_multi_language(self):
         assert "NO" in SCREENING_PROMPT or "any language" in SCREENING_PROMPT.lower()
 
+    @pytest.mark.small
     def test_analysis_mentions_reporting(self):
         assert "reporting" in ANALYSIS_PROMPT.lower()
 
+    @pytest.mark.small
     def test_analysis_mentions_cost_benefit(self):
         assert "cost-benefit" in ANALYSIS_PROMPT.lower()
 
+    @pytest.mark.small
     def test_analysis_mentions_tax_incentives(self):
         assert "tax incentiv" in ANALYSIS_PROMPT.lower()
 
@@ -767,11 +801,13 @@ class TestPromptContent:
         assert '{{"relevant": true/false, "confidence": 1-10}}' in SCREENING_PROMPT
         assert "kind" not in SCREENING_PROMPT.split("RESPOND WITH JSON ONLY")[1]
 
+    @pytest.mark.small
     def test_analysis_asks_for_every_policy_on_page(self):
         lowered = ANALYSIS_PROMPT.lower()
         assert "additional_policies" in lowered
         assert "every" in lowered or "each" in lowered or "all distinct" in lowered
 
+    @pytest.mark.small
     def test_analysis_forbids_empty_name_for_relevant(self):
         lowered = ANALYSIS_PROMPT.lower()
         assert "descriptive label" in lowered or "never leave" in lowered
@@ -791,6 +827,7 @@ class TestPromptContent:
         assert "already english" in lowered
 
 
+@pytest.mark.small
 class TestScreeningExcerpt:
     """Long documents must not be screened on their head alone."""
 
@@ -825,6 +862,7 @@ class TestScreeningExcerpt:
 
 # --- Scanner delay constants ---
 
+@pytest.mark.small
 class TestScannerDelayConstants:
     """Verify scanner delay constants are generous enough for Anthropic rate limits."""
 
@@ -1011,6 +1049,7 @@ class TestScreeningRateLimitRetry:
 # Model validation (_resolve_model)
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestResolveModel:
     """_resolve_model() should validate and auto-fallback stale models."""
 

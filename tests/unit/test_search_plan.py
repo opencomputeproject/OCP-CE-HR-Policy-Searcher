@@ -80,6 +80,7 @@ def loader(config_dir):
     return ConfigLoader(config_dir=str(config_dir))
 
 
+@pytest.mark.small
 class TestResolvePlace:
     def test_us_state(self):
         place = resolve_place("California")
@@ -131,6 +132,7 @@ class TestResolvePlace:
         assert resolve_place("")["kind"] == "unknown"
 
 
+@pytest.mark.medium
 class TestBuildSearchPlan:
     def test_us_state_plan_includes_state_sites_and_us_law_apis(self, loader):
         plan = build_search_plan("California", terms=None, config=loader)

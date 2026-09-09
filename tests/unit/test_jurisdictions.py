@@ -15,6 +15,8 @@ import yaml
 from src.core import jurisdictions
 from src.core.config import VALID_REGIONS
 
+pytestmark = pytest.mark.small
+
 
 @pytest.fixture(autouse=True)
 def _reset_registry_caches():

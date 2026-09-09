@@ -45,6 +45,7 @@ def _write_json(path, data) -> None:
     path.write_text(json.dumps(data), encoding="utf-8")
 
 
+@pytest.mark.medium
 class TestMigrationFidelity:
     def test_no_legacy_files_is_a_no_op(self, tmp_path):
         storage_db.migrate_json_to_db(tmp_path)
@@ -124,6 +125,7 @@ class TestMigrationFidelity:
         assert leads_path.read_bytes() == leads_bytes
 
 
+@pytest.mark.medium
 class TestMigrationIdempotency:
     def test_second_call_does_not_duplicate_rows(self, tmp_path):
         _write_json(tmp_path / "policies.json", [_full_policy_dict()])
@@ -148,6 +150,7 @@ class TestMigrationIdempotency:
         assert len(store2.get_all()) == 1
 
 
+@pytest.mark.medium
 class TestMigrationVerificationFailure:
     def test_corrupted_write_raises_and_deletes_partial_db(self, tmp_path, monkeypatch):
         _write_json(tmp_path / "policies.json", [_full_policy_dict()])
@@ -189,6 +192,7 @@ class TestMigrationVerificationFailure:
         assert json.loads(row[0]) == full
 
 
+@pytest.mark.medium
 class TestFTS5Search:
     def test_fts5_enabled_on_this_build(self, tmp_path):
         store = PolicyStore(data_dir=str(tmp_path))
@@ -249,6 +253,7 @@ class TestFTS5Search:
         assert hits('"chaleur fatale"') == ["https://fr.gov"]
 
 
+@pytest.mark.medium
 class TestLikeFallback:
     """Forces fts5_supported() to return False to exercise the LIKE path."""
 
@@ -307,26 +312,31 @@ class TestSearchText:
     """PolicyStore.search_text(): FTS5-backed free-text search with a
     LIKE-based fallback when FTS5 is unavailable."""
 
+    @pytest.mark.medium
     def test_multiword_query_is_anded(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         results = store.search_text("heat reuse")
         assert {r["url"] for r in results} == {"https://heat.gov"}
 
+    @pytest.mark.medium
     def test_prefix_match_on_last_token(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         results = store.search_text("chal")
         assert {r["url"] for r in results} == {"https://fr.gov"}
 
+    @pytest.mark.medium
     def test_unicode_german_token(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         results = store.search_text("Abwärme")
         assert {r["url"] for r in results} == {"https://de.gov"}
 
+    @pytest.mark.medium
     def test_unicode_japanese_token(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         results = store.search_text("日本語")
         assert {r["url"] for r in results} == {"https://jp.gov"}
 
+    @pytest.mark.medium
     def test_quote_and_operator_injection_is_neutralized(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         malicious_queries = [
@@ -345,6 +355,7 @@ class TestSearchText:
             results = store.search_text(query)  # must never raise
             assert isinstance(results, list)
 
+    @pytest.mark.medium
     def test_jurisdiction_filter_combines_with_query(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         # "centres" hits both heat.gov (English) and fr.gov (French); the
@@ -352,6 +363,7 @@ class TestSearchText:
         results = store.search_text("centres", jurisdiction="france")
         assert {r["url"] for r in results} == {"https://fr.gov"}
 
+    @pytest.mark.medium
     def test_policy_type_filter_combines_with_query(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         assert {r["url"] for r in store.search_text("centres", policy_type="regulation")} == {
@@ -361,11 +373,13 @@ class TestSearchText:
             "https://heat.gov"
         }
 
+    @pytest.mark.medium
     def test_min_score_filter_combines_with_query(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         results = store.search_text("centres", min_score=8)
         assert {r["url"] for r in results} == {"https://fr.gov"}
 
+    @pytest.mark.medium
     def test_review_status_filter_combines_with_query(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         assert {r["url"] for r in store.search_text("Regelt", review_status="reviewed")} == {
@@ -373,6 +387,7 @@ class TestSearchText:
         }
         assert store.search_text("Regelt", review_status="new") == []
 
+    @pytest.mark.medium
     def test_all_filters_together(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         results = store.search_text(
@@ -381,6 +396,7 @@ class TestSearchText:
         )
         assert {r["url"] for r in results} == {"https://fr.gov"}
 
+    @pytest.mark.medium
     def test_limit_clamps_to_100(self, tmp_path):
         store = PolicyStore(data_dir=str(tmp_path))
         store.add_policies([
@@ -392,6 +408,7 @@ class TestSearchText:
         ])
         assert len(store.search_text("heat", limit=1000)) == 100
 
+    @pytest.mark.medium
     def test_limit_clamps_to_1_minimum(self, tmp_path):
         store = PolicyStore(data_dir=str(tmp_path))
         store.add_policies([
@@ -403,11 +420,13 @@ class TestSearchText:
         assert len(store.search_text("heat", limit=0)) == 1
         assert len(store.search_text("heat", limit=-5)) == 1
 
+    @pytest.mark.medium
     def test_empty_or_whitespace_query_returns_empty(self, tmp_path):
         store = _seed_search_fixture(tmp_path)
         assert store.search_text("") == []
         assert store.search_text("   ") == []
 
+    @pytest.mark.medium
     def test_ranked_by_relevance_name_hit_first(self, tmp_path):
         store = PolicyStore(data_dir=str(tmp_path))
         store.add_policies([
@@ -464,6 +483,7 @@ class TestSearchTextLikeFallback:
     """Same fixture and assertions as TestSearchText, forced onto the LIKE
     fallback path (fts5_supported() -> False) to prove parity."""
 
+    @pytest.mark.medium
     def test_multiword_query_is_anded(self, tmp_path, monkeypatch):
         monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
         store = _seed_search_fixture(tmp_path)
@@ -471,18 +491,21 @@ class TestSearchTextLikeFallback:
         results = store.search_text("heat reuse")
         assert {r["url"] for r in results} == {"https://heat.gov"}
 
+    @pytest.mark.medium
     def test_unicode_german_token(self, tmp_path, monkeypatch):
         monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
         store = _seed_search_fixture(tmp_path)
         results = store.search_text("Abwärme")
         assert {r["url"] for r in results} == {"https://de.gov"}
 
+    @pytest.mark.medium
     def test_jurisdiction_filter_combines_with_query(self, tmp_path, monkeypatch):
         monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
         store = _seed_search_fixture(tmp_path)
         results = store.search_text("centres", jurisdiction="france")
         assert {r["url"] for r in results} == {"https://fr.gov"}
 
+    @pytest.mark.medium
     def test_quote_and_operator_injection_is_neutralized(self, tmp_path, monkeypatch):
         monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
         store = _seed_search_fixture(tmp_path)
@@ -490,12 +513,14 @@ class TestSearchTextLikeFallback:
             results = store.search_text(query)  # must never raise
             assert isinstance(results, list)
 
+    @pytest.mark.medium
     def test_empty_or_whitespace_query_returns_empty(self, tmp_path, monkeypatch):
         monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
         store = _seed_search_fixture(tmp_path)
         assert store.search_text("") == []
         assert store.search_text("   ") == []
 
+    @pytest.mark.medium
     def test_limit_clamps_to_100(self, tmp_path, monkeypatch):
         monkeypatch.setattr(storage_db, "fts5_supported", lambda: False)
         store = PolicyStore(data_dir=str(tmp_path))
@@ -524,6 +549,7 @@ class TestSearchTextLikeFallback:
         assert {r["url"] for r in results} == {"https://nl.gov/warmte"}
 
 
+@pytest.mark.medium
 class TestConcurrentAccess:
     def test_two_policy_stores_see_committed_writes(self, tmp_path):
         store1 = PolicyStore(data_dir=str(tmp_path))
@@ -545,6 +571,7 @@ class TestConcurrentAccess:
         assert len(store2.list()) == 1
 
 
+@pytest.mark.medium
 class TestKvHelpers:
     def test_set_and_get_round_trip_across_connections(self, tmp_path):
         conn1 = storage_db.connect(tmp_path)
@@ -568,6 +595,7 @@ class TestKvHelpers:
         conn.close()
 
 
+@pytest.mark.medium
 class TestJurisdictionsMirror:
     def test_rebuilt_from_yaml_on_connect(self, tmp_path):
         conn = storage_db.connect(tmp_path)

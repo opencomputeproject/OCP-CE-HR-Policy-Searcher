@@ -41,6 +41,7 @@ class TestNoRealBrowser:
 
 # --- _diagnose_response ---
 
+@pytest.mark.small
 class TestDiagnoseResponse:
     def test_cloudflare_server(self):
         result = _diagnose_response(403, {"server": "cloudflare"}, "")
@@ -65,6 +66,7 @@ class TestDiagnoseResponse:
 
 # --- AsyncCrawler._should_skip_url ---
 
+@pytest.mark.small
 class TestShouldSkipUrl:
     def test_skips_matching_path(self):
         crawler = AsyncCrawler(url_skip_paths=["/login", "/admin"])
@@ -87,6 +89,7 @@ class TestShouldSkipUrl:
 # --- AsyncCrawler._extract_links ---
 
 class TestExtractLinks:
+    @pytest.mark.small
     def test_extracts_same_domain_links(self):
         crawler = AsyncCrawler()
         html = """
@@ -103,6 +106,7 @@ class TestExtractLinks:
         assert "https://example.gov/page3" in links
         assert not any("other.com" in link for link in links)
 
+    @pytest.mark.small
     def test_skips_file_extensions(self):
         crawler = AsyncCrawler()
         html = """
@@ -122,6 +126,7 @@ class TestExtractLinks:
         assert not any(link.endswith(".zip") for link in links)
         assert "https://example.gov/page" in links
 
+    @pytest.mark.small
     def test_nav_links_are_followed(self):
         """Statute tables of contents live inside <nav>/<aside> on
         legislation sites; link discovery must not strip them."""
@@ -140,6 +145,7 @@ class TestExtractLinks:
         assert "https://example.gov/law/section-12" in links
         assert "https://example.gov/law/full-text" in links
 
+    @pytest.mark.small
     def test_subdomain_links_followed(self):
         """Gov sites put document stores on sibling subdomains."""
         crawler = AsyncCrawler()
@@ -157,6 +163,7 @@ class TestExtractLinks:
         assert any(link.startswith("https://energy.ca.gov/page") for link in links)
         assert not any("othersite.com" in link for link in links)
 
+    @pytest.mark.small
     def test_url_priority_prefers_law_paths(self):
         crawler = AsyncCrawler()
         assert crawler._url_priority("https://a.gov/laws/energy-heat-act") > \
@@ -231,6 +238,7 @@ class TestExtractLinks:
             )
         assert any(u.endswith("/laws/deep-heat-statute") for u in fetched)
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_playwright_fallback_on_empty_page(self):
         """A JS shell served over httpx must trigger a Playwright retry."""
@@ -257,6 +265,7 @@ class TestExtractLinks:
         assert results[0].used_playwright
         assert "Real policy content" in results[0].content
 
+    @pytest.mark.small
     def test_blocked_patterns_filtered(self):
         crawler = AsyncCrawler()
         html = """
@@ -272,6 +281,7 @@ class TestExtractLinks:
         assert "https://example.gov/policy/good" in links
         assert not any("archive" in link for link in links)
 
+    @pytest.mark.small
     def test_allowed_patterns_restrict(self):
         crawler = AsyncCrawler()
         html = """
@@ -287,6 +297,7 @@ class TestExtractLinks:
         assert "https://example.gov/policy/heat" in links
         assert not any("about" in link for link in links)
 
+    @pytest.mark.small
     def test_keeps_nav_links(self):
         """Nav links are kept: statute ToCs render as navigation, and the
         priority queue deprioritizes generic nav noise instead."""
@@ -303,6 +314,7 @@ class TestExtractLinks:
         assert "https://example.gov/content" in links
         assert "https://example.gov/home" in links
 
+    @pytest.mark.small
     def test_deduplicates_links(self):
         crawler = AsyncCrawler()
         html = """
@@ -316,6 +328,7 @@ class TestExtractLinks:
         )
         assert links.count("https://example.gov/page") == 1
 
+    @pytest.mark.small
     def test_normalizes_urls_strips_fragment(self):
         crawler = AsyncCrawler()
         html = '<html><body><a href="/page#section">Link</a></body></html>'
@@ -325,6 +338,7 @@ class TestExtractLinks:
         # Fragments should be stripped during normalization
         assert any("/page" in link and "#" not in link for link in links)
 
+    @pytest.mark.small
     def test_skips_non_http_schemes(self):
         crawler = AsyncCrawler()
         html = """
@@ -354,6 +368,7 @@ def _mock_response(status_code=200, text="", headers=None, content=None):
 
 
 class TestAsyncCrawlerFetch:
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_fetch_success(self):
         crawler = AsyncCrawler(delay_seconds=0, max_retries=1)
@@ -366,6 +381,7 @@ class TestAsyncCrawlerFetch:
         assert result.status.value == "success"
         assert "Hello" in result.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_fetch_pdf_extracts_text(self):
         from tests.unit.test_pdf import _minimal_pdf
@@ -383,6 +399,7 @@ class TestAsyncCrawlerFetch:
         assert "District Heating Act 2026" in result.content
         assert result.content_type == "application/pdf"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_fetch_corrupt_pdf_is_error_not_garbage(self):
         crawler = AsyncCrawler(delay_seconds=0, max_retries=1)
@@ -397,6 +414,7 @@ class TestAsyncCrawlerFetch:
         assert result.status.value != "success"
         assert result.content is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_fetch_404(self):
         crawler = AsyncCrawler(delay_seconds=0, max_retries=1)
@@ -405,6 +423,7 @@ class TestAsyncCrawlerFetch:
         result = await crawler._fetch_with_retry(mock_client, "https://example.gov/missing")
         assert result.status.value == "not_found"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_fetch_403(self):
         crawler = AsyncCrawler(delay_seconds=0, max_retries=1)
@@ -413,6 +432,7 @@ class TestAsyncCrawlerFetch:
         result = await crawler._fetch_with_retry(mock_client, "https://example.gov/denied")
         assert result.status.value == "access_denied"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_fetch_429_rate_limited(self):
         crawler = AsyncCrawler(delay_seconds=0, max_retries=1)
@@ -433,6 +453,7 @@ class TestAsyncCrawlerFetch:
         assert mock_client.get.call_count == 2
         sleeper.assert_awaited_once_with(2)  # 2 ** attempt, one wait before the retry
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_fetch_500_returns_unknown_error(self):
         crawler = AsyncCrawler(delay_seconds=0, max_retries=1)
@@ -466,6 +487,7 @@ def _mock_pw_browser(page=None):
     return browser
 
 
+@pytest.mark.medium
 class TestPlaywrightFetch:
     """Tests for _fetch_playwright with mocked Playwright."""
 
@@ -590,6 +612,7 @@ class TestPlaywrightFetch:
         assert browser.new_page.call_args.kwargs["user_agent"] == "TestBot/1.0"
 
 
+@pytest.mark.medium
 class TestEnsurePlaywright:
     """Tests for _ensure_playwright browser lifecycle."""
 
@@ -616,6 +639,7 @@ class TestEnsurePlaywright:
 class TestCrawlDomainPlaywright:
     """Tests for crawl_domain with requires_playwright=True."""
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_crawl_domain_uses_playwright_when_required(self):
         crawler = AsyncCrawler(delay_seconds=0, max_depth=0, max_pages=1)
@@ -654,6 +678,7 @@ class TestCrawlDomainPlaywright:
         assert len(results) == 1
         assert results[0].used_playwright is False
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_playwright_domain_pages_never_fetched_over_httpx(self):
         """On Playwright domains httpx serves only sitemap seeding (and
@@ -675,6 +700,7 @@ class TestCrawlDomainPlaywright:
         assert results[0].used_playwright is True
 
 
+@pytest.mark.medium
 class TestClosePlaywright:
     """Tests for close() cleaning up Playwright resources."""
 
@@ -723,6 +749,7 @@ class TestClosePlaywright:
         assert crawler._playwright is None
 
 
+@pytest.mark.small
 class TestPlaywrightDomainConfig:
     """Domain YAML config must correctly pass requires_playwright to scanner."""
 
@@ -776,6 +803,7 @@ class TestPlaywrightDomainConfig:
         assert "requires_playwright=self.domain.get(\"requires_playwright\"" in text
 
 
+@pytest.mark.medium
 class TestContainerBrowserLaunch:
     """Chromium in containers with default 64MB /dev/shm wedges silently;
     the launch args must opt out of /dev/shm (observed live: scan a4cd43f6

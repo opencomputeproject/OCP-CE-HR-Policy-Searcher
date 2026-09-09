@@ -28,6 +28,7 @@ def _dp(domain_id: str, **overrides) -> DomainProgress:
     return DomainProgress(**defaults)
 
 
+@pytest.mark.medium
 class TestRecordStart:
     def test_creates_running_row(self, store):
         store.record_start(
@@ -66,6 +67,7 @@ class TestRecordStart:
         assert rows[0]["domain_group"] == "quick"
 
 
+@pytest.mark.medium
 class TestRecordCompletion:
     def test_completed_updates_row(self, store):
         store.record_start(
@@ -116,6 +118,7 @@ class TestRecordCompletion:
         assert updated is False
 
 
+@pytest.mark.medium
 class TestList:
     def _seed(self, store):
         base = datetime(2026, 1, 1)
@@ -156,6 +159,7 @@ class TestList:
         assert store.list() == []
 
 
+@pytest.mark.medium
 class TestCount:
     def test_count_matches_filters(self, store):
         base = datetime(2026, 1, 1)
@@ -187,6 +191,7 @@ class TestCount:
 
 
 class TestStats:
+    @pytest.mark.medium
     def test_no_runs_returns_none_fields(self, store):
         stats = store.stats("quick")
         assert stats == {
@@ -194,6 +199,7 @@ class TestStats:
             "cost_per_policy_usd": None, "last_cost_per_policy_usd": None,
         }
 
+    @pytest.mark.medium
     def test_only_completed_runs_count(self, store):
         base = datetime(2026, 1, 1)
         store.record_start(
@@ -218,6 +224,7 @@ class TestStats:
         assert stats["mean_cost_usd"] == 2.0
         assert stats["mean_policies"] == 4.0
 
+    @pytest.mark.medium
     def test_mean_and_last_over_multiple_runs(self, store):
         base = datetime(2026, 1, 1)
         for i, (cost, policies) in enumerate([(1.0, 2), (3.0, 4)]):
@@ -239,6 +246,7 @@ class TestStats:
         # Most recently completed run (s1, cost 3.0) is "last".
         assert stats["last_cost_usd"] == 3.0
 
+    @pytest.mark.medium
     def test_stats_scoped_to_domain_group(self, store):
         base = datetime(2026, 1, 1)
         store.record_start(

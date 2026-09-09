@@ -14,6 +14,7 @@ from src.storage.public_visibility import (
 )
 
 
+@pytest.mark.small
 class TestPublicVisibilitySettingsModel:
     def test_default_mode_is_default_all(self):
         assert PublicVisibilitySettings().mode == "default_all"
@@ -27,6 +28,7 @@ class TestPublicVisibilitySettingsModel:
         assert PublicVisibilitySettings(mode=mode).mode == mode
 
 
+@pytest.mark.medium
 class TestPublicVisibilityStore:
     def test_fresh_store_yields_default(self, tmp_path):
         store = PublicVisibilityStore(data_dir=str(tmp_path))
@@ -73,6 +75,7 @@ def client(visibility_store, monkeypatch):
     app.dependency_overrides.clear()
 
 
+@pytest.mark.medium
 class TestGetPublicVisibility:
     def test_default(self, client):
         resp = client.get("/api/settings/public-visibility")
@@ -85,6 +88,7 @@ class TestGetPublicVisibility:
         assert resp.json() == {"mode": "reviewed_only"}
 
 
+@pytest.mark.medium
 class TestPutPublicVisibility:
     @pytest.mark.parametrize("mode", ["default_all", "default_reviewed", "reviewed_only"])
     def test_put_each_valid_value(self, client, visibility_store, mode):
@@ -134,6 +138,7 @@ class TestPutPublicVisibility:
         assert resp.status_code == 200
 
 
+@pytest.mark.medium
 class TestHealthCarriesMode:
     def test_health_reports_default(self, client):
         resp = client.get("/health")

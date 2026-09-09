@@ -66,6 +66,7 @@ def _payload(decisions, total=None):
     }
 
 
+@pytest.mark.small
 class TestEpochMsToIso:
     def test_converts_epoch_millis(self):
         assert _epoch_ms_to_iso(1784210937000) == "2026-07-16"
@@ -80,12 +81,15 @@ class TestEpochMsToIso:
 
 
 class TestDiavgeiaSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["diavgeia"] is DiavgeiaSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert DiavgeiaSource.api_key_env is None
 
+    @pytest.mark.small
     def test_uses_advanced_search_not_plain_q(self):
         """Regression pin for the trap that killed Retsinformation: the
         plain /opendata/search `q` parameter is a NO-OP (a nonsense query
@@ -95,6 +99,7 @@ class TestDiavgeiaSource:
         from src.sources.diavgeia import SEARCH_URL
         assert SEARCH_URL.endswith("/opendata/search/advanced")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_query_is_quoted_subject_syntax(self):
         client = _mock_client([_mock_response(json_data=_payload([]))])
@@ -105,6 +110,7 @@ class TestDiavgeiaSource:
         params = client.get.call_args.kwargs["params"]
         assert params["q"] == 'subject:"τηλεθέρμανση"'
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_sends_json_accept_header(self):
         """Without Accept: application/json Diavgeia answers in XML."""
@@ -116,6 +122,7 @@ class TestDiavgeiaSource:
         headers = client.get.call_args.kwargs["headers"]
         assert headers["Accept"] == "application/json"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([_mock_response(json_data=_payload([_decision()]))])
@@ -138,6 +145,7 @@ class TestDiavgeiaSource:
         assert SUBJECT in r.content
         assert "Το πλήρες κείμενο της απόφασης." in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_issue_date_appears_as_iso_not_epoch(self):
         client = _mock_client([_mock_response(json_data=_payload([_decision()]))])
@@ -154,6 +162,7 @@ class TestDiavgeiaSource:
         assert "2026-07-16" in results[0].content
         assert "1784210937000" not in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_document_fetch_failure_falls_back_to_metadata(self):
         client = _mock_client([_mock_response(json_data=_payload([_decision()]))])
@@ -170,6 +179,7 @@ class TestDiavgeiaSource:
         assert len(results) == 1
         assert SUBJECT in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_decision_without_ada_is_skipped(self):
         bad = _decision()
@@ -181,6 +191,7 @@ class TestDiavgeiaSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_duplicate_ada_across_terms_deduped(self):
         client = _mock_client([
@@ -199,6 +210,7 @@ class TestDiavgeiaSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         decisions = [_decision(ada=f"ADA-{n}") for n in range(10)]
@@ -215,6 +227,7 @@ class TestDiavgeiaSource:
             )
         assert len(results) == 4
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -225,6 +238,7 @@ class TestDiavgeiaSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"nope": 1})])
@@ -234,6 +248,7 @@ class TestDiavgeiaSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_non_dict_decision_entries_are_skipped(self):
         client = _mock_client([
@@ -251,6 +266,7 @@ class TestDiavgeiaSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_no_lifecycle_stage_claimed(self):
         """Diavgeia posts executive acts, not bills — the register says
