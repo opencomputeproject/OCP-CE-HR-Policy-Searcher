@@ -255,9 +255,16 @@ community spreadsheet before it.**
    the interim one) — create it in OCP's Google Cloud project, share the
    real spreadsheet with its service-account email.
 6. **Switch `SPREADSHEET_ID` from the interim scratch copy to the real
-   Heat Reuse Policies Database spreadsheet.** This is the point of no
-   return for exports — until this step, all Sheets writes must continue
-   targeting the interim scratch copy, never the community sheet.
+   Heat Reuse Policies Database spreadsheet.** Done 9 September 2026 on the
+   owner's word, ahead of step 5 (still the interim service account, which
+   the sheet's owner had already shared it with). Checked first: the
+   account could open the sheet, every one of the reviewer's 143 rows was
+   also on the copy, and the exporter appends only links the target does
+   not already have, so nothing on her sheet was duplicated. The 71 rows
+   the copy had gained since it diverged reach her sheet as new,
+   unreviewed rows as their domains are next exported. The exporter aligns
+   to the sheet's real header row and never writes a column it did not
+   create (ADR-0009), so her review column is safe.
 7. Set a **fresh `ADMIN_TOKEN`** — do not carry the interim one forward.
 8. **Rotate or revoke every interim credential**: the interim
    `ANTHROPIC_API_KEY`, the interim Google service account key, and the

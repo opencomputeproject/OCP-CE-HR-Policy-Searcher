@@ -362,9 +362,10 @@ Two settings, both in `config/settings.yaml` under `output:`, both off/unset
 by default:
 
 - `review_spreadsheet_id` - the reviewer's sheet of record, when it differs
-  from `spreadsheet_id` (production's points at a copy; see ADR-0005's
-  Evidence). Unset falls back to `spreadsheet_id`. Override with
-  `POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID`.
+  from `spreadsheet_id`. Production's pointed at a copy until 9 September
+  2026 (see ADR-0005's Evidence); since then it exports to the sheet of
+  record and this is unset. Unset falls back to `spreadsheet_id`. Override
+  with `POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID`.
 - `import_reviews_before_scan` - whether the import above runs automatically
   before each monthly scan. `false` until ADR-0005 is accepted; today's
   behavior is unchanged either way.
@@ -542,8 +543,8 @@ What has to be true for the output to mean what it appears to mean.
   removes, each reject carrying a reason category; her 13 to-be-decided rows,
   9 blank cells and 1 unreachable link are counted but not labelled, since
   none of those is yet a decision). Rebuild it from the live sheet with
-  `python -m src.eval.golden --from-sheet --out data/golden/v1.jsonl` once
-  production points at the sheet of record rather than the copy (see
+  `python -m src.eval.golden --from-sheet --out data/golden/v1.jsonl` now that
+  production points at the sheet of record (since 9 September 2026; see
   [ADR-0005](decisions/ADR-0005-the-reviewers-column-is-the-review-record.md)),
   or from a fresh CSV export with `--from-csv PATH`. Score the live store
   against a golden set with `python -m src.eval.score`, or against the
