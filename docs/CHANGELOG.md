@@ -8,6 +8,14 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-08 Pages that used to arrive at screening with no text now arrive
+  whole. A site-wide layout class such as `no-sidebar` or a cookie-state
+  class on the page body used to match a boilerplate pattern and delete the
+  entire page, and an empty `<article>` ahead of the real content used to be
+  taken as the content. EUR-Lex directives, the US executive order on AI
+  infrastructure, the Commission's Have Your Say initiatives and ordinary
+  news articles are affected; each went from nothing to its full text. The
+  reviewer's keeps on those pages can now be screened at all.
 - 2026-09-03 After the cheap screening question, a second cheap question
   round asks what kind of document a page is and for the exact sentences
   about a data centre and about heat reuse. Parliamentary questions and

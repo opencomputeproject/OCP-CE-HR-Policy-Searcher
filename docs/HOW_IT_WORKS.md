@@ -104,6 +104,28 @@ HTML and PDF become plain text (`src/core/extractor.py`). A page under fifty
 words is skipped for crawled pages only; structured records are often short
 by nature and go through.
 
+Two guards, added 2026-09-08 after nine of the reviewer's 32 keeps came back
+with no text at all (PL-011). First, a boilerplate class match (`cookie`,
+`sidebar`, `banner`, ...) is removed only when the element holds under half
+the page's text; `sidebar` also matches the layout class `no-sidebar` on a
+site's outer wrapper and `cookie` matches `alert__has-cookie` on a `<body>`,
+and a banner is never half the page. Second, the main-content pick is the
+candidate with the most text, and only if it holds at least a fifth of the
+page; the first `<article>` on the Have Your Say portal is empty and
+EUR-Lex's first "content" class is a one-character modal. Measured on the
+recorded pages: EUR-Lex directive 2023/1791 went from 1 character to
+381,144; the White House AI-infrastructure order from 0 to 81,117; the
+Have Your Say initiatives from 0 to 588 to 3,008 (the summary block, which
+is all the portal renders). Where to change it: `WRAPPER_SHARE` and
+`MAIN_SHARE` on `HtmlExtractor`; the patterns themselves stay in
+`config/content_extraction.yaml`.
+
+One keep stays unreachable by design: `regjeringen.no` answers both httpx
+and a real headless browser with a Cloudflare challenge page (HTTP 403,
+"Just a moment..."). The project does not work around bot protection; that
+row is recorded as unusable and the document would have to come from
+another source.
+
 #### The link check
 
 Before that short-content check, `src/core/soft404.py` asks whether a

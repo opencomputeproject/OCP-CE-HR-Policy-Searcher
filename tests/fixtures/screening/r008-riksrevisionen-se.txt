@@ -23,10 +23,10 @@ Riksrevisionen lämnar därför följande rekommendationer till regeringen:
 Gör en översyn av nedsättningen av energiskatten för datacenter, grundad på en utvärdering av nedsättningens konsekvenser.
 Genomför åtgärder för att koppla ihop statliga insatser kring datacenter med de energipolitiska målen.
 Förtydliga i styrningen av det statliga investeringsfrämjandet, att det ingår i uppdraget att informera om nationella sakpolitiska mål av betydelse för varje investeringsområde. För investeringar i datacenter handlar det främst om närings- och energipolitiska mål.
-Kommunikationer, infrastruktur, IT
-Regional utveckling
 Skatter, avgifter och tullar
 Energi
+Kommunikationer, infrastruktur, IT
+Regional utveckling
 Skatteverket
 Finansdepartementet
 Klimat- och näringslivsdepartementet

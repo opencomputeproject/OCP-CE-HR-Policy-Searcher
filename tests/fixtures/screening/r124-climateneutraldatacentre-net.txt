@@ -1,0 +1,120 @@
+Climate Neutral Data Centre Pact
+The Green Deal needs Green Infrastructure
+Over 100 data centre operators and trade associations are committed to the European Green Deal, achieving the ambitious greenhouse gas reductions of the climate law, and leveraging technology and digitalization to achieve the goal of making Europe climate neutral by 2050. To ensure data centres are an integral part of the sustainable future of Europe, data centre operators and trade associations agree to make data centres climate neutral by 2030.
+What do we do?
+We purchase 100% carbon-free energy
+We prioritise
+water conservation
+We reuse and repair servers
+We prove energy efficiency with measurable targets.
+We look for ways to recycle the heat
+Working Groups
+Energy Efficiency
+Clean Energy
+Water
+Circular Economy
+Circular Energy
+Communication
+TaskForce
+Monitoring & Report
+News
+Beware Unintended Consequences
+CNDCP Paper outlines potential pitfalls in proposed rating scheme for data centres 7th May, Brussels. The Climate Neutral Data Centre Pact (the Pact), a collaboration
+Read More »
+May 7, 2026
+Climate Neutral Data Centre Pact Board Appoints Lex Coors as New Chairperson
+Brussels, 24 March 2026. Today, the Board of the Climate Neutral Data Centre Pact (CNDCP or The Pact) announces that it has voted to appoint
+Read More »
+March 24, 2026
+Hasty Imposition of Minimum Performance Standards May Undermine Environmental Progress
+Brussels, 29th July 2025. The Climate Neutral Data Centre Pact (CNDCP or Pact), which represents more than 85% of data centre capacity in Europe, has
+Read More »
+July 29, 2025
+View all News
+About Us
+2030
+Deadline for existing data centres to be climate neutral under terms of the Initiative
+● All European data centres are climate neutral
+● Existing data centres will achieve the same targets (total capacity in cool climates, annual PUE target of 1.3; full capacity in warm climates, annual PUE of 1.4) as for new data centres
+● Data centre electricity demand will be matched by 100% renewable energy or hourly carbon-free energy
+2025
+Deadline for new data centres to be climate neutral under terms of the Initiative
+● New data centres operating at full capacity in cool climates will meet an annual PUE target of 1.3 and 1.4 for new data centres running at full capacity in warm climates.
+● Data centre operators will increase the quantity of server materials repaired or reused and create a target percentage for repair and reuse
+● Data centre electricity demand will be matched by 75% renewable energy or hourly carbon-free energy
+29 July
+Publication of Minimum Performance Standards - Observations from CNDCP
+Read the press release here.
+Access the full paper here.
+11 June
+Shifting from self-regulation to providing expert insight to inform future EU Climate Goals & Metrics
+From 2025, members will no longer perform separate self-audits but will use mandatory reporting under EU legislation to show progress toward climate neutrality by 2030.
+The Pact will continue to guide and inform environmental policy with technical expertise and data-driven input, reinforcing its role in driving sustainable innovation in the data center sector.
+Read the full press release here.
+4 April
+Publication of Technical Discussion Paper: A Rating Scheme for Data Centres
+Read the full paper here.
+2024
+24 October
+7th biannual meeting with European Commission
+Presenting results of the second certification round to the European Commission
+7 February
+6th biannual meeting with European Commission
+Discussion  on CNDCP achievement and next milestones.
+View the meeting highlights
+16 January
+Launch of the CNDCP Podcast Series
+Follow us on
+iTunes
+to catch the latest episode or choose your
+preferred platform
+to stay updated.
+2023
+5 July
+5th biannual meeting with European Commission
+Presenting results of its first certification round to the European Commission
+View the Press Release
+March 2023
+First signatories certify compliance with SRI using Auditing Framework
+View the Press Release
+2022
+7 December
+4th biannual meeting with European Commission
+● Auditable Framework for SRI presented to Commission
+View the Press Release
+October 2022
+CNDCP passes 100  signatories
+Link to Blog Post
+26 July
+Annual target and enhanced definition of Water Usage Effectiveness (WUE) agreed
+View the Press Release
+9 June
+3rd biannual meeting with European Commission
+1 June
+CNDCP presents at EU Green Week
+Link to video
+2021
+22 November
+2nd biannual meeting with European Commission
+21 June
+1st bi-annual meeting with European Commission
+● New signatories announced - total now 40 operators and 24 associations
+● Pact signatories deliver 1st policy paper as requested by the European Commission
+● Includes 19 policy recommendations to build a green cloud and data centre industry for Europe
+Link to Paper
+25 February
+Pact grows to 34 companies and 20 associations
+● First Board (six members) elected
+View Pact
+21 January
+Launch
+● 25 data centre operator companies and 17 trade associations
+● "Today’s pledge from important parts of the data industry constitutes a promise to society and offers a welcome first step towards achieving our common ambitions for a smart and sustainable future.”
+Frans Timmermans, European Commission Executive Vice-President for the European Green Deal
+● CISPE and EUDCA working together with the European Commission
+● All members agree to agree to a
+Self Regulatory Initiative
+to make data centres in Europe climate neutral by 2030
+Members
+View all Members
+Contact Us

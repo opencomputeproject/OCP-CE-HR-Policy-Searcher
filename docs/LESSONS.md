@@ -340,3 +340,42 @@ skip unless `--live` is passed (`.github/workflows/live-probes.yml`, every
 Monday), so the ordinary suite is hermetic in fact and not only in the brief.
 The rule: a test asserts what the code asked for, never how long the world
 took to answer.
+
+---
+
+## PL-011
+
+- title: A boilerplate regex deleted the whole page, and the first "main" candidate won even when empty
+- first_seen: 2026-09-08
+- last_seen: 2026-09-08
+- recurrences: 1
+- status: mechanized
+- guard: tests/unit/test_extractor.py::TestABoilerplateMatchCannotDeleteThePage::test_a_no_sidebar_wrapper_keeps_its_content
+- class: a filter with no size sanity check; first match taken for best match
+
+**The defect.** `HtmlExtractor` removed any element whose class or id
+matched a boilerplate pattern, with no check on how much of the page it was
+removing. `sidebar` matches the layout class `no-sidebar` that wraps all of
+emb3rs.eu; `cookie` matches `alert__has-cookie` on the `<body>` of
+bidenwhitehouse.archives.gov; `has-sidebar` wraps the article behind a Google
+News link. One regex hit, 100% of the text gone, and the page counted as
+"fetched fine, nothing relevant". Separately, `_find_main_content` returned
+the first `<main>`/`<article>`/"content"-class element it found: an empty
+`<article>` shell on the Have Your Say portal, a one-character
+`modal-content` div on EUR-Lex. Directive 2023/1791, the Energy Efficiency
+Directive itself, extracted to one character.
+
+**Occurrence.** Found 2026-09-08 while working the chip "nine of the
+reviewer's 32 keeps are unusable". The handoff framed it as nine fetch
+problems (bot protection, JS shells, cookie walls). Probing each host over
+httpx and a real browser showed five of six returned plenty of text and the
+extractor threw it away; only regjeringen.no was a fetch problem (Cloudflare
+challenge, not bypassed). Cost: every page like these, on every scan since
+the extractor was written, screened on nothing.
+
+**How it is held.** A boilerplate match is removed only if it holds less
+than half the page's text; the main pick is the largest candidate and must
+hold at least a fifth of the page, else the body is used. Seven synthetic
+shape tests plus two recorded real pages (Have Your Say rendered, the White
+House order over httpx) pin both rules in `test_extractor.py`. The rule: a
+filter that can remove content must know how much it is removing.

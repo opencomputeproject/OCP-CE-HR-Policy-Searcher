@@ -25,6 +25,12 @@ from .models import (
 )
 from .verifier import Verifier
 
+# A crawled page with fewer words than this is skipped before any model call
+# (HOW_IT_WORKS, "Extracting text"). The screening-fixture recorder uses the
+# same number to mark a recorded row usable, so the replay set and the scan
+# agree on what "enough text" means.
+MIN_CONTENT_WORDS = 50
+
 logger = logging.getLogger(__name__)
 
 
@@ -345,7 +351,7 @@ class DomainScanner:
                 )
                 return []
 
-            if not extracted.text or extracted.word_count < 50:
+            if not extracted.text or extracted.word_count < MIN_CONTENT_WORDS:
                 self.progress.pages_filtered += 1
                 self.progress.filtered_short_content += 1
                 return []

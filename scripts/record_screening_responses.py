@@ -47,6 +47,9 @@ def prompt_hash() -> str:
 
 
 async def main() -> int:
+    # Windows consoles default to cp1252; a Swedish or Japanese answer in the
+    # progress line killed the run mid-way on 2026-09-08 (nothing was saved).
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     load_dotenv(ROOT / ".env", override=True)
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key or not api_key.startswith("sk-ant"):

@@ -1,15 +1,130 @@
-Direct naar content
-Direct zoeken
-Berichten over uw Buurt
-Zoals vergunningen, bouwplannen en lokale regelgeving
-Rondom uw woonadres
-Rondom een zelfgekozen adres
-Dienstverlening
-Zoals belastingen, uitkeringen en subsidies.
-Naar dienstverlening
-Beleid & regelgeving
-Officiële publicaties van de overheid.
-Naar beleid & regelgeving
-Contactgegevens overheden
-Adressen en contactpersonen van overheidsorganisaties.
-Naar overheidsorganisaties
+Permalink
+Printen
+Permanente link
+Naar de actuele versie van de regeling
+https://lokaleregelgeving.overheid.nl/CVDR646404
+Naar de door u bekeken versie
+https://lokaleregelgeving.overheid.nl/CVDR646404/1
+Besluit van de gemeenteraad van de gemeente Haarlemmermeer houdende regels omtrent
+Datacenterbeleid gemeente Haarlemmermeer
+Geldend van 24-11-2020 t/m heden
+Intitulé
+Besluit van de gemeenteraad van de gemeente Haarlemmermeer houdende regels omtrent
+Datacenterbeleid gemeente Haarlemmermeer
+[
+Noot over stapsgewijze planologisch-juridische verankering van het datacenterbeleid
+De gemeenteraad van Haarlemmermeer heeft het Datacenterbeleid gemeente Haarlemmermeer
+vastgesteld. De ruimtelijk relevante aspecten uit dit beleid worden stapsgewijs planologisch-juridisch
+geborgd.
+De eerste stap bestaat uit de vaststelling op 22 oktober 2020 van het bestemmingsplan
+Parapluplan datacenters met nummer 2020.0002098, en de beheersverordening Haarlemmermeer
+2014 aanvulling met datacenters met nummer 2020.0002106.
+Als vervolgstap wordt op een later moment nog een aantal andere ruimtelijk-relevante
+aspecten uit het datacenterbeleid planologisch-juridisch vastgelegd. Naar verwachting
+gebeurt dat over minimaal drie jaar.
+Dan worden ook de volgende aspecten uit het datacenterbeleid planologisch-juridisch
+vastgelegd:
+-
+De aanwijzing van specifieke gebieden voor datacenters;
+-
+De uitsluiting van nieuwe datacenters buiten die gebieden;
+-
+Zeer beperkte uitbreidingsmogelijkheden voor bestaande datacenters buiten de aangewezen
+gebieden voor datacenters;
+-
+Per aangewezen gebied voor datacenters een maximale groei in MVA, oppervlakte van
+bouwwerken en bruto bedrijfsvloeroppervlak en
+-
+Eisen over het bouwen van datacenters in een minimaal aantal bouwlagen.
+Noot over de beschikbare ontwikkelruimte
+Het datacenterbeleid geeft aan onder welke voorwaarden datacenters zijn toegestaan.
+De gemeente houdt een overzicht bij van de beschikbare ontwikkelruimte voor datacenters
+op de gemeentelijke website
+www.haarlemmermeer.nl
+.]
+De raad van de gemeente Haarlemmermeer;
+gelezen het voorstel van Burgemeester en Wethouders van 8 september 2020,
+nummer 2020.0002126;
+besluit:
+1.
+in te stemmen met de Nota van wijzigingen Datacenterbeleid gemeente Haarlemmermeer;
+2.
+in te stemmen met het Datacenterbeleid gemeente Haarlemmermeer;
+3.
+conform artikel 25 lid 2 Gemeentewet geheimhouding op te leggen op bijlage 3 'Nadere
+uitleg aanpassing bestemmingsplan Parapluplan Datacenters en Datacenterbeleid gemeente
+Haarlemmermeer', bijlage 4 ‘Planschaderisicoanalyse SAOZ’ en bijlage 5 ‘Planschaderisicoanalyse
+Gloudemans’. De geheimhouding wordt opgelegd op grond van artikel 10, tweede lid,
+onder b van de Wet openbaarheid van bestuur, de economische of financiële belangen
+van de gemeente;
+4.
+met een separaat voorstel de raad voor te stellen conform artikel 25 lid 3 Gemeentewet
+de geheimhouding te bekrachtigen in de eerstvolgende raadsvergadering op grond van
+artikel 10, tweede lid, onder b van de Wet openbaarheid van bestuur: de economische
+of financiële belangen van de gemeente. De geheimhouding geldt voor bijlage 3 'Nadere
+uitleg aanpassing bestemmingsplan Parapluplan Datacenters en Datacenterbeleid gemeente
+Haarlemmermeer', bijlage 4 ‘Planschaderisicoanalyse SAOZ’ en bijlage 5 ‘Planschaderisicoanalyse
+Gloudemans’.
+1 Inleiding
+1.1 Aanleiding
+Datacenters leveren een belangrijke ondersteunende bijdrage aan de economische ontwikkeling
+en verdere digitalisering van de maatschappij en het bedrijfsleven, zowel in de Metropool
+Regio Amsterdam (MRA), Nederland maar ook wereldwijd.
+Op wereldschaal zijn de grootste concentraties van clusters datacentra te vinden in
+slechts enkele metropolen per continent. De MRA is in de afgelopen decennia één van
+die grootste wereldwijde datacenter-metropoolregio’s geworden en is in Europa onderdeel
+van de ‘gouden ruit’ Frankfurt-Londen-Amsterdam-Parijs en Dublin (FLAP-D). Voor de
+digitale economie is de positie van de datacenters in de MRA vergelijkbaar geworden
+met die van de haven van Rotterdam in het scheepvaartverkeer of Schiphol in de luchtvaartsector.
+Op drie plekken in Amsterdam en Haarlemmermeer is hyperconnectiviteit
+1
+ontstaan, te weten Amsterdam Zuidoost, Schiphol-Rijk en Amsterdam Science Park. Verschillende
+netwerken komen hier bij elkaar, verbonden door AMS-IX en andere internet exchanges.
+In deze gebieden (met daaromheen een straal van ongeveer 10 kilometer) hebben zich
+relatief veel datacenters gevestigd. Dit zijn de datacenters die zich niet elders
+kunnen vestigen en een belangrijke bijdrage leveren aan de economische concurrentiekracht
+van Nederland.
+Het aantal nieuwe datacenters in de MRA en dan vooral in Amsterdam en Haarlemmermeer
+neemt toe en het aantal aanvragen stijgt. Op basis van het onderzoek van BCI naar
+datacenters in de MRA wordt verwacht dat binnen de MRA tot 2030 de vraag naar datacenters
+2.500 MVA bedraagt. Dit betekent een ruimtebeslag van 250 ha uitgaande van laagbouw
+en 10 MVA per ha datacenter, exclusief het ruimtebeslag wat nodig is voor het versterken
+van het elektriciteitsnetwerk, zoals onderstations en kabeltracés. Binnen Haarlemmermeer
+wordt een groei verwacht van 660 MVA uitgaande van de vraag voor hyperconnectiviteit.
+Om de internationale concurrentiepositie van Nederland op het gebied van hyperconnectiviteit
+te behouden en te versterken is het van belang dat de komende jaren het aantal datacenters
+binnen de bestaande hyperconnectiviteitsclusters kan blijven groeien. Er is minimaal
+de komende 7 tot 10 jaar geen alternatieve locatie beschikbaar, wat betekent dat als
+de marktvraag niet minimaal deels gefaciliteerd zou worden, de datacenters zich zullen
+verplaatsen naar het buitenland.
+1.2 Opgave
+Hoewel datacenters van groot belang zijn voor de verdere digitalisering van onze samenleving
+ontstaan hierdoor ook enkele problemen. Zo is er in bepaalde delen van Haarlemmermeer
+een capaciteitstekort op het elektriciteitsnetwerk. Dit is mede het vervolg van de
+aanzienlijke groei van datacenters in onze gemeente die relatief veel elektriciteit
+verbruiken (de datacenters gebruiken ca. 18% van alle elektriciteit binnen Haarlemmermeer.
+Overigens zijn ook Schiphol en de kassen forse elektriciteitsgebruikers). Ook zorgen
+datacenters voor een ruimteclaim op de bedrijventerreinen. Hierbij is de vraag hoeveel
+van de potentiële vraag aan datacenters wij in de MRA binnen Haarlemmermeer willen
+faciliteren en onder welke voorwaarden en welke datacenters ook op andere locaties
+in de MRA en in de rest van Nederland gevestigd kunnen worden.
+Voorbereidingsbesluit Datacenters
+Gelet op de bovenstaande aspecten heeft Haarlemmermeer als eerste gemeente binnen
+de MRA en de rest van Nederland op 11 juli 2019 een voorbereidingsbesluit genomen
+met als doel te komen tot gemeentelijk datacenterbeleid en regionale afspraken over
+de toekomstige groei van datacenters in de MRA-regio. Het voorbereidingsbesluit is
+bedoeld voor situaties waarbij de ontwikkelingen in de markt sneller gaan dan de proceduretijden
+voor het maken van nieuw beleid en het daarop aanpassen van het bestemmingsplan of
+-plannen. Hier is aan de orde dat de huidige marktontwikkelingen afbreuk kunnen doen
+aan de gewenste situatie. Een voorbereidingsbesluit geldt één jaar.
+1.3 Doel
+Op dit moment kan gemeente Haarlemmermeer onvoldoende sturen op locaties waar datacenters
+terechtkomen en weinig voorwaarden stellen aan datacenters. Dit komt omdat er op dit
+moment in de bestemmingsplannen, noch in ander beleid of met andere instrumenten aanvullende
+voorwaarden zijn opgenomen. Ook binnen de rest van de MRA wordt dit gezien en als
+een probleem ervaren.
+Vanwege het belang van duurzame ontwikkeling en groei van datacenters in Haarlemmermeer
+en de Metropoolregio Amsterdam (MRA) en de daarbij geconstateerde knelpunten (schaarse
+ruimte, energie, impact op ruimte) is het nodig om datacenterbeleid te ontwikkelen.
+Door dit beleid kunnen we met (vooral) ruimtelijke instrumenten sturen in het kader
+van een goede ruimtelijke ordening en
