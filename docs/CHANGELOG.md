@@ -8,6 +8,11 @@ without a line here (see `proofmark.toml`, `[proofmark.changelog]`).
 <!-- proofmark:changelog -->
 ## Unreleased
 
+- 2026-09-09 Production now writes to the reviewer's own sheet, the Heat
+  Reuse Policies Database, instead of a copy. Everything found since
+  1 September that never reached her sheet arrives as new rows below hers
+  when their sources are next scanned; her existing rows and her review
+  column are untouched.
 - 2026-09-09 The monthly scan now has exactly one trigger, the in-app
   schedule. The server cron line that started a second, empty scan on
   1 September and the GitHub workflow that had failed every month are both

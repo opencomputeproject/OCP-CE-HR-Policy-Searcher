@@ -162,12 +162,12 @@ output:
   # Name of the staging sheet (will be created if doesn't exist)
   staging_sheet_name: "Staging"
 
-  # The reviewer's sheet of record for src.output.import_reviews (ADR-0005).
-  # Production's spreadsheet_id above points at a copy of the Heat Reuse
-  # Policies Database, not the sheet she actually reviews - this lets the
-  # importer read her real column without changing where exports go.
-  # null falls back to spreadsheet_id (a single-sheet setup needs nothing
-  # here). Override with POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID.
+  # The reviewer's sheet of record for src.output.import_reviews (ADR-0005),
+  # for a setup where exports go to one sheet and the reviewer works in
+  # another. Production was such a setup until 2026-09-09 (exports went to
+  # a copy); it now exports to the sheet of record, so null - which falls
+  # back to spreadsheet_id - is right there too. Override with
+  # POLICYSEARCH__OUTPUT__REVIEW_SPREADSHEET_ID.
   review_spreadsheet_id: null
 
   # Whether the review import runs automatically before each monthly scan.
