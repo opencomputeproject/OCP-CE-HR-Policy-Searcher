@@ -39,11 +39,11 @@ MONTHLY_FULL_SCAN = {
 
 def seed(data_dir: str = "data") -> dict:
     """Insert the seed row(s) if (and only if) the table is currently empty."""
-    store = SchedulesStore(data_dir=data_dir)
-    if store.list():
-        return {"seeded": 0, "skipped_reason": "schedules table is not empty"}
+    with SchedulesStore(data_dir=data_dir) as store:
+        if store.list():
+            return {"seeded": 0, "skipped_reason": "schedules table is not empty"}
 
-    store.create(**MONTHLY_FULL_SCAN)
+        store.create(**MONTHLY_FULL_SCAN)
     return {"seeded": 1, "skipped_reason": None}
 
 

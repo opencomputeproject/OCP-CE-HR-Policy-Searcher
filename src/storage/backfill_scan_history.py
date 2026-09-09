@@ -17,6 +17,7 @@ left untouched (``INSERT OR IGNORE``); running the importer twice adds
 nothing new the second time.
 """
 
+from contextlib import closing
 import argparse
 import json
 from pathlib import Path
@@ -90,23 +91,23 @@ def backfill(data_dir: str = "data", dry_run: bool = False) -> dict:
     events = _read_audit_events(data_path)
     rows = _pair_events(events)
 
-    conn = storage_db.connect(data_path)
-    existing = {row[0] for row in conn.execute("SELECT scan_id FROM scans").fetchall()}
-    new_rows = [row for row in rows if row["scan_id"] not in existing]
+    with closing(storage_db.connect(data_path)) as conn:
+        existing = {row[0] for row in conn.execute("SELECT scan_id FROM scans").fetchall()}
+        new_rows = [row for row in rows if row["scan_id"] not in existing]
 
-    if not dry_run:
-        for row in new_rows:
-            conn.execute(
-                f"INSERT OR IGNORE INTO scans ({_INSERT_COLUMNS}) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (
-                    row["scan_id"], row["domain_group"], row["mode"], row["channels"],
-                    row["status"], row["started_at"], row["completed_at"],
-                    row["domains_scanned"], row["policies_found"], row["cost_usd"],
-                    row["input_tokens"], row["output_tokens"],
-                ),
-            )
-        conn.commit()
+        if not dry_run:
+            for row in new_rows:
+                conn.execute(
+                    f"INSERT OR IGNORE INTO scans ({_INSERT_COLUMNS}) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        row["scan_id"], row["domain_group"], row["mode"], row["channels"],
+                        row["status"], row["started_at"], row["completed_at"],
+                        row["domains_scanned"], row["policies_found"], row["cost_usd"],
+                        row["input_tokens"], row["output_tokens"],
+                    ),
+                )
+            conn.commit()
 
     return {
         "audit_events_read": len(events),

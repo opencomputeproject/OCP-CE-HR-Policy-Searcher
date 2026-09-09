@@ -382,8 +382,47 @@ def _ensure_fts_has_policy_name_en(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+class ConnectionOwner:
+    """A store that holds one sqlite3 connection for its lifetime and closes
+    it on purpose: ``with Store(...) as s:`` or ``s.close()``.
+
+    Until 2026-09-08 no store closed anything. A store built for one call -
+    per scan, per agent tool call, per digest tick, per CLI run - left its
+    connection to the garbage collector, which is 3,100 ResourceWarnings per
+    suite run and, in the app, connections that closed whenever CPython got
+    around to it (PL-012). Long-lived owners (the API's cached dependencies,
+    the ScanManager) close theirs at shutdown; one-shot users are `with`
+    blocks. Using a store after close() raises sqlite3.ProgrammingError,
+    which is the right noise.
+    """
+
+    _conn: sqlite3.Connection
+    _closed: bool = False
+
+    def close(self) -> None:
+        if not self._closed:
+            self._conn.close()
+            self._closed = True
+
+    @property
+    def closed(self) -> bool:
+        return self._closed
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc) -> bool:
+        self.close()
+        return False
+
+
 def connect(data_dir: str | Path) -> sqlite3.Connection:
-    """Open (creating and migrating if needed) the store's SQLite db."""
+    """Open (creating and migrating if needed) the store's SQLite db.
+
+    Every call opens a NEW connection and re-runs the schema check and the
+    jurisdictions rebuild, so a connection is something to own and close
+    (ConnectionOwner above), not something to open per call.
+    """
     data_dir = Path(data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
     db_path = data_dir / DB_FILENAME

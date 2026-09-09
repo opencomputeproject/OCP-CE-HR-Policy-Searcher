@@ -213,29 +213,28 @@ def main(argv: Optional[list[str]] = None) -> int:
     load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 
     data_dir = args.data_dir or os.environ.get("OCP_DATA_DIR", "data")
-    store = PolicyStore(data_dir=data_dir)
+    with PolicyStore(data_dir=data_dir) as store:
 
-    if args.dry_run:
-        dry_run_report(store, config_dir=args.config_dir, limit=args.limit)
+        if args.dry_run:
+            dry_run_report(store, config_dir=args.config_dir, limit=args.limit)
+            return 0
+
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            print("Error: ANTHROPIC_API_KEY is not set.")
+            print("A real backfill run needs it to call the translation model.")
+            print("Use --dry-run to preview without an API key.")
+            return 1
+
+        summary = asyncio.run(
+            run_backfill(store, api_key, config_dir=args.config_dir, limit=args.limit)
+        )
+        print(f"Translated: {summary.translated}")
+        print(f"Skipped (already had policy_name_en): {summary.skipped_already_had}")
+        print(f"Failed: {summary.failed}")
+        if summary.failed_urls:
+            print(f"Failed URLs: {', '.join(summary.failed_urls)}")
         return 0
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        print("Error: ANTHROPIC_API_KEY is not set.")
-        print("A real backfill run needs it to call the translation model.")
-        print("Use --dry-run to preview without an API key.")
-        return 1
-
-    summary = asyncio.run(
-        run_backfill(store, api_key, config_dir=args.config_dir, limit=args.limit)
-    )
-    print(f"Translated: {summary.translated}")
-    print(f"Skipped (already had policy_name_en): {summary.skipped_already_had}")
-    print(f"Failed: {summary.failed}")
-    if summary.failed_urls:
-        print(f"Failed URLs: {', '.join(summary.failed_urls)}")
-    return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -17,7 +17,7 @@ from starlette.responses import JSONResponse
 from ..core.log_setup import setup_logging
 from ..orchestration.schedule_runner import ScheduleRunner
 from .deps import (
-    get_config_version, get_public_visibility_store, get_scan_manager,
+    close_stores, get_config_version, get_public_visibility_store, get_scan_manager,
     get_schedules_store, request_is_admin,
 )
 from .routes import (
@@ -64,6 +64,7 @@ async def lifespan(app: FastAPI):
     yield
 
     await runner.stop()
+    close_stores()
     logging.getLogger("ocp").info("OCP CE HR Policy Searcher shutting down")
 
 

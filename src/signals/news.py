@@ -333,7 +333,8 @@ async def run_news_signals(
         leads_added=added,
         failures=[FeedFailure(**f) for f in sweep_stats["failures"]],
     )
-    SignalsStatusStore(data_dir=str(lead_store.data_dir)).record(summary)
+    with SignalsStatusStore(data_dir=str(lead_store.data_dir)) as status:
+        status.record(summary)
 
     if summary.feeds_failed > 0:
         lines = [f"The news sweep had {summary.feeds_failed} feed failure(s):", ""]

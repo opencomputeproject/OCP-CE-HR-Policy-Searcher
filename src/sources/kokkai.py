@@ -110,7 +110,8 @@ class KokkaiSource(PolicySource):
             # No model spend in this lane: leads wait in the tips inbox for
             # a person to chase. The scanner sees no CrawlResult at all.
             data_dir = os.environ.get("OCP_DATA_DIR", "data")
-            LeadStore(data_dir).add_leads(collected)
+            with LeadStore(data_dir) as leads:
+                leads.add_leads(collected)
             return []
 
         return collected

@@ -9,6 +9,7 @@ import logging
 import os
 import smtplib
 import ssl
+from contextlib import ExitStack
 from datetime import datetime, timedelta
 from ..core.clock import utcnow
 from email.message import EmailMessage
@@ -91,6 +92,17 @@ class Mailer:
         self._state = NotificationStateStore(data_dir=data_dir)
         self._transport = transport
 
+    def close(self) -> None:
+        """Close the state store this mailer opened."""
+        self._state.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc) -> bool:
+        self.close()
+        return False
+
     @property
     def smtp_configured(self) -> bool:
         return smtp_configured(self._config)
@@ -151,24 +163,28 @@ def notify_immediate(
     socket.
     """
     now = now or utcnow()
-    state = NotificationStateStore(data_dir=data_dir)
+    with ExitStack() as stack:
+        state = stack.enter_context(NotificationStateStore(data_dir=data_dir))
 
-    last_sent = state.get_immediate_last_sent(topic)
-    if last_sent is not None and now - parse_naive_utc(last_sent) < IMMEDIATE_RATE_LIMIT:
-        logger.info("Immediate notification for topic %r rate-limited", topic)
-        return
+        last_sent = state.get_immediate_last_sent(topic)
+        if last_sent is not None and now - parse_naive_utc(last_sent) < IMMEDIATE_RATE_LIMIT:
+            logger.info("Immediate notification for topic %r rate-limited", topic)
+            return
 
-    recipients = [
-        s["email"] for s in NotificationSubscriptionsStore(data_dir=data_dir).list()
-        if s["frequency"] == "immediate" and topic in s["topics"]
-    ]
-    if not recipients:
-        return
+        subscriptions = stack.enter_context(NotificationSubscriptionsStore(data_dir=data_dir))
+        recipients = [
+            s["email"] for s in subscriptions.list()
+            if s["frequency"] == "immediate" and topic in s["topics"]
+        ]
+        if not recipients:
+            return
 
-    mailer = Mailer(config_dir=config_dir, data_dir=data_dir, transport=transport)
-    if not mailer.smtp_configured:
-        logger.info("Immediate notification for topic %r skipped: no SMTP credentials", topic)
-        return
+        mailer = stack.enter_context(
+            Mailer(config_dir=config_dir, data_dir=data_dir, transport=transport)
+        )
+        if not mailer.smtp_configured:
+            logger.info("Immediate notification for topic %r skipped: no SMTP credentials", topic)
+            return
 
-    if mailer.send(recipients, subject, body):
-        state.set_immediate_last_sent(topic, now)
+        if mailer.send(recipients, subject, body):
+            state.set_immediate_last_sent(topic, now)

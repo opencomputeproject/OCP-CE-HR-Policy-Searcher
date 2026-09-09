@@ -13,6 +13,7 @@ accidentally break.
 
 import logging
 import sqlite3
+from contextlib import ExitStack
 from datetime import datetime, time, timedelta
 from ..core.clock import utcnow
 from typing import Optional
@@ -248,15 +249,16 @@ def run_digest_tick_for_data_dir(
     runner down with it (same contract as ``run_due_schedules``).
     """
     try:
-        run_digest_tick(
-            NotificationSubscriptionsStore(data_dir=data_dir),
-            NotificationStateStore(data_dir=data_dir),
-            Mailer(config_dir=config_dir, data_dir=data_dir),
-            PolicyStore(data_dir=data_dir),
-            SignalsStatusStore(data_dir=data_dir),
-            ScanHistoryStore(data_dir=data_dir),
-            now=now,
-        )
+        with ExitStack() as stack:
+            run_digest_tick(
+                stack.enter_context(NotificationSubscriptionsStore(data_dir=data_dir)),
+                stack.enter_context(NotificationStateStore(data_dir=data_dir)),
+                stack.enter_context(Mailer(config_dir=config_dir, data_dir=data_dir)),
+                stack.enter_context(PolicyStore(data_dir=data_dir)),
+                stack.enter_context(SignalsStatusStore(data_dir=data_dir)),
+                stack.enter_context(ScanHistoryStore(data_dir=data_dir)),
+                now=now,
+            )
     except (sqlite3.Error, OSError, ValueError, KeyError) as e:
         # The realistic failure classes: store reads/writes (sqlite3.Error),
         # config file access (OSError), malformed config or state values

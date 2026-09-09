@@ -58,8 +58,8 @@ def export_tips_to_sheet(
     )
     client.connect()
 
-    store = LeadStore(data_dir=resolved_data_dir)
-    leads = store.list()
+    with LeadStore(data_dir=resolved_data_dir) as store:
+        leads = store.list()
     exported = client.export_tips(leads, resolved_sheet_name)
 
     return ExportSummary(total_tips=len(leads), exported=exported)

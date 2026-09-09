@@ -101,7 +101,7 @@ def _median_p25_p75(values: list[float]) -> tuple[Optional[float], Optional[floa
     return median, round(q1, 4), round(q3, 4)
 
 
-class ScanHistoryStore:
+class ScanHistoryStore(storage_db.ConnectionOwner):
     """Persistence for the ``scans`` table - one row per scan run."""
 
     def __init__(self, data_dir: str = "data"):

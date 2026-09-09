@@ -158,7 +158,8 @@ def main(argv: list[str] | None = None) -> int:
 
     from ..storage.store import PolicyStore
 
-    kept = {p.get("url", "") for p in PolicyStore().get_all()}
+    with PolicyStore() as store:
+        kept = {p.get("url", "") for p in store.get_all()}
     scores = evaluate(kept, golden)
     print(format_report(scores, args.golden, golden))
     return 0
