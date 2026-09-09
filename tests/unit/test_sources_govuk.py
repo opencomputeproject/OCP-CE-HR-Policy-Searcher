@@ -58,18 +58,22 @@ def _content(*, body="<p>" + ("Heat network standards body. " * 30) + "</p>",
 
 
 class TestGovUKSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["govuk"] is GovUKSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert GovUKSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_use_british_spelling(self):
         from src.sources.govuk import DEFAULT_TERMS
         joined = " ".join(DEFAULT_TERMS)
         assert "data centre" in joined
         assert "data center" not in joined
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([
@@ -94,6 +98,7 @@ class TestGovUKSource:
         # HTML must be stripped, not passed through raw.
         assert "<p>" not in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_open_consultation_is_consultation_stage(self):
         client = _mock_client([
@@ -104,6 +109,7 @@ class TestGovUKSource:
             results = await GovUKSource().fetch({"source_params": {"terms": ["heat"]}})
         assert results[0].lifecycle_stage == "consultation"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_open_call_for_evidence_is_consultation_stage(self):
         client = _mock_client([
@@ -114,6 +120,7 @@ class TestGovUKSource:
             results = await GovUKSource().fetch({"source_params": {"terms": ["heat"]}})
         assert results[0].lifecycle_stage == "consultation"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_closed_consultation_is_proposed_not_consultation(self):
         """A closed window is not an opportunity; it must not read as one."""
@@ -125,6 +132,7 @@ class TestGovUKSource:
             results = await GovUKSource().fetch({"source_params": {"terms": ["heat"]}})
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_closing_date_is_folded_into_content(self):
         """The deadline is the whole point of an open consultation, so the
@@ -137,6 +145,7 @@ class TestGovUKSource:
             results = await GovUKSource().fetch({"source_params": {"terms": ["heat"]}})
         assert "2026-09-30" in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dedupes_same_link_across_terms(self):
         client = _mock_client([
@@ -150,6 +159,7 @@ class TestGovUKSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         hits = [_hit(link=f"/government/consultations/c{n}") for n in range(8)]
@@ -163,6 +173,7 @@ class TestGovUKSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_falls_back_to_description_when_body_empty(self):
         client = _mock_client([
@@ -174,6 +185,7 @@ class TestGovUKSource:
         assert len(results) == 1
         assert "About heat networks" in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_hit_without_link_is_skipped(self):
         client = _mock_client([
@@ -183,6 +195,7 @@ class TestGovUKSource:
             results = await GovUKSource().fetch({"source_params": {"terms": ["heat"]}})
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -191,6 +204,7 @@ class TestGovUKSource:
             results = await GovUKSource().fetch({"source_params": {"terms": ["heat"]}})
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_search_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"nope": 1})])

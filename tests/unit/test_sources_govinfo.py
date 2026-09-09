@@ -6,6 +6,8 @@ import pytest
 
 from src.sources.govinfo import GovinfoSource
 
+pytestmark = pytest.mark.medium
+
 
 class _FakeResponse:
     def __init__(self, json_data=None, json_exc=None):

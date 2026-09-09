@@ -8,6 +8,8 @@ from fastapi.testclient import TestClient
 from src.core.models import AppSettings
 from src.storage.cost_settings import COST_LEVELS, CostSettingsStore
 
+pytestmark = pytest.mark.medium
+
 
 @pytest.fixture
 def cost_store(tmp_path):

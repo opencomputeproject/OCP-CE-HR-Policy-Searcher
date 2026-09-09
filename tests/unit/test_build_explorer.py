@@ -18,6 +18,7 @@ def sample_policies():
     return json.loads(FIXTURE.read_text(encoding="utf-8"))
 
 
+@pytest.mark.small
 class TestBuildExplorerHtml:
     def test_contains_all_policy_names(self, sample_policies):
         html = build_explorer_html(sample_policies)
@@ -68,6 +69,7 @@ class TestBuildExplorerHtml:
         assert "2026-07-07T06:00:00Z" in html
 
 
+@pytest.mark.medium
 class TestMain:
     def test_main_writes_output_file(self, tmp_path, sample_policies):
         out = tmp_path / "explorer.html"

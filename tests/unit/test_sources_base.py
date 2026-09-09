@@ -6,6 +6,8 @@ from src.core.models import CrawlResult, PageStatus
 from src.sources import get_source, register_source, SOURCE_REGISTRY
 from src.sources.base import PolicySource
 
+pytestmark = pytest.mark.small
+
 
 class _FakeSource(PolicySource):
     id = "fake_test_source"

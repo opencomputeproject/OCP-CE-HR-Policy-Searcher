@@ -77,12 +77,15 @@ def _listing(props):
 
 
 class TestCamaraSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["camara"] is CamaraSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert CamaraSource.api_key_env is None
 
+    @pytest.mark.small
     def test_default_terms_measured_live(self):
         """Measured 2026-07-17 against the indexed-keyword search:
         "eficiência energética" 17, "centro de dados" 2, "datacenter" 1,
@@ -94,6 +97,7 @@ class TestCamaraSource:
         assert "eficiência energética" in DEFAULT_TERMS
         assert "calor" not in DEFAULT_TERMS
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([
@@ -116,6 +120,7 @@ class TestCamaraSource:
         assert EMENTA in r.content
         assert "eficiência energética" in r.content  # detail keywords folded in
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_active_proposal_is_proposed(self):
         client = _mock_client([
@@ -128,6 +133,7 @@ class TestCamaraSource:
             )
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_transformed_into_law_is_enacted(self):
         client = _mock_client([
@@ -142,6 +148,7 @@ class TestCamaraSource:
             )
         assert results[0].lifecycle_stage == "enacted"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_archived_leaves_stage_for_the_model(self):
         """Arquivada can mean rejected, superseded, or shelved — the
@@ -156,6 +163,7 @@ class TestCamaraSource:
             )
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_missing_status_leaves_stage_for_the_model(self):
         detail = _detail()
@@ -170,6 +178,7 @@ class TestCamaraSource:
             )
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_detail_failure_falls_back_to_list_metadata(self):
         import httpx as _httpx
@@ -185,6 +194,7 @@ class TestCamaraSource:
         assert EMENTA in results[0].content
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_duplicate_id_across_terms_deduped(self):
         client = _mock_client([
@@ -198,6 +208,7 @@ class TestCamaraSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         props = [_prop(prop_id=n) for n in range(8)]
@@ -211,6 +222,7 @@ class TestCamaraSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_proposal_without_id_is_skipped(self):
         prop = _prop()
@@ -222,6 +234,7 @@ class TestCamaraSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -232,6 +245,7 @@ class TestCamaraSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"nope": 1})])

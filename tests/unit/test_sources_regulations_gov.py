@@ -6,6 +6,8 @@ import pytest
 
 from src.sources.regulations_gov import RegulationsGovSource
 
+pytestmark = pytest.mark.medium
+
 
 class _FakeResponse:
     def __init__(self, json_data=None, json_exc=None, status_code=200, headers=None):

@@ -1,7 +1,10 @@
 """Tests for the source diagnostic (src/sources/check.py)."""
 
+import pytest
 from src.sources import SOURCE_REGISTRY
 from src.sources.check import source_key_status
+
+pytestmark = pytest.mark.small
 
 
 class TestSourceKeyStatus:

@@ -15,6 +15,8 @@ import pytest
 from src.storage import db as storage_db
 from src.storage.backfill_lifecycle import backfill_lifecycle
 
+pytestmark = pytest.mark.medium
+
 
 def _insert_row(conn, url, column_stage, raw_extra=None):
     raw = {"url": url, "policy_name": f"Policy {url}", "jurisdiction": "Testland"}

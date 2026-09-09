@@ -35,9 +35,11 @@ def _search_payload(docs):
 
 
 class TestRiksdagenSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["riksdagen"] is RiksdagenSource
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         search_resp = _mock_response(json_data=_search_payload([
@@ -61,6 +63,7 @@ class TestRiksdagenSource:
         assert results[0].lifecycle_stage == "proposed"
         assert "Spillvärme" in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         search_resp = _mock_response(json_data={"unexpected": "shape"})
@@ -72,6 +75,7 @@ class TestRiksdagenSource:
 
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_cap_respected(self):
         docs = [
@@ -99,6 +103,7 @@ class TestRiksdagenSource:
 
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dedupe_within_fetch(self):
         doc = {

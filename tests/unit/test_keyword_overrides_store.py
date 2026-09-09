@@ -6,7 +6,10 @@ shared SQLite kv table. Shape:
  "thresholds": {"minimum_keyword_score": float, "minimum_matches": int}}
 """
 
+import pytest
 from src.storage.keyword_overrides import KeywordOverridesStore
+
+pytestmark = pytest.mark.medium
 
 
 class TestFreshStore:

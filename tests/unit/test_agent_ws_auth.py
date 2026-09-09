@@ -30,6 +30,7 @@ def _connection(host, headers=None):
     return SimpleNamespace(client=_Client(host), headers=headers or {})
 
 
+@pytest.mark.small
 class TestIsLoopbackClientPredicate:
     def test_loopback_ipv4_is_loopback(self):
         assert is_loopback_client(_connection("127.0.0.1")) is True
@@ -48,6 +49,7 @@ class TestIsLoopbackClientPredicate:
         assert is_loopback_client(conn) is False
 
 
+@pytest.mark.medium
 class TestAgentWebSocketAdminGate:
     @pytest.fixture(autouse=True)
     def _no_real_api_key(self, monkeypatch):

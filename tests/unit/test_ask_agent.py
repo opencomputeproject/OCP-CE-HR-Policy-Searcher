@@ -31,6 +31,7 @@ def _response(blocks, stop_reason="end_turn"):
     return SimpleNamespace(content=blocks, stop_reason=stop_reason)
 
 
+@pytest.mark.small
 class TestReaderTools:
     def test_only_read_only_tools_exposed(self):
         names = {t["name"] for t in reader_tools()}
@@ -43,6 +44,7 @@ class TestReaderTools:
             assert forbidden not in names
 
 
+@pytest.mark.small
 class TestReaderSystemPromptHonesty:
     """search_policies is now a real full-text index (name/summary/
     key_requirements/jurisdiction, all words must match), not literal
@@ -66,6 +68,7 @@ class TestReaderSystemPromptHonesty:
         assert "Abwärme" in READER_SYSTEM_PROMPT
 
 
+@pytest.mark.medium
 class TestAnswerQuestion:
     @pytest.mark.asyncio
     async def test_direct_answer_without_tools(self):

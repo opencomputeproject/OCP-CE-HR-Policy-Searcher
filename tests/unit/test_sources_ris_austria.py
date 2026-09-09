@@ -89,15 +89,19 @@ def _payload(references, hits=None):
 
 
 class TestRisAustriaSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["ris_austria"] is RisAustriaSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert RisAustriaSource.api_key_env is None
 
+    @pytest.mark.small
     def test_search_url_targets_bundesrecht(self):
         assert SEARCH_URL.endswith("/Bundesrecht")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_query_uses_suchworte_param(self):
         """Regression pin: RIS's genuine filter param is `Suchworte`, not
@@ -111,6 +115,7 @@ class TestRisAustriaSource:
         params = client.get.call_args.kwargs["params"]
         assert params["Suchworte"] == "Fernwärme"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([
@@ -137,6 +142,7 @@ class TestRisAustriaSource:
         assert "Abwärme" in r.content
         assert "Volltext des Bundesgesetzes über Abwärme." in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_umlauts_survive_into_content(self):
         """Umlaut characters (ä/ö/ü) in titles and BGBl metadata must not be
@@ -158,6 +164,7 @@ class TestRisAustriaSource:
         assert "Verordnung über Fernwärme und Rechenzentrumsabwärme" in results[0].content
         assert "15.03.2026" in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_empty_result_returns_empty_list(self):
         """A genuine zero-hit search (e.g. the nonsense-query check) must
@@ -171,6 +178,7 @@ class TestRisAustriaSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_missing_document_reference_key_returns_empty(self):
         """At zero hits RIS may omit OgdDocumentReference entirely rather
@@ -189,6 +197,7 @@ class TestRisAustriaSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_single_reference_as_dict_not_list_is_handled(self):
         """RIS may return OgdDocumentReference as a bare dict (not wrapped
@@ -216,6 +225,7 @@ class TestRisAustriaSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"unexpected": "shape"})])
@@ -225,6 +235,7 @@ class TestRisAustriaSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_non_dict_reference_entries_are_skipped(self):
         client = _mock_client([
@@ -242,6 +253,7 @@ class TestRisAustriaSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_reference_without_url_is_skipped(self):
         ref = _reference()
@@ -253,6 +265,7 @@ class TestRisAustriaSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -263,6 +276,7 @@ class TestRisAustriaSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_duplicate_url_across_terms_deduped(self):
         client = _mock_client([
@@ -281,6 +295,7 @@ class TestRisAustriaSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         refs = [
@@ -303,6 +318,7 @@ class TestRisAustriaSource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_lifecycle_stage_is_enacted(self):
         """Bundesrecht is enacted federal law (post-promulgation), unlike
@@ -321,6 +337,7 @@ class TestRisAustriaSource:
             )
         assert results[0].lifecycle_stage == "enacted"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_default_terms_used_when_not_configured(self):
         client = _mock_client([_mock_response(json_data=_payload([]))] * 10)

@@ -5,6 +5,8 @@ from fastapi.testclient import TestClient
 
 from src.core.config import ConfigLoader
 
+pytestmark = pytest.mark.medium
+
 
 @pytest.fixture
 def config_loader(tmp_path):

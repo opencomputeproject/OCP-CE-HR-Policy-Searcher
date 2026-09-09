@@ -61,9 +61,11 @@ def _mock_client(get_side_effect):
 
 
 class TestEURLexNIMSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["eurlex_nim"] is EURLexNIMSource
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self, tmp_path):
         config_dir = _write_directives(tmp_path, [{"celex": "32023L1791", "name": "EED"}])
@@ -86,6 +88,7 @@ class TestEURLexNIMSource:
         assert all(r.url.startswith("https://eur-lex.europa.eu/") for r in results)
         assert (tmp_path / "data" / "nim_seen.json").exists()
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_unseen_only_diff_across_fetches(self, tmp_path):
         config_dir = _write_directives(tmp_path, [{"celex": "32023L1791", "name": "EED"}])
@@ -117,6 +120,7 @@ class TestEURLexNIMSource:
         seen_data = json.loads((tmp_path / "data" / "nim_seen.json").read_text())
         assert len(seen_data["32023L1791"]) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_directives_yaml_loading(self, tmp_path):
         config_dir = _write_directives(tmp_path, [
@@ -140,6 +144,7 @@ class TestEURLexNIMSource:
         assert any("32023L1791" in u for u in called_urls)
         assert any("32024L1275" in u for u in called_urls)
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_missing_directives_file_raises_source_error(self, tmp_path):
         source = EURLexNIMSource()
@@ -151,6 +156,7 @@ class TestEURLexNIMSource:
                 }
             })
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_html_returns_empty_without_raising(self, tmp_path):
         config_dir = _write_directives(tmp_path, [{"celex": "32023L1791", "name": "EED"}])
@@ -168,6 +174,7 @@ class TestEURLexNIMSource:
 
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_cap_respected(self, tmp_path):
         config_dir = _write_directives(tmp_path, [{"celex": "32023L1791", "name": "EED"}])
@@ -191,6 +198,7 @@ class TestEURLexNIMSource:
 
         assert len(results) == 4
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dedupe_within_fetch(self, tmp_path):
         config_dir = _write_directives(tmp_path, [{"celex": "32023L1791", "name": "EED"}])

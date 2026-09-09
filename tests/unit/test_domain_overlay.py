@@ -22,6 +22,7 @@ from src.storage.domain_overrides import DomainOverridesStore
 # Pure function
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestApplyDomainOverrides:
     def test_no_overrides_passes_through_unchanged(self):
         domains = [{"id": "a"}, {"id": "b"}]
@@ -71,6 +72,7 @@ class TestScanManagerNoOverridesStore:
     existing ScanManager test does) must not touch the filesystem or change
     behavior at all."""
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_start_scan_unaffected_without_store(self):
         domains = [{"id": "d1", "name": "D1"}]
@@ -78,6 +80,7 @@ class TestScanManagerNoOverridesStore:
         job = await manager.start_scan(dry_run=True)
         assert job.domain_count == 1
 
+    @pytest.mark.small
     def test_estimate_cost_unaffected_without_store(self):
         domains = [{"id": "d1", "name": "D1"}]
         manager = _manager_with_domains(domains)
@@ -85,6 +88,7 @@ class TestScanManagerNoOverridesStore:
         assert result["domain_count"] == 1
 
 
+@pytest.mark.medium
 class TestScanManagerWithOverridesStore:
     @pytest.mark.asyncio
     async def test_start_scan_excludes_disabled_domain(self, tmp_path):
@@ -132,6 +136,7 @@ def domains_client(monkeypatch, tmp_path):
     app.dependency_overrides.clear()
 
 
+@pytest.mark.medium
 class TestDomainsRouteOverlay:
     def test_group_listing_excludes_overridden_domain(self, domains_client):
         client, store = domains_client
@@ -183,6 +188,7 @@ def coverage_client(monkeypatch, tmp_path):
     app.dependency_overrides.clear()
 
 
+@pytest.mark.medium
 class TestCoverageRouteOverlay:
     def test_disabled_domain_excluded_from_source_totals(self, coverage_client):
         client, store = coverage_client

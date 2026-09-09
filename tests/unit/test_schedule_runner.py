@@ -87,6 +87,7 @@ def _read_audit_events(data_dir: str) -> list[dict]:
     return [json.loads(line) for line in audit_file.read_text().splitlines() if line.strip()]
 
 
+@pytest.mark.medium
 class TestDueFires:
     @pytest.mark.asyncio
     async def test_due_schedule_fires_and_marks_ran(self, store, data_dir):
@@ -118,6 +119,7 @@ class TestDueFires:
         assert manager.start_scan_calls[0]["category"] == "heat-reuse"
 
 
+@pytest.mark.medium
 class TestNotDue:
     @pytest.mark.asyncio
     async def test_future_next_run_at_does_not_fire(self, store, data_dir):
@@ -144,6 +146,7 @@ class TestNotDue:
         assert store.get(schedule["id"])["last_scan_id"] is None
 
 
+@pytest.mark.medium
 class TestBusySkips:
     @pytest.mark.asyncio
     async def test_busy_scope_is_skipped(self, store, data_dir):
@@ -209,6 +212,7 @@ class TestBusySkips:
         assert store.get(schedule["id"])["last_scan_id"] is not None
 
 
+@pytest.mark.medium
 class TestCeilingPause:
     @pytest.mark.asyncio
     async def test_ceiling_reached_pauses_and_does_not_run(self, store, data_dir):
@@ -271,6 +275,7 @@ class TestCeilingPause:
         assert store.get(schedule["id"])["paused_reason"] is None
 
 
+@pytest.mark.medium
 class TestResilience:
     @pytest.mark.asyncio
     async def test_one_bad_schedule_does_not_stop_the_rest(self, store, data_dir):
@@ -310,6 +315,7 @@ class TestResilience:
         assert manager.start_scan.await_count == 0
 
 
+@pytest.mark.medium
 class TestClaimGuard:
     """The atomic claim prevents multiple uvicorn workers from firing the
     same due schedule on the same tick (review finding, WP-11)."""
@@ -447,6 +453,7 @@ class TestRunTick:
         # ScheduleRunner._loop's own try/except is what protects the next
         # tick; run_tick itself is a thin sequential composition.
         assert manager.start_scan.await_count == 1
+@pytest.mark.medium
 class TestFireScheduleDirect:
     """fire_schedule() is the single-schedule primitive reused by both the
     tick loop and the run-now route - exercised directly here too."""

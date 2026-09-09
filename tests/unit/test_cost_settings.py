@@ -12,6 +12,7 @@ from src.storage.cost_settings import (
 )
 
 
+@pytest.mark.small
 class TestCostSettingsModel:
     def test_defaults_match_current_behavior(self):
         s = CostSettings()
@@ -31,6 +32,7 @@ class TestCostSettingsModel:
             CostSettings(ask_daily_limit=-1)
 
 
+@pytest.mark.small
 class TestCostLevels:
     def test_standard_matches_pipeline_defaults(self):
         models = COST_LEVELS["standard"]
@@ -48,6 +50,7 @@ class TestCostLevels:
             assert set(models) == {"screening_model", "analysis_model", "ask_model"}, level
 
 
+@pytest.mark.medium
 class TestCostSettingsStore:
     def test_missing_file_yields_defaults(self, tmp_path):
         store = CostSettingsStore(data_dir=str(tmp_path))
@@ -79,6 +82,7 @@ class TestCostSettingsStore:
         assert models == COST_LEVELS["low"]
 
 
+@pytest.mark.medium
 class TestApplyToConfig:
     def test_apply_sets_analysis_models(self, tmp_path):
         from src.core.models import AppSettings

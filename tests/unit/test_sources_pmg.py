@@ -76,12 +76,15 @@ def _page(results, *, count=None, next_url=None):
 
 
 class TestPMGSource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["pmg"] is PMGSource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert PMGSource.api_key_env is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_open_cfc_is_consultation_with_deadline_in_content(self):
         client = _mock_client([
@@ -103,6 +106,7 @@ class TestPMGSource:
         assert "<p>" not in r.content
         assert "gas infrastructure" in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_closed_cfc_leaves_stage_for_the_model(self):
         """A closed window is history, not an open consultation. The bill
@@ -117,6 +121,7 @@ class TestPMGSource:
             )
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_cfc_without_end_date_leaves_stage_for_the_model(self):
         client = _mock_client([
@@ -129,6 +134,7 @@ class TestPMGSource:
             )
         assert results[0].lifecycle_stage is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_bill_without_assent_is_proposed(self):
         client = _mock_client([
@@ -144,6 +150,7 @@ class TestPMGSource:
         assert r.url == "https://pmg.org.za/bill/1319/"
         assert r.lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_assented_bill_is_enacted(self):
         client = _mock_client([
@@ -156,6 +163,7 @@ class TestPMGSource:
             )
         assert results[0].lifecycle_stage == "enacted"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_cfc_matches_on_body_not_just_title(self):
         """CFC titles are terse ("Gas Bill"); the body carries the meat.
@@ -170,6 +178,7 @@ class TestPMGSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_non_matching_items_are_skipped(self):
         client = _mock_client([
@@ -182,6 +191,7 @@ class TestPMGSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_pagination_follows_next_up_to_max_pages(self):
         page1 = _page(
@@ -202,6 +212,7 @@ class TestPMGSource:
         assert len(results) == 1
         assert results[0].url == "https://pmg.org.za/call-for-comment/2/"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_pages_stops_even_if_next_continues(self):
         page = _page([_cfc(cfc_id=1, title="Water Bill")], count=1000,
@@ -217,6 +228,7 @@ class TestPMGSource:
         # 1 CFC page + 1 bill page = exactly 2 requests.
         assert client.get.await_count == 2
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_across_endpoints(self):
         cfcs = [_cfc(cfc_id=n, title=f"Energy Bill {n}") for n in range(5)]
@@ -231,6 +243,7 @@ class TestPMGSource:
             )
         assert len(results) == 4
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -241,6 +254,7 @@ class TestPMGSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_one_endpoint_down_does_not_kill_the_other(self):
         import httpx as _httpx
@@ -254,6 +268,7 @@ class TestPMGSource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([
@@ -266,6 +281,7 @@ class TestPMGSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_items_without_id_are_skipped(self):
         cfc = _cfc()
@@ -282,6 +298,7 @@ class TestPMGSource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_garbage_end_date_does_not_crash(self):
         client = _mock_client([

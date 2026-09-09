@@ -82,12 +82,15 @@ def _detail(summary="The Act addresses the EU's cloud and AI infrastructure gap.
 
 
 class TestEUHaveYourSaySource:
+    @pytest.mark.small
     def test_registered(self):
         assert SOURCE_REGISTRY["eu_have_your_say"] is EUHaveYourSaySource
 
+    @pytest.mark.small
     def test_is_keyless(self):
         assert EUHaveYourSaySource.api_key_env is None
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_search_always_sends_language_and_page(self):
         """Regression: omitting language=EN or page returns HTTP 500
@@ -100,6 +103,7 @@ class TestEUHaveYourSaySource:
         assert params["language"] == "EN"
         assert params["page"] == 0
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_happy_path(self):
         client = _mock_client([
@@ -117,6 +121,7 @@ class TestEUHaveYourSaySource:
         assert r.title == "Cloud and AI Development Act"
         assert "cloud and AI infrastructure gap" in r.content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_float_id_becomes_integer_url(self):
         """Regression: id arrives as a float (14628.0). A naive str() would
@@ -133,6 +138,7 @@ class TestEUHaveYourSaySource:
         assert results[0].url.endswith("/initiatives/14628")
         assert "14628.0" not in results[0].url
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_detail_request_omits_text_param(self):
         """Regression: the detail endpoint 500s if ?text= is passed through."""
@@ -146,6 +152,7 @@ class TestEUHaveYourSaySource:
         detail_params = client.get.call_args_list[1].kwargs["params"]
         assert "text" not in detail_params
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_open_feedback_is_consultation_stage(self):
         client = _mock_client([
@@ -158,6 +165,7 @@ class TestEUHaveYourSaySource:
             )
         assert results[0].lifecycle_stage == "consultation"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_closed_feedback_is_proposed(self):
         client = _mock_client([
@@ -170,6 +178,7 @@ class TestEUHaveYourSaySource:
             )
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_disabled_feedback_is_proposed(self):
         client = _mock_client([
@@ -182,6 +191,7 @@ class TestEUHaveYourSaySource:
             )
         assert results[0].lifecycle_stage == "proposed"
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_feedback_deadline_is_in_content(self):
         """An open window is only actionable if the reader sees the deadline."""
@@ -195,6 +205,7 @@ class TestEUHaveYourSaySource:
             )
         assert "2026/09/11" in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_open_only_filter_drops_closed_windows(self):
         client = _mock_client([
@@ -211,6 +222,7 @@ class TestEUHaveYourSaySource:
         assert len(results) == 1
         assert results[0].url.endswith("/2")
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_dedupes_across_terms(self):
         client = _mock_client([
@@ -224,6 +236,7 @@ class TestEUHaveYourSaySource:
             )
         assert len(results) == 1
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_max_documents_caps_results(self):
         items = [_initiative(ini_id=float(n)) for n in range(8)]
@@ -237,6 +250,7 @@ class TestEUHaveYourSaySource:
             )
         assert len(results) == 3
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_missing_summary_falls_back_to_title(self):
         client = _mock_client([
@@ -250,6 +264,7 @@ class TestEUHaveYourSaySource:
         assert len(results) == 1
         assert "Cloud and AI Development Act" in results[0].content
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_initiative_without_id_is_skipped(self):
         client = _mock_client([
@@ -261,6 +276,7 @@ class TestEUHaveYourSaySource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_http_error_returns_empty_not_raise(self):
         import httpx as _httpx
@@ -271,6 +287,7 @@ class TestEUHaveYourSaySource:
             )
         assert results == []
 
+    @pytest.mark.medium
     @pytest.mark.asyncio
     async def test_malformed_payload_returns_empty(self):
         client = _mock_client([_mock_response(json_data={"nope": True})])

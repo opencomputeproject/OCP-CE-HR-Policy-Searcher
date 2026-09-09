@@ -15,6 +15,8 @@ from unittest.mock import MagicMock
 from src.core.models import Policy, PolicyType
 from src.storage.store import PolicyStore
 
+pytestmark = pytest.mark.medium
+
 
 def _policy(url, jurisdiction, score=5):
     return Policy(

@@ -11,8 +11,11 @@ Idempotent: running the seed twice, or against a table that already has any
 row, adds nothing the second time.
 """
 
+import pytest
 from src.storage.schedules import SchedulesStore
 from src.storage.seed_schedules import seed
+
+pytestmark = pytest.mark.medium
 
 
 class TestSeed:

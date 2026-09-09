@@ -4,6 +4,8 @@ import pytest
 
 from src.core.config import ConfigLoader, ConfigurationError
 
+pytestmark = pytest.mark.medium
+
 
 @pytest.fixture
 def config_dir(tmp_path):

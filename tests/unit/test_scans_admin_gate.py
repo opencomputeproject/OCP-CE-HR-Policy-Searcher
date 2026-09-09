@@ -13,6 +13,8 @@ from fastapi.testclient import TestClient
 
 from src.core.models import ScanJob, ScanProgress, ScanStatus
 
+pytestmark = pytest.mark.medium
+
 
 @pytest.fixture
 def mock_manager():

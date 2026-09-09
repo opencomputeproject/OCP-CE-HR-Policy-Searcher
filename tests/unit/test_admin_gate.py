@@ -12,6 +12,8 @@ from src.core.models import Policy, PolicyType
 from src.storage.leads import LeadStore
 from src.storage.store import PolicyStore
 
+pytestmark = pytest.mark.medium
+
 
 def _policy(url: str) -> Policy:
     return Policy(

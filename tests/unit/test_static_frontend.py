@@ -21,6 +21,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+pytestmark = pytest.mark.medium
+
 
 def _make_fake_build(tmp_path):
     build_dir = tmp_path / "build"

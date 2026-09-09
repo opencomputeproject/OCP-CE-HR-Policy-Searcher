@@ -1,11 +1,14 @@
 """Tests for GET /api/settings/legiscan-usage."""
 
+import pytest
 from fastapi.testclient import TestClient
 
 # Import once at module load so app.py's import-time load_dotenv(override=True)
 # runs before any per-test monkeypatch.delenv (otherwise a later first import
 # would re-populate the key from .env and undo the patch).
 from src.api.app import app
+
+pytestmark = pytest.mark.medium
 
 
 def _client():

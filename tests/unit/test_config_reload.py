@@ -15,6 +15,8 @@ from fastapi.testclient import TestClient
 from src.api import deps
 from src.core.config import ConfigurationError
 
+pytestmark = pytest.mark.medium
+
 
 def _write_config(config_dir, *, max_depth=3, broken=False):
     config_dir.mkdir(parents=True, exist_ok=True)

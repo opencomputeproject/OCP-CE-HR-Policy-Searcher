@@ -5,7 +5,10 @@ hardening headers. HSTS is normally a Caddy (reverse-proxy) concern; it's
 set here too as belt-and-braces in case the app is ever reached directly.
 """
 
+import pytest
 from fastapi.testclient import TestClient
+
+pytestmark = pytest.mark.medium
 
 
 def test_security_headers_present_on_success_response():

@@ -14,6 +14,7 @@ def _lead(url="https://news.example/article", title="Denmark heat mandate"):
     return Lead(title=title, source_url=url)
 
 
+@pytest.mark.medium
 class TestLeadStore:
     def test_add_and_list(self, store):
         added = store.add_leads([_lead()])
@@ -71,10 +72,12 @@ class TestNoteOnlyLeadDedupe:
     def _note_lead(self, title, snippet):
         return Lead(title=title, source_url="", snippet=snippet)
 
+    @pytest.mark.small
     def test_source_url_defaults_to_empty_string(self):
         lead = Lead(title="t")
         assert lead.source_url == ""
 
+    @pytest.mark.medium
     def test_distinct_note_only_leads_both_added(self, store):
         added = store.add_leads([
             self._note_lead("Rumor A", "First rumor"),
@@ -83,12 +86,14 @@ class TestNoteOnlyLeadDedupe:
         assert added == 2
         assert len(store.list()) == 2
 
+    @pytest.mark.medium
     def test_identical_note_text_dedupes(self, store):
         store.add_leads([self._note_lead("Rumor", "Same text")])
         added = store.add_leads([self._note_lead("Rumor again", "Same text")])
         assert added == 0
         assert len(store.list()) == 1
 
+    @pytest.mark.medium
     def test_note_only_lead_does_not_collide_with_url_lead(self, store):
         store.add_leads([_lead()])  # has a real source_url
         added = store.add_leads([self._note_lead("Rumor", "Some note")])
@@ -162,6 +167,7 @@ class TestUrlVariantDedupe:
         assert len(store.list()) == 2
 
 
+@pytest.mark.medium
 class TestRecordChase:
     """record_chase() persists a chase attempt's outcome and timing."""
 

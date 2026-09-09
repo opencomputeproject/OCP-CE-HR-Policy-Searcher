@@ -17,6 +17,7 @@ from src.core.config import ConfigurationError
 # Projection math
 # ---------------------------------------------------------------------------
 
+@pytest.mark.small
 class TestCadenceMultipliers:
     def test_monthly_is_one_run_per_month(self):
         assert RUNS_PER_MONTH["monthly"] == 1.0
@@ -28,6 +29,7 @@ class TestCadenceMultipliers:
         assert RUNS_PER_MONTH["quarterly"] == pytest.approx(1 / 3)
 
 
+@pytest.mark.small
 class TestProjectGroupEstimateOnly:
     """0 or 1 completed runs: not enough signal to trust an average, so the
     static estimate_cost() figure is used for per_month_usd."""
@@ -58,6 +60,7 @@ class TestProjectGroupEstimateOnly:
         }
 
 
+@pytest.mark.small
 class TestProjectGroupActualsBlend:
     """>= 2 completed runs: the mean actual cost drives per_month_usd."""
 
@@ -143,6 +146,7 @@ def client(monkeypatch):
     app.dependency_overrides.clear()
 
 
+@pytest.mark.medium
 class TestAdminGate:
     def test_non_admin_gets_403(self, monkeypatch):
         manager = _manager(lambda group, deep=False: {"estimated_cost_usd": 1.0})
@@ -177,6 +181,7 @@ class TestAdminGate:
         assert resp.status_code == 200
 
 
+@pytest.mark.medium
 class TestShape:
     def test_response_shape(self, client):
         resp = client.get("/api/cost-projection", params={"groups": "quick"})
@@ -217,6 +222,7 @@ class TestShape:
         assert resp.status_code == 422
 
 
+@pytest.mark.medium
 class TestUnknownGroup:
     def test_unknown_group_400_names_the_group(self, monkeypatch):
         def side_effect(group, deep=False):
