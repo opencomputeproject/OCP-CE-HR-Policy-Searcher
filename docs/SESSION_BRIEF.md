@@ -54,6 +54,14 @@ Proofmark's installer; the three sections marked TODO need a human once.
   checkout: the app auto-serves it when present, which flips the root and
   docs-gating route tests. Delete stale local builds; production builds
   happen inside Docker only.
+- Size markers: many files carry one module-level `pytestmark =
+  pytest.mark.small` (the grandfathered tests were marked file-by-file on
+  2026-09-08). The gate's guard takes the CLOSEST `small` marker, so a single
+  `@pytest.mark.medium` test inside such a file still has its sockets blocked.
+  A test that needs `medium` in a module-level-small file must go in a file,
+  or the file's marker must move down to its classes. Async tests are always
+  `medium` on Windows (the Proactor loop opens a socketpair); so is anything
+  using `tmp_path` or a `TestClient`, including one built in a helper.
 - One known slow-tier truth: `tests/integration/` is all `large` (marked by
   its conftest). The retry-backoff classes in `test_agent.py` / `test_llm.py`
   were `large` because they slept for real; since 2026-09-08 they are
